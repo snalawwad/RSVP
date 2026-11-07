@@ -131,3 +131,69 @@ table.t th{color:var(--muted);font-weight:500;background:var(--surface)}
 .evlist button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;font-size:14px}
 .evlist button[aria-current="true"]{background:var(--plum);color:var(--plum-ink);border-color:var(--plum)}
 html[lang="ar"] .hayakum{font-style:normal}
+
+/* guest page with the host's own card on top */
+body.has-card{background:var(--page,#3B0710)}
+body.has-card #help,body.has-card #help a{color:rgba(255,240,236,.75)}
+.hero{display:block;width:100%;max-width:460px;margin:0 auto 18px;border-radius:22px;box-shadow:0 18px 40px rgba(0,0,0,.35)}
+.card.plain{border-radius:24px;padding:30px 22px 26px}
+.card.plain::before{border-radius:18px}
+.card.plain::after{border-radius:14px}
+.card.plain .couple{display:none}
+.card.plain .hayakum{font-size:26px}
+/* with the host's card: only the RSVP part, sized to fit under the card */
+body.has-card main{padding-top:12px;padding-bottom:28px}
+.hero{width:auto;max-width:100%;max-height:56vh;margin:0 auto 14px}
+.card.plain{padding:22px 20px 20px;max-width:460px}
+.card.plain .hayakum,.card.plain .lead,.card.plain .when,.card.plain .hayakum::after{display:none}
+.card.plain .gname{margin:0 0 6px}
+.card.plain .state .mark{font-size:34px}
+.card.plain .links{margin-top:12px}
+/* bigger card, and a name box that reads well in light and dark mode */
+.hero{max-height:66vh;margin-bottom:12px}
+.card.plain{padding:18px 18px 16px}
+.card.plain .btn{min-height:44px;padding:9px 14px}
+.card input[type=text],.card textarea{background:var(--t-ink);border-color:var(--t-ink);color:#FFFFFF;-webkit-text-fill-color:#FFFFFF;caret-color:#FFFFFF}
+.card input[type=text]::placeholder,.card textarea::placeholder{color:rgba(255,255,255,.6);-webkit-text-fill-color:rgba(255,255,255,.6)}
+body.has-card main{padding-left:8px;padding-right:8px}
+.hero{width:100%;max-width:520px;max-height:none;border-radius:16px}
+/* softer name and reason boxes: light fill, dark text, readable in any mode */
+.card input[type=text],.card textarea{background:rgba(255,255,255,.6);border:1px solid var(--t-line);color:var(--t-ink);-webkit-text-fill-color:var(--t-ink);caret-color:var(--t-accent);border-radius:999px;padding:12px 18px;box-shadow:none}
+.card textarea{border-radius:18px}
+.card input[type=text]::placeholder,.card textarea::placeholder{color:var(--t-muted);-webkit-text-fill-color:var(--t-muted)}
+.card input[type=text]:focus,.card textarea:focus{border-color:var(--t-accent);background:rgba(255,255,255,.85)}
+/* RSVP panel under the host's card (matches Sara's mockup) */
+.card.plain{font-family:"EB Garamond","Fraunces",Georgia,serif;border-radius:28px;padding:26px 22px 18px;box-shadow:0 18px 40px rgba(0,0,0,.30)}
+.card.plain::before{inset:9px;border:1px solid var(--t-accent);opacity:.45;border-radius:21px}
+.card.plain::after{display:none}
+.rsvp-kicker{display:flex;align-items:center;gap:14px;justify-content:center;color:var(--t-ink);font-size:15px;letter-spacing:.42em;margin:0 0 6px}
+.rsvp-kicker span{padding-inline-start:.42em}
+.rsvp-kicker::before,.rsvp-kicker::after{content:"";height:1px;width:64px;background:var(--t-accent);opacity:.6}
+.rsvp-q{font-family:"EB Garamond","Fraunces",Georgia,serif;font-weight:400;font-size:30px;line-height:1.2;color:var(--t-ink);margin:0 0 18px}
+.rsvp-why{margin:6px 0 12px;font-size:20px;color:var(--t-ink);text-align:center}
+.namebox{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.55);border:1px solid var(--t-line);border-radius:999px;padding:0 18px;color:var(--t-muted);margin-bottom:16px}
+.namebox:focus-within{border-color:var(--t-accent);background:rgba(255,255,255,.8)}
+.card .namebox input[type=text]{border:0;background:transparent;padding:12px 0;min-height:50px;font-family:inherit;font-size:18px;border-radius:0}
+.card .namebox input[type=text]:focus{background:transparent}
+.card.plain .actions{gap:10px;margin-top:0}
+.card.plain .btn{font-family:inherit;font-weight:500;font-size:18px;min-height:56px;padding:10px 14px;gap:10px;letter-spacing:.01em}
+.card.plain .btn.ghost{background:transparent}
+.rsvp-rule{height:1px;background:var(--t-line);margin:20px 4px 4px}
+.card.plain .links{margin-top:4px;justify-content:center}
+.card.plain .links a{flex:0 1 auto;border:0;background:none;display:inline-flex;align-items:center;gap:10px;font-size:18px;padding:10px 12px;color:var(--t-ink)}
+.links a{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.card.plain textarea{font-family:inherit;font-size:17px}
+.card.plain .state p.serif{font-family:inherit}
+@media (max-width:370px){.card.plain .btn{font-size:16px;gap:6px}.rsvp-q{font-size:26px}}
+.card.plain .actions .btn:first-child{flex:1.45}
+.card.plain .btn svg{width:24px;height:24px;flex:none}
+.card.plain .btn span{white-space:nowrap}
+.namebox svg{width:22px;height:22px;flex:none}
+@media (max-width:380px){.card.plain .btn{font-size:16px;padding:10px 10px;gap:7px}.card.plain .btn svg{width:20px;height:20px}}
+.card.plain .actions .btn{min-width:0;padding:10px 12px}
+@media (max-width:430px){.card.plain .btn{font-size:16.5px;gap:7px;padding:10px 10px}.card.plain .btn svg{width:21px;height:21px}.card.plain .actions .btn:first-child{flex:1.7}}
+/* tappable Location spot on the card */
+.hero-wrap{position:relative;width:100%;max-width:520px;margin:0 auto 12px}
+.hero-wrap .hero{margin:0;width:100%;max-width:none}
+.hero-map{position:absolute;border-radius:14px;-webkit-tap-highlight-color:rgba(122,21,28,.18)}
+.hero-map:active,.hero-map:focus-visible{background:rgba(122,21,28,.12);outline:none}

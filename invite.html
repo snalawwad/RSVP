@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <title>دعوة</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -15,6 +15,7 @@
 </head>
 <body>
 <main>
+  <div id="hero"></div>
   <div class="card" id="card"><p class="lead">جاري فتح الدعوة…</p></div>
   <p style="text-align:center;margin-top:18px;font-size:13px;color:var(--muted)" id="help"></p>
 </main>
@@ -30,16 +31,23 @@
   const card = $('#card');
   let inv = null, mode = '', showOrig = false;
   const L = {
-    ar: { hi: 'حياكم الله', date: 'التاريخ', time: 'الوقت', venue: 'المكان', seats: 'إجمالي الدعوات', yes: 'تأكيد الحضور', no: 'اعتذار', map: '📍 اللوكيشن', cal: '🗓 أضف إلى التقويم',
+    ar: { hi: 'حياكم الله', date: 'التاريخ', time: 'الوقت', venue: 'المكان', seats: 'إجمالي الدعوات', yes: 'تأكيد الحضور', no: 'اعتذار', map: 'اللوكيشن', cal: 'أضف إلى التقويم',
       confirmed: 'تم تأكيد الحضور', showCode: 'اعرضوا هذا الرمز عند الدخول', ics: 'تحميل ملف التقويم (آيفون)', change: 'تغيير الرد', declined: 'تم تسجيل الاعتذار', miss: 'نتمنى نشوفكم بالأفراح دوم',
       why: 'نقدّر ردّكم، ممكن تخبرونا السبب؟', reasonPh: 'اكتبوا السبب هنا', reasonLbl: 'سبب الاعتذار', send: 'إرسال الاعتذار', back: 'رجوع', showCard: 'عرض بطاقة الدعوة', hideCard: 'إخفاء بطاقة الدعوة',
       card: 'بطاقة الدعوة', qr: 'رمز الدخول', nameLbl: 'الاسم الكامل', namePh: 'اكتبوا اسمكم الكامل', nameReq: 'اكتبوا اسمكم الكامل أول', reply: 'تأكيد الحضور أو الاعتذار', saveErr: 'ما قدرنا نحفظ الرد، حاولوا مرة ثانية', help: 'تحتاجون مساعدة؟', helpLink: 'راسلونا على الواتساب' },
-    en: { hi: 'You\u2019re invited', date: 'Date', time: 'Time', venue: 'Venue', seats: 'Invitations', yes: 'Confirm attendance', no: 'Decline', map: '📍 Location', cal: '🗓 Add to calendar',
+    en: { hi: 'You\u2019re invited', date: 'Date', time: 'Time', venue: 'Venue', seats: 'Invitations', yes: 'Confirm attendance', no: 'Decline', map: 'Location', cal: 'Add to calendar',
       confirmed: 'Attendance confirmed', showCode: 'Show this code at the entrance', ics: 'Download calendar file (iPhone)', change: 'Change my reply', declined: 'Your reply has been saved', miss: 'We\u2019ll miss you',
       why: 'We understand. Would you like to tell us why?', reasonPh: 'Type your reason here', reasonLbl: 'Reason for declining', send: 'Send reply', back: 'Back', showCard: 'View invitation card', hideCard: 'Hide invitation card',
-      card: 'Invitation card', qr: 'Entry code', nameLbl: 'Your full name', namePh: 'Type your full name', nameReq: 'Please type your full name first', reply: 'Will you be joining us?', saveErr: 'Your reply wasn\u2019t saved. Please try again.', help: 'Need help?', helpLink: 'Message us on WhatsApp' }
+      card: 'Invitation card', qr: 'Entry code', nameLbl: 'Your full name', namePh: 'Your full name', nameReq: 'Please type your full name first', reply: 'Will you be joining us?', saveErr: 'Your reply wasn\u2019t saved. Please try again.', help: 'Need help?', helpLink: 'Message us on WhatsApp' }
   };
   let t = L.ar;
+  const I = {
+    user: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20c.9-3.6 3.8-5.6 7.2-5.6s6.3 2 7.2 5.6"/></svg>',
+    yes: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.3l2.7 2.7L16.2 9.5"/></svg>',
+    no: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>',
+    cal: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="9" cy="14.5" r=".7" fill="currentColor"/><circle cx="12" cy="14.5" r=".7" fill="currentColor"/><circle cx="9" cy="17.3" r=".7" fill="currentColor"/><circle cx="12" cy="17.3" r=".7" fill="currentColor"/></svg>',
+    pin: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 21s-6.5-5.8-6.5-11A6.5 6.5 0 0 1 18.5 10c0 5.2-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg>'
+  };
 
   function setHelp() {
     if (CONFIG.SUPPORT_WHATSAPP && !/X/.test(CONFIG.SUPPORT_WHATSAPP)) $('#help').innerHTML = `${t.help} <a href="https://wa.me/${esc(CONFIG.SUPPORT_WHATSAPP)}" style="color:inherit">${t.helpLink}</a>`;
@@ -88,7 +96,7 @@
 
   function render() {
     const e = inv.event, lang = e.lang === 'en' ? 'en' : 'ar';
-    const links = `<div class="links">${e.map_url ? `<a href="${esc(e.map_url)}" target="_blank" rel="noopener">${t.map}</a>` : ''}${e.starts_at ? `<a href="${calLink(e)}" target="_blank" rel="noopener">${t.cal}</a>` : ''}</div>`;
+    const links = `<div class="links">${e.map_url ? `<a href="${esc(e.map_url)}" target="_blank" rel="noopener">${I.pin}<span>${t.map}</span></a>` : ''}${e.starts_at ? `<a href="${calLink(e)}" target="_blank" rel="noopener">${I.cal}<span>${t.cal}</span></a>` : ''}</div>`;
     let body = '';
     if (inv.status === 'yes' && mode !== 'decline') {
       body = `<div class="state reveal"><div class="mark">✓</div><p class="serif" style="font-size:24px;margin:6px 0 0">${t.confirmed}</p>
@@ -99,14 +107,23 @@
       body = `<div class="state reveal"><div class="mark">✕</div><p class="serif" style="font-size:24px;margin:6px 0 0">${t.declined}</p><p class="lead">${t.miss}</p></div>
         <button class="link" data-act="reset">${t.change}</button>`;
     } else if (mode === 'decline') {
-      body = `<div class="reveal" style="text-align:start"><p style="margin:0 0 10px;font-weight:600">${t.why}</p>
+      body = `<div class="reveal" style="text-align:start">${eventCode ? '<div class="rsvp-kicker"><span>RSVP</span></div>' : ''}<p class="rsvp-why">${t.why}</p>
         <textarea id="reason" rows="4" placeholder="${t.reasonPh}" aria-label="${t.reasonLbl}"></textarea>
         <div class="actions"><button class="btn" data-act="sendNo">${t.send}</button><button class="btn ghost" data-act="back">${t.back}</button></div></div>`;
     } else {
-      const nameField = eventCode ? `<div style="text-align:start;margin:4px 0 12px"><p style="margin:0 0 8px;font-weight:600">${t.reply}</p><label class="f" for="gname">${t.nameLbl}</label><input type="text" id="gname" autocomplete="name" placeholder="${t.namePh}" value="${esc(inv.name || '')}"></div>` : '';
-      body = `${nameField}<div class="actions"><button class="btn" data-act="yes">${t.yes}</button><button class="btn ghost" data-act="no">${t.no}</button></div>${links}`;
+      const nameField = eventCode ? `<div class="rsvp-kicker"><span>RSVP</span></div><h2 class="rsvp-q">${t.reply}</h2>
+        <label class="namebox">${I.user}<input type="text" id="gname" aria-label="${t.nameLbl}" autocomplete="name" placeholder="${t.namePh}" value="${esc(inv.name || '')}"></label>` : '';
+      body = `${nameField}<div class="actions"><button class="btn" data-act="yes">${I.yes}<span>${t.yes}</span></button><button class="btn ghost" data-act="no">${I.no}<span>${t.no}</span></button></div><div class="rsvp-rule"></div>${links}`;
     }
-    const orig = e.card_image_url ? `<p style="margin:14px 0 0"><button class="link" data-act="orig">${showOrig ? t.hideCard : t.showCard}</button></p>${showOrig ? `<img class="orig" src="${esc(e.card_image_url)}" alt="${t.card}">` : ''}` : '';
+    const hasCard = !!e.card_image_url;
+    const spot = (e.map_url && e.map_spot) ? String(e.map_spot).split(',').map(Number) : null;
+    const spotLink = spot && spot.length === 4 && spot.every(n => isFinite(n)) ? `<a class="hero-map" href="${esc(e.map_url)}" target="_blank" rel="noopener" aria-label="${t.map}" style="left:${spot[0]}%;top:${spot[1]}%;width:${spot[2]}%;height:${spot[3]}%"></a>` : '';
+    $('#hero').innerHTML = hasCard ? `<div class="hero-wrap"><img class="hero" src="${esc(e.card_image_url)}" alt="${t.card}">${spotLink}</div>` : '';
+    card.classList.toggle('plain', hasCard);
+    document.body.classList.toggle('has-card', hasCard);
+    if (hasCard) card.style.setProperty('--t-paper', App.mix(e.theme_paper || '#F3D2B8', '#FBF3E8', .55));
+    if (hasCard) document.body.style.setProperty('--page', App.mix(e.theme_accent || '#7A151C', '#000000', .55));
+    const orig = '';
     card.innerHTML = `<p class="hayakum serif">${t.hi}</p>${inv.name ? `<p class="gname">${esc(inv.name)}</p>` : '<div style="height:14px"></div>'}
       ${e.invite_line ? `<p class="lead">${esc(e.invite_line)}</p>` : ''}
       ${e.headline ? `<p class="couple serif">${esc(e.headline)}</p>` : ''}
