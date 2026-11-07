@@ -55,7 +55,7 @@
       .replace(/{(الرابط|link)}/g, inviteLink(g.token));
   }
   const DEFAULT_TEMPLATE = 'حياكم الله {الاسم}\n\nنتشرف بدعوتكم لحضور {المناسبة} يوم {التاريخ}.\n\nعدد الدعوات: {العدد}\nلتأكيد الحضور أو الاعتذار:\n{الرابط}';
-  const DEFAULT_TEMPLATE_EN = 'Hi {name},\n\nYou\u2019re invited to {event} on {date} at {time}.\n\nYour invitation is for {invites}.\nPlease confirm or decline here:\n{link}';
+  const DEFAULT_TEMPLATE_EN = 'Hello {name} \uD83E\uDD0D\n\nYou\u2019re invited to {event} on {date} at {time}.\n\nPlease tap your personal link to RSVP:\n{link}';
   const templateFor = ev => ev.message_template || (ev.lang === 'en' ? DEFAULT_TEMPLATE_EN : DEFAULT_TEMPLATE);
 
   // Theme from the host's invite colours

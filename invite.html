@@ -96,6 +96,7 @@
 
   function render() {
     const e = inv.event, lang = e.lang === 'en' ? 'en' : 'ar';
+    const cardMode = !!e.card_image_url;
     const links = `<div class="links">${e.map_url ? `<a href="${esc(e.map_url)}" target="_blank" rel="noopener">${I.pin}<span>${t.map}</span></a>` : ''}${e.starts_at ? `<a href="${calLink(e)}" target="_blank" rel="noopener">${I.cal}<span>${t.cal}</span></a>` : ''}</div>`;
     let body = '';
     if (inv.status === 'yes' && mode !== 'decline') {
@@ -111,7 +112,7 @@
         <textarea id="reason" rows="4" placeholder="${t.reasonPh}" aria-label="${t.reasonLbl}"></textarea>
         <div class="actions"><button class="btn" data-act="sendNo">${t.send}</button><button class="btn ghost" data-act="back">${t.back}</button></div></div>`;
     } else {
-      const nameField = eventCode ? `<div class="rsvp-kicker"><span>RSVP</span></div><h2 class="rsvp-q">${t.reply}</h2>
+      const nameField = !eventCode && cardMode ? `<div class="rsvp-kicker"><span>RSVP</span></div><h2 class="rsvp-q">${t.reply}</h2>` : eventCode ? `<div class="rsvp-kicker"><span>RSVP</span></div><h2 class="rsvp-q">${t.reply}</h2>
         <label class="namebox">${I.user}<input type="text" id="gname" aria-label="${t.nameLbl}" autocomplete="name" placeholder="${t.namePh}" value="${esc(inv.name || '')}"></label>` : '';
       body = `${nameField}<div class="actions"><button class="btn" data-act="yes">${I.yes}<span>${t.yes}</span></button><button class="btn ghost" data-act="no">${I.no}<span>${t.no}</span></button></div><div class="rsvp-rule"></div>${links}`;
     }
@@ -128,7 +129,7 @@
       ${e.invite_line ? `<p class="lead">${esc(e.invite_line)}</p>` : ''}
       ${e.headline ? `<p class="couple serif">${esc(e.headline)}</p>` : ''}
       <div class="when">${e.starts_at ? `<div><b>${t.date}</b>${esc(fmtDate(e.starts_at, lang))}</div><div><b>${t.time}</b>${esc(fmtTime(e.starts_at, lang))}</div>` : ''}${e.venue ? `<div style="grid-column:1/-1"><b>${t.venue}</b>${esc(e.venue)}</div>` : ''}</div>
-      ${eventCode ? '' : `<div class="seats"><span>${t.seats}</span><b>${inv.seats}</b></div>`}${body}${orig}`;
+      ${eventCode || (cardMode && inv.seats <= 1) ? '' : `<div class="seats"><span>${t.seats}</span><b>${inv.seats}</b></div>`}${body}${orig}`;
 
     const qr = $('#qr');
     if (qr && window.QRCode) new QRCode(qr, { text: inv.token, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });

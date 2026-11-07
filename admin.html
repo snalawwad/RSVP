@@ -64,9 +64,12 @@
         <h3>Upload a guest list (optional)</h3>
         <div style="max-width:320px;margin-bottom:10px"><label class="f" for="impSide">Add the file to this list (optional)</label><input type="text" id="impSide" list="sideOpts" placeholder="e.g. Groom’s mum"></div>
         <label class="drop"><input type="file" id="listFile" accept=".xlsx,.xls,.csv,.docx"><p style="margin:0 0 10px">An Excel, CSV or Word file with names and numbers (and number of invites, if you have it)</p><span class="btn small">Choose file</span></label>
+        <p class="sub" style="margin:16px 0 6px">Or type or paste them here, one guest per line with their name and number:</p>
+        <textarea id="pasteList" rows="6" placeholder="Dana Alanjeri 55771754&#10;Huda Alsaleh 99619992"></textarea>
+        <div class="row" style="margin-top:8px"><button class="btn small" id="readPaste">Check names</button></div>
         <div id="preview"></div>
 
-        <h3>Send personal invites</h3>
+        <h3>Send invites one by one</h3>
         <div class="box" id="queue"></div>
       </div>
     </div>
@@ -246,6 +249,14 @@
     } catch (err) { toast('Couldn\u2019t read that file'); }
     renderPreview();
   };
+  $('#readPaste').onclick = () => {
+    const lines = $('#pasteList').value.split(/\n/);
+    parsed = fromLines(lines);
+    const seen = new Set(); parsed = parsed.filter(g => !seen.has(g.phone) && seen.add(g.phone));
+    if (!parsed.length) toast('Put a name and a number on each line'); else toast(`Found ${parsed.length} guests, check them below`);
+    renderPreview();
+  };
+
   function renderPreview() {
     const p = $('#preview'); if (!parsed.length) { p.innerHTML = ''; return; }
     p.innerHTML = `<p style="margin:14px 0 8px">Found <b>${parsed.length}</b> guests. Check them before adding:</p>
@@ -261,28 +272,37 @@
       const { data, error } = await sb.from('guests').upsert(rows, { onConflict: 'event_id,phone', ignoreDuplicates: true }).select('id');
       if (error) { toast('Couldn\u2019t add the list: ' + error.message); return; }
       const added = (data || []).length; toast(`Added ${added} guests` + (parsed.length - added ? ` (skipped ${parsed.length - added} duplicates)` : ''));
-      parsed = []; renderPreview(); loadGuests();
+      parsed = []; $('#pasteList').value = ''; renderPreview(); loadGuests();
     };
   }
 
   // ---- sending ----
   function renderQueue() {
-    const q = $('#queue'), tpl = App.templateFor(ev), unsent = guests.filter(g => !g.sent_at && g.phone);
-    if (!Q.list.length) {
-      q.innerHTML = unsent.length ? `<p style="margin:0 0 6px"><b>${unsent.length}</b> invites ready to send.</p><p class="sub" style="margin:0 0 8px">Example message:</p><div class="msg">${esc(fillTemplate(tpl, ev, unsent[0]))}</div>
-        <div class="row" style="margin-top:10px"><button class="btn small" id="startQ">Start sending</button></div>`
-        : `<p class="empty" style="padding:6px">${guests.length ? 'Everyone with a number has been sent their invite.' : 'Upload a guest list to send personal invites, or just share the invite link from the dashboard.'}</p>`;
-      const s = $('#startQ'); if (s) s.onclick = () => { Q.list = unsent.map(g => g.id); Q.i = 0; renderQueue(); };
+    const q = $('#queue'), tpl = App.templateFor(ev);
+    const list = guests.filter(g => g.phone).sort((a, b) => (a.sent_at ? 1 : 0) - (b.sent_at ? 1 : 0));
+    if (!list.length) {
+      q.innerHTML = `<p class="empty" style="padding:6px">Add guests with a number above, and each one will appear here with their own message and a Send button.</p>`;
       return;
     }
-    if (Q.i >= Q.list.length) { const n = Q.list.length; Q.list = []; q.innerHTML = `<p class="serif" style="font-size:22px;margin:0;color:var(--ok)">✓ Sent ${n} invites</p>`; setTimeout(renderQueue, 2500); return; }
-    const g = guests.find(x => x.id === Q.list[Q.i]); if (!g) { Q.i++; renderQueue(); return; }
-    q.innerHTML = `<p style="margin:0">Invite ${Q.i + 1} of ${Q.list.length}: <b>${esc(g.name)}</b></p><div class="progress"><i style="width:${Q.i / Q.list.length * 100}%"></i></div>
-      <div class="row"><a class="btn small" id="one" href="${waLink(g.phone, fillTemplate(tpl, ev, g))}" target="_blank" rel="noopener">Open in WhatsApp</a><button class="btn small ghost" id="skip">Skip</button><button class="link" id="stop">Stop</button></div>`;
-    $('#one').onclick = async () => { g.sent_at = new Date().toISOString(); await sb.from('guests').update({ sent_at: g.sent_at }).eq('id', g.id); Q.i++; setTimeout(renderQueue, 400); };
-    $('#skip').onclick = () => { Q.i++; renderQueue(); };
-    $('#stop').onclick = () => { Q.list = []; renderQueue(); };
+    const sentN = list.filter(g => g.sent_at).length;
+    q.innerHTML = `<p class="sub" style="margin:0 0 12px">Each guest has their own message with their name and personal link. Change any message if you like, then tap <b>Send on WhatsApp</b>: their chat opens with it ready, and you tap send. ${sentN ? `${sentN} of ${list.length} sent.` : ''}</p>
+      <div class="sendlist">${list.map(g => `<div class="sendrow" data-id="${g.id}">
+        <div class="row" style="justify-content:space-between;margin-bottom:6px"><b>${esc(g.name)}</b><span class="pill ${g.sent_at ? 'yes' : 'pending'}">${g.sent_at ? 'Sent' : 'Not sent yet'}</span></div>
+        <textarea class="msgbox" rows="7" aria-label="Message for ${esc(g.name)}">${esc(fillTemplate(tpl, ev, g))}</textarea>
+        <div class="row" style="margin-top:8px"><a class="btn small wa" target="_blank" rel="noopener" href="${waLink(g.phone, fillTemplate(tpl, ev, g))}">${WA}<span>${g.sent_at ? 'Send again' : 'Send on WhatsApp'}</span></a><span class="sub" style="margin:0;font-size:13px">${esc(showPhone(g.phone))}</span></div>
+      </div>`).join('')}</div>`;
+    q.querySelectorAll('.sendrow').forEach(row => {
+      const g = guests.find(x => x.id === row.dataset.id), box = row.querySelector('.msgbox'), btn = row.querySelector('.wa');
+      box.oninput = () => { btn.href = waLink(g.phone, box.value); };
+      btn.onclick = async () => {
+        g.sent_at = new Date().toISOString();
+        await sb.from('guests').update({ sent_at: g.sent_at }).eq('id', g.id);
+        const pill = row.querySelector('.pill'); pill.className = 'pill yes'; pill.textContent = 'Sent';
+        btn.querySelector('span').textContent = 'Send again';
+      };
+    });
   }
+  const WA = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2.2A9.7 9.7 0 0 0 3.7 16.9L2.4 21.6l4.8-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.6a7.9 7.9 0 0 1-4-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A7.9 7.9 0 1 1 12 19.8zm4.4-5.9c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.7-1.8c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.4-.6 1.6-1.2.2-.6.2-1 .1-1.2l-.4-.2z"/></svg>';
 })();
 </script>
 </body>
