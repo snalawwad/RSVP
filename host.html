@@ -9,6 +9,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="config.js"></script>
 <script src="core.js"></script>
 </head>
@@ -24,6 +27,35 @@
       <div class="evlist" id="views" style="margin:0"><button data-v="rsvp" aria-current="true">RSVPs</button><button data-v="att" aria-current="false">Arrivals</button></div>
       <div id="sideWrap" style="margin-inline-start:auto"></div>
     </div>
+    <div class="row" style="margin:-4px 0 14px"><button class="btn small ghost" id="toggleEdit" aria-expanded="false">✎ Edit invite</button><button class="btn small ghost" id="toggleBulk" aria-expanded="false">+ Add guests</button></div>
+    <div class="box" id="editBox" hidden style="margin-bottom:16px">
+      <h3 style="margin-top:0">Edit your invite</h3>
+      <div class="grid2">
+        <div style="grid-column:1/-1"><label class="f" for="eTitle">Event name</label><input type="text" id="eTitle"></div>
+        <div style="grid-column:1/-1"><label class="f" for="eLine">Invite line</label><input type="text" id="eLine" placeholder="Join us for Ghala’s bridal shower"></div>
+        <div style="grid-column:1/-1"><label class="f" for="eNote">Note on the invite page (optional)</label><input type="text" id="eNote" placeholder="e.g. Bring your thoub!"></div>
+        <div style="grid-column:1/-1"><label class="f" for="eHead">Big title (shown when there’s no card)</label><input type="text" id="eHead"></div>
+        <div><label class="f" for="eDate">Date</label><input type="date" id="eDate"></div>
+        <div class="grid2" style="gap:8px"><div><label class="f" for="eTime">From</label><input type="time" id="eTime"></div><div><label class="f" for="eEnd">To</label><input type="time" id="eEnd"></div></div>
+        <div><label class="f" for="eVenue">Venue</label><input type="text" id="eVenue"></div>
+        <div><label class="f" for="eMap">Google Maps link</label><input type="url" id="eMap"></div>
+        <div><label class="f" for="eLang">Invite language</label><select id="eLang"><option value="en">English</option><option value="ar">العربية</option></select></div>
+        <div style="grid-column:1/-1"><label class="f" for="eTpl">WhatsApp message</label><textarea id="eTpl" rows="7"></textarea>
+          <p class="sub" style="font-size:13px;margin:4px 0 0">Words in { } fill in for each guest: {name} {date} {time} {venue} {event} {link}</p></div>
+      </div>
+      <h3>Invite card</h3>
+      <label class="drop"><input type="file" id="eCard" accept="image/*,.pdf"><p style="margin:0 0 10px">Upload your invite card (photo or PDF). It shows at the top of the invite page.</p><span class="btn small">Upload card</span></label>
+      <div id="eTheme"></div>
+      <div class="row" style="margin-top:14px"><button class="btn" id="eSave">Save changes</button><a class="btn ghost" id="ePreview" target="_blank" rel="noopener" href="#">See guest page</a></div>
+    </div>
+    <div class="box" id="bulkBox" hidden style="margin-bottom:16px">
+      <h3 style="margin-top:0">Add guests</h3>
+      <p class="sub" style="margin:0 0 8px">Type or paste one guest per line with their name and number, or upload an Excel file.</p>
+      <textarea id="bPaste" rows="6" placeholder="Dana Alanjeri 55771754&#10;Huda Alsaleh 99619992"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn small" id="bRead">Check names</button></div>
+      <label class="drop" style="margin-top:12px"><input type="file" id="bFile" accept=".xlsx,.xls,.csv,.docx"><span class="btn small">Upload Excel file</span></label>
+      <div id="bPreview"></div>
+    </div>
     <p class="sub" id="balance" style="margin:-4px 0 12px;font-size:14px" hidden></p>
     <div class="box" id="pubBox" style="margin-bottom:14px" hidden></div>
     <div class="stats" id="stats" role="group" aria-label="Filter by reply"></div>
@@ -31,7 +63,7 @@
 
     <div class="toolbar">
       <input type="search" id="q" placeholder="Search by name or number" aria-label="Search">
-      <button class="btn small" id="toggleAdd" aria-expanded="false">+ Add guest</button>
+      <button class="btn small" id="toggleAdd" aria-expanded="false" hidden>+ Add guest</button>
     </div>
     <div class="box" id="addBox" hidden style="margin-top:10px">
       <div class="grid2">
@@ -180,6 +212,147 @@
   }
 
   document.querySelectorAll('#views button').forEach(b => b.onclick = () => { view = b.dataset.v; render(); });
+
+
+  // ---------- shared helpers (same as admin) ----------
+  const isPhone = v => { const p = normPhone(v); return p.length >= 10 && p.length <= 15 && !/[a-zA-Zء-ي]/.test(String(v)); };
+  function fromRows(rows) {
+    rows = rows.filter(r => r.some(c => String(c).trim())); if (!rows.length) return [];
+    const cols = Math.max(...rows.map(r => r.length)); let pc = -1, best = 0;
+    for (let c = 0; c < cols; c++) { const n = rows.filter(r => isPhone(r[c])).length; if (n > best) { best = n; pc = c; } }
+    if (pc < 0) return [];
+    const head = rows[0].map(String); const sc = head.findIndex(h => /عدد|seats|count|كم/i.test(h)); let nc = -1;
+    for (let c = 0; c < cols; c++) { if (c === pc || c === sc) continue; if (rows.filter(r => /[ء-يa-zA-Z]/.test(String(r[c]))).length >= rows.length / 2) { nc = c; break; } }
+    if (nc < 0) return [];
+    return rows.filter(r => isPhone(r[pc])).map(r => ({ name: String(r[nc]).trim(), phone: normPhone(r[pc]), seats: Math.max(1, parseInt(sc >= 0 ? r[sc] : 1) || 1) })).filter(g => g.name);
+  }
+  function fromLines(lines) {
+    const out = []; let pending = null;
+    lines.map(l => l.trim()).filter(Boolean).forEach(l => {
+      const m = l.match(/(\+?[\d٠-٩][\d٠-٩\s-]{6,}[\d٠-٩])/);
+      if (m && isPhone(m[1])) { const rest = l.replace(m[1], '').replace(/[-–:,|]/g, ' ').trim(); const name = /[ء-يa-zA-Z]/.test(rest) ? rest : pending; if (name) out.push({ name, phone: normPhone(m[1]), seats: 1 }); pending = null; }
+      else if (/[ء-يa-zA-Z]/.test(l) && !/^(الاسم|name|الرقم|phone)/i.test(l)) pending = l;
+    });
+    return out;
+  }
+  function palette(img) {
+    const W = 90, H = Math.max(1, Math.round(img.naturalHeight * W / img.naturalWidth));
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(img, 0, 0, W, H);
+    const d = cx.getImageData(0, 0, W, H).data, B = {};
+    for (let i = 0; i < d.length; i += 4) { if (d[i + 3] < 128) continue; const k = (d[i] >> 4) + '-' + (d[i + 1] >> 4) + '-' + (d[i + 2] >> 4); const o = B[k] || (B[k] = { n: 0, r: 0, g: 0, b: 0 }); o.n++; o.r += d[i]; o.g += d[i + 1]; o.b += d[i + 2]; }
+    const all = Object.values(B).map(o => ({ n: o.n, c: [o.r / o.n, o.g / o.n, o.b / o.n] })).sort((a, b) => b.n - a.n);
+    const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+    const sat = c => { const mx = Math.max(...c), mn = Math.min(...c); return mx ? (mx - mn) / mx : 0; };
+    const ds = []; all.forEach(o => { if (ds.length < 8 && ds.every(x => dist(x.c, o.c) > 48)) ds.push(o); });
+    const paper = ds[0] ? ds[0].c : [255, 251, 250];
+    let best = null, score = -1;
+    ds.slice(1).forEach(o => { const dd = dist(o.c, paper); if (dd < 70) return; const s = Math.sqrt(o.n) * (.35 + sat(o.c)) * dd; if (s > score) { score = s; best = o; } });
+    return { paper: rgb2hex(paper), accent: rgb2hex(best ? best.c : (lum(rgb2hex(paper)) > .4 ? [60, 40, 40] : [230, 210, 200])), chips: ds.map(o => rgb2hex(o.c)) };
+  }
+  async function toJpeg(f) {
+    let src;
+    if (f.type === 'application/pdf' || /\.pdf$/i.test(f.name)) {
+      const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await f.arrayBuffer()) }).promise;
+      const pg = await pdf.getPage(1); const vp = pg.getViewport({ scale: 1 }); const v = pg.getViewport({ scale: Math.min(2, 1400 / vp.width) });
+      const cv = document.createElement('canvas'); cv.width = v.width; cv.height = v.height;
+      await pg.render({ canvasContext: cv.getContext('2d'), viewport: v }).promise; src = cv.toDataURL('image/jpeg', .9);
+    } else src = URL.createObjectURL(f);
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+    const sc = Math.min(1, 1400 / Math.max(img.naturalWidth, img.naturalHeight));
+    const cv = document.createElement('canvas'); cv.width = Math.round(img.naturalWidth * sc); cv.height = Math.round(img.naturalHeight * sc);
+    const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(img, 0, 0, cv.width, cv.height);
+    const blob = await new Promise(res => cv.toBlob(res, 'image/jpeg', .85));
+    return { img, blob };
+  }
+
+  if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const { kwToIso, isoToKw, rgb2hex, lum, themeVars } = App;
+
+  // ---------- edit invite ----------
+  function fillEdit() {
+    const s = isoToKw(ev.starts_at), en = isoToKw(ev.ends_at);
+    $('#eTitle').value = ev.title || ''; $('#eLine').value = ev.invite_line || ''; $('#eNote').value = ev.note || ''; $('#eHead').value = ev.headline || '';
+    $('#eDate').value = s.date; $('#eTime').value = s.time; $('#eEnd').value = en.time; $('#eVenue').value = ev.venue || ''; $('#eMap').value = ev.map_url || '';
+    $('#eLang').value = ev.lang || 'en'; $('#eTpl').value = App.templateFor(ev);
+    $('#ePreview').href = ev.public_code ? `${(CONFIG.SITE_URL || location.origin).replace(/\/$/, '')}/invite.html?e=${ev.public_code}` : '#';
+    renderEditTheme();
+  }
+  function renderEditTheme(chips) {
+    const v = themeVars(ev.theme_accent, ev.theme_paper);
+    $('#eTheme').innerHTML = `<div class="row" style="align-items:flex-start;margin-top:12px">
+      ${ev.card_image_url ? `<img class="thumb" src="${esc(ev.card_image_url)}" alt="Invite card">` : ''}
+      <div style="flex:1;min-width:200px">
+        ${chips && chips.length ? `<p class="sub" style="font-size:13px;margin:0">Colours from the card:</p><div class="chips">${chips.map(c => `<button class="chip" style="background:${c}" data-chip="${c}" aria-label="${c}"></button>`).join('')}</div>` : ''}
+        <label class="pick"><input type="color" id="etA" value="${esc(ev.theme_accent)}"> Main colour</label>
+        <label class="pick"><input type="color" id="etP" value="${esc(ev.theme_paper)}"> Background colour</label>
+        ${ev.card_image_url ? '<button class="link" id="eRemoveCard">Remove card</button>' : ''}
+      </div></div>`;
+    $('#eTheme').querySelectorAll('[data-chip]').forEach(b => b.onclick = () => saveEvent({ theme_accent: b.dataset.chip }));
+    $('#etA').onchange = e => saveEvent({ theme_accent: e.target.value });
+    $('#etP').onchange = e => saveEvent({ theme_paper: e.target.value });
+    const rm = $('#eRemoveCard'); if (rm) rm.onclick = () => saveEvent({ card_image_url: '' });
+  }
+  async function saveEvent(patch, quiet) {
+    const { data, error } = await sb.rpc('host_update_event', { p_event: ev.id, p: patch });
+    if (error) { toast('Couldn\u2019t save: ' + error.message); return false; }
+    ev = { ...ev, ...data }; const i = events.findIndex(x => x.id === ev.id); if (i >= 0) events[i] = ev;
+    $('#title').textContent = ev.title;
+    $('#meta').textContent = [fmtDate(ev.starts_at, 'en'), fmtTime(ev.starts_at, 'en'), ev.venue].filter(Boolean).join(' · ');
+    renderPub(); renderEditTheme(); if (!quiet) toast('Saved'); return true;
+  }
+  $('#toggleEdit').onclick = () => { const b = $('#editBox'), open = b.hidden; b.hidden = !open; $('#toggleEdit').setAttribute('aria-expanded', open); if (open) fillEdit(); };
+  $('#eSave').onclick = async () => {
+    const date = $('#eDate').value;
+    let ends = date && $('#eEnd').value ? kwToIso(date, $('#eEnd').value) : '';
+    const starts = kwToIso(date, $('#eTime').value) || '';
+    if (ends && starts && ends < starts) ends = new Date(new Date(ends).getTime() + 864e5).toISOString();
+    await saveEvent({ title: $('#eTitle').value, invite_line: $('#eLine').value, note: $('#eNote').value, headline: $('#eHead').value,
+      starts_at: starts, ends_at: ends, venue: $('#eVenue').value, map_url: $('#eMap').value, lang: $('#eLang').value, message_template: $('#eTpl').value });
+    render();
+  };
+  $('#eCard').onchange = async e => {
+    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    toast('Uploading your card…');
+    try {
+      const { img, blob } = await toJpeg(f);
+      const pal = palette(img);
+      const path = `${ev.id}/${Date.now()}.jpg`;
+      const up = await sb.storage.from('cards').upload(path, blob, { contentType: 'image/jpeg' });
+      if (up.error) throw up.error;
+      const url = sb.storage.from('cards').getPublicUrl(path).data.publicUrl;
+      if (await saveEvent({ card_image_url: url, theme_accent: pal.accent, theme_paper: pal.paper }, true)) { renderEditTheme(pal.chips); toast('Card added, colours matched'); }
+    } catch (err) { toast('Couldn\u2019t upload the card: ' + (err.message || 'try a JPG photo')); }
+  };
+
+  // ---------- add many guests ----------
+  let parsed = [];
+  $('#toggleBulk').onclick = () => { const b = $('#bulkBox'), open = b.hidden; b.hidden = !open; $('#toggleBulk').setAttribute('aria-expanded', open); };
+  const dedupe = list => { const seen = new Set(); return list.filter(g => !seen.has(g.phone) && seen.add(g.phone)); };
+  $('#bRead').onclick = () => { parsed = dedupe(fromLines($('#bPaste').value.split(/\n/))); if (!parsed.length) toast('Put a name and a number on each line'); renderBulk(); };
+  $('#bFile').onchange = async e => {
+    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    try {
+      if (/\.docx$/i.test(f.name)) parsed = fromLines((await mammoth.extractRawText({ arrayBuffer: await f.arrayBuffer() })).value.split(/\n/));
+      else { const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' }); parsed = fromRows(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' })); }
+      parsed = dedupe(parsed); if (!parsed.length) toast('No names and numbers found in that file');
+    } catch (err) { toast('Couldn\u2019t read that file'); }
+    renderBulk();
+  };
+  function renderBulk() {
+    const p = $('#bPreview'); if (!parsed.length) { p.innerHTML = ''; return; }
+    p.innerHTML = `<p style="margin:14px 0 8px">Found <b>${parsed.length}</b> guests:</p>
+      <div class="glist">${parsed.map(g => `<div class="gi"><div class="gi-main"><b>${esc(g.name)}</b><div class="gi-sub"><span>${esc(showPhone(g.phone))}</span></div></div></div>`).join('')}</div>
+      <div class="row" style="margin-top:10px"><button class="btn small" id="bAdd">Add to my list</button><button class="btn small ghost" id="bCancel">Cancel</button></div>`;
+    $('#bCancel').onclick = () => { parsed = []; renderBulk(); };
+    $('#bAdd').onclick = async () => {
+      const rows = parsed.map(g => ({ ...g, event_id: ev.id, side: mySide || (side !== 'all' ? side : null) }));
+      const { data, error } = await sb.from('guests').upsert(rows, { onConflict: 'event_id,phone', ignoreDuplicates: true }).select('id');
+      if (error) { toast(/limit/.test(error.message || '') ? 'Not enough invites left in the package' : 'Couldn\u2019t add them: ' + error.message); return; }
+      const added = (data || []).length; toast(`Added ${added} guests` + (parsed.length - added ? ` (skipped ${parsed.length - added} already on the list)` : ''));
+      parsed = []; $('#bPaste').value = ''; renderBulk(); loadGuests();
+    };
+  }
 
   async function markSent(id) { await sb.from('guests').update({ sent_at: new Date().toISOString() }).eq('id', id); }
 

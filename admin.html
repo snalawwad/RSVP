@@ -33,6 +33,9 @@
           <option value="graduation">Graduation</option><option value="birthday">Birthday</option><option value="baby">Baby shower</option><option value="corporate">Company event</option><option value="other">Other</option></select></div>
         <div><label class="f" for="fLang">Guest page language</label><select id="fLang"><option value="en">English</option><option value="ar">العربية</option></select></div>
         <div style="grid-column:1/-1"><label class="f" for="fLine">Invite line</label><input type="text" id="fLine" placeholder="Join us for Ghala’s bridal shower"></div>
+        <div style="grid-column:1/-1"><label class="f" for="fNote">Note on the invite page (optional)</label><input type="text" id="fNote" placeholder="e.g. Bring your thoub! We will have a male samra group."></div>
+        <div style="grid-column:1/-1"><label class="f" for="fCode">Invite link name (letters, numbers or dashes, at least 8)</label><input type="text" id="fCode" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="e.g. laylatghala">
+          <p class="sub" style="font-size:13px;margin:4px 0 0">Link: <span id="codeLink"></span></p></div>
         <div style="grid-column:1/-1"><label class="f" for="fHead">Big title on the card</label><input type="text" id="fHead" placeholder="ليلة غلا"></div>
         <div><label class="f" for="fDate">Date</label><input type="date" id="fDate"></div>
         <div class="grid2" style="gap:8px"><div><label class="f" for="fTime">From</label><input type="time" id="fTime"></div><div><label class="f" for="fEnd">To (optional)</label><input type="time" id="fEnd"></div></div>
@@ -99,6 +102,11 @@
     else if (!ev && events.length) open(events[0]);
   }
   $('#newEv').onclick = () => open(null);
+  function showCodeLink() {
+    const c = $('#fCode').value.trim().toLowerCase();
+    $('#codeLink').textContent = c ? `${(CONFIG.SITE_URL || location.origin).replace(/\/$/, '')}/invite.html?e=${c}` : 'created automatically when you save';
+  }
+  $('#fCode').oninput = showCodeLink;
   $('#fLang').onchange = () => { const t = $('#fTpl').value.trim(); if (!t || t === DEFAULT_TEMPLATE.trim() || t === App.DEFAULT_TEMPLATE_EN.trim()) $('#fTpl').value = $('#fLang').value === 'en' ? App.DEFAULT_TEMPLATE_EN : DEFAULT_TEMPLATE; };
 
   async function open(e) {
@@ -106,7 +114,7 @@
     $('#evlist').querySelectorAll('button').forEach(b => b.setAttribute('aria-current', !!e && b.dataset.id === e.id));
     const s = isoToKw(e?.starts_at), en = isoToKw(e?.ends_at);
     $('#fTitle').value = e?.title || ''; $('#fType').value = e?.event_type || 'wedding'; $('#fLine').value = e?.invite_line || ''; $('#fHead').value = e?.headline || '';
-    $('#fDate').value = s.date; $('#fTime').value = s.time; $('#fEnd').value = en.time; $('#fVenue').value = e?.venue || ''; $('#fMap').value = e?.map_url || ''; $('#fLimit').value = e?.invite_limit ?? '';
+    $('#fDate').value = s.date; $('#fTime').value = s.time; $('#fEnd').value = en.time; $('#fVenue').value = e?.venue || ''; $('#fMap').value = e?.map_url || ''; $('#fNote').value = e?.note || ''; $('#fCode').value = e?.public_code || ''; showCodeLink(); $('#fLimit').value = e?.invite_limit ?? '';
     $('#fLang').value = e?.lang || 'en';
     $('#fTpl').value = e ? App.templateFor(e) : App.DEFAULT_TEMPLATE_EN;
     $('#needSave').hidden = !!e; $('#afterSave').hidden = !e;
@@ -119,11 +127,17 @@
     const row = { title: $('#fTitle').value.trim(), event_type: $('#fType').value, invite_line: $('#fLine').value.trim() || null, headline: $('#fHead').value.trim() || null,
       starts_at: kwToIso(date, $('#fTime').value), ends_at: date && $('#fEnd').value ? kwToIso(date, $('#fEnd').value) : null,
       venue: $('#fVenue').value.trim() || null, map_url: $('#fMap').value.trim() || null, message_template: $('#fTpl').value, lang: $('#fLang').value,
+      note: $('#fNote').value.trim() || null,
       invite_limit: $('#fLimit').value === '' ? null : Math.max(0, parseInt($('#fLimit').value) || 0) };
     if (!row.title) { toast('Give the event a name'); return; }
+    const code = $('#fCode').value.trim().toLowerCase();
+    if (code) {
+      if (!/^[a-z0-9-]{8,40}$/.test(code)) { toast('Link name: 8 or more letters, numbers or dashes, no spaces'); return; }
+      row.public_code = code;
+    }
     if (row.ends_at && row.starts_at && row.ends_at < row.starts_at) row.ends_at = new Date(new Date(row.ends_at).getTime() + 864e5).toISOString();
     const res = ev ? await sb.from('events').update(row).eq('id', ev.id).select().single() : await sb.from('events').insert({ ...row, created_by: (await sb.auth.getUser()).data.user.id }).select().single();
-    if (res.error) { toast('Couldn\u2019t save: ' + res.error.message); return; }
+    if (res.error) { toast(res.error.code === '23505' ? 'That link name is taken, try another' : 'Couldn\u2019t save: ' + res.error.message); return; }
     toast('Saved'); ev = res.data; await loadEvents(ev.id);
   };
 
