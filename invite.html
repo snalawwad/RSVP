@@ -112,7 +112,8 @@
         <textarea id="reason" rows="4" placeholder="${t.reasonPh}" aria-label="${t.reasonLbl}"></textarea>
         <div class="actions"><button class="btn" data-act="sendNo">${t.send}</button><button class="btn ghost" data-act="back">${t.back}</button></div></div>`;
     } else {
-      const nameField = !eventCode && cardMode ? `<div class="rsvp-kicker"><span>RSVP</span></div><h2 class="rsvp-q">${t.reply}</h2>` : eventCode ? `<div class="rsvp-kicker"><span>RSVP</span></div><h2 class="rsvp-q">${t.reply}</h2>
+      const note = e.note ? `<p class="rsvp-note">${esc(e.note)}</p>` : '';
+      const nameField = !eventCode && cardMode ? `<div class="rsvp-kicker"><span>RSVP</span></div><h2 class="rsvp-q">${t.reply}</h2>${note}` : eventCode ? `<div class="rsvp-kicker"><span>RSVP</span></div><h2 class="rsvp-q">${t.reply}</h2>${note}
         <label class="namebox">${I.user}<input type="text" id="gname" aria-label="${t.nameLbl}" autocomplete="name" placeholder="${t.namePh}" value="${esc(inv.name || '')}"></label>` : '';
       body = `${nameField}<div class="actions"><button class="btn" data-act="yes">${I.yes}<span>${t.yes}</span></button><button class="btn ghost" data-act="no">${I.no}<span>${t.no}</span></button></div><div class="rsvp-rule"></div>${links}`;
     }

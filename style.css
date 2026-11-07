@@ -204,3 +204,4 @@ body.has-card main{padding-left:8px;padding-right:8px}
 .sendrow{border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--bg)}
 .msgbox{font-size:14px;line-height:1.5;border-radius:12px}
 .btn.wa svg{flex:none}
+.rsvp-note{margin:-8px 0 18px;font-size:17px;line-height:1.45;color:var(--t-muted);font-style:italic}
