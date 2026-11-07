@@ -1,0 +1,135 @@
+// Shared helpers for every page. Loaded after supabase-js and config.js.
+(function () {
+  const C = window.CONFIG;
+  const configured = C && !/YOUR-/.test(C.SUPABASE_URL + C.SUPABASE_ANON_KEY);
+  const sb = configured ? window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY) : null;
+
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  function toast(t) {
+    let el = $('#toast');
+    if (!el) { el = document.createElement('div'); el.id = 'toast'; el.className = 'toast'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
+    el.textContent = t; el.classList.add('on');
+    clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2200);
+  }
+
+  // Phones: store digits with country code. 8-digit numbers are treated as Kuwaiti.
+  function normPhone(p) {
+    let d = String(p || '').replace(/[٠-٩]/g, c => '٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/\D/g, '');
+    if (d.startsWith('00')) d = d.slice(2);
+    if (d.length === 8) d = '965' + d;
+    return d;
+  }
+  const showPhone = p => (p || '').startsWith('965') && p.length === 11 ? p.slice(3) : '+' + p;
+
+  // Dates: everything is shown in Kuwait time.
+  const TZ = 'Asia/Kuwait';
+  function fmtDate(iso, lang) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleDateString(lang === 'en' ? 'en-GB' : 'ar-KW', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  function fmtTime(iso, lang) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleTimeString(lang === 'en' ? 'en-US' : 'ar-KW', { timeZone: TZ, hour: 'numeric', minute: '2-digit' });
+  }
+  // From a date + time typed in Kuwait time to an ISO string (Kuwait is UTC+3 all year).
+  const kwToIso = (date, time) => date ? new Date(`${date}T${time || '20:00'}:00+03:00`).toISOString() : null;
+  function isoToKw(iso) {
+    if (!iso) return { date: '', time: '' };
+    const d = new Date(new Date(iso).getTime() + 3 * 3600e3).toISOString();
+    return { date: d.slice(0, 10), time: d.slice(11, 16) };
+  }
+
+  // Links
+  const inviteLink = token => `${(C.SITE_URL || location.origin).replace(/\/$/, '')}/invite.html?t=${token}`;
+  const waLink = (phone, text) => `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+  function fillTemplate(tpl, ev, g) {
+    return String(tpl || '')
+      .replace(/{الاسم}/g, g.name)
+      .replace(/{العدد}/g, g.seats)
+      .replace(/{التاريخ}/g, fmtDate(ev.starts_at, ev.lang))
+      .replace(/{الوقت}/g, fmtTime(ev.starts_at, ev.lang))
+      .replace(/{المكان}/g, ev.venue || '')
+      .replace(/{المناسبة}/g, ev.headline || ev.title || '')
+      .replace(/{الرابط}/g, inviteLink(g.token));
+  }
+  const DEFAULT_TEMPLATE = 'حياكم الله {الاسم}\n\nنتشرف بدعوتكم لحضور {المناسبة} يوم {التاريخ}.\n\nعدد الدعوات: {العدد}\nلتأكيد الحضور أو الاعتذار:\n{الرابط}';
+  const DEFAULT_TEMPLATE_EN = 'Hi {الاسم},\n\nYou\u2019re invited to {المناسبة} on {التاريخ} at {الوقت}.\n\nYour invitation is for {العدد}.\nPlease confirm or decline here:\n{الرابط}';
+  const templateFor = ev => ev.message_template || (ev.lang === 'en' ? DEFAULT_TEMPLATE_EN : DEFAULT_TEMPLATE);
+
+  // Theme from the host's invite colours
+  const hex2rgb = h => { h = String(h || '#000000').replace('#', ''); return [0, 2, 4].map(i => parseInt(h.substr(i, 2), 16) || 0); };
+  const rgb2hex = a => '#' + a.map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('');
+  const mix = (a, b, t) => { const x = hex2rgb(a), y = hex2rgb(b); return rgb2hex(x.map((v, i) => v + (y[i] - v) * t)); };
+  const lum = h => { const c = hex2rgb(h).map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
+  const contrast = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+  function themeVars(accent, paper) {
+    const light = lum(paper) > .4;
+    if (contrast(accent, paper) < 2.6) accent = light ? mix(accent, '#000000', .35) : mix(accent, '#FFFFFF', .45);
+    const ink = light ? mix(accent, '#000000', .5) : mix(paper, '#FFFFFF', .88);
+    return { '--t-paper': paper, '--t-accent': accent, '--t-ink': ink, '--t-muted': mix(ink, paper, .38), '--t-line': mix(accent, paper, .78), '--t-frame2': mix(accent, paper, .5), '--t-accent-ink': lum(accent) > .45 ? '#1A1A1A' : '#FFFFFF' };
+  }
+  function applyTheme(el, accent, paper) { const v = themeVars(accent || '#65060B', paper || '#FFFBFA'); Object.keys(v).forEach(k => el.style.setProperty(k, v[k])); }
+
+  // Calendar
+  function calLink(ev) {
+    if (!ev.starts_at) return '#';
+    const f = d => new Date(d).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const end = ev.ends_at || new Date(new Date(ev.starts_at).getTime() + 4 * 3600e3).toISOString();
+    const q = new URLSearchParams({ action: 'TEMPLATE', text: ev.headline || ev.title || '', dates: `${f(ev.starts_at)}/${f(end)}`, location: ev.venue || '', ctz: TZ });
+    return 'https://calendar.google.com/calendar/render?' + q.toString();
+  }
+  function icsBlobUrl(ev) {
+    if (!ev.starts_at) return '#';
+    const f = d => new Date(d).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const end = ev.ends_at || new Date(new Date(ev.starts_at).getTime() + 4 * 3600e3).toISOString();
+    const clean = s => String(s || '').replace(/[\n,;]/g, ' ');
+    const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//RSVP//AR', 'BEGIN:VEVENT', `UID:${Date.now()}@rsvp`, `DTSTAMP:${f(new Date())}`,
+      `DTSTART:${f(ev.starts_at)}`, `DTEND:${f(end)}`, `SUMMARY:${clean(ev.headline || ev.title)}`, `LOCATION:${clean(ev.venue)}`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+    return URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
+  }
+
+  // Login with a 6-digit code (or the magic link) sent to the user's email.
+  async function requireLogin(mount, onReady) {
+    if (!sb) { mount.innerHTML = '<div class="login box"><h2>الإعداد ناقص</h2><p class="sub">عبّي ملف config.js بقيم Supabase أولاً (الخطوة ٣ في README).</p></div>'; return; }
+    const { data } = await sb.auth.getSession();
+    if (data.session) { onReady(data.session); return; }
+    let email = '';
+    const draw = (step) => {
+      mount.innerHTML = step === 'email'
+        ? `<div class="login box"><h2>تسجيل الدخول</h2><p class="sub">اكتبي إيميلج ونرسل لج رمز دخول.</p>
+           <label class="f" for="lgEmail">الإيميل</label><input type="email" id="lgEmail" autocomplete="email" dir="ltr">
+           <div style="margin-top:12px"><button class="btn" id="lgSend" style="width:100%">إرسال الرمز</button></div></div>`
+        : `<div class="login box"><h2>اكتبي الرمز</h2><p class="sub">أرسلنا رمز من ٦ أرقام إلى <span dir="ltr">${esc(email)}</span>. تقدرين بعد تضغطين الرابط في الإيميل.</p>
+           <label class="f" for="lgCode">الرمز</label><input type="text" id="lgCode" inputmode="numeric" autocomplete="one-time-code" dir="ltr">
+           <div style="margin-top:12px"><button class="btn" id="lgVerify" style="width:100%">دخول</button></div>
+           <p style="margin-top:12px"><button class="link" id="lgBack">إيميل ثاني</button></p></div>`;
+      if (step === 'email') {
+        $('#lgSend').onclick = async () => {
+          email = $('#lgEmail').value.trim().toLowerCase();
+          if (!/^\S+@\S+\.\S+$/.test(email)) { toast('اكتبي إيميل صحيح'); return; }
+          $('#lgSend').disabled = true;
+          const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.href.split('#')[0] } });
+          $('#lgSend').disabled = false;
+          if (error) { toast('ما قدرنا نرسل الرمز: ' + error.message); return; }
+          draw('code');
+        };
+      } else {
+        $('#lgBack').onclick = () => draw('email');
+        $('#lgVerify').onclick = async () => {
+          const token = $('#lgCode').value.replace(/\D/g, '');
+          const { data: d, error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
+          if (error) { toast('الرمز غير صحيح أو انتهى'); return; }
+          mount.innerHTML = ''; onReady(d.session);
+        };
+      }
+    };
+    draw('email');
+    sb.auth.onAuthStateChange((ev, session) => { if (ev === 'SIGNED_IN' && session && mount.querySelector('.login')) { mount.innerHTML = ''; onReady(session); } });
+  }
+  async function signOut() { if (sb) await sb.auth.signOut(); location.reload(); }
+
+  window.App = { sb, $, esc, toast, normPhone, showPhone, fmtDate, fmtTime, kwToIso, isoToKw, inviteLink, waLink, fillTemplate, DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_EN, templateFor,
+    mix, lum, rgb2hex, themeVars, applyTheme, calLink, icsBlobUrl, requireLogin, signOut, configured };
+})();

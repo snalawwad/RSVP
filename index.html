@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>دعوات وتأكيد حضور</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="config.js"></script>
+</head>
+<body>
+<main style="max-width:560px;text-align:center;padding-top:15vh">
+  <h1 id="brand" style="font-size:48px"></h1>
+  <p class="sub" style="font-size:18px">دعوات على الواتساب، تأكيد حضور، ولوحة تشوفين فيها الردود أول بأول. لكل المناسبات.</p>
+  <div class="row" style="justify-content:center;margin-top:24px">
+    <a class="btn" href="host.html">دخول أصحاب الدعوات</a>
+    <a class="btn ghost" id="wa" href="#">تواصلوا معنا</a>
+  </div>
+</main>
+<script>
+  document.getElementById('brand').textContent = CONFIG.BRAND;
+  document.getElementById('wa').href = 'https://wa.me/' + CONFIG.SUPPORT_WHATSAPP;
+</script>
+</body>
+</html>
