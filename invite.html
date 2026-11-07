@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <title>دعوة</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -21,18 +21,23 @@
 <script>
 (function () {
   const { sb, $, esc, toast, fmtDate, fmtTime, applyTheme, calLink, icsBlobUrl } = App;
-  const token = new URLSearchParams(location.search).get('t') || location.hash.slice(1);
+  const params = new URLSearchParams(location.search);
+  const eventCode = params.get('e');
+  let token = params.get('t') || (eventCode ? null : location.hash.slice(1));
+  const KEY = eventCode ? 'rsvp-token-' + eventCode : null;
+  if (KEY && !token) { try { token = localStorage.getItem(KEY); } catch (e) {} }
+  let pub = null;
   const card = $('#card');
   let inv = null, mode = '', showOrig = false;
   const L = {
     ar: { hi: 'حياكم الله', date: 'التاريخ', time: 'الوقت', venue: 'المكان', seats: 'إجمالي الدعوات', yes: 'تأكيد الحضور', no: 'اعتذار', map: '📍 اللوكيشن', cal: '🗓 أضف إلى التقويم',
       confirmed: 'تم تأكيد الحضور', showCode: 'اعرضوا هذا الرمز عند الدخول', ics: 'تحميل ملف التقويم (آيفون)', change: 'تغيير الرد', declined: 'تم تسجيل الاعتذار', miss: 'نتمنى نشوفكم بالأفراح دوم',
       why: 'نقدّر ردّكم، ممكن تخبرونا السبب؟', reasonPh: 'اكتبوا السبب هنا', reasonLbl: 'سبب الاعتذار', send: 'إرسال الاعتذار', back: 'رجوع', showCard: 'عرض بطاقة الدعوة', hideCard: 'إخفاء بطاقة الدعوة',
-      card: 'بطاقة الدعوة', qr: 'رمز الدخول', saveErr: 'ما قدرنا نحفظ الرد، حاولوا مرة ثانية', help: 'تحتاجون مساعدة؟', helpLink: 'راسلونا على الواتساب' },
+      card: 'بطاقة الدعوة', qr: 'رمز الدخول', nameLbl: 'الاسم الكامل', namePh: 'اكتبوا اسمكم الكامل', nameReq: 'اكتبوا اسمكم الكامل أول', reply: 'تأكيد الحضور أو الاعتذار', saveErr: 'ما قدرنا نحفظ الرد، حاولوا مرة ثانية', help: 'تحتاجون مساعدة؟', helpLink: 'راسلونا على الواتساب' },
     en: { hi: 'You\u2019re invited', date: 'Date', time: 'Time', venue: 'Venue', seats: 'Invitations', yes: 'Confirm attendance', no: 'Decline', map: '📍 Location', cal: '🗓 Add to calendar',
       confirmed: 'Attendance confirmed', showCode: 'Show this code at the entrance', ics: 'Download calendar file (iPhone)', change: 'Change my reply', declined: 'Your reply has been saved', miss: 'We\u2019ll miss you',
       why: 'We understand. Would you like to tell us why?', reasonPh: 'Type your reason here', reasonLbl: 'Reason for declining', send: 'Send reply', back: 'Back', showCard: 'View invitation card', hideCard: 'Hide invitation card',
-      card: 'Invitation card', qr: 'Entry code', saveErr: 'Your reply wasn\u2019t saved. Please try again.', help: 'Need help?', helpLink: 'Message us on WhatsApp' }
+      card: 'Invitation card', qr: 'Entry code', nameLbl: 'Your full name', namePh: 'Type your full name', nameReq: 'Please type your full name first', reply: 'Will you be joining us?', saveErr: 'Your reply wasn\u2019t saved. Please try again.', help: 'Need help?', helpLink: 'Message us on WhatsApp' }
   };
   let t = L.ar;
 
@@ -43,6 +48,17 @@
   async function load() {
     applyTheme(card); setHelp();
     if (!sb) { card.innerHTML = '<p class="lead">الموقع قيد الإعداد. This site is being set up.</p>'; return; }
+    if (eventCode) {
+      const r = await sb.rpc('get_event_public', { p_code: eventCode });
+      if (r.error || !r.data) { card.innerHTML = '<p class="serif" style="font-size:24px;margin:0">الدعوة غير موجودة</p><p class="lead">Invitation not found. Please check the link you received on WhatsApp.</p>'; return; }
+      pub = r.data;
+      if (token) { const g = await sb.rpc('get_invite', { p_token: token }); if (!g.error && g.data) { inv = g.data; } else token = null; }
+      if (!inv) inv = { name: '', seats: 1, status: 'pending', token: null, event: pub };
+      const lang = pub.lang === 'en' ? 'en' : 'ar'; t = L[lang];
+      document.documentElement.lang = lang; document.documentElement.dir = lang === 'en' ? 'ltr' : 'rtl';
+      document.title = pub.headline || pub.title || (lang === 'en' ? 'Invitation' : 'دعوة');
+      applyTheme(card, pub.theme_accent, pub.theme_paper); setHelp(); render(); return;
+    }
     if (!token) { card.innerHTML = '<p class="lead">الرابط ناقص. افتحوا الرابط اللي وصلكم على الواتساب.<br>This link is incomplete. Please open the link you received on WhatsApp.</p>'; return; }
     const { data, error } = await sb.rpc('get_invite', { p_token: token });
     if (error || !data) { card.innerHTML = '<p class="serif" style="font-size:24px;margin:0">الدعوة غير موجودة</p><p class="lead">Invitation not found. Please check the link you received on WhatsApp.</p>'; return; }
@@ -56,6 +72,15 @@
   }
 
   async function respond(status, reason) {
+    if (eventCode) {
+      if (status === 'pending') { mode = 'edit'; inv = { ...inv, status: 'pending' }; render(); return; }
+      const nm = (($('#gname') && $('#gname').value) || inv.name || '').trim();
+      if (nm.length < 2) { toast(t.nameReq); const n = $('#gname'); if (n) n.focus(); return; }
+      const r = await sb.rpc('public_rsvp', { p_code: eventCode, p_name: nm, p_status: status, p_reason: reason || null, p_token: token });
+      if (r.error) { toast(t.saveErr); return; }
+      inv = r.data; token = inv.token; try { localStorage.setItem(KEY, token); } catch (e) {}
+      mode = ''; render(); return;
+    }
     const { data, error } = await sb.rpc('respond', { p_token: token, p_status: status, p_reason: reason || null });
     if (error) { toast(t.saveErr); return; }
     inv = data; mode = ''; render();
@@ -78,14 +103,15 @@
         <textarea id="reason" rows="4" placeholder="${t.reasonPh}" aria-label="${t.reasonLbl}"></textarea>
         <div class="actions"><button class="btn" data-act="sendNo">${t.send}</button><button class="btn ghost" data-act="back">${t.back}</button></div></div>`;
     } else {
-      body = `<div class="actions"><button class="btn" data-act="yes">${t.yes}</button><button class="btn ghost" data-act="no">${t.no}</button></div>${links}`;
+      const nameField = eventCode ? `<div style="text-align:start;margin:4px 0 12px"><p style="margin:0 0 8px;font-weight:600">${t.reply}</p><label class="f" for="gname">${t.nameLbl}</label><input type="text" id="gname" autocomplete="name" placeholder="${t.namePh}" value="${esc(inv.name || '')}"></div>` : '';
+      body = `${nameField}<div class="actions"><button class="btn" data-act="yes">${t.yes}</button><button class="btn ghost" data-act="no">${t.no}</button></div>${links}`;
     }
     const orig = e.card_image_url ? `<p style="margin:14px 0 0"><button class="link" data-act="orig">${showOrig ? t.hideCard : t.showCard}</button></p>${showOrig ? `<img class="orig" src="${esc(e.card_image_url)}" alt="${t.card}">` : ''}` : '';
-    card.innerHTML = `<p class="hayakum serif">${t.hi}</p><p class="gname">${esc(inv.name)}</p>
+    card.innerHTML = `<p class="hayakum serif">${t.hi}</p>${inv.name ? `<p class="gname">${esc(inv.name)}</p>` : '<div style="height:14px"></div>'}
       ${e.invite_line ? `<p class="lead">${esc(e.invite_line)}</p>` : ''}
       ${e.headline ? `<p class="couple serif">${esc(e.headline)}</p>` : ''}
       <div class="when">${e.starts_at ? `<div><b>${t.date}</b>${esc(fmtDate(e.starts_at, lang))}</div><div><b>${t.time}</b>${esc(fmtTime(e.starts_at, lang))}</div>` : ''}${e.venue ? `<div style="grid-column:1/-1"><b>${t.venue}</b>${esc(e.venue)}</div>` : ''}</div>
-      <div class="seats"><span>${t.seats}</span><b>${inv.seats}</b></div>${body}${orig}`;
+      ${eventCode ? '' : `<div class="seats"><span>${t.seats}</span><b>${inv.seats}</b></div>`}${body}${orig}`;
 
     const qr = $('#qr');
     if (qr && window.QRCode) new QRCode(qr, { text: inv.token, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
@@ -94,7 +120,7 @@
     card.querySelectorAll('[data-act]').forEach(b => b.onclick = () => {
       const a = b.dataset.act;
       if (a === 'yes') respond('yes');
-      if (a === 'no') { mode = 'decline'; render(); const r = $('#reason'); if (r) r.focus(); }
+      if (a === 'no') { if (eventCode) { const n = $('#gname'); const v = n ? n.value.trim() : inv.name; if (!v || v.length < 2) { toast(t.nameReq); if (n) n.focus(); return; } inv = { ...inv, name: v }; } mode = 'decline'; render(); const r = $('#reason'); if (r) r.focus(); }
       if (a === 'back') { mode = ''; render(); }
       if (a === 'reset') respond('pending');
       if (a === 'orig') { showOrig = !showOrig; render(); }

@@ -46,16 +46,16 @@
   const waLink = (phone, text) => `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
   function fillTemplate(tpl, ev, g) {
     return String(tpl || '')
-      .replace(/{الاسم}/g, g.name)
-      .replace(/{العدد}/g, g.seats)
-      .replace(/{التاريخ}/g, fmtDate(ev.starts_at, ev.lang))
-      .replace(/{الوقت}/g, fmtTime(ev.starts_at, ev.lang))
-      .replace(/{المكان}/g, ev.venue || '')
-      .replace(/{المناسبة}/g, ev.headline || ev.title || '')
-      .replace(/{الرابط}/g, inviteLink(g.token));
+      .replace(/{(الاسم|name)}/g, g.name)
+      .replace(/{(العدد|invites)}/g, g.seats)
+      .replace(/{(التاريخ|date)}/g, fmtDate(ev.starts_at, ev.lang))
+      .replace(/{(الوقت|time)}/g, fmtTime(ev.starts_at, ev.lang))
+      .replace(/{(المكان|venue)}/g, ev.venue || '')
+      .replace(/{(المناسبة|event)}/g, ev.headline || ev.title || '')
+      .replace(/{(الرابط|link)}/g, inviteLink(g.token));
   }
   const DEFAULT_TEMPLATE = 'حياكم الله {الاسم}\n\nنتشرف بدعوتكم لحضور {المناسبة} يوم {التاريخ}.\n\nعدد الدعوات: {العدد}\nلتأكيد الحضور أو الاعتذار:\n{الرابط}';
-  const DEFAULT_TEMPLATE_EN = 'Hi {الاسم},\n\nYou\u2019re invited to {المناسبة} on {التاريخ} at {الوقت}.\n\nYour invitation is for {العدد}.\nPlease confirm or decline here:\n{الرابط}';
+  const DEFAULT_TEMPLATE_EN = 'Hi {name},\n\nYou\u2019re invited to {event} on {date} at {time}.\n\nYour invitation is for {invites}.\nPlease confirm or decline here:\n{link}';
   const templateFor = ev => ev.message_template || (ev.lang === 'en' ? DEFAULT_TEMPLATE_EN : DEFAULT_TEMPLATE);
 
   // Theme from the host's invite colours
@@ -92,27 +92,27 @@
 
   // Login with a 6-digit code (or the magic link) sent to the user's email.
   async function requireLogin(mount, onReady) {
-    if (!sb) { mount.innerHTML = '<div class="login box"><h2>الإعداد ناقص</h2><p class="sub">عبّي ملف config.js بقيم Supabase أولاً (الخطوة ٣ في README).</p></div>'; return; }
+    if (!sb) { mount.innerHTML = '<div class="login box"><h2>Almost there</h2><p class="sub">Add your Supabase details to config.js first.</p></div>'; return; }
     const { data } = await sb.auth.getSession();
     if (data.session) { onReady(data.session); return; }
     let email = '';
     const draw = (step) => {
       mount.innerHTML = step === 'email'
-        ? `<div class="login box"><h2>تسجيل الدخول</h2><p class="sub">اكتبي إيميلج ونرسل لج رمز دخول.</p>
-           <label class="f" for="lgEmail">الإيميل</label><input type="email" id="lgEmail" autocomplete="email" dir="ltr">
-           <div style="margin-top:12px"><button class="btn" id="lgSend" style="width:100%">إرسال الرمز</button></div></div>`
-        : `<div class="login box"><h2>اكتبي الرمز</h2><p class="sub">أرسلنا رمز من ٦ أرقام إلى <span dir="ltr">${esc(email)}</span>. تقدرين بعد تضغطين الرابط في الإيميل.</p>
-           <label class="f" for="lgCode">الرمز</label><input type="text" id="lgCode" inputmode="numeric" autocomplete="one-time-code" dir="ltr">
-           <div style="margin-top:12px"><button class="btn" id="lgVerify" style="width:100%">دخول</button></div>
-           <p style="margin-top:12px"><button class="link" id="lgBack">إيميل ثاني</button></p></div>`;
+        ? `<div class="login box"><p class="kicker">✦ welcome back ✦</p><h2>Log in</h2><p class="sub">Type your email and we\u2019ll send you a login link.</p>
+           <label class="f" for="lgEmail">Email</label><input type="email" id="lgEmail" autocomplete="email" placeholder="you@example.com">
+           <div style="margin-top:14px"><button class="btn" id="lgSend" style="width:100%">Send my login link</button></div></div>`
+        : `<div class="login box"><p class="kicker">✦ check your inbox ✦</p><h2>Check your email</h2><p class="sub">We sent a login link to <b>${esc(email)}</b>. Tap it on this phone and you\u2019re in. If the email has a code, you can type it here instead.</p>
+           <label class="f" for="lgCode">Code (optional)</label><input type="text" id="lgCode" inputmode="numeric" autocomplete="one-time-code">
+           <div style="margin-top:14px"><button class="btn" id="lgVerify" style="width:100%">Log in with code</button></div>
+           <p style="margin-top:12px"><button class="link" id="lgBack">Use a different email</button></p></div>`;
       if (step === 'email') {
         $('#lgSend').onclick = async () => {
           email = $('#lgEmail').value.trim().toLowerCase();
-          if (!/^\S+@\S+\.\S+$/.test(email)) { toast('اكتبي إيميل صحيح'); return; }
+          if (!/^\S+@\S+\.\S+$/.test(email)) { toast('Please enter a valid email'); return; }
           $('#lgSend').disabled = true;
           const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.href.split('#')[0] } });
           $('#lgSend').disabled = false;
-          if (error) { toast('ما قدرنا نرسل الرمز: ' + error.message); return; }
+          if (error) { toast('Couldn\u2019t send the email: ' + error.message); return; }
           draw('code');
         };
       } else {
@@ -120,7 +120,7 @@
         $('#lgVerify').onclick = async () => {
           const token = $('#lgCode').value.replace(/\D/g, '');
           const { data: d, error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
-          if (error) { toast('الرمز غير صحيح أو انتهى'); return; }
+          if (error) { toast('That code is wrong or has expired'); return; }
           mount.innerHTML = ''; onReady(d.session);
         };
       }

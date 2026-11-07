@@ -1,19 +1,19 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>لوحة صاحب الدعوة</title>
+<title>Host dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="core.js"></script>
 </head>
 <body>
-<div class="topbar"><a class="brand" id="brand" href="host.html"></a><a href="door.html">شاشة الباب</a><a href="admin.html" id="adminLink" hidden>لوحة التحكم</a><button class="link" id="out" hidden>خروج</button></div>
+<div class="topbar"><a class="brand" id="brand" href="host.html"></a><a href="door.html">Door</a><a href="admin.html" id="adminLink" hidden>Admin</a><button class="link" id="out" hidden>Log out</button></div>
 <main>
   <div id="auth"></div>
   <section id="dash" hidden>
@@ -21,24 +21,25 @@
     <h2 id="title" style="margin-top:14px"></h2>
     <p class="sub" id="meta"></p>
     <div class="row" style="margin-bottom:12px">
-      <div class="evlist" id="views" style="margin:0"><button data-v="rsvp" aria-current="true">تأكيد الحضور</button><button data-v="att" aria-current="false">الحضور</button></div>
+      <div class="evlist" id="views" style="margin:0"><button data-v="rsvp" aria-current="true">RSVPs</button><button data-v="att" aria-current="false">Arrivals</button></div>
       <div id="sideWrap" style="margin-inline-start:auto"></div>
     </div>
     <p class="sub" id="balance" style="margin:-4px 0 12px;font-size:14px" hidden></p>
-    <div class="stats" id="stats" role="group" aria-label="تصفية حسب الحالة"></div>
+    <div class="box" id="pubBox" style="margin-bottom:14px" hidden></div>
+    <div class="stats" id="stats" role="group" aria-label="Filter by reply"></div>
     <div class="bar-rsvp" id="bar" aria-hidden="true"></div>
 
     <div class="toolbar">
-      <input type="search" id="q" placeholder="ابحث بالاسم أو الرقم" aria-label="بحث">
-      <button class="btn small" id="toggleAdd" aria-expanded="false">+ إضافة ضيف</button>
+      <input type="search" id="q" placeholder="Search by name or number" aria-label="Search">
+      <button class="btn small" id="toggleAdd" aria-expanded="false">+ Add guest</button>
     </div>
     <div class="box" id="addBox" hidden style="margin-top:10px">
       <div class="grid2">
-        <div><label class="f" for="nName">الاسم</label><input type="text" id="nName"></div>
-        <div><label class="f" for="nPhone">رقم الواتساب</label><input type="tel" id="nPhone" placeholder="9XXXXXXX" inputmode="tel"></div>
-        <div><label class="f" for="nSeats">عدد الدعوات</label><input type="number" id="nSeats" min="1" value="1"></div>
-        <div id="nSideWrap"><label class="f" for="nSide">القائمة</label><input type="text" id="nSide" list="sidesList" placeholder="مثال: ام العروس"><datalist id="sidesList"></datalist></div>
-        <div style="display:flex;align-items:flex-end"><button class="btn" id="addGuest" style="width:100%">إضافة وإرسال</button></div>
+        <div><label class="f" for="nName">Name</label><input type="text" id="nName"></div>
+        <div><label class="f" for="nPhone">WhatsApp number</label><input type="tel" id="nPhone" placeholder="9XXXXXXX" inputmode="tel"></div>
+        <div><label class="f" for="nSeats">Invites</label><input type="number" id="nSeats" min="1" value="1"></div>
+        <div id="nSideWrap"><label class="f" for="nSide">List</label><input type="text" id="nSide" list="sidesList" placeholder="e.g. Bride’s mum"><datalist id="sidesList"></datalist></div>
+        <div style="display:flex;align-items:flex-end"><button class="btn" id="addGuest" style="width:100%">Add and send</button></div>
       </div>
     </div>
     <p class="sub" id="listHead" style="margin:22px 0 6px;font-size:14px"></p>
@@ -48,7 +49,7 @@
 <script>
 (function () {
   const { sb, $, esc, toast, normPhone, showPhone, fmtDate, fmtTime, waLink, fillTemplate, DEFAULT_TEMPLATE } = App;
-  $('#brand').textContent = CONFIG.BRAND;
+  $('#brand').textContent = CONFIG.BRAND_EN || CONFIG.BRAND;
   let events = [], ev = null, guests = [], members = [], mySide = null, side = 'all', view = 'rsvp', filter = 'all', attFilter = 'all', query = '', channel = null, poll = null, admin = false, myEmail = '';
 
   App.requireLogin($('#auth'), async (session) => {
@@ -57,15 +58,15 @@
     admin = !!(await sb.rpc('is_admin')).data;
     $('#adminLink').hidden = !admin;
     const { data: evs, error } = await sb.from('events').select('*').order('starts_at', { ascending: true });
-    if (error) { toast('ما قدرنا نجيب المناسبات'); return; }
+    if (error) { toast('Couldn\u2019t load your events'); return; }
     const { data: mem } = await sb.from('event_members').select('*');
     members = mem || [];
     const mine = members.filter(m => m.email.toLowerCase() === myEmail);
     const doorOnly = new Set(mine.filter(m => m.role === 'door').map(m => m.event_id));
     events = (evs || []).filter(e => admin || !doorOnly.has(e.id));
     if (!events.length) {
-      $('#auth').innerHTML = doorOnly.size ? '<div class="login box"><h2>شاشة الباب</h2><p class="sub">حسابج مخصص لتسجيل الحضور عند الباب.</p><a class="btn" href="door.html">فتح شاشة الباب</a></div>'
-        : '<div class="login box"><h2>ما في مناسبات</h2><p class="sub">ما لقينا مناسبة مربوطة بهالإيميل. تواصلي معنا على الواتساب لربطها.</p></div>';
+      $('#auth').innerHTML = doorOnly.size ? '<div class="login box"><h2>Door check-in</h2><p class="sub">Your account is set up for checking guests in at the door.</p><a class="btn" href="door.html">Open the door screen</a></div>'
+        : '<div class="login box"><h2>No events yet</h2><p class="sub">There\u2019s no event linked to this email yet. Message us on WhatsApp and we\u2019ll add it.</p></div>';
       return;
     }
     const saved = new URLSearchParams(location.search).get('event');
@@ -79,16 +80,30 @@
     $('#evlist').innerHTML = events.length > 1 ? events.map(x => `<button data-id="${x.id}" aria-current="${x.id === ev.id}">${esc(x.title)}</button>`).join('') : '';
     $('#evlist').querySelectorAll('button').forEach(b => b.onclick = () => pick(events.find(x => x.id === b.dataset.id)));
     $('#title').textContent = ev.title;
-    $('#meta').textContent = [fmtDate(ev.starts_at), fmtTime(ev.starts_at), ev.venue].filter(Boolean).join('، ');
+    $('#meta').textContent = [fmtDate(ev.starts_at, 'en'), fmtTime(ev.starts_at, 'en'), ev.venue].filter(Boolean).join(' · ');
+    renderPub();
     await loadGuests();
     if (channel) sb.removeChannel(channel);
     channel = sb.channel('guests-' + ev.id).on('postgres_changes', { event: '*', schema: 'public', table: 'guests', filter: `event_id=eq.${ev.id}` }, loadGuests).subscribe();
     clearInterval(poll); poll = setInterval(loadGuests, 30000);
   }
 
+  function renderPub() {
+    const b = $('#pubBox');
+    if (!ev.public_code) { b.hidden = true; return; }
+    const link = `${(CONFIG.SITE_URL || location.origin).replace(/\/$/, '')}/invite.html?e=${ev.public_code}`;
+    const en = ev.lang === 'en';
+    const msg = en ? `You\u2019re invited to ${ev.invite_line ? ev.invite_line.replace(/^Join us for /i, '') : (ev.headline || ev.title)}${ev.starts_at ? ' on ' + App.fmtDate(ev.starts_at, 'en') + ' at ' + App.fmtTime(ev.starts_at, 'en') : ''}.\n\nPlease tap the link, type your name and let us know if you can make it:\n${link}` : `حياكم الله\n\nنتشرف بدعوتكم لحضور ${ev.headline || ev.title}\n\nلتأكيد الحضور أو الاعتذار:\n${link}`;
+    b.hidden = false;
+    b.innerHTML = `<p class="kicker" style="text-align:start;margin-bottom:4px">✦ your invite link ✦</p><p class="sub" style="margin:0 0 8px;font-size:14px">Send this one link to everyone. Guests type their name and reply, and they show up here straight away.</p>
+      <p style="margin:0 0 10px;font-size:13px;word-break:break-all">${esc(link)}</p>
+      <div class="row"><button class="btn small" id="copyLink">Copy link</button><a class="btn small ghost" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(msg)}">Share on WhatsApp</a></div>`;
+    $('#copyLink').onclick = async () => { try { await navigator.clipboard.writeText(link); toast('Link copied'); } catch (e) { prompt('Copy your link:', link); } };
+  }
+
   async function loadGuests() {
     const { data, error } = await sb.from('guests').select('*').eq('event_id', ev.id).order('created_at');
-    if (error) { toast('ما قدرنا نجيب القائمة'); return; }
+    if (error) { toast('Couldn\u2019t load the guest list'); return; }
     guests = data || []; render();
   }
 
@@ -97,12 +112,12 @@
   function renderSide() {
     const sides = sidesOf();
     $('#sidesList').innerHTML = sides.map(s => `<option value="${esc(s)}">`).join('');
-    if (mySide) { $('#sideWrap').innerHTML = `<span class="pill pending" style="font-size:14px">قائمة ${esc(mySide)}</span>`; $('#nSideWrap').hidden = true; return; }
+    if (mySide) { $('#sideWrap').innerHTML = `<span class="pill pending" style="font-size:14px">${esc(mySide)}\u2019s list</span>`; $('#nSideWrap').hidden = true; return; }
     $('#nSideWrap').hidden = false;
     if (!sides.length) { $('#sideWrap').innerHTML = ''; return; }
     if (side !== 'all' && !sides.includes(side)) side = 'all';
-    $('#sideWrap').innerHTML = `<label class="f" for="sideSel" style="display:inline;margin-inline-end:6px">القائمة</label><select id="sideSel" style="width:auto;min-height:36px;padding:4px 10px">
-      <option value="all">كل القوائم</option>${sides.map(s => `<option value="${esc(s)}" ${s === side ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>`;
+    $('#sideWrap').innerHTML = `<label class="f" for="sideSel" style="display:inline;margin-inline-end:6px">List</label><select id="sideSel" style="width:auto;min-height:36px;padding:4px 10px">
+      <option value="all">All lists</option>${sides.map(s => `<option value="${esc(s)}" ${s === side ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>`;
     $('#sideSel').onchange = e => { side = e.target.value; if (side !== 'all') $('#nSide').value = side; render(); };
   }
 
@@ -116,32 +131,32 @@
     if (ev.invite_limit != null) {
       const left = ev.invite_limit - used;
       $('#balance').hidden = false;
-      $('#balance').innerHTML = `الباقة: ${ev.invite_limit} دعوة · المستخدم ${used} · <b style="color:${left > 0 ? 'var(--ok)' : 'var(--no)'}">المتبقي ${Math.max(0, left)}</b>`;
+      $('#balance').innerHTML = `Package: ${ev.invite_limit} invites · used ${used} · <b style="color:${left > 0 ? 'var(--ok)' : 'var(--no)'}">${Math.max(0, left)} left</b>`;
       $('#addGuest').disabled = left <= 0;
     } else { $('#balance').hidden = true; $('#addGuest').disabled = false; }
 
     const q = query.trim(), qd = q.replace(/\D/g, '');
-    const match = g => !q || g.name.includes(q) || (qd && g.phone.includes(qd));
+    const match = g => !q || g.name.toLowerCase().includes(q.toLowerCase()) || (qd && (g.phone || '').includes(qd));
     if (view === 'rsvp') renderRsvp(pool, seats, match); else renderAtt(pool, seats, match);
   }
 
   function renderRsvp(pool, seats, match) {
     const of = st => pool.filter(g => st === 'all' || g.status === st);
-    const K = [['all', 'المدعوين'], ['yes', 'أكدوا الحضور'], ['pending', 'بانتظار الرد'], ['no', 'اعتذروا']];
-    $('#stats').innerHTML = K.map(([k, l]) => `<button class="stat s-${k}" data-f="${k}" aria-pressed="${filter === k}"><b>${seats(of(k))}</b><span>${l}</span><small>${of(k).length} ضيف · ${seats(of(k))} دعوة</small></button>`).join('');
+    const K = [['all', 'Everyone'], ['yes', 'Coming'], ['pending', 'No reply yet'], ['no', 'Can\u2019t make it']];
+    $('#stats').innerHTML = K.map(([k, l]) => `<button class="stat s-${k}" data-f="${k}" aria-pressed="${filter === k}"><b>${of(k).length}</b><span>${l}</span><small>${seats(of(k)) !== of(k).length ? seats(of(k)) + ' invites' : (of(k).length === 1 ? 'guest' : 'guests')}</small></button>`).join('');
     $('#stats').querySelectorAll('button').forEach(b => b.onclick = () => { filter = filter === b.dataset.f && b.dataset.f !== 'all' ? 'all' : b.dataset.f; render(); });
     const tot = seats(pool) || 1;
     $('#bar').innerHTML = `<i class="y" style="width:${seats(of('yes')) / tot * 100}%"></i><i class="w" style="width:${seats(of('pending')) / tot * 100}%"></i><i class="n" style="width:${seats(of('no')) / tot * 100}%"></i>`;
     const order = { pending: 0, yes: 1, no: 2 };
     const list = of(filter).filter(match).sort((a, b) => filter === 'all' ? order[a.status] - order[b.status] : 0);
-    const lbl = { yes: 'حاضر', no: 'معتذر', pending: 'بانتظار الرد' };
-    $('#listHead').textContent = `${K.find(k => k[0] === filter)[1]} (${list.length} ضيف · ${seats(list)} دعوة)`;
+    const lbl = { yes: 'Coming', no: 'Can\u2019t make it', pending: 'No reply yet' };
+    $('#listHead').textContent = `${K.find(k => k[0] === filter)[1]} (${list.length})`;
     $('#rows').innerHTML = list.length ? list.map(g => `<div class="gi"><div class="gi-main">
-        <div class="gi-top"><b>${esc(g.name)}</b><span class="pill ${g.status}">${lbl[g.status]}</span>${g.checked_in_at ? '<span class="pill yes">وصل</span>' : ''}</div>
-        <div class="gi-sub"><span dir="ltr">${esc(showPhone(g.phone))}</span><span>${g.seats} ${g.seats > 1 ? 'دعوات' : 'دعوة'}</span>${g.side && side === 'all' && !mySide ? `<span>${esc(g.side)}</span>` : ''}${g.sent_at ? '' : '<span style="color:var(--wait)">لم تُرسل بعد</span>'}</div>
-        ${g.status === 'no' && g.decline_reason ? `<p class="gi-why">«${esc(g.decline_reason)}»</p>` : ''}</div>
-        <div class="gi-act"><a class="icon" href="${waLink(g.phone, fillTemplate(App.templateFor(ev), ev, g))}" target="_blank" rel="noopener" data-sent="${g.id}">${g.sent_at ? 'إعادة إرسال' : 'إرسال'}</a><button class="icon" data-del="${g.id}">حذف</button></div></div>`).join('')
-      : `<p class="empty">${query.trim() ? 'ما في نتائج لهالبحث.' : 'ما في أحد بهالقائمة حالياً.'}</p>`;
+        <div class="gi-top"><b>${esc(g.name)}</b><span class="pill ${g.status}">${lbl[g.status]}</span>${g.checked_in_at ? '<span class="pill yes">Arrived</span>' : ''}</div>
+        <div class="gi-sub">${g.phone ? `<span dir="ltr">${esc(showPhone(g.phone))}</span>` : '<span>Replied via link</span>'}<span>${g.seats} ${g.seats > 1 ? 'invites' : 'invite'}</span>${g.side && side === 'all' && !mySide ? `<span>${esc(g.side)}</span>` : ''}${g.sent_at || !g.phone ? '' : '<span style="color:var(--wait)">Not sent yet</span>'}</div>
+        ${g.status === 'no' && g.decline_reason ? `<p class="gi-why">“${esc(g.decline_reason)}”</p>` : ''}</div>
+        <div class="gi-act">${g.phone ? `<a class="icon" href="${waLink(g.phone, fillTemplate(App.templateFor(ev), ev, g))}" target="_blank" rel="noopener" data-sent="${g.id}">${g.sent_at ? 'Resend' : 'Send'}</a>` : ''}<button class="icon" data-del="${g.id}">Remove</button></div></div>`).join('')
+      : `<p class="empty">${query.trim() ? 'No one matches that search.' : 'No one here yet. Share your invite link and replies will appear here.'}</p>`;
     $('#rows').querySelectorAll('[data-sent]').forEach(a => a.onclick = () => markSent(a.dataset.sent));
     $('#rows').querySelectorAll('[data-del]').forEach(b => b.onclick = () => del(b));
   }
@@ -149,19 +164,19 @@
   function renderAtt(pool, seats, match) {
     const came = pool.filter(g => g.checked_in_at), notYet = pool.filter(g => !g.checked_in_at && g.status !== 'no');
     const ppl = l => l.reduce((a, g) => a + (g.checked_in_count || g.seats || 1), 0);
-    const K = [['all', 'المتوقعين', notYet.concat(came)], ['in', 'وصلوا', came], ['out', 'ما وصلوا', notYet]];
-    $('#stats').innerHTML = K.map(([k, l, arr]) => `<button class="stat s-${k === 'in' ? 'yes' : k === 'out' ? 'pending' : 'all'}" data-f="${k}" aria-pressed="${attFilter === k}"><b>${k === 'in' ? ppl(arr) : seats(arr)}</b><span>${l}</span><small>${arr.length} ضيف</small></button>`).join('') + '<div class="stat" style="cursor:default"></div>';
+    const K = [['all', 'Expected', notYet.concat(came)], ['in', 'Arrived', came], ['out', 'Not here yet', notYet]];
+    $('#stats').innerHTML = K.map(([k, l, arr]) => `<button class="stat s-${k === 'in' ? 'yes' : k === 'out' ? 'pending' : 'all'}" data-f="${k}" aria-pressed="${attFilter === k}"><b>${k === 'in' ? ppl(arr) : seats(arr)}</b><span>${l}</span><small>${arr.length} ${arr.length === 1 ? 'guest' : 'guests'}</small></button>`).join('') + '<div class="stat" style="cursor:default"></div>';
     $('#stats').querySelectorAll('button').forEach(b => b.onclick = () => { attFilter = attFilter === b.dataset.f && b.dataset.f !== 'all' ? 'all' : b.dataset.f; render(); });
     const exp = seats(notYet.concat(came)) || 1;
     $('#bar').innerHTML = `<i class="y" style="width:${ppl(came) / exp * 100}%"></i>`;
     const base = K.find(k => k[0] === attFilter)[2];
     const numbered = pool.map((g, i) => ({ g, n: 101 + i }));
     const list = numbered.filter(x => base.includes(x.g) && match(x.g));
-    $('#listHead').textContent = `${K.find(k => k[0] === attFilter)[1]} (${list.length} ضيف)`;
+    $('#listHead').textContent = `${K.find(k => k[0] === attFilter)[1]} (${list.length})`;
     $('#rows').innerHTML = list.length ? list.map(({ g, n }) => `<div class="gi"><div class="gi-main"><div class="gi-top"><span style="color:var(--muted);font-variant-numeric:tabular-nums;min-width:2.5em">${n}</span><b>${esc(g.name)}</b>
-        ${g.checked_in_at ? `<span class="pill yes">وصل ${esc(fmtTime(g.checked_in_at))}</span>` : `<span class="pill pending">ما وصل</span>`}</div>
-        <div class="gi-sub"><span>${g.seats} ${g.seats > 1 ? 'دعوات' : 'دعوة'}</span>${g.checked_in_at && g.checked_in_count && g.checked_in_count !== g.seats ? `<span>دخل ${g.checked_in_count}</span>` : ''}${g.status === 'pending' ? '<span style="color:var(--wait)">ما أكد الحضور</span>' : ''}</div></div></div>`).join('')
-      : '<p class="empty">ما في أحد بهالقائمة حالياً.</p>';
+        ${g.checked_in_at ? `<span class="pill yes">Arrived ${esc(fmtTime(g.checked_in_at, 'en'))}</span>` : `<span class="pill pending">Not here yet</span>`}</div>
+        <div class="gi-sub"><span>${g.seats} ${g.seats > 1 ? 'invites' : 'invite'}</span>${g.checked_in_at && g.checked_in_count && g.checked_in_count !== g.seats ? `<span>${g.checked_in_count} came in</span>` : ''}${g.status === 'pending' ? '<span style="color:var(--wait)">Didn\u2019t reply</span>' : ''}</div></div></div>`).join('')
+      : '<p class="empty">No one here yet.</p>';
   }
 
   document.querySelectorAll('#views button').forEach(b => b.onclick = () => { view = b.dataset.v; render(); });
@@ -169,26 +184,26 @@
   async function markSent(id) { await sb.from('guests').update({ sent_at: new Date().toISOString() }).eq('id', id); }
 
   async function del(b) {
-    if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'تأكيد الحذف'; b.style.color = 'var(--no)'; setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = 'حذف'; b.style.color = ''; } }, 3000); return; }
+    if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Tap again to remove'; b.style.color = 'var(--no)'; setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = 'Remove'; b.style.color = ''; } }, 3000); return; }
     const g = guests.find(x => x.id === b.dataset.del);
     const { error } = await sb.from('guests').delete().eq('id', g.id);
-    if (error) { toast('ما قدرنا نحذف'); return; }
-    toast('تم حذف ' + g.name); loadGuests();
+    if (error) { toast('Couldn\u2019t remove that guest'); return; }
+    toast('Removed ' + g.name); loadGuests();
   }
 
   $('#q').oninput = e => { query = e.target.value; render(); };
-  $('#toggleAdd').onclick = () => { const b = $('#addBox'), open = b.hidden; b.hidden = !open; $('#toggleAdd').setAttribute('aria-expanded', open); $('#toggleAdd').textContent = open ? 'إغلاق' : '+ إضافة ضيف'; if (open) { if (side !== 'all' && !$('#nSide').value) $('#nSide').value = side; $('#nName').focus(); } };
+  $('#toggleAdd').onclick = () => { const b = $('#addBox'), open = b.hidden; b.hidden = !open; $('#toggleAdd').setAttribute('aria-expanded', open); $('#toggleAdd').textContent = open ? 'Close' : '+ Add guest'; if (open) { if (side !== 'all' && !$('#nSide').value) $('#nSide').value = side; $('#nName').focus(); } };
   $('#addGuest').onclick = async () => {
     const name = $('#nName').value.trim(), phone = normPhone($('#nPhone').value), seats = Math.max(1, parseInt($('#nSeats').value) || 1);
     const gSide = mySide || $('#nSide').value.trim() || null;
-    if (!name) { toast('اكتبي اسم الضيف'); return; }
-    if (phone.length < 10) { toast('رقم الواتساب ناقص'); return; }
-    if (ev.invite_limit != null && guests.reduce((a, g) => a + g.seats, 0) + seats > ev.invite_limit) { toast('ما في رصيد دعوات كافي بالباقة. تواصلي معنا لزيادتها'); return; }
+    if (!name) { toast('Type the guest\u2019s name'); return; }
+    if (phone.length < 10) { toast('That WhatsApp number looks too short'); return; }
+    if (ev.invite_limit != null && guests.reduce((a, g) => a + g.seats, 0) + seats > ev.invite_limit) { toast('Not enough invites left in the package'); return; }
     const { data, error } = await sb.from('guests').insert({ event_id: ev.id, name, phone, seats, side: gSide, sent_at: new Date().toISOString() }).select().single();
-    if (error) { toast(error.code === '23505' ? 'هالرقم موجود بالقائمة' : /limit/.test(error.message || '') ? 'ما في رصيد دعوات كافي بالباقة' : 'ما قدرنا نضيف الضيف'); return; }
+    if (error) { toast(error.code === '23505' ? 'That number is already on the list' : /limit/.test(error.message || '') ? 'Not enough invites left in the package' : 'Couldn\u2019t add that guest'); return; }
     $('#nName').value = ''; $('#nPhone').value = ''; $('#nSeats').value = 1;
     window.open(waLink(data.phone, fillTemplate(App.templateFor(ev), ev, data)), '_blank', 'noopener');
-    toast('تمت إضافة ' + name); loadGuests();
+    toast('Added ' + name); loadGuests();
   };
 })();
 </script>

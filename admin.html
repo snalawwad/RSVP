@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>لوحة التحكم</title>
+<title>Admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -16,57 +16,57 @@
 <script src="core.js"></script>
 </head>
 <body>
-<div class="topbar"><a class="brand" id="brand" href="host.html"></a><a href="host.html">لوحة صاحب الدعوة</a><button class="link" id="out" hidden>خروج</button></div>
+<div class="topbar"><a class="brand" id="brand" href="host.html"></a><a href="host.html">Dashboard</a><button class="link" id="out" hidden>Log out</button></div>
 <main>
   <div id="auth"></div>
   <section id="adm" hidden>
-    <h2>لوحة التحكم</h2>
-    <p class="sub">المناسبات، أصحاب الدعوة، التصميم، القوائم والإرسال.</p>
-    <div class="row"><div class="evlist" id="evlist" style="margin:0"></div><button class="btn small ghost" id="newEv">+ مناسبة جديدة</button></div>
+    <h2>Admin</h2>
+    <p class="sub">Events, hosts, design, guest lists and sending.</p>
+    <div class="row"><div class="evlist" id="evlist" style="margin:0"></div><button class="btn small ghost" id="newEv">+ New event</button></div>
 
     <div id="evArea" hidden>
-      <h3>تفاصيل المناسبة</h3>
+      <h3>Event details</h3>
       <div class="grid2">
-        <div><label class="f" for="fTitle">اسم المناسبة (يظهر لصاحب الدعوة)</label><input type="text" id="fTitle" placeholder="زفاف الرفاعي والعريفان"></div>
-        <div><label class="f" for="fType">نوع المناسبة</label><select id="fType">
-          <option value="wedding">زفاف</option><option value="milka">ملكة</option><option value="engagement">خطوبة</option><option value="ghabga">غبقة</option>
-          <option value="graduation">تخرج</option><option value="birthday">عيد ميلاد</option><option value="baby">استقبال مولود</option><option value="corporate">مناسبة شركة</option><option value="other">أخرى</option></select></div>
-        <div><label class="f" for="fLang">لغة صفحة الضيف والرسالة</label><select id="fLang"><option value="ar">عربي</option><option value="en">English</option></select></div>
-        <div style="grid-column:1/-1"><label class="f" for="fLine">سطر الدعوة</label><input type="text" id="fLine" placeholder="يتشرف آل الرفاعي وآل العريفان بدعوتكم لحضور حفل الزفاف"></div>
-        <div style="grid-column:1/-1"><label class="f" for="fHead">العنوان الكبير على البطاقة</label><input type="text" id="fHead" placeholder="الرفاعي و العريفان"></div>
-        <div><label class="f" for="fDate">التاريخ</label><input type="date" id="fDate"></div>
-        <div class="grid2" style="gap:8px"><div><label class="f" for="fTime">من</label><input type="time" id="fTime"></div><div><label class="f" for="fEnd">إلى (اختياري)</label><input type="time" id="fEnd"></div></div>
-        <div><label class="f" for="fVenue">المكان</label><input type="text" id="fVenue"></div>
-        <div><label class="f" for="fMap">رابط اللوكيشن</label><input type="url" id="fMap" dir="ltr"></div>
-        <div><label class="f" for="fLimit">عدد الدعوات في الباقة (فاضي = بدون حد)</label><input type="number" id="fLimit" min="0" inputmode="numeric"></div>
-        <div style="grid-column:1/-1"><label class="f" for="fTpl">نص رسالة الواتساب</label><textarea id="fTpl" rows="6"></textarea>
-          <p class="sub" style="font-size:13px;margin:4px 0 0">الكلمات بين { } تتعبّى تلقائياً: {الاسم} {العدد} {التاريخ} {الوقت} {المكان} {المناسبة} {الرابط}</p></div>
+        <div><label class="f" for="fTitle">Event name (shown to the host)</label><input type="text" id="fTitle" placeholder="Ghala’s bridal shower"></div>
+        <div><label class="f" for="fType">Type</label><select id="fType">
+          <option value="wedding">Wedding</option><option value="milka">Milka</option><option value="engagement">Engagement</option><option value="ghabga">Ghabga</option>
+          <option value="graduation">Graduation</option><option value="birthday">Birthday</option><option value="baby">Baby shower</option><option value="corporate">Company event</option><option value="other">Other</option></select></div>
+        <div><label class="f" for="fLang">Guest page language</label><select id="fLang"><option value="en">English</option><option value="ar">العربية</option></select></div>
+        <div style="grid-column:1/-1"><label class="f" for="fLine">Invite line</label><input type="text" id="fLine" placeholder="Join us for Ghala’s bridal shower"></div>
+        <div style="grid-column:1/-1"><label class="f" for="fHead">Big title on the card</label><input type="text" id="fHead" placeholder="ليلة غلا"></div>
+        <div><label class="f" for="fDate">Date</label><input type="date" id="fDate"></div>
+        <div class="grid2" style="gap:8px"><div><label class="f" for="fTime">From</label><input type="time" id="fTime"></div><div><label class="f" for="fEnd">To (optional)</label><input type="time" id="fEnd"></div></div>
+        <div><label class="f" for="fVenue">Venue</label><input type="text" id="fVenue"></div>
+        <div><label class="f" for="fMap">Google Maps link</label><input type="url" id="fMap"></div>
+        <div><label class="f" for="fLimit">Invites in package (empty = no limit)</label><input type="number" id="fLimit" min="0" inputmode="numeric"></div>
+        <div style="grid-column:1/-1"><label class="f" for="fTpl">WhatsApp message (for sending one by one)</label><textarea id="fTpl" rows="6"></textarea>
+          <p class="sub" style="font-size:13px;margin:4px 0 0">Words in { } fill in for each guest: {name} {invites} {date} {time} {venue} {event} {link}</p></div>
       </div>
-      <div class="row" style="margin-top:10px"><button class="btn small" id="saveEv">حفظ</button><a class="btn small ghost" id="openHost" href="#">فتح لوحة صاحب الدعوة</a><a class="btn small ghost" id="testInv" href="#" target="_blank" rel="noopener" hidden>تجربة صفحة ضيف</a></div>
+      <div class="row" style="margin-top:10px"><button class="btn small" id="saveEv">Save</button><a class="btn small ghost" id="openHost" href="#">Open dashboard</a><a class="btn small ghost" id="testInv" href="#" target="_blank" rel="noopener" hidden>Preview a guest page</a></div>
 
-      <div id="needSave" hidden><p class="sub" style="margin-top:20px">احفظي المناسبة أول، بعدين تقدرين تضيفين أصحاب الدعوة والتصميم والضيوف.</p></div>
+      <div id="needSave" hidden><p class="sub" style="margin-top:20px">Save the event first, then you can add hosts, the design and guests.</p></div>
       <div id="afterSave">
-        <h3>أصحاب الدعوة وفريق الباب</h3>
+        <h3>Hosts and door team</h3>
         <div class="glist" id="members"></div>
         <div class="grid2" style="margin-top:10px">
-          <div><label class="f" for="mEmail">الإيميل</label><input type="email" id="mEmail" dir="ltr"></div>
-          <div><label class="f" for="mRole">الصلاحية</label><select id="mRole"><option value="host">صاحب الدعوة (كل اللوحة)</option><option value="door">الباب فقط</option></select></div>
-          <div><label class="f" for="mSide">القائمة (اختياري، مثال: ام العروس)</label><input type="text" id="mSide" list="sideOpts" placeholder="فاضي = يشوف كل القوائم"><datalist id="sideOpts"></datalist></div>
-          <div style="display:flex;align-items:flex-end"><button class="btn small" id="addMem" style="width:100%">إضافة</button></div>
+          <div><label class="f" for="mEmail">Email</label><input type="email" id="mEmail"></div>
+          <div><label class="f" for="mRole">Access</label><select id="mRole"><option value="host">Host (full dashboard)</option><option value="door">Door only</option></select></div>
+          <div><label class="f" for="mSide">List (optional)</label><input type="text" id="mSide" list="sideOpts" placeholder="Empty = sees every list"><datalist id="sideOpts"></datalist></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn small" id="addMem" style="width:100%">Add</button></div>
         </div>
-        <p class="sub" style="font-size:13px;margin:6px 0 0">إذا حطيتي قائمة، صاحب الدعوة يشوف ويضيف ضيوف قائمته بس.</p>
+        <p class="sub" style="font-size:13px;margin:6px 0 0">If you set a list, that host only sees and adds guests on their own list.</p>
 
-        <h3>تصميم الدعوة</h3>
-        <p class="sub" style="margin-bottom:8px">ارفعي بطاقة الدعوة (صورة أو PDF) وصفحة الضيف تاخذ ألوانها.</p>
-        <label class="drop"><input type="file" id="cardFile" accept="image/*,.pdf"><span class="btn small">رفع البطاقة</span></label>
+        <h3>Invite design</h3>
+        <p class="sub" style="margin-bottom:8px">Upload the invite card (photo or PDF) and the guest page takes its colours.</p>
+        <label class="drop"><input type="file" id="cardFile" accept="image/*,.pdf"><span class="btn small">Upload card</span></label>
         <div id="theme"></div>
 
-        <h3>رفع قائمة الضيوف</h3>
-        <div style="max-width:320px;margin-bottom:10px"><label class="f" for="impSide">القائمة اللي ينضاف لها الملف (اختياري)</label><input type="text" id="impSide" list="sideOpts" placeholder="مثال: ام المعرس"></div>
-        <label class="drop"><input type="file" id="listFile" accept=".xlsx,.xls,.csv,.docx"><p style="margin:0 0 10px">ملف Excel أو CSV أو Word فيه الاسم والرقم (وعدد الدعوات إذا موجود)</p><span class="btn small">اختيار ملف</span></label>
+        <h3>Upload a guest list (optional)</h3>
+        <div style="max-width:320px;margin-bottom:10px"><label class="f" for="impSide">Add the file to this list (optional)</label><input type="text" id="impSide" list="sideOpts" placeholder="e.g. Groom’s mum"></div>
+        <label class="drop"><input type="file" id="listFile" accept=".xlsx,.xls,.csv,.docx"><p style="margin:0 0 10px">An Excel, CSV or Word file with names and numbers (and number of invites, if you have it)</p><span class="btn small">Choose file</span></label>
         <div id="preview"></div>
 
-        <h3>إرسال الدعوات</h3>
+        <h3>Send personal invites</h3>
         <div class="box" id="queue"></div>
       </div>
     </div>
@@ -75,7 +75,7 @@
 <script>
 (function () {
   const { sb, $, esc, toast, normPhone, showPhone, kwToIso, isoToKw, inviteLink, waLink, fillTemplate, DEFAULT_TEMPLATE, rgb2hex, lum, themeVars } = App;
-  $('#brand').textContent = CONFIG.BRAND;
+  $('#brand').textContent = CONFIG.BRAND_EN || CONFIG.BRAND;
   if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   let events = [], ev = null, guests = [], parsed = [], chips = [];
   const Q = { list: [], i: 0 };
@@ -83,7 +83,7 @@
   App.requireLogin($('#auth'), async () => {
     $('#out').hidden = false; $('#out').onclick = App.signOut;
     const { data: admin } = await sb.rpc('is_admin');
-    if (!admin) { $('#auth').innerHTML = '<div class="login box"><h2>للإدارة فقط</h2><p class="sub">هالصفحة لحسابات الإدارة. تأكدي إن إيميلج مكتوب في أول ملف setup.txt وشغليه مرة ثانية.</p></div>'; return; }
+    if (!admin) { $('#auth').innerHTML = '<div class="login box"><h2>Admins only</h2><p class="sub">This page is for admin accounts. Check your email is listed at the top of setup.txt, then run it again in Supabase.</p></div>'; return; }
     $('#adm').hidden = false; await loadEvents();
   });
 
@@ -104,8 +104,8 @@
     const s = isoToKw(e?.starts_at), en = isoToKw(e?.ends_at);
     $('#fTitle').value = e?.title || ''; $('#fType').value = e?.event_type || 'wedding'; $('#fLine').value = e?.invite_line || ''; $('#fHead').value = e?.headline || '';
     $('#fDate').value = s.date; $('#fTime').value = s.time; $('#fEnd').value = en.time; $('#fVenue').value = e?.venue || ''; $('#fMap').value = e?.map_url || ''; $('#fLimit').value = e?.invite_limit ?? '';
-    $('#fLang').value = e?.lang || 'ar';
-    $('#fTpl').value = e ? App.templateFor(e) : DEFAULT_TEMPLATE;
+    $('#fLang').value = e?.lang || 'en';
+    $('#fTpl').value = e ? App.templateFor(e) : App.DEFAULT_TEMPLATE_EN;
     $('#needSave').hidden = !!e; $('#afterSave').hidden = !e;
     $('#openHost').href = e ? `host.html?event=${e.id}` : '#';
     if (e) { await loadGuests(); await loadMembers(); renderTheme(); renderPreview(); }
@@ -117,11 +117,11 @@
       starts_at: kwToIso(date, $('#fTime').value), ends_at: date && $('#fEnd').value ? kwToIso(date, $('#fEnd').value) : null,
       venue: $('#fVenue').value.trim() || null, map_url: $('#fMap').value.trim() || null, message_template: $('#fTpl').value, lang: $('#fLang').value,
       invite_limit: $('#fLimit').value === '' ? null : Math.max(0, parseInt($('#fLimit').value) || 0) };
-    if (!row.title) { toast('اكتبي اسم المناسبة'); return; }
+    if (!row.title) { toast('Give the event a name'); return; }
     if (row.ends_at && row.starts_at && row.ends_at < row.starts_at) row.ends_at = new Date(new Date(row.ends_at).getTime() + 864e5).toISOString();
     const res = ev ? await sb.from('events').update(row).eq('id', ev.id).select().single() : await sb.from('events').insert({ ...row, created_by: (await sb.auth.getUser()).data.user.id }).select().single();
-    if (res.error) { toast('ما قدرنا نحفظ: ' + res.error.message); return; }
-    toast('تم الحفظ'); ev = res.data; await loadEvents(ev.id);
+    if (res.error) { toast('Couldn\u2019t save: ' + res.error.message); return; }
+    toast('Saved'); ev = res.data; await loadEvents(ev.id);
   };
 
   // ---- members ----
@@ -130,30 +130,30 @@
     const m = data || [];
     const sides = [...new Set([...m.map(x => x.side), ...guests.map(g => g.side)].filter(Boolean))];
     $('#sideOpts').innerHTML = sides.map(s => `<option value="${esc(s)}">`).join('');
-    $('#members').innerHTML = m.length ? m.map(x => `<div class="gi"><div class="gi-main"><b dir="ltr">${esc(x.email)}</b><div class="gi-sub">${x.role === 'host' ? 'صاحب الدعوة' : 'الباب فقط'}${x.side ? ' · قائمة ' + esc(x.side) : x.role === 'host' ? ' · كل القوائم' : ''}</div></div><div class="gi-act"><button class="icon" data-rm="${x.id}">إزالة</button></div></div>`).join('')
-      : '<p class="empty">ما في أحد مضاف. أضيفي إيميل صاحب الدعوة عشان يشوف لوحته.</p>';
+    $('#members').innerHTML = m.length ? m.map(x => `<div class="gi"><div class="gi-main"><b dir="ltr">${esc(x.email)}</b><div class="gi-sub">${x.role === 'host' ? 'Host' : 'Door only'}${x.side ? ' · ' + esc(x.side) + '\u2019s list' : x.role === 'host' ? ' · all lists' : ''}</div></div><div class="gi-act"><button class="icon" data-rm="${x.id}">Remove</button></div></div>`).join('')
+      : '<p class="empty">No hosts yet. Add a host\u2019s email so they can see their dashboard.</p>';
     $('#members').querySelectorAll('[data-rm]').forEach(b => b.onclick = async () => { await sb.from('event_members').delete().eq('id', b.dataset.rm); loadMembers(); });
   }
   $('#addMem').onclick = async () => {
     const email = $('#mEmail').value.trim().toLowerCase();
-    if (!/^\S+@\S+\.\S+$/.test(email)) { toast('اكتبي إيميل صحيح'); return; }
+    if (!/^\S+@\S+\.\S+$/.test(email)) { toast('Please enter a valid email'); return; }
     const { error } = await sb.from('event_members').insert({ event_id: ev.id, email, role: $('#mRole').value, side: $('#mRole').value === 'host' ? ($('#mSide').value.trim() || null) : null });
-    if (error) { toast(error.code === '23505' ? 'هالإيميل مضاف من قبل' : 'ما قدرنا نضيف'); return; }
-    $('#mEmail').value = ''; $('#mSide').value = ''; toast('تمت الإضافة. يدخل من host.html بنفس الإيميل'); loadMembers();
+    if (error) { toast(error.code === '23505' ? 'That email is already added' : 'Couldn\u2019t add them'); return; }
+    $('#mEmail').value = ''; $('#mSide').value = ''; toast('Added. They log in at host.html with that email'); loadMembers();
   };
 
   // ---- design ----
   function renderTheme() {
     const v = themeVars(ev.theme_accent, ev.theme_paper);
     $('#theme').innerHTML = `<div class="row" style="align-items:flex-start;margin-top:12px">
-      ${ev.card_image_url ? `<img class="thumb" src="${esc(ev.card_image_url)}" alt="البطاقة">` : ''}
+      ${ev.card_image_url ? `<img class="thumb" src="${esc(ev.card_image_url)}" alt="Invite card">` : ''}
       <div style="flex:1;min-width:220px">
-        ${chips.length ? `<p class="sub" style="font-size:13px;margin:0">ألوان من البطاقة:</p><div class="chips">${chips.map(c => `<button class="chip" style="background:${c}" data-chip="${c}" aria-label="${c}" aria-pressed="${c === ev.theme_accent}"></button>`).join('')}</div>` : ''}
-        <label class="pick"><input type="color" id="tA" value="${esc(ev.theme_accent)}"> اللون الأساسي</label>
-        <label class="pick"><input type="color" id="tP" value="${esc(ev.theme_paper)}"> لون الخلفية</label>
+        ${chips.length ? `<p class="sub" style="font-size:13px;margin:0">Colours from the card:</p><div class="chips">${chips.map(c => `<button class="chip" style="background:${c}" data-chip="${c}" aria-label="${c}" aria-pressed="${c === ev.theme_accent}"></button>`).join('')}</div>` : ''}
+        <label class="pick"><input type="color" id="tA" value="${esc(ev.theme_accent)}"> Main colour</label>
+        <label class="pick"><input type="color" id="tP" value="${esc(ev.theme_paper)}"> Background colour</label>
         <div style="background:${v['--t-paper']};color:${v['--t-ink']};border:1px solid ${v['--t-line']};border-radius:6px;padding:14px;text-align:center">
-          <p class="serif" style="margin:0 0 8px;font-size:22px;color:${v['--t-accent']}">حياكم الله</p>
-          <span style="display:inline-block;padding:6px 16px;border-radius:6px;font-size:13px;font-weight:600;background:${v['--t-accent']};color:${v['--t-accent-ink']}">تأكيد الحضور</span></div>
+          <p class="serif" style="margin:0 0 8px;font-size:22px;color:${v['--t-accent']}">You\u2019re invited</p>
+          <span style="display:inline-block;padding:6px 16px;border-radius:6px;font-size:13px;font-weight:600;background:${v['--t-accent']};color:${v['--t-accent-ink']}">Confirm attendance</span></div>
       </div></div>`;
     $('#theme').querySelectorAll('[data-chip]').forEach(b => b.onclick = () => saveTheme({ theme_accent: b.dataset.chip }));
     $('#tA').onchange = e => saveTheme({ theme_accent: e.target.value });
@@ -161,7 +161,7 @@
   }
   async function saveTheme(patch) {
     const { data, error } = await sb.from('events').update(patch).eq('id', ev.id).select().single();
-    if (error) { toast('ما قدرنا نحفظ الألوان'); return; }
+    if (error) { toast('Couldn\u2019t save the colours'); return; }
     ev = data; renderTheme();
   }
   function palette(img) {
@@ -196,7 +196,7 @@
   }
   $('#cardFile').onchange = async e => {
     const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-    toast('جاري رفع البطاقة…');
+    toast('Uploading the card…');
     try {
       const { img, blob } = await toJpeg(f);
       const pal = palette(img); chips = pal.chips;
@@ -205,8 +205,8 @@
       if (up.error) throw up.error;
       const url = sb.storage.from('cards').getPublicUrl(path).data.publicUrl;
       await saveTheme({ card_image_url: url, theme_accent: pal.accent, theme_paper: pal.paper });
-      toast('تم أخذ الألوان من البطاقة');
-    } catch (err) { toast('ما قدرنا نرفع البطاقة: ' + (err.message || 'جربي صورة JPG')); }
+      toast('Colours taken from the card');
+    } catch (err) { toast('Couldn\u2019t upload the card: ' + (err.message || 'try a JPG photo')); }
   };
 
   // ---- guests ----
@@ -242,43 +242,43 @@
       if (/\.docx$/i.test(f.name)) parsed = fromLines((await mammoth.extractRawText({ arrayBuffer: await f.arrayBuffer() })).value.split(/\n/));
       else { const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' }); parsed = fromRows(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' })); }
       const seen = new Set(); parsed = parsed.filter(g => !seen.has(g.phone) && seen.add(g.phone));
-      if (!parsed.length) toast('ما لقينا أسماء وأرقام بالملف');
-    } catch (err) { toast('ما قدرنا نقرأ الملف'); }
+      if (!parsed.length) toast('No names and numbers found in that file');
+    } catch (err) { toast('Couldn\u2019t read that file'); }
     renderPreview();
   };
   function renderPreview() {
     const p = $('#preview'); if (!parsed.length) { p.innerHTML = ''; return; }
-    p.innerHTML = `<p style="margin:14px 0 8px">لقينا <b>${parsed.length}</b> ضيف. راجعي قبل الإضافة:</p>
-      <div class="scroll box" style="padding:0"><table class="t"><thead><tr><th>الاسم</th><th>الرقم</th><th>العدد</th></tr></thead><tbody>
-      ${parsed.slice(0, 50).map(g => `<tr><td>${esc(g.name)}</td><td dir="ltr" style="text-align:right">${esc(showPhone(g.phone))}</td><td>${g.seats}</td></tr>`).join('')}</tbody></table></div>
-      ${parsed.length > 50 ? `<p class="sub">و${parsed.length - 50} غيرهم…</p>` : ''}
-      <div class="row" style="margin-top:10px"><button class="btn small" id="imp">إضافة للقائمة</button><button class="btn small ghost" id="cancelImp">إلغاء</button></div>`;
+    p.innerHTML = `<p style="margin:14px 0 8px">Found <b>${parsed.length}</b> guests. Check them before adding:</p>
+      <div class="scroll box" style="padding:0"><table class="t"><thead><tr><th>Name</th><th>Number</th><th>Invites</th></tr></thead><tbody>
+      ${parsed.slice(0, 50).map(g => `<tr><td>${esc(g.name)}</td><td>${esc(showPhone(g.phone))}</td><td>${g.seats}</td></tr>`).join('')}</tbody></table></div>
+      ${parsed.length > 50 ? `<p class="sub">and ${parsed.length - 50} more…</p>` : ''}
+      <div class="row" style="margin-top:10px"><button class="btn small" id="imp">Add to list</button><button class="btn small ghost" id="cancelImp">Cancel</button></div>`;
     $('#cancelImp').onclick = () => { parsed = []; renderPreview(); };
     $('#imp').onclick = async () => {
       const impSide = $('#impSide').value.trim() || null;
-      if (ev.invite_limit != null) { const used = guests.reduce((a, g) => a + g.seats, 0), need = parsed.reduce((a, g) => a + g.seats, 0); if (used + need > ev.invite_limit) { toast(`الملف يحتاج ${need} دعوة والمتبقي ${Math.max(0, ev.invite_limit - used)}. زيدي الباقة أو قللي القائمة`); return; } }
+      if (ev.invite_limit != null) { const used = guests.reduce((a, g) => a + g.seats, 0), need = parsed.reduce((a, g) => a + g.seats, 0); if (used + need > ev.invite_limit) { toast(`This file needs ${need} invites but only ${Math.max(0, ev.invite_limit - used)} are left`); return; } }
       const rows = parsed.map(g => ({ ...g, event_id: ev.id, side: impSide }));
       const { data, error } = await sb.from('guests').upsert(rows, { onConflict: 'event_id,phone', ignoreDuplicates: true }).select('id');
-      if (error) { toast('ما قدرنا نضيف القائمة: ' + error.message); return; }
-      const added = (data || []).length; toast(`تمت إضافة ${added} ضيف` + (parsed.length - added ? ` (تجاهلنا ${parsed.length - added} رقم مكرر)` : ''));
+      if (error) { toast('Couldn\u2019t add the list: ' + error.message); return; }
+      const added = (data || []).length; toast(`Added ${added} guests` + (parsed.length - added ? ` (skipped ${parsed.length - added} duplicates)` : ''));
       parsed = []; renderPreview(); loadGuests();
     };
   }
 
   // ---- sending ----
   function renderQueue() {
-    const q = $('#queue'), tpl = App.templateFor(ev), unsent = guests.filter(g => !g.sent_at);
+    const q = $('#queue'), tpl = App.templateFor(ev), unsent = guests.filter(g => !g.sent_at && g.phone);
     if (!Q.list.length) {
-      q.innerHTML = unsent.length ? `<p style="margin:0 0 6px"><b>${unsent.length}</b> دعوة جاهزة للإرسال.</p><p class="sub" style="margin:0 0 8px">مثال للرسالة:</p><div class="msg">${esc(fillTemplate(tpl, ev, unsent[0]))}</div>
-        <div class="row" style="margin-top:10px"><button class="btn small" id="startQ">بدء الإرسال</button></div>`
-        : `<p class="empty" style="padding:6px">${guests.length ? 'كل الدعوات انرسلت.' : 'ارفعي قائمة الضيوف أول.'}</p>`;
+      q.innerHTML = unsent.length ? `<p style="margin:0 0 6px"><b>${unsent.length}</b> invites ready to send.</p><p class="sub" style="margin:0 0 8px">Example message:</p><div class="msg">${esc(fillTemplate(tpl, ev, unsent[0]))}</div>
+        <div class="row" style="margin-top:10px"><button class="btn small" id="startQ">Start sending</button></div>`
+        : `<p class="empty" style="padding:6px">${guests.length ? 'Everyone with a number has been sent their invite.' : 'Upload a guest list to send personal invites, or just share the invite link from the dashboard.'}</p>`;
       const s = $('#startQ'); if (s) s.onclick = () => { Q.list = unsent.map(g => g.id); Q.i = 0; renderQueue(); };
       return;
     }
-    if (Q.i >= Q.list.length) { const n = Q.list.length; Q.list = []; q.innerHTML = `<p class="serif" style="font-size:22px;margin:0;color:var(--ok)">✓ انرسلت ${n} دعوة</p>`; setTimeout(renderQueue, 2500); return; }
+    if (Q.i >= Q.list.length) { const n = Q.list.length; Q.list = []; q.innerHTML = `<p class="serif" style="font-size:22px;margin:0;color:var(--ok)">✓ Sent ${n} invites</p>`; setTimeout(renderQueue, 2500); return; }
     const g = guests.find(x => x.id === Q.list[Q.i]); if (!g) { Q.i++; renderQueue(); return; }
-    q.innerHTML = `<p style="margin:0">الدعوة ${Q.i + 1} من ${Q.list.length}: <b>${esc(g.name)}</b></p><div class="progress"><i style="width:${Q.i / Q.list.length * 100}%"></i></div>
-      <div class="row"><a class="btn small" id="one" href="${waLink(g.phone, fillTemplate(tpl, ev, g))}" target="_blank" rel="noopener">فتح في واتساب</a><button class="btn small ghost" id="skip">تخطّي</button><button class="link" id="stop">إيقاف</button></div>`;
+    q.innerHTML = `<p style="margin:0">Invite ${Q.i + 1} of ${Q.list.length}: <b>${esc(g.name)}</b></p><div class="progress"><i style="width:${Q.i / Q.list.length * 100}%"></i></div>
+      <div class="row"><a class="btn small" id="one" href="${waLink(g.phone, fillTemplate(tpl, ev, g))}" target="_blank" rel="noopener">Open in WhatsApp</a><button class="btn small ghost" id="skip">Skip</button><button class="link" id="stop">Stop</button></div>`;
     $('#one').onclick = async () => { g.sent_at = new Date().toISOString(); await sb.from('guests').update({ sent_at: g.sent_at }).eq('id', g.id); Q.i++; setTimeout(renderQueue, 400); };
     $('#skip').onclick = () => { Q.i++; renderQueue(); };
     $('#stop').onclick = () => { Q.list = []; renderQueue(); };
