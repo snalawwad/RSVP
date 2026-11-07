@@ -205,3 +205,4 @@ body.has-card main{padding-left:8px;padding-right:8px}
 .msgbox{font-size:14px;line-height:1.5;border-radius:12px}
 .btn.wa svg{flex:none}
 .rsvp-note{margin:-8px 0 18px;font-size:17px;line-height:1.45;color:var(--t-muted);font-style:italic}
+.rsvp-note,.card.plain .rsvp-note{font-style:normal}
