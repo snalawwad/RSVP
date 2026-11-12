@@ -6,191 +6,582 @@
 <meta name="robots" content="noindex">
 <title>Door check-in</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<script>try{document.documentElement.dataset.theme=localStorage.getItem('ui-theme')||'auto'}catch(e){}</script>
+<link rel="stylesheet" href="door.css">
+<script>
+// Colour mode: the staff member's own choice wins. If they never chose, the door goes dark at night (Kuwait time).
+try {
+  var th = localStorage.getItem('ui-theme');
+  if (!th) { var h = (new Date().getUTCHours() + 3) % 24; th = (h >= 17 || h < 5) ? 'dark' : 'auto'; }
+  document.documentElement.dataset.theme = th;
+  if (localStorage.getItem('door-lang') === 'ar') { document.documentElement.lang = 'ar'; document.documentElement.dir = 'rtl'; }
+} catch (e) { document.documentElement.dataset.theme = 'auto'; }
+</script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
 <script defer src="config.js"></script>
 <script defer src="core.js"></script>
 </head>
-<body class="app">
-<div class="topbar"><a class="brand" id="brand" href="host.html"></a><span class="themesw" id="themeSw"></span><button class="link" id="lang">العربية</button><button class="link" id="out" hidden></button></div>
+<body class="app door">
+<div class="topbar" id="topbar"><a class="brand" href="host.html" aria-label="Home"></a><span class="tb-title" id="tbTitle"></span><button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu"><i class="i i-menu"></i><span class="menu-l">Menu</span></button></div>
+<dialog class="sheet" id="menu" aria-labelledby="menuH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="menuH">Menu</h2><button class="sheet-x" data-close aria-label="Close"><i class="i i-x"></i></button></div><nav class="menu-nav" id="menuNav"></nav><div class="menu-row"><span data-i18n="colours">Colours</span><span class="themesw" id="themeSw"></span></div><div class="menu-foot"><button class="btn ghost" id="lang">العربية</button><button class="btn ghost" id="out" hidden>Log out</button></div></dialog>
 <main>
   <div id="auth"></div>
   <section id="door" hidden>
-    <div class="evlist" id="evlist"></div>
-    <h2 id="title" style="margin-top:14px"></h2>
-    <div class="stats" id="counts" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px"></div>
+    <header class="dmast" id="mast">
+      <div class="dmast-row"><p class="kicker" id="kick"></p><span class="live" id="live" role="status"></span></div>
+      <div class="dmast-row"><h1 class="dmast-t" id="title"></h1><button class="ev-sw" id="evSw" type="button" hidden><i class="i i-calendar sm"></i><span></span></button></div>
+    </header>
+    <div class="dhead" id="dhead">
+      <div class="dmeter" id="meter">
+        <div class="dm-row">
+          <p class="dm-n"><b id="mIn" class="num">0</b><span class="dm-of num" id="mOf"></span><span class="dm-l" id="mL"></span></p>
+          <button class="fchip dm-wait" id="waitChip" type="button" hidden><span class="d w"></span><span id="waitL"></span></button>
+        </div>
+        <div class="dm-bar" id="mBarBox" aria-hidden="true"><i id="mBar"></i></div>
+      </div>
+      <div class="searchbox dsearch">
+        <label class="sr" for="q" id="qLbl"></label>
+        <i class="i i-search" aria-hidden="true"></i>
+        <input type="search" id="q" dir="auto" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" enterkeyhint="search">
+        <button class="qx" id="qx" type="button" hidden><i class="i i-x"></i></button>
+      </div>
+    </div>
+    <div id="answers"></div>
+    <p class="sr" id="annLive" role="status"></p>
     <div id="result" aria-live="assertive"></div>
-    <label class="f" for="q" id="qLbl"></label>
-    <input type="search" id="q" autocomplete="off">
-    <div class="glist" id="list" style="margin-top:10px"></div>
-    <div class="row" style="margin-top:14px"><button class="btn small ghost" id="unlisted"></button></div>
-    <div class="box" id="exForm" hidden style="margin-top:12px"></div>
-    <div id="myReqs"></div>
+    <div class="dlist" id="list"></div>
+    <div class="dmore"><button class="btn quiet small" id="unlisted" type="button"><i class="i i-plus"></i><span></span></button></div>
+    <section id="myReqs"></section>
   </section>
 </main>
+<dialog class="sheet" id="ask" aria-labelledby="askH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="askH"></h2><button class="sheet-x" data-close type="button"><i class="i i-x"></i></button></div><div id="askBody"></div></dialog>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  const { sb, $, esc, toast, normName, showPhone } = App;
-  $('#brand').textContent = CONFIG.BRAND_EN || CONFIG.BRAND;
+  const { sb, $, esc, toast, showPhone } = App;
+  const arPeople = n => n === 1 ? 'شخص واحد' : n === 2 ? 'شخصين' : n <= 10 ? n + ' أشخاص' : n + ' شخص';
   const T = {
-    en: { out: 'Log out', other: 'العربية', search: 'Find a guest by name or number', searchPh: 'Type a name', arrived: 'Arrived', confirmed: 'Confirmed', waiting: 'Waiting for host',
-      people: n => n === 1 ? '1 person' : n + ' people', typeName: 'Type a name to find a guest.', notFound: 'Not on the list. You can ask the host below.', notFoundOld: 'Not on the list. Check with the host.',
-      coming: 'Coming', declined: 'Declined', noReply: 'No reply', of: (a, b) => `${a} of ${b} arrived`, allIn: 'All arrived', checkIn: 'Check in', howMany: 'How many now',
-      askHost: 'Ask the host', unlisted: '+ Someone not on the list', name: 'Name', count: 'How many people', note: 'Note for the host (optional)', send: 'Send to host', cancel: 'Cancel',
-      sent: 'Sent to the host. You’ll see their answer below.', reqs: 'Your requests to the host', pending: 'Waiting', approved: 'Approved, let them in', rejected: 'Not approved',
-      over: (n, l) => `${n}: only ${l} more can come in`, overNone: n => `${n}: no more seats on this invite`, ok: (n, p) => `✓ ${n}`, okSub: (p, l) => `${p} checked in${l ? ` · ${l} still to come` : ''}`,
-      hadDeclined: 'had declined', noReplySub: 'hadn’t replied', err: 'Couldn’t do that. Check your connection and try again.', noEvents: 'This email isn’t linked to any event right now.', noEventsH: 'No events',
-      already: 'Already checked in', reason: 'Reason' },
-    ar: { out: 'تسجيل خروج', other: 'English', search: 'ابحث عن ضيف بالاسم أو الرقم', searchPh: 'اكتب الاسم', arrived: 'وصلوا', confirmed: 'مؤكدين', waiting: 'بانتظار المضيفة',
-      people: n => n === 1 ? 'شخص واحد' : n === 2 ? 'شخصين' : n + ' أشخاص', typeName: 'اكتب اسم الضيف للبحث.', notFound: 'الاسم مو موجود بالقائمة. تقدر تطلب موافقة المضيفة تحت.', notFoundOld: 'الاسم مو موجود بالقائمة. تأكد مع المضيفة.',
-      coming: 'بيحضر', declined: 'معتذر', noReply: 'ما رد', of: (a, b) => `وصل ${a} من ${b}`, allIn: 'وصلوا كلهم', checkIn: 'تسجيل دخول', howMany: 'كم شخص الحين',
-      askHost: 'اطلب موافقة المضيفة', unlisted: '+ شخص مو موجود بالقائمة', name: 'الاسم', count: 'عدد الأشخاص', note: 'ملاحظة للمضيفة (اختياري)', send: 'أرسل للمضيفة', cancel: 'إلغاء',
-      sent: 'تم الإرسال للمضيفة. بيطلع ردها تحت.', reqs: 'طلباتك للمضيفة', pending: 'بالانتظار', approved: 'تمت الموافقة، دخّلهم', rejected: 'ما تمت الموافقة',
-      over: (n, l) => `${n}: باقي ${l} فقط يقدرون يدخلون`, overNone: n => `${n}: ما باقي مقاعد بهذي الدعوة`, ok: (n) => `✓ ${n}`, okSub: (p, l) => `تم تسجيل ${p}${l ? ` · باقي ${l}` : ''}`,
-      hadDeclined: 'كان معتذر', noReplySub: 'ما كان راد', err: 'ما قدرنا نكمل. تأكد من الاتصال وحاول مرة ثانية.', noEvents: 'هذا الإيميل مو مربوط بأي مناسبة حالياً.', noEventsH: 'ما في مناسبات',
-      already: 'مسجل دخول من قبل', reason: 'السبب' }
+    en: { other: 'العربية', out: 'Log out', title: 'Door check-in', home: 'Home', menuDoor: 'Door check-in', menuDash: 'Host dashboard', events: 'Your events', colours: 'Colours', switchEv: 'Switch',
+      atDoor: 'At the door', live: 'Live', offline: 'Offline, retrying',
+      search: 'Find a guest by name or phone', searchPh: 'Guest name or phone', clear: 'Clear search',
+      arrived: 'arrived', waitChip: n => `${n} waiting for host`, half: 'Half the guests are in', everyone: 'Everyone’s here',
+      people: n => n === 1 ? '1 person' : n + ' people',
+      coming: 'Coming', declined: 'Declined', noReply: 'No reply', allIn: 'All in', already: 'Already checked in',
+      inN: (a, b) => a ? `${a} in · ${b} to come` : `${b} to come`, allInN: n => `All ${n} in`, waitLine: n => `Didn’t reply · can come in (${n})`, declinedLine: 'Said they can’t come',
+      howMany: 'How many now', less: 'One less', more: 'One more',
+      checkInN: (n, left) => n >= left ? `Check in ${n}` : `Check in ${n} of ${left}`, checkIn1: 'Check in', askOver: x => `Ask host for \u2066+${x}\u2069`,
+      busy: 'Checking in…', retry: 'Try again',
+      askHost: 'Ask the host', askMore: 'Ask host for more', unlisted: 'Someone not on the list',
+      typeName: 'Type a name to check someone in.', awake: 'Screen stays on', justArrived: 'Just arrived', tapFind: 'Tap a name to find them again.',
+      notFoundH: 'Not on the list', noOne: q => `No one called “${q}”.`, notFoundOld: 'Not on the list. Check with the host.',
+      okK: 'Checked in', okSub: (p, l) => `${p} checked in${l ? ` · ${l} still to come` : ''}`, hadDeclined: 'had declined', noReplySub: 'hadn’t replied',
+      over: l => `Only ${l} more can come in on this invite`, overNone: 'No more seats on this invite', overK: 'Over the limit', close: 'Close',
+      askH: 'Ask the host', allowedLine: (a, d) => `${a} allowed · ${d} in`, name: 'Name', count: 'How many people', reasonL: 'Why', reasons: ['Extra family', 'Not on the list', 'Host invited by phone', 'Child'],
+      otherNote: 'Other note (optional)', send: n => `Send to host · ${n === 1 ? '1 person' : n + ' people'}`, needName: 'Type their name first', sent: 'Sent. The host’s answer will show at the top.',
+      reqs: 'Your requests to the host', pending: 'Waiting', approved: 'Approved', rejected: 'Not approved', answered: n => `Answered (${n})`,
+      ago: m => m < 1 ? 'just now' : m < 60 ? `${m} min ago` : `${Math.floor(m / 60)} h ago`,
+      okBanner: (nm, p) => `Host approved: let ${nm} in (${p})`, okBannerSub: 'Already counted. No need to check them in again.', noBanner: nm => `Host said no: ${nm}`, noBannerSub: 'Please let the guest know kindly.', dismiss: 'Dismiss',
+      err: 'Couldn’t do that. Check your connection and try again.', noEvents: 'This email isn’t linked to any event right now.', noEventsH: 'No events', reason: 'Reason',
+      digitsHint: 'Type at least 4 digits of the number', bigN: '7 or more', moreAns: n => `Show the rest (${n})` },
+    ar: { other: 'English', out: 'تسجيل خروج', title: 'شاشة الباب', home: 'الرئيسية', menuDoor: 'شاشة الباب', menuDash: 'لوحة المضيفة', events: 'مناسباتك', colours: 'الألوان', switchEv: 'تغيير',
+      atDoor: 'على الباب', live: 'مباشر', offline: 'ما في اتصال، نحاول',
+      search: 'ابحثوا بالاسم أو رقم التلفون', searchPh: 'اسم الضيف أو رقمه', clear: 'مسح البحث',
+      arrived: 'وصلوا', waitChip: n => `${n} بانتظار المضيفة`, half: 'نص الضيوف وصلوا', everyone: 'الكل وصل',
+      people: arPeople,
+      coming: 'بيحضر', declined: 'معتذر', noReply: 'ما رد', allIn: 'دخلوا كلهم', already: 'داخلين من قبل',
+      inN: (a, b) => a ? `دخل ${a} · باقي ${b}` : `باقي ${b}`, allInN: n => `دخلوا كلهم (${n})`, waitLine: n => `ما ردوا · يقدرون يدخلون (${n})`, declinedLine: 'اعتذروا عن الحضور',
+      howMany: 'كم شخص الحين', less: 'شخص أقل', more: 'شخص زيادة',
+      checkInN: (n, left) => n >= left ? `دخول ${arPeople(n)}` : `دخول ${n} من ${left}`, checkIn1: 'دخول', askOver: x => `طلب موافقة \u2066+${x}\u2069`,
+      busy: 'جاري التسجيل…', retry: 'حاولوا مرة ثانية',
+      askHost: 'اطلبوا موافقة المضيفة', askMore: 'اطلبوا موافقة على زيادة', unlisted: 'شخص مو موجود بالقائمة',
+      typeName: 'اكتبوا اسم الضيف عشان تسجلون وصوله.', awake: 'الشاشة بتظل شغالة', justArrived: 'وصلوا توّهم', tapFind: 'اضغطوا على الاسم عشان تلقونه مرة ثانية.',
+      notFoundH: 'مو موجود بالقائمة', noOne: q => `ما في أحد باسم «${q}».`, notFoundOld: 'الاسم مو موجود بالقائمة. تأكدوا مع المضيفة.',
+      okK: 'تم الدخول', okSub: (p, l) => `تم تسجيل ${p}${l ? ` · باقي ${l}` : ''}`, hadDeclined: 'كان معتذر', noReplySub: 'ما كان راد',
+      over: l => `باقي ${l} بس يقدرون يدخلون بهذي الدعوة`, overNone: 'ما باقي مقاعد بهذي الدعوة', overK: 'أكثر من المسموح', close: 'إغلاق',
+      askH: 'طلب موافقة المضيفة', allowedLine: (a, d) => `مسموح ${a} · دخل ${d}`, name: 'الاسم', count: 'كم شخص', reasonL: 'السبب', reasons: ['أهل زيادة', 'مو بالقائمة', 'المضيفة عزمتهم بالتلفون', 'طفل'],
+      otherNote: 'ملاحظة ثانية (اختياري)', send: n => `أرسلوا للمضيفة · ${arPeople(n)}`, needName: 'اكتبوا الاسم أول', sent: 'انرسل للمضيفة. ردها بيطلع فوق.',
+      reqs: 'طلباتك للمضيفة', pending: 'بالانتظار', approved: 'تمت الموافقة', rejected: 'ما تمت الموافقة', answered: n => `تم الرد (${n})`,
+      ago: m => m < 1 ? 'توّه' : m === 1 ? 'قبل دقيقة' : m === 2 ? 'قبل دقيقتين' : m <= 10 ? `قبل ${m} دقايق` : m < 60 ? `قبل ${m} دقيقة` : `قبل ${Math.floor(m / 60)} ساعة`,
+      okBanner: (nm, p) => `المضيفة وافقت: دخّلوا ${nm} (${p})`, okBannerSub: 'انحسبوا خلاص، لا تسجلونهم مرة ثانية.', noBanner: nm => `المضيفة ما وافقت: ${nm}`, noBannerSub: 'بلّغوا الضيف بلطف.', dismiss: 'إخفاء',
+      err: 'ما قدرنا نكمل. تأكدوا من الاتصال وحاولوا مرة ثانية.', noEvents: 'هذا الإيميل مو مربوط بأي مناسبة حالياً.', noEventsH: 'ما في مناسبات', reason: 'السبب',
+      digitsHint: 'اكتبوا 4 أرقام على الأقل من رقم التلفون', bigN: '7 أو أكثر', moreAns: n => `اعرضوا الباقي (${n})` }
   };
   let lang = 'en'; try { lang = localStorage.getItem('door-lang') === 'ar' ? 'ar' : 'en'; } catch (e) {}
   let t = T[lang];
-  let events = [], ev = null, list = [], v2 = false, busy = false, poll = null, exPrefill = null;
-  const typed = {};   // head counts the door has typed, kept across the 15-second refresh
-  // the upgraded functions went missing (e.g. undone): carry on the old way
-  function dropV2() { v2 = false; $('#unlisted').hidden = true; exPrefill = null; renderForm(); $('#myReqs').innerHTML = ''; }
+  let events = [], ev = null, list = [], reqs = [], v2 = false, busy = false, pollT = null, exPrefill = null;
+  const typed = {};            // head counts the door has chosen, kept across refreshes
+  let lastTouch = 0, renderLater = null, busyId = null, failedId = null;
+  let lastOk = 0, online = true, wakeOn = false, wake = null;
+  const seenReq = new Map(); let reqsLoaded = false, answers = [];
+  let recent = [], prevPct = null, arriveT = null;
+  let canHost = false;               // the host dashboard link only for people who can use it
+  const announced = new Set(); let showAllAns = false;
+  const MAX_ASK = 20, ANS_SHOWN = 2;
 
+  // ---------- small helpers ----------
+  const allowed = g => g.status === 'yes' ? (g.confirmed_count || g.seats) : g.status === 'pending' ? g.seats : 0;
+  const leftOf = g => Math.max(0, allowed(g) - (g.checked_in_count || 0));
+  const MAX_OVER = 6;
+  const initial = s => { const c = [...String(s || '').trim()][0] || '·'; return c.toUpperCase(); };
+  const isAr = s => /[؀-ۿ]/.test(s || '');
+  const monoHtml = (name, cls) => `<span class="mono ${cls}${isAr(name) ? ' ar' : ''}" aria-hidden="true">${esc(initial(name))}</span>`;
+  const ss = { get(k) { try { return JSON.parse(sessionStorage.getItem(k) || 'null'); } catch (e) { return null; } }, set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+
+  // the upgraded functions went missing (e.g. undone): carry on the old way
+  function dropV2() { v2 = false; $('#unlisted').hidden = true; exPrefill = null; renderForm(); reqs = []; drawReqs(); drawMeter(); }
+
+  // ---------- language ----------
   function applyLang() {
     t = T[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-    $('#lang').textContent = t.other; $('#out').textContent = t.out; $('#qLbl').textContent = t.search; $('#q').placeholder = t.searchPh; $('#unlisted').textContent = t.unlisted;
-    if (ev) { renderList(); renderForm(); loadReqs(); }
+    document.title = t.title;
+    $('#lang').textContent = t.other; $('#lang').setAttribute('lang', lang === 'ar' ? 'en' : 'ar'); $('#out').textContent = t.out;
+    document.querySelectorAll('[data-i18n]').forEach(el => { if (typeof t[el.dataset.i18n] === 'string') el.textContent = t[el.dataset.i18n]; });
+    document.querySelector('.topbar .brand').setAttribute('aria-label', t.home);
+    $('#qLbl').textContent = t.search; $('#q').placeholder = t.searchPh; $('#qx').setAttribute('aria-label', t.clear);
+    $('#unlisted span').textContent = t.unlisted; $('#evSw span').textContent = t.switchEv;
+    $('#ask .sheet-x').setAttribute('aria-label', t.close); $('#askH').textContent = t.askH;
+    drawMenu(); $('#annLive').textContent = '';
+    if (ev) { drawMast(); setLive(online && Date.now() - lastOk < 30000); renderList(); drawReqs(); drawAnswers(); if (exPrefill) { keepForm(); renderForm(); } }
   }
   $('#lang').onclick = () => { lang = lang === 'ar' ? 'en' : 'ar'; try { localStorage.setItem('door-lang', lang); } catch (e) {} applyLang(); };
+
+  function drawMenu() {
+    const d = iso => iso ? new Date(iso).toLocaleDateString(lang === 'ar' ? 'ar-KW-u-nu-latn' : 'en-GB', { timeZone: 'Asia/Kuwait', day: 'numeric', month: 'short' }) : '';
+    $('#menuNav').innerHTML = `<a href="door.html" aria-current="page"><i class="i i-door"></i><span>${t.menuDoor}</span></a>${canHost ? `<a href="host.html"><i class="i i-home"></i><span>${t.menuDash}</span></a>` : ''}`
+      + (events.length > 1 ? `<p class="menu-cap">${t.events}</p>` + events.map(x => `<button type="button" data-ev="${esc(x.id)}" aria-current="${!!ev && x.id === ev.id}"><i class="i ${ev && x.id === ev.id ? 'i-check' : 'i-calendar'}"></i><bdi class="menu-ev">${esc(x.title)}</bdi><span class="menu-sub">${esc(d(x.starts_at))}</span></button>`).join('') : '');
+    $('#menuNav').querySelectorAll('[data-ev]').forEach(b => b.onclick = () => { $('#menu').close(); const e = events.find(x => x.id === b.dataset.ev); if (e && e !== ev) pick(e); });
+  }
+  $('#evSw').onclick = () => $('#menuBtn').click();
   applyLang();
 
-  App.requireLogin($('#auth'), async () => {
+  // The topbar shows the event's name once the masthead scrolls away
+  const tbH = () => { const h = $('#topbar').offsetHeight; document.body.style.setProperty('--dtb', h + 'px'); return h; };
+  tbH(); window.addEventListener('resize', tbH);
+  if ('IntersectionObserver' in window) new IntersectionObserver(es => es.forEach(e => $('#tbTitle').classList.toggle('on', !e.isIntersecting && !$('#door').hidden)), { rootMargin: `-${tbH()}px 0px 0px 0px` }).observe($('#mast'));
+
+  // ---------- login, events ----------
+  App.requireLogin($('#auth'), async (session) => {
     $('#out').hidden = false; $('#out').onclick = App.signOut;
     v2 = await App.v2Ready();
+    // door-only staff don't get a link to a dashboard that would only send them back here
+    try {
+      const me = String((session && session.user && session.user.email) || '').toLowerCase();
+      const [adm, mem] = await Promise.all([sb.rpc('is_admin'), sb.from('event_members').select('role, email')]);
+      canHost = !!(adm && adm.data) || ((mem && mem.data) || []).some(m => m.role === 'host' && (!me || String(m.email || '').toLowerCase() === me));
+    } catch (e) { canHost = false; }
+    drawMenu();
     const { data } = await sb.from('events').select('id, title, starts_at').order('starts_at');
     events = data || [];
-    if (!events.length) { $('#auth').innerHTML = `<div class="login box"><h2>${t.noEventsH}</h2><p class="sub">${t.noEvents}</p></div>`; return; }
-    pick(events[0]);
+    if (!events.length) { $('#auth').innerHTML = `<div class="login-wrap"><div class="login box"><h2>${t.noEventsH}</h2><p class="sub">${t.noEvents}</p></div></div>`; return; }
+    let keep = null; try { keep = localStorage.getItem('door-ev'); } catch (e) {}
+    const today = new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10);
+    const kwDay = iso => new Date(new Date(iso).getTime() + 3 * 3600e3).toISOString().slice(0, 10);
+    pick(events.find(x => x.id === keep) || events.find(x => x.starts_at && kwDay(x.starts_at) >= today) || events[events.length - 1]);
+    keepAwake();
   });
 
   async function pick(e) {
-    ev = e; $('#door').hidden = false; $('#title').textContent = ev.title; $('#result').innerHTML = ''; exPrefill = null; renderForm();
+    ev = e; try { localStorage.setItem('door-ev', e.id); } catch (x) {}
+    $('#door').hidden = false; $('#result').innerHTML = ''; exPrefill = null; renderForm();
+    list = []; reqs = []; seenReq.clear(); reqsLoaded = false; answers = []; announced.clear(); showAllAns = false; prevPct = null; failedId = null;
+    recent = ss.get('door-recent-' + ev.id) || [];
     $('#unlisted').hidden = !v2;
-    $('#evlist').innerHTML = events.length > 1 ? events.map(x => `<button data-id="${x.id}" aria-current="${x.id === ev.id}">${esc(x.title)}</button>`).join('') : '';
-    $('#evlist').querySelectorAll('button').forEach(b => b.onclick = () => pick(events.find(x => x.id === b.dataset.id)));
-    await loadList(); loadReqs();
-    clearInterval(poll); poll = setInterval(() => { loadList(); loadReqs(); }, 15000);
+    drawMast(); drawMenu(); drawAnswers(); drawReqs();
+    await loadList(); await loadReqs(); schedule();
+  }
+
+  function drawMast() {
+    if (!ev) return;
+    const cd = App.countdown(ev.starts_at, lang);
+    $('#kick').innerHTML = `<span>${t.atDoor}${cd ? ' · ' + esc(cd) : ''}</span>`;
+    $('#title').innerHTML = '<bdi>' + App.ampTitle(ev.title) + '</bdi>'; $('#tbTitle').textContent = ev.title;
+    $('#evSw').hidden = events.length < 2;
+  }
+
+  // ---------- refresh: every 15s, every 5s while the door waits for the host ----------
+  function schedule() {
+    clearTimeout(pollT);
+    const fast = reqs.some(r => r.status === 'pending');
+    pollT = setTimeout(async () => { await refresh(); schedule(); }, fast ? 5000 : 15000);
+  }
+  const refresh = async () => { if (!ev) return; await loadList(); await loadReqs(); };
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { refresh().then(schedule); keepAwake(); } });
+  window.addEventListener('online', () => { online = true; refresh().then(schedule); });
+  window.addEventListener('offline', () => { online = false; setLive(false); });
+  setInterval(() => { if (ev && lastOk && Date.now() - lastOk > 30000) setLive(false); }, 5000);
+
+  function setLive(on) {
+    if (on) lastOk = Date.now();
+    const el = $('#live'); el.className = on ? 'live' : 'live off'; el.textContent = on ? t.live : t.offline;
+  }
+
+  // keep the phone awake between guests
+  async function keepAwake() {
+    if (!('wakeLock' in navigator) || document.visibilityState !== 'visible' || (wake && !wake.released)) return;
+    try { wake = await navigator.wakeLock.request('screen'); wakeOn = true; wake.addEventListener('release', () => { wakeOn = false; }); } catch (e) { wakeOn = false; }
+    if (ev && !$('#q').value.trim()) renderList();
   }
 
   async function loadList() {
-    const { data, error } = v2 ? await sb.rpc('door_list_v2', { p_event: ev.id }) : await sb.rpc('door_list', { p_event: ev.id });
+    if (!ev) return;
+    const id = ev.id; let r;
+    try { r = v2 ? await sb.rpc('door_list_v2', { p_event: id }) : await sb.rpc('door_list', { p_event: id }); } catch (e) { r = { error: { message: String(e) } }; }
+    if (!ev || ev.id !== id) return;
+    const { data, error } = r;
     if (error && v2 && App.missingFn(error)) { dropV2(); return loadList(); }
-    if (error) { toast(t.err); return; }
+    if (error) { setLive(false); if (!list.length) toast(t.err); return; }
+    setLive(true);
     list = (data || []).map(g => ({ ...g, checked_in_count: g.checked_in_count ?? (g.checked_in_at ? g.seats : 0) }));
-    // don't redraw under the door's fingers while they're typing a head count
-    const a = document.activeElement;
-    if (a && a.classList && a.classList.contains('cnt') && $('#list').contains(a)) return;
+    drawMeter();
+    // don't redraw under the door's thumb right after they tapped the stepper
+    const wait = 4000 - (Date.now() - lastTouch);
+    clearTimeout(renderLater);
+    if (wait > 0) { renderLater = setTimeout(renderList, wait); return; }
     renderList();
   }
 
-  const allowed = g => g.status === 'yes' ? (g.confirmed_count || g.seats) : g.status === 'pending' ? g.seats : 0;
-  const leftOf = g => Math.max(0, allowed(g) - (g.checked_in_count || 0));
+  // ---------- the meter ----------
+  function drawMeter() {
+    const arrived = list.reduce((a, g) => a + (g.checked_in_count || 0), 0);
+    const expected = list.reduce((a, g) => a + App.peopleComing(g), 0);
+    App.countUp($('#mIn'), arrived);
+    $('#mOf').textContent = expected ? `/ ${expected}` : '';
+    const pct = expected ? Math.min(100, arrived / expected * 100) : 0;
+    $('#mBar').style.width = pct + '%';
+    $('#meter').setAttribute('aria-label', `${arrived}${expected ? ' / ' + expected : ''} ${t.arrived}`);
+    // quiet milestones: half in, everyone in (once per event, per session)
+    if (prevPct !== null && expected) for (const m of [50, 100]) {
+      const k = `door-ms-${ev.id}-${m}`;
+      if (prevPct < m && pct >= m && !ss.get(k)) { ss.set(k, 1); celebrate(m === 100 ? t.everyone : t.half); }
+    }
+    if (list.length) prevPct = pct;
+    $('#mL').textContent = t.arrived;
+    const pend = v2 ? reqs.filter(r => r.status === 'pending').length : 0;
+    $('#waitChip').hidden = !pend; $('#waitL').textContent = t.waitChip(pend);
+  }
+  // half in, everyone in: a sheen across the bar and a quiet line (on the arrival card if one is up)
+  function celebrate(msg) {
+    const bb = $('#mBarBox'); bb.classList.remove('sheen'); void bb.offsetWidth; bb.classList.add('sheen');
+    const a = $('#arrive');
+    if (a && !a.classList.contains('out')) { const p = document.createElement('p'); p.className = 'a-ms'; p.innerHTML = `<i class="i i-sparkle sm"></i>${esc(msg)}`; a.insertBefore(p, a.querySelector('.a-t')); }
+    else toast(msg);
+  }
+  $('#waitChip').onclick = () => {
+    const s = $('#myReqs'); if (!s) return;
+    const y = s.getBoundingClientRect().top + window.scrollY - $('#topbar').offsetHeight - $('#dhead').offsetHeight - 8;
+    window.scrollTo({ top: Math.max(0, y), behavior: App.reducedMotion() ? 'auto' : 'smooth' });
+  };
+
+  // ---------- forgiving search ----------
+  const FOLD = { 'أ': 'ا', 'إ': 'ا', 'آ': 'ا', 'ٱ': 'ا', 'ة': 'ه', 'ى': 'ي', 'ؤ': 'و', 'ئ': 'ي' };
+  // normalised text plus, for each character, where it came from in the original (for <mark>)
+  function nmap(s) {
+    s = String(s || ''); let n = ''; const map = [];
+    for (let i = 0; i < s.length; i++) {
+      let c = s[i];
+      if (/[ً-ْـ]/.test(c)) continue;          // Arabic diacritics and tatweel
+      c = FOLD[c] || c.toLowerCase();
+      if (/[\s\-_.'’‘`ʼ,()]/.test(c)) c = ' ';
+      if (c === ' ' && (!n || n.endsWith(' '))) continue;
+      for (const ch of c) { n += ch; map.push(i); }
+    }
+    if (n.endsWith(' ')) { n = n.slice(0, -1); map.pop(); }
+    return { n, map };
+  }
+  const squash = m => { let n = '', map = []; for (let i = 0; i < m.n.length; i++) if (m.n[i] !== ' ') { n += m.n[i]; map.push(m.map[i]); } return { n, map }; };
+  const stripAl = tk => { const s = tk.replace(/^(al|el|ال)/, ''); return s !== tk && s.length >= 3 ? s : null; };
+  function matchName(name, tokens) {
+    const a = nmap(name), b = squash(a), ranges = []; let score = 0;
+    for (const tk of tokens) {
+      let i = a.n.indexOf(tk), m = a, len = tk.length;
+      if (i < 0) { i = b.n.indexOf(tk); m = b; }
+      if (i < 0) { const s = stripAl(tk); if (s) { i = a.n.indexOf(s); m = a; len = s.length; } }
+      if (i < 0) return null;
+      if (m === a && (i === 0 || a.n[i - 1] === ' ')) score += 2; else if (i === 0) score += 1;
+      ranges.push([m.map[i], m.map[i + len - 1] + 1]);
+    }
+    return { ranges, score };
+  }
+  function markUp(s, ranges) {
+    s = String(s || ''); if (!ranges || !ranges.length) return esc(s);
+    const r = ranges.slice().sort((x, y) => x[0] - y[0]), out = []; let at = 0;
+    for (const [a0, b0] of r) { const a = Math.max(a0, at); if (b0 <= a) continue; out.push(esc(s.slice(at, a)), '<mark>', esc(s.slice(a, b0)), '</mark>'); at = b0; }
+    out.push(esc(s.slice(at))); return out.join('');
+  }
+  const isDigits = q => !/[^\d\s+\-()٠-٩۰-۹]/.test(q);
+  function search(q) {
+    const digitsOnly = isDigits(q), qd = App.asciiDigits(q).replace(/\D/g, '');
+    const tokens = nmap(q).n.split(' ').filter(Boolean), hits = [];
+    for (const g of list) {
+      if (digitsOnly) {
+        if (qd.length >= 4 && (g.phone || '').includes(qd)) hits.push({ g, score: 1, phone: qd });
+        continue;
+      }
+      const m = matchName(g.name, tokens);
+      if (m) hits.push({ g, score: m.score, ranges: m.ranges });
+    }
+    return hits;
+  }
+
+  // ---------- rows ----------
+  const ORDER = { open: 0, part: 1, wait: 2, no: 3, all: 4 };
+  function stateOf(g) {
+    if (!v2) return g.checked_in_at ? 'all' : g.status === 'no' ? 'no' : g.status === 'pending' ? 'wait' : 'open';
+    const done = g.checked_in_count || 0, left = leftOf(g);
+    if (left > 0) return g.status === 'pending' ? 'wait' : done ? 'part' : 'open';
+    return done ? 'all' : 'no';
+  }
+  const curN = g => { const left = leftOf(g); return Math.max(1, Math.min(left + MAX_OVER, typed[g.id] || left || 1)); };
+  const ciLabel = (g, n) => { const left = leftOf(g); return n > left ? t.askOver(n - left) : t.checkInN(n, left); };
+  function seatDots(allowedN, done) {
+    const n = Math.max(allowedN, done), show = Math.min(n, 10);
+    let h = ''; for (let i = 0; i < show; i++) h += `<i class="${i < done ? (i < allowedN ? 'on' : 'on x') : ''}"></i>`;
+    return `<span class="seatdots" aria-hidden="true">${h}${n > show ? `<em>+${n - show}</em>` : ''}</span>`;
+  }
+  function rowHtml(h) {
+    const g = h.g, st = stateOf(g), done = g.checked_in_count || 0, left = leftOf(g), al = allowed(g);
+    const stTxt = { yes: t.coming, no: t.declined, pending: t.noReply };
+    const pill = st === 'all' ? `<span class="pill yes">${v2 ? t.allIn : t.already}</span>` : `<span class="pill ${g.status}">${stTxt[g.status]}</span>`;
+    const monoCls = st === 'no' ? 'no' : st === 'wait' ? 'pending' : 'yes';
+    let line;
+    if (!v2) line = `<span class="d-count">${t.people(g.seats)}</span>`;
+    else if (st === 'all') line = `${seatDots(al, done)}<span class="d-count">${t.allInN(done)}</span>`;
+    else if (st === 'no') line = `<span class="d-count">${t.declinedLine}</span>`;
+    else if (st === 'wait') line = `${seatDots(al, done)}<span class="d-count">${done ? t.inN(done, left) : t.waitLine(left)}</span>`;
+    else line = `${seatDots(al, done)}<span class="d-count">${t.inN(done, left)}</span>`;
+    const phone = g.phone ? `<span class="d-ph num" dir="ltr">${h.phone ? markUp(showPhone(g.phone), (() => { const s = showPhone(g.phone), i = s.indexOf(h.phone); return i < 0 ? [] : [[i, i + h.phone.length]]; })()) : esc(showPhone(g.phone))}</span>` : '';
+    const side = g.side ? `<bdi class="d-side">${esc(g.side)}</bdi>` : '';
+    let act = '';
+    if (!v2) act = st === 'all' ? '' : ciBtn(g, t.checkInN(g.seats, g.seats), '');
+    else if (st === 'all') act = `<button class="btn quiet small d-more" type="button" data-ask="${g.id}"><i class="i i-plus sm"></i>${t.askMore}</button>`;
+    else if (st === 'no') act = `<button class="btn ghost block" type="button" data-ask="${g.id}">${t.askHost}</button>`;
+    else {
+      const n = curN(g);
+      act = `<div class="stepper" dir="ltr" role="group" aria-label="${esc(t.howMany)}"><button type="button" data-dec aria-label="${esc(t.less)}" ${n <= 1 ? 'disabled' : ''}>−</button><output id="n-${g.id}" aria-live="polite">${n}</output><button type="button" data-inc aria-label="${esc(t.more)}" ${n >= left + MAX_OVER ? 'disabled' : ''}>+</button></div>`
+        + ciBtn(g, ciLabel(g, n), n > left ? 'ask' : '');
+    }
+    return `<article class="drow st-${st}" data-id="${g.id}">${monoHtml(g.name, monoCls)}
+      <div class="d-main"><div class="d-top"><b class="d-name"><bdi>${markUp(g.name, h.ranges)}</bdi></b>${pill}</div>
+      <div class="d-sub">${line}${phone}${side}</div>
+      ${g.status === 'no' && g.decline_reason ? `<p class="gi-why">${t.reason}: “<bdi>${esc(g.decline_reason)}</bdi>”</p>` : ''}</div>
+      ${act ? `<div class="door-act${!v2 || st === 'no' || st === 'all' ? ' one' : ''}">${act}</div>` : ''}</article>`;
+  }
+  function ciBtn(g, label, cls) {
+    const b = busyId === g.id, f = failedId === g.id;
+    return `<button class="btn ci ${cls}${f ? ' retry' : ''}" type="button" data-in="${g.id}" ${b ? 'aria-busy="true"' : ''}>${b ? t.busy : f ? t.retry : esc(label)}</button>`;
+  }
 
   function renderList() {
-    const arrived = list.reduce((a, g) => a + (g.checked_in_count || 0), 0);
-    const confirmed = list.reduce((a, g) => a + App.peopleComing(g), 0);
-    $('#counts').style.gridTemplateColumns = v2 ? 'repeat(3,1fr)' : 'repeat(2,1fr)';
-    $('#counts').innerHTML = `<div class="stat"><b>${arrived}</b><span>${t.arrived}</span></div><div class="stat"><b>${confirmed}</b><span>${t.confirmed}</span></div>${v2 ? `<div class="stat"><b id="waitN">${reqs.filter(r => r.status === 'pending').length}</b><span>${t.waiting}</span></div>` : ''}`;
-    const q = normName($('#q').value), qd = App.asciiDigits($('#q').value).replace(/\D/g, '');
-    const rows = q ? list.filter(g => normName(g.name).includes(q) || (qd.length >= 3 && (g.phone || '').includes(qd))).slice(0, 30) : [];
-    const st = { yes: t.coming, no: t.declined, pending: t.noReply };
-    $('#list').innerHTML = !q ? `<p class="empty">${t.typeName}</p>` : rows.length ? rows.map(g => {
-      const left = leftOf(g), done = g.checked_in_count || 0;
-      const act = !v2 ? (g.checked_in_at ? `<span class="pill yes">${t.already}</span>` : `<button class="btn small" data-in="${g.id}">${t.checkIn}</button>`)
-        : left > 0 ? `<label class="sr" for="n-${g.id}">${t.howMany}</label><input class="cnt" type="number" id="n-${g.id}" data-g="${g.id}" min="1" max="${left}" value="${Math.min(typed[g.id] || left, left)}" inputmode="numeric" aria-label="${t.howMany}"><button class="btn small" data-in="${g.id}">${t.checkIn}</button>`
-        : `<span class="pill yes">${done ? t.allIn : st[g.status]}</span><button class="icon" data-ask="${g.id}">${t.askHost}</button>`;
-      return `<div class="gi"><div class="gi-main"><div class="gi-top"><b>${esc(g.name)}</b><span class="pill ${g.status}">${st[g.status]}</span></div>
-        <div class="gi-sub">${v2 ? `<span>${t.of(done, allowed(g) || g.seats)}</span>` : `<span>${t.people(g.seats)}</span>`}${g.phone ? `<span dir="ltr">${esc(showPhone(g.phone))}</span>` : ''}${g.side ? `<span>${esc(g.side)}</span>` : ''}</div>
-        ${g.status === 'no' && g.decline_reason ? `<p class="gi-why">${t.reason}: “${esc(g.decline_reason)}”</p>` : ''}</div>
-        <div class="gi-act door-act">${act}</div></div>`;
-    }).join('') : `<p class="empty">${v2 ? t.notFound : t.notFoundOld}</p>`;
-    $('#list').querySelectorAll('[data-in]').forEach(b => b.onclick = () => checkIn(b.dataset.in));
-    $('#list').querySelectorAll('input.cnt').forEach(i => i.oninput = () => { const n = parseInt(App.asciiDigits(i.value), 10); if (n > 0) typed[i.dataset.g] = n; else delete typed[i.dataset.g]; });
-    $('#list').querySelectorAll('[data-ask]').forEach(b => b.onclick = () => { const g = list.find(x => x.id === b.dataset.ask); exPrefill = { guest: g.id, name: g.name, people: 1 }; renderForm(); });
+    clearTimeout(renderLater);
+    drawMeter();
+    const raw = $('#q').value, q = raw.trim();
+    $('#qx').hidden = !raw;
+    // while a name is being typed the head tucks the meter and answers away so results sit under the search
+    $('#door').classList.toggle('typing', !!q);
+    $('.dmore').hidden = false;
+    const L = $('#list'); L.classList.toggle('is-busy', !!busyId);
+    if (!ev) { L.innerHTML = ''; return; }
+    if (!q) { L.innerHTML = idleHtml(); return; }
+    // a phone number needs 4 digits: fewer is a quiet hint, not "not on the list"
+    if (isDigits(q) && App.asciiDigits(q).replace(/\D/g, '').length < 4) { L.innerHTML = `<div class="didle dhint"><p>${t.digitsHint}</p></div>`; return; }
+    const hits = search(q).sort((a, b) => ORDER[stateOf(a.g)] - ORDER[stateOf(b.g)] || b.score - a.score || a.g.name.localeCompare(b.g.name)).slice(0, 30);
+    if (hits.length) { L.innerHTML = hits.map(rowHtml).join(''); return; }
+    $('.dmore').hidden = v2;          // the not-found card already offers "Ask the host"
+    L.innerHTML = v2
+      ? `<div class="dnf"><p class="dnf-h">${t.notFoundH}</p><p class="dnf-s">${t.noOne(`<bdi>${esc(q)}</bdi>`)}</p><button class="btn block" type="button" id="askQ"><i class="i i-bell"></i><span>${t.askHost}</span></button></div>`
+      : `<div class="dnf"><p class="dnf-h">${t.notFoundH}</p><p class="dnf-s">${t.notFoundOld}</p></div>`;
   }
-  $('#q').oninput = renderList;
+  function idleHtml() {
+    const tm = at => App.fmtTime(new Date(at).toISOString(), lang);
+    const rec = recent.length ? `<h2 class="eyebrow d-cap">${t.justArrived}</h2><div class="rlist">${recent.map(r => `<button type="button" class="rrow" data-recent="${esc(r.name)}">${monoHtml(r.name, 'yes')}<span class="rr-m"><b><bdi>${esc(r.name)}</bdi></b><span class="rr-s">${esc(t.people(r.n))}</span></span><span class="rr-t num">${esc(tm(r.at))}</span></button>`).join('')}</div><p class="help d-tip">${t.tapFind}</p>` : '';
+    return rec + `<div class="didle">${recent.length ? '' : '<svg class="d-arch" viewBox="0 0 64 80" aria-hidden="true"><path d="M6 78V30a26 26 0 0 1 52 0v48z"/><path d="M16 78V32a16 16 0 0 1 32 0v46"/><path d="M2 78h60"/></svg>'}<p>${t.typeName}</p>${wakeOn ? `<p class="d-awake"><i class="i i-moon sm"></i>${t.awake}</p>` : ''}</div>`;
+  }
+  // a card that waits for "Close" (over the limit, not on the list) goes once the next name is typed
+  const clearStaticCard = () => { const a = $('#arrive'); if (a && !a.querySelector('.a-t')) $('#result').innerHTML = ''; };
+  $('#q').addEventListener('input', () => { clearStaticCard(); renderList(); });
+  $('#q').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); if (e.key === 'Escape') { e.target.value = ''; renderList(); } });
+  $('#qx').onclick = () => { $('#q').value = ''; renderList(); $('#q').focus(); };
 
+  // one listener for every row action
+  $('#list').addEventListener('click', e => {
+    const row = e.target.closest('.drow'), g = row && list.find(x => x.id === row.dataset.id);
+    const step = e.target.closest('[data-inc],[data-dec]');
+    if (step && g) {
+      const left = leftOf(g), n = Math.max(1, Math.min(left + MAX_OVER, curN(g) + (step.hasAttribute('data-inc') ? 1 : -1)));
+      typed[g.id] = n; lastTouch = Date.now(); if (failedId === g.id) failedId = null;
+      row.querySelector('output').textContent = n;
+      row.querySelector('[data-dec]').disabled = n <= 1; row.querySelector('[data-inc]').disabled = n >= left + MAX_OVER;
+      const b = row.querySelector('[data-in]'); b.textContent = ciLabel(g, n); b.classList.toggle('ask', n > left); b.classList.remove('retry');
+      App.vibrate(8); return;
+    }
+    const ci = e.target.closest('[data-in]');
+    if (ci && g) { if (ci.classList.contains('ask')) openAsk({ guest: g.id, name: g.name, people: Math.min(MAX_OVER, curN(g) - leftOf(g)) }); else checkIn(g.id); return; }
+    const ask = e.target.closest('[data-ask]');
+    if (ask && g) { openAsk({ guest: g.id, name: g.name, people: 1 }); return; }
+    const rec = e.target.closest('[data-recent]');
+    if (rec) { $('#q').value = rec.dataset.recent; renderList(); return; }
+    if (e.target.closest('#askQ')) openAsk({ guest: null, name: $('#q').value.trim(), people: 1 });
+  });
+
+  // ---------- check in ----------
   async function checkIn(id) {
-    if (busy) return; busy = true;
-    const g = list.find(x => x.id === id);
-    let r;
-    if (v2) {
-      const inp = $('#n-' + id), n = Math.max(1, parseInt(App.asciiDigits(inp && inp.value), 10) || 1);
-      r = await sb.rpc('check_in_v2', { p_guest: id, p_people: n });
-      if (r.error && App.missingFn(r.error)) { busy = false; dropV2(); loadList(); toast(t.err); return; }
-    } else r = await sb.rpc('check_in_guest', { p_guest: id });
-    busy = false;
-    if (r.error) { toast(t.err); return; }
+    if (busy) return;
+    const g = list.find(x => x.id === id); if (!g) return;
+    clearStaticCard();
+    busy = true; busyId = id; failedId = null; renderList();
+    let r, n = 1;
+    try {
+      if (v2) {
+        n = curN(g);
+        r = await sb.rpc('check_in_v2', { p_guest: id, p_people: n });
+        if (r.error && App.missingFn(r.error)) { busy = false; busyId = null; dropV2(); loadList(); toast(t.err); return; }
+      } else r = await sb.rpc('check_in_guest', { p_guest: id });
+    } catch (e) { r = { error: { message: String(e) } }; }
+    busy = false; busyId = null;
+    if (r.error) { failedId = id; if (!r.error.code) setLive(false); renderList(); toast(t.err); return; }
     delete typed[id];
-    show(r.data, g); loadList();
+    renderList(); show(r.data, g); loadList();
   }
 
-  function show(r, g) {
+  const TICK = '<svg class="tick" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".4"/><path d="M13.5 22.5l5.8 5.8L31 16.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const BANG = '<svg class="tick" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".4"/><path d="M22 13v12M22 30.5v.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
+  function card(kind, kicker, name, sub, extra, ms) {
+    clearTimeout(arriveT);
     const el = $('#result');
+    el.innerHTML = `<div class="arrive ${kind}" id="arrive">${kind ? BANG : TICK}<p class="a-k">${esc(kicker)}</p><b><bdi>${esc(name)}</bdi></b>${sub ? `<p class="a-s">${esc(sub)}</p>` : ''}${extra ? `<div class="a-row">${extra}</div>` : ''}${ms ? `<span class="a-t" style="animation-duration:${ms}ms"></span>` : ''}</div>`;
+    const a = $('#arrive');
+    const go = () => { clearTimeout(arriveT); if (a.isConnected) { a.classList.add('out'); setTimeout(() => { if (a.isConnected) a.remove(); }, 180); } };
+    if (ms) {
+      // a tap dismisses; press and hold pauses (the bar stops too); letting go, or the touch turning into a scroll, resumes
+      let remain = ms, startedAt = Date.now(), downAt = 0;
+      arriveT = setTimeout(go, remain);
+      a.addEventListener('pointerdown', () => { if (a.classList.contains('hold')) return; clearTimeout(arriveT); remain -= Date.now() - startedAt; downAt = Date.now(); a.classList.add('hold'); });
+      const resume = () => { if (!a.classList.contains('hold')) return; a.classList.remove('hold'); remain = Math.max(remain, 700); startedAt = Date.now(); clearTimeout(arriveT); arriveT = setTimeout(go, remain); };
+      ['pointerup', 'pointercancel', 'pointerleave'].forEach(k => a.addEventListener(k, resume));
+      a.addEventListener('click', e => { if (e.target.closest('button')) return; if (downAt && Date.now() - downAt > 400) return; go(); });
+    }
+    a.querySelectorAll('[data-x]').forEach(b => b.onclick = go);
+    return a;
+  }
+  function welcome(name, sub, n, g) {
+    card('', t.okK, name, sub, '', 2200);
+    App.vibrate(25);
+    recent = [{ name, n, at: Date.now(), id: g && g.id }].concat(recent.filter(r => !(g && r.id === g.id))).slice(0, 6);
+    if (ev) ss.set('door-recent-' + ev.id, recent);
+    $('#q').value = ''; renderList(); $('#q').focus();
+  }
+  function show(r, g) {
     if (v2) {
       if (!r.ok && r.reason === 'over') {
-        el.innerHTML = `<div class="result warn reveal"><b>${esc(r.left ? t.over(r.name, r.left) : t.overNone(r.name))}</b><button class="btn small" id="askNow" style="margin-top:8px">${t.askHost}</button></div>`;
-        $('#askNow').onclick = () => { exPrefill = { guest: g.id, name: g.name, people: 1 }; renderForm(); };
+        card('warn', t.overK, r.name, r.left ? t.over(r.left) : t.overNone, `<button class="btn" type="button" id="askNow">${t.askHost}</button><button class="btn ghost" type="button" data-x>${t.close}</button>`, 0);
+        $('#askNow').onclick = () => { $('#result').innerHTML = ''; openAsk({ guest: g.id, name: g.name, people: 1 }); };
         return;
       }
-      if (!r.ok) { el.innerHTML = `<div class="result bad reveal"><b>${t.notFound}</b></div>`; return; }
+      if (!r.ok) { card('bad', t.notFoundH, g ? g.name : '', '', `<button class="btn ghost" type="button" data-x>${t.close}</button>`, 0); return; }
       const note = r.status === 'no' ? ` · ${t.hadDeclined}` : r.status === 'pending' ? ` · ${t.noReplySub}` : '';
-      el.innerHTML = `<div class="result good reveal"><b>${esc(t.ok(r.name))}</b>${esc(t.okSub(t.people(r.people), r.left))}${note}</div>`;
+      welcome(r.name, t.okSub(t.people(r.people), r.left) + note, r.people, g);
       return;
     }
-    if (!r.ok) { el.innerHTML = `<div class="result bad reveal"><b>${t.notFoundOld}</b></div>`; return; }
-    if (r.already) { el.innerHTML = `<div class="result warn reveal"><b>${esc(r.name)}</b>${t.already} · ${t.people(r.seats)}</div>`; return; }
+    if (!r.ok) { card('bad', t.notFoundH, g ? g.name : '', t.notFoundOld, `<button class="btn ghost" type="button" data-x>${t.close}</button>`, 0); return; }
+    if (r.already) { card('warn', t.already, r.name, t.people(r.seats), '', 3500); return; }
     const note = r.status === 'yes' ? '' : r.status === 'no' ? ` · ${t.hadDeclined}` : ` · ${t.noReplySub}`;
-    el.innerHTML = `<div class="result good reveal"><b>✓ ${esc(r.name)}</b>${t.people(r.seats)}${note}</div>`;
+    welcome(r.name, t.people(r.seats) + note, r.seats, g);
   }
 
-  // ---- asking the host (unlisted guests, extra people) ----
-  $('#unlisted').onclick = () => { exPrefill = { guest: null, name: $('#q').value.trim(), people: 1 }; renderForm(); };
+  // ---------- asking the host (unlisted guests, extra people) ----------
+  $('#unlisted').onclick = () => openAsk({ guest: null, name: $('#q').value.trim(), people: 1 });
+  function openAsk(p) {
+    exPrefill = { reason: null, note: '', ...p, people: Math.max(1, Math.min(MAX_ASK, p.people || 1)) };
+    renderForm();
+    const d = $('#ask');
+    if (!d.open) { if (d.showModal) d.showModal(); else d.setAttribute('open', ''); }
+    if (!exPrefill.guest && !exPrefill.name && $('#xName')) $('#xName').focus();
+  }
+  $('#ask').addEventListener('close', () => { exPrefill = null; $('#askBody').innerHTML = ''; });
+  $('#ask').addEventListener('click', e => { if (e.target === $('#ask') || e.target.closest('[data-close]')) $('#ask').close(); });
+  function keepForm() { if (!exPrefill) return; if ($('#xName')) exPrefill.name = $('#xName').value; if ($('#xNote')) exPrefill.note = $('#xNote').value; }
   function renderForm() {
-    const f = $('#exForm');
-    if (!exPrefill) { f.hidden = true; f.innerHTML = ''; return; }
-    f.hidden = false;
-    f.innerHTML = `<h3 style="margin-top:0">${t.askHost}</h3><div class="grid2">
-      <div><label class="f" for="xName">${t.name}</label><input type="text" id="xName" value="${esc(exPrefill.name)}" ${exPrefill.guest ? 'readonly' : ''}></div>
-      <div><label class="f" for="xN">${t.count}</label><input type="number" id="xN" min="1" max="20" value="${exPrefill.people}" inputmode="numeric"></div>
-      <div style="grid-column:1/-1"><label class="f" for="xNote">${t.note}</label><input type="text" id="xNote" maxlength="500"></div></div>
-      <div class="row" style="margin-top:10px"><button class="btn small" id="xSend">${t.send}</button><button class="btn small ghost" id="xCancel">${t.cancel}</button></div>`;
-    $('#xCancel').onclick = () => { exPrefill = null; renderForm(); };
-    $('#xSend').onclick = async () => {
-      const name = $('#xName').value.trim(), n = Math.min(20, Math.max(1, parseInt($('#xN').value, 10) || 1));
-      if (!name) { toast(t.name); $('#xName').focus(); return; }
-      if (busy) return; busy = true;
-      const { error } = await sb.rpc('request_exception_v2', { p_event: ev.id, p_guest: exPrefill.guest, p_name: name, p_people: n, p_note: $('#xNote').value.trim() || null });
-      busy = false;
-      if (error) { toast(t.err); return; }
-      exPrefill = null; renderForm(); toast(t.sent); $('#result').innerHTML = ''; loadReqs();
+    const d = $('#ask');
+    if (!exPrefill) { if (d.open) d.close(); $('#askBody').innerHTML = ''; return; }
+    const p = exPrefill, g = p.guest ? list.find(x => x.id === p.guest) : null;
+    $('#askBody').innerHTML = `
+      ${p.guest ? `<div class="ask-who">${monoHtml(p.name, 'yes')}<div><b><bdi>${esc(p.name)}</bdi></b>${g ? `<span>${esc(t.allowedLine(allowed(g), g.checked_in_count || 0))}</span>` : ''}</div></div>`
+        : `<label class="f" for="xName">${t.name}</label><input type="text" id="xName" dir="auto" maxlength="120" autocomplete="off" value="${esc(p.name)}">`}
+      <p class="f-cap" id="xNL">${t.count}</p>
+      <div class="pchips" role="group" aria-labelledby="xNL">${[1, 2, 3, 4, 5, 6].map(n => `<button type="button" class="num" data-n="${n}" aria-pressed="${n === p.people}">${n}</button>`).join('')}<button type="button" class="num big" data-big aria-pressed="${p.people > 6}" aria-label="${esc(t.bigN)}"><span dir="ltr">7+</span></button></div>
+      <div class="pbig" id="xBig" ${p.people > 6 ? '' : 'hidden'}><div class="stepper" dir="ltr" role="group" aria-label="${esc(t.count)}"><button type="button" data-bd aria-label="${esc(t.less)}">−</button><output class="num" id="xBigN" aria-live="polite">${Math.max(7, p.people)}</output><button type="button" data-bi aria-label="${esc(t.more)}">+</button></div></div>
+      <p class="f-cap" id="xRL">${t.reasonL}</p>
+      <div class="fchips rchips" role="group" aria-labelledby="xRL">${t.reasons.map((r, i) => `<button type="button" class="fchip" data-r="${i}" aria-pressed="${p.reason === i}">${r}</button>`).join('')}</div>
+      <label class="f" for="xNote">${t.otherNote}</label><input type="text" id="xNote" dir="auto" maxlength="400" autocomplete="off" value="${esc(p.note)}">
+      <button class="btn block xsend" type="button" id="xSend"><i class="i i-bell"></i><span>${esc(t.send(p.people))}</span></button>`;
+    const setPeople = n => {
+      p.people = Math.max(1, Math.min(MAX_ASK, n));
+      $('#askBody').querySelectorAll('[data-n]').forEach(x => x.setAttribute('aria-pressed', +x.dataset.n === p.people));
+      $('[data-big]').setAttribute('aria-pressed', p.people > 6);
+      $('#xBig').hidden = p.people <= 6;
+      if (p.people > 6) { $('#xBigN').textContent = p.people; $('[data-bd]').disabled = p.people <= 7; $('[data-bi]').disabled = p.people >= MAX_ASK; }
+      $('#xSend span').textContent = t.send(p.people);
     };
-    $('#xName').focus();
+    setPeople(p.people);
+    $('#askBody').querySelectorAll('[data-n]').forEach(b => b.onclick = () => setPeople(+b.dataset.n));
+    $('[data-big]').onclick = () => { if (p.people <= 6) { setPeople(7); App.vibrate(8); } };
+    $('[data-bd]').onclick = () => { setPeople(p.people - 1 < 7 ? 7 : p.people - 1); App.vibrate(8); };
+    $('[data-bi]').onclick = () => { setPeople(p.people + 1); App.vibrate(8); };
+    $('#askBody').querySelectorAll('[data-r]').forEach(b => b.onclick = () => { p.reason = p.reason === +b.dataset.r ? null : +b.dataset.r; $('#askBody').querySelectorAll('[data-r]').forEach(x => x.setAttribute('aria-pressed', p.reason === +x.dataset.r)); });
+    $('#xSend').onclick = async () => {
+      keepForm();
+      const name = String(p.name || '').trim(), n = Math.min(MAX_ASK, Math.max(1, p.people || 1));
+      if (!name) { toast(t.needName); if ($('#xName')) $('#xName').focus(); return; }
+      if (busy) return; busy = true; $('#xSend').setAttribute('aria-busy', 'true');
+      const note = [p.reason != null ? t.reasons[p.reason] : '', String(p.note || '').trim()].filter(Boolean).join(' · ') || null;
+      let r; try { r = await sb.rpc('request_exception_v2', { p_event: ev.id, p_guest: p.guest, p_name: name, p_people: n, p_note: note }); } catch (e) { r = { error: { message: String(e) } }; }
+      busy = false; if ($('#xSend')) $('#xSend').removeAttribute('aria-busy');
+      if (r.error) { toast(t.err); return; }
+      exPrefill = null; renderForm(); toast(t.sent); $('#result').innerHTML = '';
+      $('#q').value = ''; renderList();
+      await loadReqs(); schedule();
+    };
   }
 
-  let reqs = [];
+  // ---------- requests and the host's answers ----------
   async function loadReqs() {
-    if (!v2 || !ev) { $('#myReqs').innerHTML = ''; return; }
-    const { data, error } = await sb.rpc('list_exceptions_v2', { p_event: ev.id });
-    if (error) return;
-    reqs = data || [];
-    const w = $('#waitN'); if (w) w.textContent = reqs.filter(r => r.status === 'pending').length;
+    if (!v2 || !ev) { reqs = []; drawReqs(); return; }
+    const id = ev.id; let r;
+    try { r = await sb.rpc('list_exceptions_v2', { p_event: id }); } catch (e) { return; }
+    if (r.error || !ev || ev.id !== id) return;
+    reqs = r.data || [];
+    let decided = false;
+    for (const x of reqs) {
+      if (reqsLoaded && seenReq.get(x.id) === 'pending' && x.status !== 'pending') { answers.unshift({ id: x.id, status: x.status, name: x.name, people: x.people }); decided = true; }
+      seenReq.set(x.id, x.status);
+    }
+    reqsLoaded = true;
+    if (decided) { App.vibrate([30, 60, 30]); drawAnswers(); loadList(); }
+    drawReqs(); drawMeter();
+  }
+  // the host's answers sit just under the search and scroll away; the newest two show, the rest fold up.
+  // Screen readers hear each answer once, through #annLive, not again on every redraw.
+  function drawAnswers() {
+    const fresh = answers.filter(a => !announced.has(a.id));
+    fresh.forEach(a => announced.add(a.id));
+    if (fresh.length) $('#annLive').textContent = fresh.map(a => (a.status === 'approved' ? t.okBanner(a.name, t.people(a.people)) + '. ' + t.okBannerSub : t.noBanner(a.name) + '. ' + t.noBannerSub)).join(' ');
+    const shown = showAllAns ? answers : answers.slice(0, ANS_SHOWN), rest = answers.length - shown.length;
+    $('#answers').innerHTML = shown.map(a => `<div class="answer ${a.status === 'approved' ? 'ok' : 'no'}"><i class="i ${a.status === 'approved' ? 'i-check' : 'i-x'}"></i><div class="an-m"><b>${a.status === 'approved' ? t.okBanner(`<bdi class="nb">${esc(a.name)}</bdi>`, esc(t.people(a.people))) : t.noBanner(`<bdi class="nb">${esc(a.name)}</bdi>`)}</b><span>${a.status === 'approved' ? t.okBannerSub : t.noBannerSub}</span></div><button class="an-x" type="button" data-dismiss="${esc(a.id)}" aria-label="${t.dismiss}"><i class="i i-x"></i></button></div>`).join('')
+      + (rest > 0 ? `<button class="btn quiet small an-more" type="button" id="ansMore"><i class="i i-chev sm"></i><span>${esc(t.moreAns(rest))}</span></button>` : '');
+    $('#answers').querySelectorAll('[data-dismiss]').forEach(b => b.onclick = () => { answers = answers.filter(a => a.id !== b.dataset.dismiss); if (answers.length <= ANS_SHOWN) showAllAns = false; drawAnswers(); });
+    if ($('#ansMore')) $('#ansMore').onclick = () => { showAllAns = true; drawAnswers(); };
+  }
+  function drawReqs() {
+    const box = $('#myReqs');
+    if (!v2 || !reqs.length) { box.innerHTML = ''; return; }
+    const wasOpen = !!(box.querySelector('details') && box.querySelector('details').open);
     const lbl = { pending: t.pending, approved: t.approved, rejected: t.rejected }, cls = { pending: 'pending', approved: 'yes', rejected: 'no' };
-    $('#myReqs').innerHTML = reqs.length ? `<h3>${t.reqs}</h3><div class="glist">${reqs.slice(0, 30).map(r => `<div class="gi"><div class="gi-main"><div class="gi-top"><b>${esc(r.name)}</b><span class="pill ${cls[r.status]}">${lbl[r.status]}</span></div>
-      <div class="gi-sub"><span>${t.people(r.people)}</span>${r.note ? `<span>${esc(r.note)}</span>` : ''}</div></div></div>`).join('')}</div>` : '';
+    const mins = iso => Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60000));
+    const row = r => `<div class="rq">${monoHtml(r.name, cls[r.status])}<div class="rq-m"><b><bdi>${esc(r.name)}</bdi></b><span class="rq-s"><span>${esc(t.people(r.people))}</span>${r.note ? `<bdi>${esc(r.note)}</bdi>` : ''}${r.created_at ? `<span class="num">${esc(t.ago(mins(r.created_at)))}</span>` : ''}</span></div><span class="pill ${cls[r.status]}">${lbl[r.status]}${r.status === 'pending' ? '<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>' : ''}</span></div>`;
+    const pend = reqs.filter(r => r.status === 'pending'), done = reqs.filter(r => r.status !== 'pending');
+    box.innerHTML = `<h2 class="eyebrow d-cap">${t.reqs}</h2>`
+      + (pend.length ? `<div class="rlist">${pend.slice(0, 30).map(row).join('')}</div>` : '')
+      + (done.length ? `<details class="rdone"${wasOpen || !pend.length ? ' open' : ''}><summary>${t.answered(done.length)}<i class="i i-chev sm"></i></summary><div class="rlist">${done.slice(0, 30).map(row).join('')}</div></details>` : '');
   }
 });
 </script>
