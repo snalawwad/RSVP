@@ -25,13 +25,16 @@
 
   // Dates: everything is shown in Kuwait time.
   const TZ = 'Asia/Kuwait';
+  // Back-office pages show Western digits in Arabic too (like phones and counts); the guest page keeps Arabic digits.
+  const backOffice = () => !!(document.body && document.body.classList.contains('app'));
+  const loc = (lang, kind) => lang === 'en' ? (kind === 'd' ? 'en-GB' : 'en-US') : backOffice() ? 'ar-KW-u-nu-latn' : 'ar-KW';
   function fmtDate(iso, lang) {
     if (!iso) return '';
-    return new Date(iso).toLocaleDateString(lang === 'en' ? 'en-GB' : 'ar-KW', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    return new Date(iso).toLocaleDateString(loc(lang, 'd'), { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   }
   function fmtTime(iso, lang) {
     if (!iso) return '';
-    return new Date(iso).toLocaleTimeString(lang === 'en' ? 'en-US' : 'ar-KW', { timeZone: TZ, hour: 'numeric', minute: '2-digit' });
+    return new Date(iso).toLocaleTimeString(loc(lang, 't'), { timeZone: TZ, hour: 'numeric', minute: '2-digit' });
   }
   // From a date + time typed in Kuwait time to an ISO string (Kuwait is UTC+3 all year).
   const kwToIso = (date, time) => date ? new Date(`${date}T${time || '20:00'}:00+03:00`).toISOString() : null;
@@ -90,43 +93,61 @@
     return URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
   }
 
-  // Login with a 6-digit code (or the magic link) sent to the user's email.
+  // Login with a 6-digit code (or the magic link) sent to the user's email. Arabic and English.
+  const LT = {
+    en: { kick: 'Welcome back', h: 'Log in', sub: 'Type your email and we’ll send you a login link.', email: 'Email', send: 'Send my login link',
+      kick2: 'Check your inbox', h2: 'Check your email', sent: e => `We sent a login link to <bdi dir="ltr"><b>${e}</b></bdi>. Tap it on this phone and you’re in. If the email has a code, you can type it here instead.`,
+      code: 'Code (optional)', verify: 'Log in with code', back: 'Use a different email', bad: 'Please enter a valid email', fail: 'Couldn’t send the email: ',
+      wrong: 'That code is wrong or has expired', cfgH: 'Almost there', cfgP: 'Add your Supabase details to config.js first.' },
+    ar: { kick: 'هلا والله', h: 'تسجيل الدخول', sub: 'اكتبوا إيميلكم ونرسل لكم رابط الدخول.', email: 'الإيميل', send: 'أرسلوا لي رابط الدخول',
+      kick2: 'شيّكوا الإيميل', h2: 'وصلكم إيميل', sent: e => `أرسلنا رابط الدخول إلى <bdi dir="ltr"><b>${e}</b></bdi>. اضغطوا عليه من هذا التلفون وتدخلون على طول. وإذا فيه رمز، تقدرون تكتبونه هني.`,
+      code: 'الرمز (اختياري)', verify: 'دخول بالرمز', back: 'استخدام إيميل ثاني', bad: 'اكتبوا إيميل صحيح', fail: 'ما قدرنا نرسل الإيميل: ',
+      wrong: 'الرمز غلط أو انتهت صلاحيته', cfgH: 'باقي شوي', cfgP: 'أضيفوا بيانات Supabase في config.js أول.' }
+  };
+  const uiLang = () => document.documentElement.lang === 'ar' ? 'ar' : 'en';
+  const ENVELOPE = '<svg class="login-env" viewBox="0 0 40 30" width="40" height="30" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="1.5" width="37" height="27" rx="3"/><path class="flap" d="M2.5 3l17.5 13L37.5 3"/></svg>';
   async function requireLogin(mount, onReady) {
-    if (!sb) { mount.innerHTML = '<div class="login box"><h2>Almost there</h2><p class="sub">Add your Supabase details to config.js first.</p></div>'; return; }
+    if (!sb) { const t = LT[uiLang()]; mount.innerHTML = `<div class="login-wrap"><div class="login box"><h2>${t.cfgH}</h2><p class="sub">${t.cfgP}</p></div></div>`; return; }
     const { data } = await sb.auth.getSession();
     if (data.session) { onReady(data.session); return; }
-    let email = '';
-    const draw = (step) => {
-      mount.innerHTML = step === 'email'
-        ? `<div class="login box"><p class="kicker">✦ welcome back ✦</p><h2>Log in</h2><p class="sub">Type your email and we\u2019ll send you a login link.</p>
-           <label class="f" for="lgEmail">Email</label><input type="email" id="lgEmail" autocomplete="email" placeholder="you@example.com">
-           <div style="margin-top:14px"><button class="btn" id="lgSend" style="width:100%">Send my login link</button></div></div>`
-        : `<div class="login box"><p class="kicker">✦ check your inbox ✦</p><h2>Check your email</h2><p class="sub">We sent a login link to <b>${esc(email)}</b>. Tap it on this phone and you\u2019re in. If the email has a code, you can type it here instead.</p>
-           <label class="f" for="lgCode">Code (optional)</label><input type="text" id="lgCode" inputmode="numeric" autocomplete="one-time-code">
-           <div style="margin-top:14px"><button class="btn" id="lgVerify" style="width:100%">Log in with code</button></div>
-           <p style="margin-top:12px"><button class="link" id="lgBack">Use a different email</button></p></div>`;
+    let email = '', step = 'email', done = false;
+    const draw = () => {
+      if (done) return;
+      const t = LT[uiLang()], typed = $('#lgEmail') ? $('#lgEmail').value : email;
+      mount.innerHTML = `<div class="login-wrap">` + (step === 'email'
+        ? `<div class="login box">${ENVELOPE}<p class="kicker">${t.kick}</p><h2>${t.h}</h2><p class="sub">${t.sub}</p>
+           <label class="f" for="lgEmail">${t.email}</label><input type="email" id="lgEmail" dir="ltr" autocomplete="email" placeholder="you@example.com" value="${esc(typed)}">
+           <div style="margin-top:14px"><button class="btn" id="lgSend" style="width:100%">${t.send}</button></div></div>`
+        : `<div class="login box sent">${ENVELOPE}<p class="kicker">${t.kick2}</p><h2>${t.h2}</h2><p class="sub">${t.sent(esc(email))}</p>
+           <label class="f" for="lgCode">${t.code}</label><input type="text" id="lgCode" dir="ltr" inputmode="numeric" autocomplete="one-time-code">
+           <div style="margin-top:14px"><button class="btn" id="lgVerify" style="width:100%">${t.verify}</button></div>
+           <p style="margin-top:12px"><button class="link" id="lgBack">${t.back}</button></p></div>`) + `</div>`;
       if (step === 'email') {
-        $('#lgSend').onclick = async () => {
+        const go = async () => {
           email = $('#lgEmail').value.trim().toLowerCase();
-          if (!/^\S+@\S+\.\S+$/.test(email)) { toast('Please enter a valid email'); return; }
+          if (!/^\S+@\S+\.\S+$/.test(email)) { toast(LT[uiLang()].bad); return; }
           $('#lgSend').disabled = true;
           const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.href.split('#')[0] } });
-          $('#lgSend').disabled = false;
-          if (error) { toast('Couldn\u2019t send the email: ' + error.message); return; }
-          draw('code');
+          if ($('#lgSend')) $('#lgSend').disabled = false;
+          if (error) { toast(LT[uiLang()].fail + error.message); return; }
+          step = 'code'; draw();
         };
+        $('#lgSend').onclick = go;
+        $('#lgEmail').onkeydown = e => { if (e.key === 'Enter') go(); };
       } else {
-        $('#lgBack').onclick = () => draw('email');
+        $('#lgBack').onclick = () => { step = 'email'; draw(); };
         $('#lgVerify').onclick = async () => {
-          const token = $('#lgCode').value.replace(/\D/g, '');
+          const token = asciiDigits($('#lgCode').value).replace(/\D/g, '');
           const { data: d, error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
-          if (error) { toast('That code is wrong or has expired'); return; }
-          mount.innerHTML = ''; onReady(d.session);
+          if (error) { toast(LT[uiLang()].wrong); return; }
+          done = true; mount.innerHTML = ''; onReady(d.session);
         };
       }
     };
-    draw('email');
-    sb.auth.onAuthStateChange((ev, session) => { if (ev === 'SIGNED_IN' && session && mount.querySelector('.login')) { mount.innerHTML = ''; onReady(session); } });
+    draw();
+    // redraw in the new language when the page switches
+    new MutationObserver(() => { if (!done && mount.querySelector('.login')) draw(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+    sb.auth.onAuthStateChange((ev, session) => { if (ev === 'SIGNED_IN' && session && !done && mount.querySelector('.login')) { done = true; mount.innerHTML = ''; onReady(session); } });
   }
   async function signOut() { if (sb) await sb.auth.signOut(); location.reload(); }
 
@@ -193,7 +214,61 @@
   // Arabic-Indic and Persian digits → 0-9 (Arabic phone keyboards type these).
   const asciiDigits = s => String(s || '').replace(/[٠-٩]/g, c => '٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/[۰-۹]/g, c => '۰۱۲۳۴۵۶۷۸۹'.indexOf(c));
 
-  window.App = { asciiDigits, sb, $, esc, toast, normPhone, showPhone, fmtDate, fmtTime, kwToIso, isoToKw, inviteLink, waLink, fillTemplate, DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_EN, templateFor,
+  // Colour mode (cream / light / dark) as a labelled segmented control, and the menu sheet.
+  const THEMES = { cream: ['Cream', 'كريمي'], light: ['Light', 'فاتح'], dark: ['Dark', 'داكن'] };
+  function currentTheme() {
+    const t = document.documentElement.dataset.theme;
+    if (t === 'cream' || t === 'light' || t === 'dark') return t;
+    return window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'cream';
+  }
+  function drawThemeSwitch() {
+    const el = document.getElementById('themeSw'); if (!el) return;
+    const cur = currentTheme(), ar = uiLang() === 'ar';
+    el.setAttribute('role', 'group'); el.setAttribute('aria-label', ar ? 'الألوان' : 'Colours');
+    el.innerHTML = Object.entries(THEMES).map(([k, l]) => `<button type="button" data-t="${k}" aria-pressed="${k === cur}"><span class="sw sw-${k}" aria-hidden="true"></span>${ar ? l[1] : l[0]}</button>`).join('');
+    el.querySelectorAll('button').forEach(b => b.onclick = () => { document.documentElement.dataset.theme = b.dataset.t; try { localStorage.setItem('ui-theme', b.dataset.t); } catch (e) {} drawThemeSwitch(); });
+  }
+  function mountMenu() {
+    drawThemeSwitch();
+    const btn = document.getElementById('menuBtn'), sheet = document.getElementById('menu');
+    if (!btn || !sheet) return;
+    const label = () => { const ar = uiLang() === 'ar'; btn.querySelector('.menu-l').textContent = ar ? 'القائمة' : 'Menu'; const h = sheet.querySelector('.sheet-h'); if (h) h.textContent = ar ? 'القائمة' : 'Menu'; const c = sheet.querySelector('.sheet-x'); if (c) c.setAttribute('aria-label', ar ? 'إغلاق' : 'Close'); };
+    const close = () => { if (sheet.open) sheet.close(); };
+    btn.onclick = () => { label(); drawThemeSwitch(); if (sheet.showModal) sheet.showModal(); else sheet.setAttribute('open', ''); btn.setAttribute('aria-expanded', 'true'); };
+    sheet.addEventListener('close', () => btn.setAttribute('aria-expanded', 'false'));
+    sheet.addEventListener('click', e => { if (e.target === sheet || e.target.closest('.sheet-x') || e.target.closest('[data-close]')) close(); });
+    new MutationObserver(() => { label(); drawThemeSwitch(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+    label();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountMenu); else mountMenu();
+
+  // Small helpers for the back-office pages.
+  const bdi = s => `<bdi>${esc(s)}</bdi>`;
+  // "Noor & Fahad" → italic ampersand; Arabic "نور و فهد" keeps its و
+  const ampTitle = s => esc(s).replace(/\s(&amp;|\+)\s/g, ' <span class="amp">&amp;</span> ');
+  function countdown(iso, lang) {
+    if (!iso) return '';
+    const day = d => new Date(new Date(d).getTime() + 3 * 3600e3).toISOString().slice(0, 10);   // Kuwait date
+    const n = Math.round((new Date(day(iso)) - new Date(day(new Date()))) / 864e5);
+    const ar = lang === 'ar';
+    if (n < 0) return ar ? 'انتهت المناسبة' : 'Event has passed';
+    if (n === 0) return ar ? 'الليلة' : 'Tonight';
+    if (n === 1) return ar ? 'باجر' : 'Tomorrow';
+    return ar ? `باقي ${n} يوم` : `${n} days to go`;
+  }
+  const vibrate = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} };
+  const reducedMotion = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  // Count a number up (skipped when the phone asks for less motion).
+  function countUp(el, to, ms = 600) {
+    if (!el) return; to = +to || 0;
+    const from = +el.dataset.n || 0; el.dataset.n = to;
+    if (reducedMotion() || from === to) { el.textContent = to; return; }
+    const t0 = performance.now();
+    const step = t => { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(from + (to - from) * e); if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  }
+
+  window.App = { asciiDigits, bdi, ampTitle, countdown, vibrate, reducedMotion, countUp, uiLang, drawThemeSwitch, sb, $, esc, toast, normPhone, showPhone, fmtDate, fmtTime, kwToIso, isoToKw, inviteLink, waLink, fillTemplate, DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_EN, templateFor,
     mix, lum, rgb2hex, themeVars, applyTheme, calLink, icsBlobUrl, requireLogin, signOut, configured,
     need, v2Ready, rpc2, missingFn, normName, MAX_EXTRAS, clampSeats, peopleComing };
 })();

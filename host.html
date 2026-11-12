@@ -8,12 +8,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('ui-theme')||'auto'}catch(e){}</script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
 <script defer src="config.js"></script>
 <script defer src="core.js"></script>
 </head>
-<body>
-<div class="topbar"><a class="brand" id="brand" href="host.html"></a><a href="door.html" data-i18n="door">Door</a><a href="admin.html" id="adminLink" hidden data-i18n="admin">Admin</a><button class="link" id="lang" data-i18n="other">العربية</button><button class="link" id="out" hidden data-i18n="out">Log out</button></div>
+<body class="app">
+<div class="topbar"><a class="brand" id="brand" href="host.html"></a><a href="door.html" data-i18n="door">Door</a><a href="admin.html" id="adminLink" hidden data-i18n="admin">Admin</a><span class="themesw" id="themeSw"></span><button class="link" id="lang" data-i18n="other">العربية</button><button class="link" id="out" hidden data-i18n="out">Log out</button></div>
 <main>
   <div id="auth"></div>
   <section id="dash" hidden>
