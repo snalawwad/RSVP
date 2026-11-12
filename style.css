@@ -239,7 +239,7 @@ body.app{
   --wait:#38506B; --wait-bg:#D6E1EC; --wait-bar:#C7D5E4; --wait-mark:#5F7894;
   --no:#7A1C2A; --no-bg:#F3D9D7; --no-bar:#E7B6B6; --no-mark:#A35F67;
   --radius:18px; --shadow:0 1px 0 rgba(91,15,29,.04),0 10px 30px rgba(60,30,20,.07); --shadow-lg:0 18px 50px rgba(60,30,20,.16);
-  --display:"Fraunces","Amiri",Georgia,serif; --body:"DM Sans","IBM Plex Sans Arabic",system-ui,-apple-system,sans-serif;
+  --display:"Fraunces","Noto Naskh Arabic",Georgia,serif; --body:"DM Sans","Noto Kufi Arabic",system-ui,-apple-system,sans-serif;
   --tb:61px;
   color-scheme:light;
   /* fine paper grain, cream mode only */
@@ -286,8 +286,8 @@ body.app .login .kicker::after{content:"";width:22px;height:1px;background:curre
 .folio{font-family:var(--display);font-style:italic;font-weight:400;font-size:15px;color:var(--muted);margin-inline-end:8px}
 /* Arabic: Amiri for big display, Plex for UI; no tracking; roomier lines */
 html[lang="ar"] body.app{line-height:1.75}
-html[lang="ar"] body.app h1,html[lang="ar"] body.app h2{font-family:"Amiri",var(--display);font-weight:700;letter-spacing:0;line-height:1.35}
-html[lang="ar"] body.app h3{font-family:"IBM Plex Sans Arabic",var(--body);font-weight:600;font-size:20px;letter-spacing:0;line-height:1.5}
+html[lang="ar"] body.app h1,html[lang="ar"] body.app h2{font-family:var(--display);font-weight:700;letter-spacing:0;line-height:1.35}
+html[lang="ar"] body.app h3{font-family:var(--body);font-weight:600;font-size:20px;letter-spacing:0;line-height:1.5}
 html[lang="ar"] body.app .kicker,html[lang="ar"] body.app .eyebrow{letter-spacing:0;text-transform:none;font-size:13px}
 html[lang="ar"] body.app label.f{font-size:14px;letter-spacing:0}
 html[lang="ar"] body.app .gi-sub{font-size:14px}
@@ -332,7 +332,7 @@ body.app .topbar .brand::before{content:"";width:22px;height:28px;background:cur
   mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 28' fill='none' stroke='black' stroke-width='1.6'%3E%3Cpath d='M2 27V11a9 9 0 0 1 18 0v16z'/%3E%3Cpath d='M6 27V12a5 5 0 0 1 10 0v15'/%3E%3C/svg%3E") center/contain no-repeat}
 body.app .tb-title{flex:1;min-width:0;font-family:var(--display);font-weight:600;font-size:16px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transform:translateY(4px);transition:opacity .2s,transform .2s}
 body.app .tb-title.on{opacity:1;transform:none}
-html[lang="ar"] body.app .tb-title{font-family:"IBM Plex Sans Arabic",var(--body)}
+html[lang="ar"] body.app .tb-title{font-family:var(--body)}
 .menu-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:600;font-size:14px;margin-inline-start:auto;white-space:nowrap}
 .menu-btn:hover{border-color:var(--plum);color:var(--plum)}
 
@@ -344,11 +344,11 @@ dialog.sheet::backdrop{background:rgba(20,21,20,.45)}
 .sheet-grab{width:40px;height:4px;border-radius:9px;background:var(--line);margin:4px auto 10px}
 .sheet-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .sheet-h{font-family:var(--display);font-weight:600;font-size:24px;margin:0;flex:1}
-html[lang="ar"] .sheet-h{font-family:"Amiri",var(--display);font-weight:700}
+html[lang="ar"] .sheet-h{font-family:var(--display);font-weight:700}
 .sheet-x{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;justify-content:center}
 .menu-nav{display:flex;flex-direction:column;margin:4px 0 12px}
 .menu-nav a,.menu-nav button{display:flex;align-items:center;gap:14px;min-height:56px;padding:0 6px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);text-decoration:none;font-family:var(--display);font-size:21px;font-weight:500;text-align:start;width:100%}
-html[lang="ar"] .menu-nav a,html[lang="ar"] .menu-nav button{font-family:"IBM Plex Sans Arabic",var(--body);font-size:18px}
+html[lang="ar"] .menu-nav a,html[lang="ar"] .menu-nav button{font-family:var(--body);font-size:18px}
 .menu-nav a[aria-current="page"]{color:var(--plum)}
 .menu-nav .i{color:var(--plum)}
 .menu-nav .menu-sub{margin-inline-start:auto;font-family:var(--body);font-size:13px;color:var(--muted)}
@@ -429,7 +429,7 @@ body.app details>summary{color:var(--muted);cursor:pointer;min-height:44px;displ
 .mast-v{margin:0;color:var(--muted);font-size:15px;display:flex;align-items:center;gap:8px}
 .mast-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
 html[lang="ar"] .mast-k{letter-spacing:0;text-transform:none;font-size:13.5px}
-html[lang="ar"] .mast-t{font-family:"Amiri",var(--display);font-weight:700;line-height:1.3;letter-spacing:0}
+html[lang="ar"] .mast-t{font-family:var(--display);font-weight:700;line-height:1.3;letter-spacing:0}
 .countdown{display:inline-flex;align-items:center;gap:8px;min-height:32px;padding:0 12px;border:1px solid var(--line);border-radius:999px;font-size:13px;font-weight:600;color:var(--ink);background:var(--card)}
 .countdown::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok-mark)}
 
@@ -439,7 +439,7 @@ html[lang="ar"] .mast-t{font-family:"Amiri",var(--display);font-weight:700;line-
 .next::after{content:"";position:absolute;inset:0 0 auto 0;height:36px;background:linear-gradient(to bottom right,transparent calc(50% - .7px),var(--line) 50%,transparent calc(50% + .7px)) left/50% 100% no-repeat,linear-gradient(to bottom left,transparent calc(50% - .7px),var(--line) 50%,transparent calc(50% + .7px)) right/50% 100% no-repeat}
 .next>*{position:relative}
 .next-t{font-family:var(--display);font-weight:600;font-size:26px;line-height:1.15;letter-spacing:-.015em;margin:0 0 6px}
-html[lang="ar"] .next-t{font-family:"Amiri",var(--display);font-weight:700;line-height:1.4;letter-spacing:0}
+html[lang="ar"] .next-t{font-family:var(--display);font-weight:700;line-height:1.4;letter-spacing:0}
 .next-p{margin:0 0 16px;color:var(--muted)}
 
 /* ---------- meter: the big number first, then the split ---------- */
@@ -448,7 +448,7 @@ html[lang="ar"] .next-t{font-family:"Amiri",var(--display);font-weight:700;line-
 .meter-n{font-family:var(--display);font-weight:600;font-size:72px;line-height:.9;letter-spacing:-.03em;color:var(--ok);font-variant-numeric:lining-nums tabular-nums;font-variation-settings:"opsz" 144}
 .meter-l{font-family:var(--display);font-size:20px;font-weight:500;color:var(--ink);line-height:1.2}
 .meter-s{font-size:13.5px;color:var(--muted);margin:2px 0 0}
-html[lang="ar"] .meter-l{font-family:"IBM Plex Sans Arabic",var(--body);font-size:18px;font-weight:600}
+html[lang="ar"] .meter-l{font-family:var(--body);font-size:18px;font-weight:600}
 .meter-bar{display:flex;gap:3px;height:10px;margin:16px 0 14px}
 .meter-bar i{display:block;height:100%;border-radius:999px;min-width:0;transition:flex-grow .7s cubic-bezier(.2,.8,.2,1),width .7s cubic-bezier(.2,.8,.2,1)}
 .meter-bar .y{background:var(--ok-mark)}.meter-bar .w{background:var(--wait-mark)}.meter-bar .n{background:var(--no-mark)}.meter-bar .e{background:var(--surface)}
@@ -465,7 +465,7 @@ html[lang="ar"] .meter-l{font-family:"IBM Plex Sans Arabic",var(--body);font-siz
 
 /* ---------- monogram: the first letter in a small arch ---------- */
 .mono{width:36px;height:42px;flex:none;border-radius:18px 18px 7px 7px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:600;font-size:17px;background:var(--surface);color:var(--ink)}
-html[lang="ar"] .mono,.mono.ar{font-family:"Amiri",var(--display);font-weight:700}
+html[lang="ar"] .mono,.mono.ar{font-family:var(--display);font-weight:700}
 .mono.yes{background:var(--ok-bg);color:var(--ok)}.mono.pending{background:var(--wait-bg);color:var(--wait)}.mono.no{background:var(--no-bg);color:var(--no)}
 
 /* ---------- status pills ---------- */
@@ -509,9 +509,21 @@ body.app mark{background:var(--wait-bg);color:inherit;border-radius:4px;padding:
 .arrive .tick path{stroke-dasharray:30;stroke-dashoffset:30;animation:draw .35s .1s ease forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
 .arrive b{display:block;font-family:var(--display);font-size:26px;font-weight:600;color:var(--ink)}
-html[lang="ar"] .arrive b{font-family:"Amiri",var(--display);font-weight:700}
+html[lang="ar"] .arrive b{font-family:var(--display);font-weight:700}
 
 /* ---------- tap targets and motion ---------- */
 body.app .topbar a,body.app .topbar .link{min-height:44px;display:inline-flex;align-items:center;white-space:nowrap}
 body.app .gi-act{gap:8px}
 @media (prefers-reduced-motion:reduce){body.app *,body.app *::before,body.app *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* ---- Arabic, designed for Arabic (not mirrored English) ---- */
+html[lang="ar"] body.app .kicker::before,html[lang="ar"] body.app .eyebrow::before{display:none}
+html[lang="ar"] body.app .kicker,html[lang="ar"] body.app .eyebrow,html[lang="ar"] .mast-k{font-weight:500;font-size:13.5px;color:var(--gold)}
+html[lang="ar"] body.app h1,html[lang="ar"] body.app h2,html[lang="ar"] .mast-t,html[lang="ar"] .next-t,html[lang="ar"] .sheet-h{font-weight:600;line-height:1.55}
+html[lang="ar"] body.app h3{font-weight:600;font-size:18px}
+html[lang="ar"] .folio{font-family:var(--body);font-style:normal;font-size:13px;color:var(--gold)}
+/* no single-letter initials in Arabic: the status text already carries the colour */
+html[lang="ar"] body.app .mono{display:none}
+html[lang="ar"] body.app .btn,html[lang="ar"] body.app .pill,html[lang="ar"] body.app .chip,html[lang="ar"] body.app .fchip{font-weight:500}
+/* Latin event names in the Arabic top bar: truncate at their own end, not their start */
+html[dir="rtl"] body.app .tb-title{unicode-bidi:plaintext;text-align:right}

@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <title>Door check-in</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="door.css">
 <script>
@@ -83,28 +83,28 @@ document.addEventListener('DOMContentLoaded', function () {
       okBanner: (nm, p) => `Host approved: let ${nm} in (${p})`, okBannerSub: 'Already counted. No need to check them in again.', noBanner: nm => `Host said no: ${nm}`, noBannerSub: 'Please let the guest know kindly.', dismiss: 'Dismiss',
       err: 'Couldn’t do that. Check your connection and try again.', noEvents: 'This email isn’t linked to any event right now.', noEventsH: 'No events', reason: 'Reason',
       digitsHint: 'Type at least 4 digits of the number', bigN: '7 or more', moreAns: n => `Show the rest (${n})` },
-    ar: { other: 'English', out: 'تسجيل خروج', title: 'شاشة الباب', home: 'الرئيسية', menuDoor: 'شاشة الباب', menuDash: 'لوحة المضيفة', events: 'مناسباتك', colours: 'الألوان', switchEv: 'تغيير',
-      atDoor: 'على الباب', live: 'مباشر', offline: 'ما في اتصال، نحاول',
-      search: 'ابحثوا بالاسم أو رقم التلفون', searchPh: 'اسم الضيف أو رقمه', clear: 'مسح البحث',
-      arrived: 'وصلوا', waitChip: n => `${n} بانتظار المضيفة`, half: 'نص الضيوف وصلوا', everyone: 'الكل وصل',
+    ar: { other: 'English', out: 'تسجيل خروج', title: 'شاشة الباب', home: 'الرئيسية', menuDoor: 'شاشة الباب', menuDash: 'لوحة المضيفة', events: 'مناسباتكم', colours: 'الألوان', switchEv: 'تغيير',
+      atDoor: 'على الباب', live: 'متصل', offline: 'ما في نت',
+      search: 'دوّروا بالاسم أو الرقم', searchPh: 'اسم الضيف أو رقمه', clear: 'مسح البحث',
+      arrived: 'دخلوا', waitChip: n => `${n} بانتظار المضيفة`, half: 'نص الضيوف دخلوا', everyone: 'كل الضيوف دخلوا',
       people: arPeople,
-      coming: 'بيحضر', declined: 'معتذر', noReply: 'ما رد', allIn: 'دخلوا كلهم', already: 'داخلين من قبل',
-      inN: (a, b) => a ? `دخل ${a} · باقي ${b}` : `باقي ${b}`, allInN: n => `دخلوا كلهم (${n})`, waitLine: n => `ما ردوا · يقدرون يدخلون (${n})`, declinedLine: 'اعتذروا عن الحضور',
-      howMany: 'كم شخص الحين', less: 'شخص أقل', more: 'شخص زيادة',
-      checkInN: (n, left) => n >= left ? `دخول ${arPeople(n)}` : `دخول ${n} من ${left}`, checkIn1: 'دخول', askOver: x => `طلب موافقة \u2066+${x}\u2069`,
-      busy: 'جاري التسجيل…', retry: 'حاولوا مرة ثانية',
-      askHost: 'اطلبوا موافقة المضيفة', askMore: 'اطلبوا موافقة على زيادة', unlisted: 'شخص مو موجود بالقائمة',
-      typeName: 'اكتبوا اسم الضيف عشان تسجلون وصوله.', awake: 'الشاشة بتظل شغالة', justArrived: 'وصلوا توّهم', tapFind: 'اضغطوا على الاسم عشان تلقونه مرة ثانية.',
-      notFoundH: 'مو موجود بالقائمة', noOne: q => `ما في أحد باسم «${q}».`, notFoundOld: 'الاسم مو موجود بالقائمة. تأكدوا مع المضيفة.',
-      okK: 'تم الدخول', okSub: (p, l) => `تم تسجيل ${p}${l ? ` · باقي ${l}` : ''}`, hadDeclined: 'كان معتذر', noReplySub: 'ما كان راد',
-      over: l => `باقي ${l} بس يقدرون يدخلون بهذي الدعوة`, overNone: 'ما باقي مقاعد بهذي الدعوة', overK: 'أكثر من المسموح', close: 'إغلاق',
-      askH: 'طلب موافقة المضيفة', allowedLine: (a, d) => `مسموح ${a} · دخل ${d}`, name: 'الاسم', count: 'كم شخص', reasonL: 'السبب', reasons: ['أهل زيادة', 'مو بالقائمة', 'المضيفة عزمتهم بالتلفون', 'طفل'],
-      otherNote: 'ملاحظة ثانية (اختياري)', send: n => `أرسلوا للمضيفة · ${arPeople(n)}`, needName: 'اكتبوا الاسم أول', sent: 'انرسل للمضيفة. ردها بيطلع فوق.',
-      reqs: 'طلباتك للمضيفة', pending: 'بالانتظار', approved: 'تمت الموافقة', rejected: 'ما تمت الموافقة', answered: n => `تم الرد (${n})`,
+      coming: 'جايين', declined: 'معتذرين', noReply: 'ما ردّوا', allIn: 'دخلوا كلهم', already: 'دخلوا من قبل',
+      inN: (a, b) => a ? `دخل ${a} · باقي ${b}` : `باقي ${b}`, allInN: n => `دخلوا كلهم (${n})`, waitLine: n => `ما ردّوا · مسموح ${n}`, declinedLine: 'ما بيحضرون',
+      howMany: 'كم شخص الحين', less: 'واحد أقل', more: 'واحد زيادة',
+      checkInN: (n, left) => n >= left ? `دخول ${arPeople(n)}` : `دخول ${n} من ${left}`, checkIn1: 'دخول', askOver: x => `اسألوا عن ⁦+${x}⁩`,
+      busy: 'لحظة…', retry: 'حاولوا مرة ثانية',
+      askHost: 'اسألوا المضيفة', askMore: 'اسألوا عن زيادة', unlisted: 'ضيف مو بالقائمة',
+      typeName: 'اكتبوا اسم الضيف فوق.', awake: 'الشاشة ما بتطفي', justArrived: 'دخلوا توّهم', tapFind: 'اضغطوا على أي اسم عشان ترجعون له.',
+      notFoundH: 'مو بالقائمة', noOne: q => `ما لقينا «${q}».`, notFoundOld: 'اسألوا المضيفة.',
+      okK: 'دخلوا', okSub: (p, l) => `${p}${l ? ` · باقي ${l}` : ''}`, hadDeclined: 'كانوا معتذرين', noReplySub: 'ما ردّوا',
+      over: l => `باقي ${l} بس على هالدعوة`, overNone: 'الدعوة مكتملة', overK: 'أكثر من العدد', close: 'إغلاق',
+      askH: 'اسألوا المضيفة', allowedLine: (a, d) => `مسموح ${a} · دخل ${d}`, name: 'الاسم', count: 'كم شخص', reasonL: 'السبب', reasons: ['أهل زيادة', 'مو بالقائمة', 'معزومين بالتلفون', 'ياهل'],
+      otherNote: 'ملاحظة (اختياري)', send: n => `أرسلوا للمضيفة · ${arPeople(n)}`, needName: 'اكتبوا الاسم أول', sent: 'انرسل للمضيفة، وردّها بيطلع فوق.',
+      reqs: 'طلباتكم للمضيفة', pending: 'بالانتظار', approved: 'وافقت', rejected: 'ما وافقت', answered: n => `ردّت (${n})`,
       ago: m => m < 1 ? 'توّه' : m === 1 ? 'قبل دقيقة' : m === 2 ? 'قبل دقيقتين' : m <= 10 ? `قبل ${m} دقايق` : m < 60 ? `قبل ${m} دقيقة` : `قبل ${Math.floor(m / 60)} ساعة`,
-      okBanner: (nm, p) => `المضيفة وافقت: دخّلوا ${nm} (${p})`, okBannerSub: 'انحسبوا خلاص، لا تسجلونهم مرة ثانية.', noBanner: nm => `المضيفة ما وافقت: ${nm}`, noBannerSub: 'بلّغوا الضيف بلطف.', dismiss: 'إخفاء',
-      err: 'ما قدرنا نكمل. تأكدوا من الاتصال وحاولوا مرة ثانية.', noEvents: 'هذا الإيميل مو مربوط بأي مناسبة حالياً.', noEventsH: 'ما في مناسبات', reason: 'السبب',
-      digitsHint: 'اكتبوا 4 أرقام على الأقل من رقم التلفون', bigN: '7 أو أكثر', moreAns: n => `اعرضوا الباقي (${n})` }
+      okBanner: (nm, p) => `المضيفة وافقت: دخّلوا ${nm} (${p})`, okBannerSub: 'انحسبوا، لا تضغطون دخول.', noBanner: nm => `المضيفة ما وافقت: ${nm}`, noBannerSub: 'بلّغوهم بلطف.', dismiss: 'إخفاء',
+      err: 'ما مشى. شيكوا على النت وحاولوا مرة ثانية.', noEvents: 'هالإيميل مو مربوط بأي مناسبة.', noEventsH: 'ما في مناسبات', reason: 'السبب',
+      digitsHint: 'اكتبوا 4 أرقام أو أكثر', bigN: '7 أو أكثر', moreAns: n => `شوفوا الباقي (${n})` }
   };
   let lang = 'en'; try { lang = localStorage.getItem('door-lang') === 'ar' ? 'ar' : 'en'; } catch (e) {}
   let t = T[lang];

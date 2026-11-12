@@ -46,7 +46,7 @@ html[lang="ar"] body.host .tabs button{font-size:12.5px}
 .rq-top b{font-size:17px;font-weight:600}
 .rq-sub{font-size:13.5px;color:var(--muted);margin:-6px 0 0}
 .rq-note{font-family:var(--display);font-style:italic;font-size:15px;color:var(--ink);margin:-4px 0 0}
-html[lang="ar"] .rq-note{font-family:"IBM Plex Sans Arabic",var(--body);font-style:normal}
+html[lang="ar"] .rq-note{font-family:var(--body);font-style:normal}
 .rq-act{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .next.door{border-color:color-mix(in srgb,var(--plum) 35%,var(--line))}
 
@@ -111,7 +111,7 @@ html[lang="ar"] .gr-m{font-size:14px}
 .ed-info{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;color:var(--muted);margin:0 0 12px}
 .ed-info .i{color:var(--plum);margin-inline-end:4px}
 .ed-why{font-family:var(--display);font-style:italic;font-size:16px;color:var(--ink);margin:0 0 14px;line-height:1.45}
-html[lang="ar"] .ed-why{font-family:"IBM Plex Sans Arabic",var(--body);font-style:normal}
+html[lang="ar"] .ed-why{font-family:var(--body);font-style:normal}
 .ed .seg{margin-bottom:12px}
 .ed .seg button{min-height:44px;padding:0 8px}
 .ed .grid2{gap:10px}
@@ -131,7 +131,7 @@ html[lang="ar"] .ed-why{font-family:"IBM Plex Sans Arabic",var(--body);font-styl
 .strip>.i{flex:none}
 .strip-t{flex:1;min-width:0;line-height:1.3}
 .strip-t b{display:block;font-family:var(--display);font-size:18px;font-weight:600}
-html[lang="ar"] .strip-t b{font-family:"IBM Plex Sans Arabic",var(--body);font-size:16px}
+html[lang="ar"] .strip-t b{font-family:var(--body);font-size:16px}
 .strip-t small{display:block;font-size:13px;color:var(--ink);opacity:.8}
 .strip .btn{flex:none;min-height:44px}
 #stChips{margin-bottom:12px}
@@ -147,7 +147,7 @@ html[lang="ar"] .strip-t b{font-family:"IBM Plex Sans Arabic",var(--body);font-s
 .way small{display:block;font-weight:400;color:var(--muted);font-size:13px}
 .empty-g{text-align:center;padding:26px 10px 10px}
 .empty-g p{font-family:var(--display);font-size:22px;margin:0 0 16px;color:var(--ink)}
-html[lang="ar"] .empty-g p{font-family:"Amiri",var(--display);font-weight:700}
+html[lang="ar"] .empty-g p{font-family:var(--display);font-weight:700}
 
 /* latest replies (Home) */
 .lr{display:flex;align-items:center;gap:12px;padding:10px 16px;min-height:62px;border-bottom:1px solid var(--line)}
@@ -163,7 +163,7 @@ dialog.sendq{max-width:520px}
 .sq-dots i.skip{background:transparent;border-style:dashed}
 .sq-dots i.cur{box-shadow:0 0 0 3px color-mix(in srgb,var(--plum) 25%,transparent)}
 .sq-name{font-family:var(--display);font-weight:600;font-size:30px;line-height:1.1;margin:0 0 4px;letter-spacing:-.015em}
-html[lang="ar"] .sq-name{font-family:"Amiri",var(--display);font-weight:700;line-height:1.4}
+html[lang="ar"] .sq-name{font-family:var(--display);font-weight:700;line-height:1.4}
 .sq-meta{color:var(--muted);font-size:14px;margin:0 0 14px}
 .paper{white-space:pre-wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14.5px;line-height:1.55;max-height:190px;overflow:auto;margin:0 0 16px;position:relative}
 .sq-foot{display:flex;justify-content:space-between;gap:8px;margin-top:6px}
@@ -187,7 +187,7 @@ html[lang="ar"] .sq-name{font-family:"Amiri",var(--display);font-weight:700;line
 .inv-mini small{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;opacity:.8}
 html[lang="ar"] .inv-mini small{letter-spacing:0}
 .inv-meta .inv-line{font-family:var(--display);font-weight:500;font-size:21px;line-height:1.2;margin:0 0 8px;color:var(--ink);overflow-wrap:anywhere;letter-spacing:-.01em}
-html[lang="ar"] .inv-meta .inv-line{font-family:"Amiri",var(--display);font-weight:700;font-size:22px;line-height:1.5}
+html[lang="ar"] .inv-meta .inv-line{font-family:var(--display);font-weight:700;font-size:22px;line-height:1.5}
 .inv-meta p{margin:0 0 4px;color:var(--muted);font-size:14px}
 .inv-meta .btn{margin-top:10px}
 .share .next-p{font-size:14.5px}
@@ -205,7 +205,7 @@ html[lang="ar"] .inv-meta .inv-line{font-family:"Amiri",var(--display);font-weig
 .pkg{padding:16px 18px;margin:0 0 22px}
 .pkg-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .pkg-top b{font-family:var(--display);font-weight:600;font-size:20px}
-html[lang="ar"] .pkg-top b{font-family:"IBM Plex Sans Arabic",var(--body);font-size:17px}
+html[lang="ar"] .pkg-top b{font-family:var(--body);font-size:17px}
 .pkg-top span{font-size:13px;color:var(--muted)}
 .pkg-bar{height:4px;border-radius:9px;background:var(--surface);margin:10px 0 0;overflow:hidden}
 .pkg-bar i{display:block;height:100%;border-radius:9px;background:var(--ok-mark);transition:width .7s cubic-bezier(.2,.8,.2,1)}
@@ -220,7 +220,7 @@ body.app .grp>summary{list-style:none;display:flex;align-items:center;gap:12px;m
 .grp>summary .folio{margin:0;flex:none;width:22px}
 .grp-t{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
 .grp-t b{font-family:var(--display);font-weight:600;font-size:19px;letter-spacing:-.01em}
-html[lang="ar"] .grp-t b{font-family:"IBM Plex Sans Arabic",var(--body);font-size:16.5px}
+html[lang="ar"] .grp-t b{font-family:var(--body);font-size:16.5px}
 .grp-t small{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
 .grp[open] .grp-t small{display:none}
 .grp>summary .i-chev{color:var(--muted);transition:transform .2s;flex:none}
@@ -273,5 +273,5 @@ html:has(body.host){scroll-padding-top:calc(var(--tb, 61px) + 8px);scroll-paddin
 [dir="rtl"] .grp-t small{text-align:right}[dir="ltr"] .grp-t small{text-align:left}
 .next .who{margin:-4px 0 16px}
 /* Arabic initials: Plex keeps every letter (ه included) a clear, even size in the arch */
-body.host .mono.ar{font-family:"IBM Plex Sans Arabic",var(--body);font-weight:600;font-size:19px;line-height:1}
+body.host .mono.ar{font-family:var(--body);font-weight:600;font-size:19px;line-height:1}
 body.host .who-m .mono.ar{font-size:15px}

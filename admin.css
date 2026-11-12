@@ -285,7 +285,7 @@ body.app .sendmeter .kicker{margin-bottom:10px}
 body.app .nu-k{justify-content:center}
 .nu-k::after{content:"";width:22px;height:1px;background:currentColor;flex:none}
 body.app .nu-name{font-family:var(--display);font-weight:600;font-size:30px;line-height:1.1;letter-spacing:-.015em;margin:6px 0 6px;font-variation-settings:"opsz" 96}
-html[lang="ar"] body.app .nu-name{font-family:"Amiri",var(--display);font-weight:700;letter-spacing:0;line-height:1.35;font-size:30px}
+html[lang="ar"] body.app .nu-name{font-family:var(--display);font-weight:700;letter-spacing:0;line-height:1.35;font-size:30px}
 .nu-meta{margin:0 0 16px;color:var(--muted);font-size:13.5px}
 .nextup .wabubble{max-width:100%;margin:0;max-height:260px;overflow:auto}
 .nextup .msgbox{text-align:start}
@@ -310,7 +310,7 @@ html[lang="ar"] body.app .nu-name{font-family:"Amiri",var(--display);font-weight
 .fin.play .fin-env path{animation-delay:.45s}
 .fin.play .fin-t,.fin.play .fin-p,.fin.play .btn{animation:rv .45s .7s ease-out both}
 body.app .fin-t{font-family:var(--display);font-weight:600;font-size:30px;line-height:1.1;margin:4px 0 6px;letter-spacing:-.015em}
-html[lang="ar"] body.app .fin-t{font-family:"Amiri",var(--display);font-weight:700;letter-spacing:0;line-height:1.35}
+html[lang="ar"] body.app .fin-t{font-family:var(--display);font-weight:700;letter-spacing:0;line-height:1.35}
 .fin-p{margin:0 0 18px;color:var(--muted)}
 /* every guest's message, behind a toggle */
 .allmsgs{margin-top:26px;border-top:1px solid var(--line);padding-top:4px}
@@ -382,3 +382,10 @@ html[lang="en"] .mast-t.arab{line-height:1.3;letter-spacing:0}
 [dir="ltr"] .mast-t{text-align:left}
 [dir="ltr"] .tbl td{text-align:left}
 [dir="rtl"] .tbl td{text-align:right}
+
+/* Arabic: no oversized Latin step numbers next to Arabic headings; no hex codes */
+html[lang="ar"] .step-n{font-family:var(--body);font-size:15px;font-weight:600;line-height:1.6;letter-spacing:0;min-width:0;opacity:1;color:var(--gold);padding-top:6px}
+.swatch small{display:none}
+.swatch{min-height:48px}
+html[lang="ar"] .rail-n{font-family:var(--body);font-size:14px;font-weight:600}
+html[lang="ar"] .nu-k::after{display:none}

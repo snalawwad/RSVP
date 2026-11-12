@@ -14,7 +14,7 @@ body.app.door ::placeholder{color:var(--muted);opacity:.85}
 .dmast .live{flex:none;white-space:nowrap}
 body.app .dmast-t{flex:1;min-width:0;margin:0;font-family:var(--display);font-weight:600;font-size:28px;line-height:1.2;letter-spacing:-.02em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variation-settings:"opsz" 144}
 body.app .dmast-t .amp{font-style:italic;font-weight:400;color:var(--plum)}
-html[lang="ar"] body.app .dmast-t{font-family:"Amiri",var(--display);font-weight:700;line-height:1.5;letter-spacing:0}
+html[lang="ar"] body.app .dmast-t{font-family:var(--display);font-weight:700;line-height:1.5;letter-spacing:0}
 .ev-sw{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:13.5px;font-weight:600}
 .ev-sw .i{color:var(--plum)}
 
@@ -136,7 +136,7 @@ body.app .d-cap{margin:22px 4px 10px;line-height:1.4}
 /* not on the list */
 .dnf{text-align:center;padding:22px 18px 18px;background:var(--card);border:1px dashed var(--field-line);border-radius:var(--radius)}
 .dnf-h{margin:0;font-family:var(--display);font-weight:600;font-size:23px;color:var(--ink)}
-html[lang="ar"] .dnf-h{font-family:"Amiri",var(--display);font-weight:700}
+html[lang="ar"] .dnf-h{font-family:var(--display);font-weight:700}
 .dnf-s{margin:4px 0 16px;color:var(--muted);overflow-wrap:anywhere}
 body.app .dnf .btn{min-height:54px;font-size:16.5px}
 body.app .dnf .btn{height:auto;padding:12px 20px;line-height:1.35}
@@ -206,4 +206,4 @@ body.app .xsend{margin-top:22px;min-height:56px;font-size:17px}
 html[lang="ar"] .menu-cap{letter-spacing:0;font-size:13px}
 .menu-nav button[aria-current="true"]{color:var(--plum)}
 .menu-nav .menu-ev{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-html[lang="ar"] body.app h2.d-cap{font-family:"IBM Plex Sans Arabic",var(--body);font-weight:600;line-height:1.5}
+html[lang="ar"] body.app h2.d-cap{font-family:var(--body);font-weight:600;line-height:1.5}
