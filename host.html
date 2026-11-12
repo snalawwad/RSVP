@@ -217,8 +217,10 @@ document.addEventListener('DOMContentLoaded', function () {
     $('#title').textContent = ev.title;
     showMeta();
     renderPub(); editing = null;
+    // close the edit box so one event's settings can't be saved into another
+    $('#editBox').hidden = true; $('#toggleEdit').setAttribute('aria-expanded', 'false');
     $('#rulesBox').hidden = !v2 || !!mySide;
-    $('#logBox').hidden = !v2; $('#logBox').open = false;
+    $('#logBox').hidden = !v2 || !!mySide; $('#logBox').open = false;
     await loadGuests(); loadReqs();
     if (channel) sb.removeChannel(channel);
     channel = sb.channel('guests-' + ev.id).on('postgres_changes', { event: '*', schema: 'public', table: 'guests', filter: `event_id=eq.${ev.id}` }, loadGuests).subscribe();
@@ -326,7 +328,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const r = await sb.rpc('host_set_extras_v2', { p_guest: g.id, p_extras: extras });
         if (r.error) { $('#edSave').disabled = false; toast(/limit/i.test(r.error.message) ? t.noPkg : t.cantSave(r.error.message)); return; }
       }
-      if (st !== g.status || (st === 'yes' && cnt !== (g.confirmed_count || g.seats))) {
+      // a 'yes' with no stored head count (replied before the upgrade) always gets the count saved
+      if (st !== g.status || (st === 'yes' && (g.confirmed_count == null || extras !== g.seats - 1 || cnt !== g.confirmed_count))) {
         const r = await sb.rpc('host_set_reply_v2', { p_guest: g.id, p_status: st, p_count: st === 'yes' ? cnt : null });
         if (r.error) { $('#edSave').disabled = false; toast(t.cantSave(r.error.message)); return; }
       }

@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
   $('#brand').textContent = CONFIG.BRAND_EN || CONFIG.BRAND;
   const T = {
     en: { out: 'Log out', other: 'العربية', search: 'Find a guest by name or number', searchPh: 'Type a name', arrived: 'Arrived', confirmed: 'Confirmed', waiting: 'Waiting for host',
-      people: n => n === 1 ? '1 person' : n + ' people', typeName: 'Type a name to find a guest.', notFound: 'Not on the list. You can ask the host below.',
+      people: n => n === 1 ? '1 person' : n + ' people', typeName: 'Type a name to find a guest.', notFound: 'Not on the list. You can ask the host below.', notFoundOld: 'Not on the list. Check with the host.',
       coming: 'Coming', declined: 'Declined', noReply: 'No reply', of: (a, b) => `${a} of ${b} arrived`, allIn: 'All arrived', checkIn: 'Check in', howMany: 'How many now',
       askHost: 'Ask the host', unlisted: '+ Someone not on the list', name: 'Name', count: 'How many people', note: 'Note for the host (optional)', send: 'Send to host', cancel: 'Cancel',
       sent: 'Sent to the host. You’ll see their answer below.', reqs: 'Your requests to the host', pending: 'Waiting', approved: 'Approved, let them in', rejected: 'Not approved',
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
       hadDeclined: 'had declined', noReplySub: 'hadn’t replied', err: 'Couldn’t do that. Check your connection and try again.', noEvents: 'This email isn’t linked to any event right now.', noEventsH: 'No events',
       already: 'Already checked in', reason: 'Reason' },
     ar: { out: 'تسجيل خروج', other: 'English', search: 'ابحث عن ضيف بالاسم أو الرقم', searchPh: 'اكتب الاسم', arrived: 'وصلوا', confirmed: 'مؤكدين', waiting: 'بانتظار المضيفة',
-      people: n => n === 1 ? 'شخص واحد' : n === 2 ? 'شخصين' : n + ' أشخاص', typeName: 'اكتب اسم الضيف للبحث.', notFound: 'الاسم مو موجود بالقائمة. تقدر تطلب موافقة المضيفة تحت.',
+      people: n => n === 1 ? 'شخص واحد' : n === 2 ? 'شخصين' : n + ' أشخاص', typeName: 'اكتب اسم الضيف للبحث.', notFound: 'الاسم مو موجود بالقائمة. تقدر تطلب موافقة المضيفة تحت.', notFoundOld: 'الاسم مو موجود بالقائمة. تأكد مع المضيفة.',
       coming: 'بيحضر', declined: 'معتذر', noReply: 'ما رد', of: (a, b) => `وصل ${a} من ${b}`, allIn: 'وصلوا كلهم', checkIn: 'تسجيل دخول', howMany: 'كم شخص الحين',
       askHost: 'اطلب موافقة المضيفة', unlisted: '+ شخص مو موجود بالقائمة', name: 'الاسم', count: 'عدد الأشخاص', note: 'ملاحظة للمضيفة (اختياري)', send: 'أرسل للمضيفة', cancel: 'إلغاء',
       sent: 'تم الإرسال للمضيفة. بيطلع ردها تحت.', reqs: 'طلباتك للمضيفة', pending: 'بالانتظار', approved: 'تمت الموافقة، دخّلهم', rejected: 'ما تمت الموافقة',
@@ -54,6 +54,9 @@ document.addEventListener('DOMContentLoaded', function () {
   let lang = 'en'; try { lang = localStorage.getItem('door-lang') === 'ar' ? 'ar' : 'en'; } catch (e) {}
   let t = T[lang];
   let events = [], ev = null, list = [], v2 = false, busy = false, poll = null, exPrefill = null;
+  const typed = {};   // head counts the door has typed, kept across the 15-second refresh
+  // the upgraded functions went missing (e.g. undone): carry on the old way
+  function dropV2() { v2 = false; $('#unlisted').hidden = true; exPrefill = null; renderForm(); $('#myReqs').innerHTML = ''; }
 
   function applyLang() {
     t = T[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
@@ -83,8 +86,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
   async function loadList() {
     const { data, error } = v2 ? await sb.rpc('door_list_v2', { p_event: ev.id }) : await sb.rpc('door_list', { p_event: ev.id });
+    if (error && v2 && App.missingFn(error)) { dropV2(); return loadList(); }
     if (error) { toast(t.err); return; }
     list = (data || []).map(g => ({ ...g, checked_in_count: g.checked_in_count ?? (g.checked_in_at ? g.seats : 0) }));
+    // don't redraw under the door's fingers while they're typing a head count
+    const a = document.activeElement;
+    if (a && a.classList && a.classList.contains('cnt') && $('#list').contains(a)) return;
     renderList();
   }
 
@@ -94,21 +101,23 @@ document.addEventListener('DOMContentLoaded', function () {
   function renderList() {
     const arrived = list.reduce((a, g) => a + (g.checked_in_count || 0), 0);
     const confirmed = list.reduce((a, g) => a + App.peopleComing(g), 0);
-    $('#counts').innerHTML = `<div class="stat"><b>${arrived}</b><span>${t.arrived}</span></div><div class="stat"><b>${confirmed}</b><span>${t.confirmed}</span></div><div class="stat"><b id="waitN">${reqs.filter(r => r.status === 'pending').length}</b><span>${t.waiting}</span></div>`;
-    const q = normName($('#q').value), qd = $('#q').value.replace(/\D/g, '');
+    $('#counts').style.gridTemplateColumns = v2 ? 'repeat(3,1fr)' : 'repeat(2,1fr)';
+    $('#counts').innerHTML = `<div class="stat"><b>${arrived}</b><span>${t.arrived}</span></div><div class="stat"><b>${confirmed}</b><span>${t.confirmed}</span></div>${v2 ? `<div class="stat"><b id="waitN">${reqs.filter(r => r.status === 'pending').length}</b><span>${t.waiting}</span></div>` : ''}`;
+    const q = normName($('#q').value), qd = App.asciiDigits($('#q').value).replace(/\D/g, '');
     const rows = q ? list.filter(g => normName(g.name).includes(q) || (qd.length >= 3 && (g.phone || '').includes(qd))).slice(0, 30) : [];
     const st = { yes: t.coming, no: t.declined, pending: t.noReply };
     $('#list').innerHTML = !q ? `<p class="empty">${t.typeName}</p>` : rows.length ? rows.map(g => {
       const left = leftOf(g), done = g.checked_in_count || 0;
       const act = !v2 ? (g.checked_in_at ? `<span class="pill yes">${t.already}</span>` : `<button class="btn small" data-in="${g.id}">${t.checkIn}</button>`)
-        : left > 0 ? `<label class="sr" for="n-${g.id}">${t.howMany}</label><input class="cnt" type="number" id="n-${g.id}" min="1" max="${left}" value="${left}" inputmode="numeric" aria-label="${t.howMany}"><button class="btn small" data-in="${g.id}">${t.checkIn}</button>`
+        : left > 0 ? `<label class="sr" for="n-${g.id}">${t.howMany}</label><input class="cnt" type="number" id="n-${g.id}" data-g="${g.id}" min="1" max="${left}" value="${Math.min(typed[g.id] || left, left)}" inputmode="numeric" aria-label="${t.howMany}"><button class="btn small" data-in="${g.id}">${t.checkIn}</button>`
         : `<span class="pill yes">${done ? t.allIn : st[g.status]}</span><button class="icon" data-ask="${g.id}">${t.askHost}</button>`;
       return `<div class="gi"><div class="gi-main"><div class="gi-top"><b>${esc(g.name)}</b><span class="pill ${g.status}">${st[g.status]}</span></div>
         <div class="gi-sub">${v2 ? `<span>${t.of(done, allowed(g) || g.seats)}</span>` : `<span>${t.people(g.seats)}</span>`}${g.phone ? `<span dir="ltr">${esc(showPhone(g.phone))}</span>` : ''}${g.side ? `<span>${esc(g.side)}</span>` : ''}</div>
         ${g.status === 'no' && g.decline_reason ? `<p class="gi-why">${t.reason}: “${esc(g.decline_reason)}”</p>` : ''}</div>
         <div class="gi-act door-act">${act}</div></div>`;
-    }).join('') : `<p class="empty">${t.notFound}</p>`;
+    }).join('') : `<p class="empty">${v2 ? t.notFound : t.notFoundOld}</p>`;
     $('#list').querySelectorAll('[data-in]').forEach(b => b.onclick = () => checkIn(b.dataset.in));
+    $('#list').querySelectorAll('input.cnt').forEach(i => i.oninput = () => { const n = parseInt(App.asciiDigits(i.value), 10); if (n > 0) typed[i.dataset.g] = n; else delete typed[i.dataset.g]; });
     $('#list').querySelectorAll('[data-ask]').forEach(b => b.onclick = () => { const g = list.find(x => x.id === b.dataset.ask); exPrefill = { guest: g.id, name: g.name, people: 1 }; renderForm(); });
   }
   $('#q').oninput = renderList;
@@ -118,11 +127,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const g = list.find(x => x.id === id);
     let r;
     if (v2) {
-      const inp = $('#n-' + id), n = Math.max(1, parseInt(inp && inp.value, 10) || 1);
+      const inp = $('#n-' + id), n = Math.max(1, parseInt(App.asciiDigits(inp && inp.value), 10) || 1);
       r = await sb.rpc('check_in_v2', { p_guest: id, p_people: n });
+      if (r.error && App.missingFn(r.error)) { busy = false; dropV2(); loadList(); toast(t.err); return; }
     } else r = await sb.rpc('check_in_guest', { p_guest: id });
     busy = false;
     if (r.error) { toast(t.err); return; }
+    delete typed[id];
     show(r.data, g); loadList();
   }
 
@@ -139,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function () {
       el.innerHTML = `<div class="result good reveal"><b>${esc(t.ok(r.name))}</b>${esc(t.okSub(t.people(r.people), r.left))}${note}</div>`;
       return;
     }
-    if (!r.ok) { el.innerHTML = `<div class="result bad reveal"><b>${t.notFound}</b></div>`; return; }
+    if (!r.ok) { el.innerHTML = `<div class="result bad reveal"><b>${t.notFoundOld}</b></div>`; return; }
     if (r.already) { el.innerHTML = `<div class="result warn reveal"><b>${esc(r.name)}</b>${t.already} · ${t.people(r.seats)}</div>`; return; }
     const note = r.status === 'yes' ? '' : r.status === 'no' ? ` · ${t.hadDeclined}` : ` · ${t.noReplySub}`;
     el.innerHTML = `<div class="result good reveal"><b>✓ ${esc(r.name)}</b>${t.people(r.seats)}${note}</div>`;

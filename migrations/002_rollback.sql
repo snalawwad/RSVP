@@ -38,6 +38,20 @@ language sql stable security definer set search_path to 'public' as $$
   where event_id = p_event and lower(email) = public.current_email()
   limit 1
 $$;
+-- restore the original package-limit check
+create or replace function public.enforce_invite_limit() returns trigger
+language plpgsql security definer set search_path to 'public' as $$
+declare lim int; used int;
+begin
+  select invite_limit into lim from public.events where id = new.event_id;
+  if lim is null then return new; end if;
+  select coalesce(sum(seats), 0) into used from public.guests
+   where event_id = new.event_id and id is distinct from new.id;
+  if used + new.seats > lim then
+    raise exception 'invite limit reached: % of % used', used, lim using errcode = 'P0001';
+  end if;
+  return new;
+end $$;
 drop table if exists public.checkin_events;
 drop table if exists public.attendance_exceptions;
 drop table if exists public.audit_logs;

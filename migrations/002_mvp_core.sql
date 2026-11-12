@@ -149,7 +149,7 @@ end $$;
 create or replace function public._v2_host_side(p_event uuid) returns text
 language sql stable security definer set search_path = public as $$
   select case when public.is_admin() then null else
-    (select m.side from public.event_members m
+    (select nullif(trim(m.side), '') from public.event_members m
       where m.event_id = p_event and lower(m.email) = public._v2_email() and m.role = 'host' limit 1) end
 $$;
 
@@ -193,6 +193,8 @@ create or replace function public._v2_guest_limits() returns trigger
 language plpgsql security definer set search_path = public as $$
 declare lim int; used int;
 begin
+  -- a host-approved door request may go over the package (set only inside decide_exception_v2)
+  if current_setting('rsvp.door_approval', true) = 'on' then return new; end if;
   if (tg_op = 'INSERT' or new.seats is distinct from old.seats) and (new.seats is null or new.seats < 1 or new.seats > 6) then
     raise exception 'Each guest can have 1 to 6 invites (themselves plus up to 5 extras)' using errcode = '23514';
   end if;
@@ -209,6 +211,23 @@ begin
   end if;
   return new;
 end $$;
+-- The existing package-limit trigger gets the same exception for host-approved door requests.
+-- (Undo restores the original.)
+create or replace function public.enforce_invite_limit() returns trigger
+language plpgsql security definer set search_path to 'public' as $$
+declare lim int; used int;
+begin
+  if current_setting('rsvp.door_approval', true) = 'on' then return new; end if;
+  select invite_limit into lim from public.events where id = new.event_id;
+  if lim is null then return new; end if;
+  select coalesce(sum(seats), 0) into used from public.guests
+   where event_id = new.event_id and id is distinct from new.id;
+  if used + new.seats > lim then
+    raise exception 'invite limit reached: % of % used', used, lim using errcode = 'P0001';
+  end if;
+  return new;
+end $$;
+
 drop trigger if exists guests_v2_limits on public.guests;
 create trigger guests_v2_limits before insert or update of seats, confirmed_count on public.guests
   for each row execute function public._v2_guest_limits();
@@ -321,7 +340,8 @@ begin
   r := public._v2_role(g.event_id); s := public._v2_host_side(g.event_id);
   if coalesce(r, '') not in ('admin', 'host') or (s is not null and g.side is distinct from s) then raise exception 'Not allowed'; end if;
   update public.guests set seats = 1 + p_extras,
-    confirmed_count = case when confirmed_count is null then null else least(confirmed_count, 1 + p_extras) end
+    confirmed_count = case when status = 'yes' then least(coalesce(confirmed_count, g.seats), 1 + p_extras)
+                           when confirmed_count is null then null else least(confirmed_count, 1 + p_extras) end
   where id = g.id returning * into g;
   perform public._v2_log(g.event_id, 'host_set_extras', jsonb_build_object('guest', g.id, 'seats', g.seats));
   return to_jsonb(g);
@@ -343,25 +363,34 @@ end $$;
 -- Door requests waiting for the host, newest first.
 create or replace function public.list_exceptions_v2(p_event uuid)
 returns setof public.attendance_exceptions language plpgsql stable security definer set search_path = public as $$
+declare s text := public._v2_host_side(p_event);
 begin
   if public._v2_role(p_event) is null then raise exception 'Not allowed'; end if;
-  return query select * from public.attendance_exceptions where event_id = p_event order by created_at desc limit 200;
+  return query select x.* from public.attendance_exceptions x
+    left join public.guests g on g.id = x.guest_id
+   where x.event_id = p_event and (s is null or g.side = s)
+   order by x.created_at desc limit 200;
 end $$;
 
 -- Host approves or turns down a door request. Door staff can't decide.
 create or replace function public.decide_exception_v2(p_id uuid, p_approve boolean)
 returns jsonb language plpgsql security definer set search_path = public as $$
-declare x public.attendance_exceptions; g public.guests;
+declare x public.attendance_exceptions; g public.guests; s text;
 begin
   select * into x from public.attendance_exceptions where id = p_id for update;
   if not found then raise exception 'Request not found'; end if;
   if coalesce(public._v2_role(x.event_id), '') not in ('admin', 'host') then raise exception 'Only the host can decide'; end if;
+  s := public._v2_host_side(x.event_id);
+  if s is not null and (x.guest_id is null or not exists (select 1 from public.guests where id = x.guest_id and side = s)) then
+    raise exception 'Not allowed';
+  end if;
   if lower(coalesce(x.requested_by, '')) = public._v2_email() and not public.is_admin() then raise exception 'You can''t approve your own request'; end if;
   if x.status <> 'pending' then return to_jsonb(x); end if;
   update public.attendance_exceptions set status = case when p_approve then 'approved' else 'rejected' end,
     decided_by = nullif(public._v2_email(), ''), decided_at = now()
   where id = x.id returning * into x;
   if p_approve then
+    perform set_config('rsvp.door_approval', 'on', true);   -- this transaction only
     if x.guest_id is not null then
       update public.guests set checked_in_count = coalesce(checked_in_count, 0) + x.people, checked_in_at = coalesce(checked_in_at, now())
        where id = x.guest_id returning * into g;
@@ -373,6 +402,7 @@ begin
       update public.attendance_exceptions set guest_id = g.id where id = x.id;
     end if;
     insert into public.checkin_events(event_id, guest_id, people, by_email) values (x.event_id, g.id, x.people, x.requested_by);
+    perform set_config('rsvp.door_approval', 'off', true);
   end if;
   perform public._v2_log(x.event_id, 'decide_exception', jsonb_build_object('request', x.id, 'approved', p_approve));
   return to_jsonb(x);
@@ -381,7 +411,7 @@ end $$;
 create or replace function public.audit_log_v2(p_event uuid)
 returns setof public.audit_logs language plpgsql stable security definer set search_path = public as $$
 begin
-  if coalesce(public._v2_role(p_event), '') not in ('admin', 'host') then raise exception 'Not allowed'; end if;
+  if coalesce(public._v2_role(p_event), '') not in ('admin', 'host') or public._v2_host_side(p_event) is not null then raise exception 'Not allowed'; end if;
   return query select * from public.audit_logs where event_id = p_event order by created_at desc limit 300;
 end $$;
 
@@ -389,13 +419,13 @@ end $$;
 create or replace function public.door_list_v2(p_event uuid)
 returns table(id uuid, name text, phone text, seats int, status text, confirmed_count int, checked_in_count int,
               decline_reason text, side text, checked_in_at timestamptz)
-language plpgsql volatile security definer set search_path = public as $$
+language plpgsql stable security definer set search_path = public as $$
+declare s text := public._v2_host_side(p_event);
 begin
   if public._v2_role(p_event) is null then raise exception 'Not allowed'; end if;
-  perform public._v2_log(p_event, 'door_open_list', null);
   return query select g.id, g.name::text, g.phone::text, g.seats, g.status::text, g.confirmed_count, g.checked_in_count,
                       g.decline_reason::text, g.side::text, g.checked_in_at
-    from public.guests g where g.event_id = p_event order by g.name;
+    from public.guests g where g.event_id = p_event and (s is null or g.side = s) order by g.name;
 end $$;
 
 -- Check in p_people from a guest's party. Safe if two doors tap at once.
@@ -406,6 +436,7 @@ begin
   select * into g from public.guests where id = p_guest for update;   -- one door at a time per guest
   if not found then return jsonb_build_object('ok', false, 'reason', 'not_found'); end if;
   if public._v2_role(g.event_id) is null then raise exception 'Not allowed'; end if;
+  if public._v2_host_side(g.event_id) is not null and g.side is distinct from public._v2_host_side(g.event_id) then raise exception 'Not allowed'; end if;
   allowed := case g.status when 'yes' then coalesce(g.confirmed_count, g.seats) when 'pending' then g.seats else 0 end;
   left_ := greatest(0, allowed - coalesce(g.checked_in_count, 0));
   if p_people is null or p_people < 1 then raise exception 'Enter how many people are arriving'; end if;
@@ -428,7 +459,8 @@ declare x public.attendance_exceptions; nm text := trim(coalesce(p_name, ''));
 begin
   if public._v2_role(p_event) is null then raise exception 'Not allowed'; end if;
   if p_guest is not null then
-    select g.name into nm from public.guests g where g.id = p_guest and g.event_id = p_event;
+    select g.name into nm from public.guests g where g.id = p_guest and g.event_id = p_event
+       and (public._v2_host_side(p_event) is null or g.side = public._v2_host_side(p_event));
     if nm is null then raise exception 'Guest not found'; end if;
   end if;
   if length(nm) < 1 then raise exception 'Enter a name'; end if;

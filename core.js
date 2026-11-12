@@ -153,15 +153,27 @@
   // The upgraded database functions (migrations/002_mvp_core.sql). Until they are installed,
   // every page keeps working the old way.
   const missingFn = err => !!err && (err.code === 'PGRST202' || err.code === '42883' || /Could not find the function/i.test(err.message || ''));
+  // A database answer always has an error code; a dropped connection doesn't.
+  const netFail = err => !!err && !err.code;
   let v2Probe = null;
   function v2Ready() {
     if (!sb) return Promise.resolve(false);
-    if (!v2Probe) v2Probe = sb.rpc('get_event_public_v2', { p_code: '-' }).then(r => !missingFn(r.error), () => false);
+    if (!v2Probe) v2Probe = (async () => {
+      for (let i = 0; i < 3; i++) {
+        let r;
+        try { r = await sb.rpc('get_event_public_v2', { p_code: '-' }); } catch (e) { r = { error: { message: String(e) } }; }
+        if (!netFail(r.error)) return !missingFn(r.error);
+        await new Promise(res => setTimeout(res, 1200));
+      }
+      // No connection: use the old functions. They stay installed after the upgrade, so this is always safe.
+      v2Probe = null; return false;
+    })();
     return v2Probe;
   }
   // Try the upgraded function first, fall back to the old one if it isn't installed yet.
   async function rpc2(name, args, oldName, oldArgs) {
     const r = await sb.rpc(name, args);
+    if (netFail(r.error)) return { ...r, v2: null };   // connection problem: say so, decide nothing
     if (!missingFn(r.error)) { v2Probe = Promise.resolve(true); return { ...r, v2: true }; }
     v2Probe = Promise.resolve(false);
     if (!oldName) return { data: null, error: r.error, v2: false };
@@ -178,7 +190,10 @@
   const clampSeats = n => Math.max(1, Math.min(1 + MAX_EXTRAS, parseInt(n, 10) || 1));
   const peopleComing = g => g.status === 'yes' ? (g.confirmed_count || g.seats || 1) : 0;
 
-  window.App = { sb, $, esc, toast, normPhone, showPhone, fmtDate, fmtTime, kwToIso, isoToKw, inviteLink, waLink, fillTemplate, DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_EN, templateFor,
+  // Arabic-Indic and Persian digits → 0-9 (Arabic phone keyboards type these).
+  const asciiDigits = s => String(s || '').replace(/[٠-٩]/g, c => '٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/[۰-۹]/g, c => '۰۱۲۳۴۵۶۷۸۹'.indexOf(c));
+
+  window.App = { asciiDigits, sb, $, esc, toast, normPhone, showPhone, fmtDate, fmtTime, kwToIso, isoToKw, inviteLink, waLink, fillTemplate, DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_EN, templateFor,
     mix, lum, rgb2hex, themeVars, applyTheme, calLink, icsBlobUrl, requireLogin, signOut, configured,
     need, v2Ready, rpc2, missingFn, normName, MAX_EXTRAS, clampSeats, peopleComing };
 })();
