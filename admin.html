@@ -13,64 +13,64 @@
 <script defer src="core.js"></script>
 </head>
 <body>
-<div class="topbar"><a class="brand" id="brand" href="host.html"></a><a href="host.html">Dashboard</a><button class="link" id="out" hidden>Log out</button></div>
+<div class="topbar"><a class="brand" id="brand" href="host.html"></a><a href="host.html" data-i18n="dash">Dashboard</a><button class="link" id="lang" data-i18n="other">العربية</button><button class="link" id="out" hidden data-i18n="out">Log out</button></div>
 <main>
   <div id="auth"></div>
   <section id="adm" hidden>
-    <h2>Admin</h2>
-    <p class="sub">Events, hosts, design, guest lists and sending.</p>
-    <div class="row"><div class="evlist" id="evlist" style="margin:0"></div><button class="btn small ghost" id="newEv">+ New event</button></div>
+    <h2 data-i18n="adminH">Admin</h2>
+    <p class="sub" data-i18n="adminSub">Events, hosts, design, guest lists and sending.</p>
+    <div class="row"><div class="evlist" id="evlist" style="margin:0"></div><button class="btn small ghost" id="newEv" data-i18n="newEv">+ New event</button></div>
 
     <div id="evArea" hidden>
-      <h3>Event details</h3>
+      <h3 data-i18n="details">Event details</h3>
       <div class="grid2">
-        <div><label class="f" for="fTitle">Event name (shown to the host)</label><input type="text" id="fTitle" placeholder="Ghala’s bridal shower"></div>
-        <div><label class="f" for="fType">Type</label><select id="fType">
-          <option value="wedding">Wedding</option><option value="milka">Milka</option><option value="engagement">Engagement</option><option value="ghabga">Ghabga</option>
-          <option value="graduation">Graduation</option><option value="birthday">Birthday</option><option value="baby">Baby shower</option><option value="corporate">Company event</option><option value="other">Other</option></select></div>
-        <div><label class="f" for="fLang">Guest page language</label><select id="fLang"><option value="en">English</option><option value="ar">العربية</option></select></div>
-        <div style="grid-column:1/-1"><label class="f" for="fLine">Invite line</label><input type="text" id="fLine" placeholder="Join us for Ghala’s bridal shower"></div>
-        <div style="grid-column:1/-1"><label class="f" for="fNote">Note on the invite page (optional)</label><textarea id="fNote" rows="3" placeholder="A samra night, Bring your thoub!&#10;Note: we will have a male samra group."></textarea><p class="sub" style="font-size:13px;margin:4px 0 0">The first line shows highlighted. Put anything extra on the next lines.</p></div>
-        <div style="grid-column:1/-1"><label class="f" for="fCode">Invite link name (letters, numbers or dashes, at least 8)</label><input type="text" id="fCode" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="e.g. laylatghala">
-          <p class="sub" style="font-size:13px;margin:4px 0 0">Link: <span id="codeLink"></span></p></div>
-        <div style="grid-column:1/-1"><label class="f" for="fHead">Big title on the card</label><input type="text" id="fHead" placeholder="ليلة غلا"></div>
-        <div><label class="f" for="fDate">Date</label><input type="date" id="fDate"></div>
-        <div class="grid2" style="gap:8px"><div><label class="f" for="fTime">From</label><input type="time" id="fTime"></div><div><label class="f" for="fEnd">To (optional)</label><input type="time" id="fEnd"></div></div>
-        <div><label class="f" for="fVenue">Venue</label><input type="text" id="fVenue"></div>
-        <div><label class="f" for="fMap">Google Maps link</label><input type="url" id="fMap"></div>
-        <div><label class="f" for="fLimit">Invites in package (empty = no limit)</label><input type="number" id="fLimit" min="0" inputmode="numeric"></div>
-        <div style="grid-column:1/-1"><label class="f" for="fTpl">WhatsApp message (for sending one by one)</label><textarea id="fTpl" rows="6"></textarea>
-          <p class="sub" style="font-size:13px;margin:4px 0 0">Words in { } fill in for each guest: {name} {invites} {date} {time} {venue} {event} {link}</p></div>
+        <div><label class="f" for="fTitle" data-i18n="fTitle">Event name (shown to the host)</label><input type="text" id="fTitle" data-i18n-ph="fTitlePh" placeholder="Ghala’s bridal shower"></div>
+        <div><label class="f" for="fType" data-i18n="fType">Type</label><select id="fType">
+          <option value="wedding" data-i18n="tWedding">Wedding</option><option value="milka" data-i18n="tMilka">Milka</option><option value="engagement" data-i18n="tEngagement">Engagement</option><option value="ghabga" data-i18n="tGhabga">Ghabga</option>
+          <option value="graduation" data-i18n="tGraduation">Graduation</option><option value="birthday" data-i18n="tBirthday">Birthday</option><option value="baby" data-i18n="tBaby">Baby shower</option><option value="corporate" data-i18n="tCorporate">Company event</option><option value="other" data-i18n="tOther">Other</option></select></div>
+        <div><label class="f" for="fLang" data-i18n="fLang">Guest page language</label><select id="fLang"><option value="en">English</option><option value="ar">العربية</option></select></div>
+        <div style="grid-column:1/-1"><label class="f" for="fLine" data-i18n="line">Invite line</label><input type="text" id="fLine" data-i18n-ph="linePh" placeholder="Join us for Ghala’s bridal shower"></div>
+        <div style="grid-column:1/-1"><label class="f" for="fNote" data-i18n="note">Note on the invite page (optional)</label><textarea id="fNote" rows="3" data-i18n-ph="notePh" placeholder="A samra night, Bring your thoub!&#10;Note: we will have a male samra group."></textarea><p class="sub" style="font-size:13px;margin:4px 0 0" data-i18n="noteHelp">The first line shows highlighted. Put anything extra on the next lines.</p></div>
+        <div style="grid-column:1/-1"><label class="f" for="fCode" data-i18n="fCode">Invite link name (letters, numbers or dashes, at least 8)</label><input type="text" id="fCode" dir="ltr" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="e.g. laylatghala" data-i18n-ph="fCodePh">
+          <p class="sub" style="font-size:13px;margin:4px 0 0"><span data-i18n="linkL">Link:</span> <span id="codeLink" dir="ltr"></span></p></div>
+        <div style="grid-column:1/-1"><label class="f" for="fHead" data-i18n="fHead">Big title on the card</label><input type="text" id="fHead" placeholder="ليلة غلا"></div>
+        <div><label class="f" for="fDate" data-i18n="date">Date</label><input type="date" id="fDate"></div>
+        <div class="grid2" style="gap:8px"><div><label class="f" for="fTime" data-i18n="from">From</label><input type="time" id="fTime"></div><div><label class="f" for="fEnd" data-i18n="toOpt">To (optional)</label><input type="time" id="fEnd"></div></div>
+        <div><label class="f" for="fVenue" data-i18n="venue">Venue</label><input type="text" id="fVenue"></div>
+        <div><label class="f" for="fMap" data-i18n="map">Google Maps link</label><input type="url" id="fMap" dir="ltr"></div>
+        <div><label class="f" for="fLimit" data-i18n="fLimit">Invites in package (empty = no limit)</label><input type="number" id="fLimit" min="0" inputmode="numeric"></div>
+        <div style="grid-column:1/-1"><label class="f" for="fTpl" data-i18n="fTpl">WhatsApp message (for sending one by one)</label><textarea id="fTpl" rows="6" dir="auto"></textarea>
+          <p class="sub" style="font-size:13px;margin:4px 0 0" data-i18n="tplHelp">Words in { } fill in for each guest: {name} {invites} {date} {time} {venue} {event} {link}</p></div>
       </div>
-      <div class="row" style="margin-top:10px"><button class="btn small" id="saveEv">Save</button><a class="btn small ghost" id="openHost" href="#">Open dashboard</a><a class="btn small ghost" id="testInv" href="#" target="_blank" rel="noopener" hidden>Preview a guest page</a></div>
+      <div class="row" style="margin-top:10px"><button class="btn small" id="saveEv" data-i18n="save">Save</button><a class="btn small ghost" id="openHost" href="#" data-i18n="openHost">Open dashboard</a><a class="btn small ghost" id="testInv" href="#" target="_blank" rel="noopener" hidden data-i18n="testInv">Preview a guest page</a></div>
 
-      <div id="needSave" hidden><p class="sub" style="margin-top:20px">Save the event first, then you can add hosts, the design and guests.</p></div>
+      <div id="needSave" hidden><p class="sub" style="margin-top:20px" data-i18n="needSave">Save the event first, then you can add hosts, the design and guests.</p></div>
       <div id="afterSave">
-        <h3>Hosts and door team</h3>
+        <h3 data-i18n="team">Hosts and door team</h3>
         <div class="glist" id="members"></div>
         <div class="grid2" style="margin-top:10px">
-          <div><label class="f" for="mEmail">Email</label><input type="email" id="mEmail"></div>
-          <div><label class="f" for="mRole">Access</label><select id="mRole"><option value="host">Host (full dashboard)</option><option value="door">Door only</option></select></div>
-          <div><label class="f" for="mSide">List (optional)</label><input type="text" id="mSide" list="sideOpts" placeholder="Empty = sees every list"><datalist id="sideOpts"></datalist></div>
-          <div id="mUntilWrap" hidden><label class="f" for="mUntil">Door access ends (door only)</label><input type="date" id="mUntil"></div>
-          <div style="display:flex;align-items:flex-end"><button class="btn small" id="addMem" style="width:100%">Add</button></div>
+          <div><label class="f" for="mEmail" data-i18n="email">Email</label><input type="email" id="mEmail" dir="ltr"></div>
+          <div><label class="f" for="mRole" data-i18n="access">Access</label><select id="mRole"><option value="host" data-i18n="roleHost">Host (full dashboard)</option><option value="door" data-i18n="roleDoor">Door only</option></select></div>
+          <div><label class="f" for="mSide" data-i18n="mSide">List (optional)</label><input type="text" id="mSide" list="sideOpts" placeholder="Empty = sees every list" data-i18n-ph="mSidePh"><datalist id="sideOpts"></datalist></div>
+          <div id="mUntilWrap" hidden><label class="f" for="mUntil" data-i18n="mUntil">Door access ends (door only)</label><input type="date" id="mUntil"></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn small" id="addMem" style="width:100%" data-i18n="add">Add</button></div>
         </div>
-        <p class="sub" style="font-size:13px;margin:6px 0 0">If you set a list, that host only sees and adds guests on their own list. Door access ends at midnight (Kuwait time) on the date you pick; empty = the day after the event.</p>
+        <p class="sub" style="font-size:13px;margin:6px 0 0" data-i18n="teamHelp">If you set a list, that host only sees and adds guests on their own list. Door access ends at midnight (Kuwait time) on the date you pick; empty = the day after the event.</p>
 
-        <h3>Invite design</h3>
-        <p class="sub" style="margin-bottom:8px">Upload the invite card (photo or PDF) and the guest page takes its colours.</p>
-        <label class="drop"><input type="file" id="cardFile" accept="image/*,.pdf"><span class="btn small">Upload card</span></label>
+        <h3 data-i18n="design">Invite design</h3>
+        <p class="sub" style="margin-bottom:8px" data-i18n="designHelp">Upload the invite card (photo or PDF) and the guest page takes its colours.</p>
+        <label class="drop"><input type="file" id="cardFile" accept="image/*,.pdf"><span class="btn small" data-i18n="uploadCard">Upload card</span></label>
         <div id="theme"></div>
 
-        <h3>Upload a guest list (optional)</h3>
-        <div style="max-width:320px;margin-bottom:10px"><label class="f" for="impSide">Add the file to this list (optional)</label><input type="text" id="impSide" list="sideOpts" placeholder="e.g. Groom’s mum"></div>
-        <label class="drop"><input type="file" id="listFile" accept=".xlsx,.xls,.csv,.docx"><p style="margin:0 0 10px">An Excel, CSV or Word file with names and numbers (and number of invites, if you have it)</p><span class="btn small">Choose file</span></label>
-        <p class="sub" style="margin:16px 0 6px">Or type or paste them here, one guest per line with their name and number:</p>
-        <textarea id="pasteList" rows="6" placeholder="Dana Alanjeri 55771754&#10;Huda Alsaleh 99619992"></textarea>
-        <div class="row" style="margin-top:8px"><button class="btn small" id="readPaste">Check names</button></div>
+        <h3 data-i18n="listH">Upload a guest list (optional)</h3>
+        <div style="max-width:320px;margin-bottom:10px"><label class="f" for="impSide" data-i18n="impSide">Add the file to this list (optional)</label><input type="text" id="impSide" list="sideOpts" placeholder="e.g. Groom’s mum" data-i18n-ph="impSidePh"></div>
+        <label class="drop"><input type="file" id="listFile" accept=".xlsx,.xls,.csv,.docx"><p style="margin:0 0 10px" data-i18n="fileHelp">An Excel, CSV or Word file with names and numbers (and number of invites, if you have it)</p><span class="btn small" data-i18n="chooseFile">Choose file</span></label>
+        <p class="sub" style="margin:16px 0 6px" data-i18n="pasteHelp">Or type or paste them here, one guest per line with their name and number:</p>
+        <textarea id="pasteList" rows="6" data-i18n-ph="bulkPh" placeholder="Dana Alanjeri 55771754&#10;Huda Alsaleh 99619992"></textarea>
+        <div class="row" style="margin-top:8px"><button class="btn small" id="readPaste" data-i18n="checkNames">Check names</button></div>
         <div id="preview"></div>
 
-        <h3>Send invites one by one</h3>
+        <h3 data-i18n="sendH">Send invites one by one</h3>
         <div class="box" id="queue"></div>
       </div>
     </div>
@@ -82,11 +82,94 @@ document.addEventListener('DOMContentLoaded', function () {
   $('#brand').textContent = CONFIG.BRAND_EN || CONFIG.BRAND;
   let events = [], ev = null, guests = [], parsed = [], chips = [], v2 = false;
   const Q = { list: [], i: 0 };
+  // ---- language (English / Kuwaiti Arabic) ----
+  const arN = (n, one, two, few, many) => n === 1 ? one : n === 2 ? two : (n % 100 >= 3 && n % 100 <= 10) ? `${n} ${few}` : `${n} ${many}`;
+  const arInvites = n => arN(n, 'دعوة وحدة', 'دعوتين', 'دعوات', 'دعوة');
+  const arGuests = n => arN(n, 'ضيف واحد', 'ضيفين', 'ضيوف', 'ضيف');
+  const arPlus = n => '\u2066+' + n + '\u2069';   // keep "+2" reading left-to-right inside Arabic text
+  const T = {
+    en: { title: 'Admin', dash: 'Dashboard', other: 'العربية', out: 'Log out', adminH: 'Admin', adminSub: 'Events, hosts, design, guest lists and sending.', newEv: '+ New event',
+      details: 'Event details', fTitle: 'Event name (shown to the host)', fTitlePh: 'Ghala’s bridal shower', fType: 'Type', tWedding: 'Wedding', tMilka: 'Milka', tEngagement: 'Engagement',
+      tGhabga: 'Ghabga', tGraduation: 'Graduation', tBirthday: 'Birthday', tBaby: 'Baby shower', tCorporate: 'Company event', tOther: 'Other', fLang: 'Guest page language',
+      line: 'Invite line', linePh: 'Join us for Ghala’s bridal shower', note: 'Note on the invite page (optional)', notePh: 'A samra night, Bring your thoub!\nNote: we will have a male samra group.',
+      noteHelp: 'The first line shows highlighted. Put anything extra on the next lines.', fCode: 'Invite link name (letters, numbers or dashes, at least 8)', fCodePh: 'e.g. laylatghala',
+      linkL: 'Link:', fHead: 'Big title on the card', date: 'Date', from: 'From', toOpt: 'To (optional)', venue: 'Venue', map: 'Google Maps link', fLimit: 'Invites in package (empty = no limit)',
+      fTpl: 'WhatsApp message (for sending one by one)', tplHelp: 'Words in { } fill in for each guest: {name} {invites} {date} {time} {venue} {event} {link}', save: 'Save',
+      openHost: 'Open dashboard', testInv: 'Preview a guest page', needSave: 'Save the event first, then you can add hosts, the design and guests.', team: 'Hosts and door team',
+      email: 'Email', access: 'Access', roleHost: 'Host (full dashboard)', roleDoor: 'Door only', mSide: 'List (optional)', mSidePh: 'Empty = sees every list', mUntil: 'Door access ends (door only)',
+      add: 'Add', teamHelp: 'If you set a list, that host only sees and adds guests on their own list. Door access ends at midnight (Kuwait time) on the date you pick; empty = the day after the event.',
+      design: 'Invite design', designHelp: 'Upload the invite card (photo or PDF) and the guest page takes its colours.', uploadCard: 'Upload card', listH: 'Upload a guest list (optional)',
+      impSide: 'Add the file to this list (optional)', impSidePh: 'e.g. Groom’s mum', fileHelp: 'An Excel, CSV or Word file with names and numbers (and number of invites, if you have it)',
+      chooseFile: 'Choose file', pasteHelp: 'Or type or paste them here, one guest per line with their name and number:', bulkPh: 'Dana Alanjeri 55771754\nHuda Alsaleh 99619992',
+      checkNames: 'Check names', sendH: 'Send invites one by one',
+      adminOnlyH: 'Admins only', adminOnlyP: 'This page is for admin accounts. Check your email is listed at the top of setup.txt, then run it again in Supabase.',
+      autoLink: 'created automatically when you save', nameEv: 'Give the event a name', badCode: 'Link name: 8 or more letters, numbers or dashes, no spaces',
+      codeTaken: 'That link name is taken, try another', cantSave: m => 'Couldn’t save: ' + m, saved: 'Saved',
+      host: 'Host', doorOnly: 'Door only', sideList: s => `${s}’s list`, allLists: 'all lists', accessEnded: 'access ended', until: 'until', remove: 'Remove',
+      noHosts: 'No hosts yet. Add a host’s email so they can see their dashboard.', badEmail: 'Please enter a valid email', dupEmail: 'That email is already added', addErr: 'Couldn’t add them',
+      memAdded: 'Added. They log in at host.html with that email',
+      cardAlt: 'Invite card', chipsL: 'Colours from the card:', mainCol: 'Main colour', bgCol: 'Background colour', prevHi: 'You’re invited', prevBtn: 'Confirm attendance', colErr: 'Couldn’t save the colours',
+      uploading: 'Uploading the card…', colOk: 'Colours taken from the card', cardErr: m => 'Couldn’t upload the card: ' + (m || 'try a JPG photo'),
+      fileNone: 'No names and numbers found in that file', fileErr: 'Couldn’t read that file', lineEach: 'Put a name and a number on each line', foundToast: n => `Found ${n} guests, check them below`,
+      foundH: n => `Found <b>${n}</b> guests. Check them before adding:`, thName: 'Name', thNum: 'Number', thExtras: 'Extras', plus: n => '+' + n, more: n => `and ${n} more…`, addList: 'Add to list', cancel: 'Cancel',
+      needN: (need, left) => `This file needs ${need} invites but only ${left} are left`, noPkg: 'Not enough invites left in the package', addListErr: m => 'Couldn’t add the list: ' + m,
+      addedN: (a, skip) => `Added ${a} guests` + (skip ? ` (skipped ${skip} duplicates)` : ''),
+      qEmpty: 'Add guests with a number above, and each one will appear here with their own message and a Send button.',
+      qHelp: 'Each guest has their own message with their name and personal link. Change any message if you like, then tap <b>Send on WhatsApp</b>: their chat opens with it ready, and you tap send.',
+      sentOf: (a, b) => `${a} of ${b} sent.`, sent: 'Sent', notSent: 'Not sent yet', msgFor: n => `Message for ${n}`, sendAgain: 'Send again', sendWa: 'Send on WhatsApp' },
+    ar: { title: 'الإدارة', dash: 'لوحة التحكم', other: 'English', out: 'تسجيل خروج', adminH: 'الإدارة', adminSub: 'المناسبات، المضيفين، التصميم، قوائم الضيوف والإرسال.', newEv: '+ مناسبة جديدة',
+      details: 'تفاصيل المناسبة', fTitle: 'اسم المناسبة (يشوفه المضيف)', fTitlePh: 'مثال: ليلة غلا', fType: 'النوع', tWedding: 'زواج', tMilka: 'ملكة', tEngagement: 'خطوبة',
+      tGhabga: 'غبقة', tGraduation: 'تخرج', tBirthday: 'عيد ميلاد', tBaby: 'استقبال مولود', tCorporate: 'فعالية شركة', tOther: 'غير ذلك', fLang: 'لغة صفحة الضيف',
+      line: 'جملة الدعوة', linePh: 'مثال: نتشرف بدعوتكم لحضور ليلة غلا', note: 'ملاحظة بصفحة الدعوة (اختياري)', notePh: 'ليلة سمرة، لا تنسون الثوب!\nملاحظة: بيكون عندنا فرقة سمرة رجالية.',
+      noteHelp: 'السطر الأول يطلع مميز، وأي شي زيادة ينكتب بالأسطر اللي بعده.', fCode: 'اسم رابط الدعوة (حروف إنجليزية أو أرقام أو شرطات، 8 على الأقل)', fCodePh: 'مثال: laylatghala',
+      linkL: 'الرابط:', fHead: 'العنوان الكبير على الكرت', date: 'التاريخ', from: 'من', toOpt: 'إلى (اختياري)', venue: 'المكان', map: 'رابط اللوكيشن (قوقل ماب)', fLimit: 'عدد الدعوات بالباقة (فاضي = بدون حد)',
+      fTpl: 'رسالة الواتساب (للإرسال واحد واحد)', tplHelp: 'الكلمات بين { } تتغير لكل ضيف: {الاسم} {العدد} {التاريخ} {الوقت} {المكان} {المناسبة} {الرابط}', save: 'حفظ',
+      openHost: 'فتح لوحة المضيف', testInv: 'معاينة صفحة ضيف', needSave: 'احفظ المناسبة أول، وبعدها تقدر تضيف المضيفين والتصميم والضيوف.', team: 'المضيفين وفريق الباب',
+      email: 'الإيميل', access: 'الصلاحية', roleHost: 'مضيف (اللوحة كاملة)', roleDoor: 'الباب فقط', mSide: 'القائمة (اختياري)', mSidePh: 'فاضي = يشوف كل القوائم', mUntil: 'نهاية صلاحية الباب (للباب فقط)',
+      add: 'إضافة', teamHelp: 'إذا حددت قائمة، المضيف يشوف ويضيف ضيوف قائمته بس. صلاحية الباب تنتهي الساعة 12 بالليل (بتوقيت الكويت) بالتاريخ اللي تختاره؛ فاضي = اليوم اللي بعد المناسبة.',
+      design: 'تصميم الدعوة', designHelp: 'ارفع كرت الدعوة (صورة أو PDF) وصفحة الضيف تاخذ ألوانه.', uploadCard: 'رفع الكرت', listH: 'رفع قائمة ضيوف (اختياري)',
+      impSide: 'إضافة الملف لهذي القائمة (اختياري)', impSidePh: 'مثال: أم المعرس', fileHelp: 'ملف إكسل أو CSV أو وورد فيه الأسماء والأرقام (وعدد الدعوات إذا موجود)',
+      chooseFile: 'اختيار ملف', pasteHelp: 'أو اكتب أو الصق الأسماء هني، كل ضيف بسطر مع اسمه ورقمه:', bulkPh: 'دانة العنجري 55771754\nهدى الصالح 99619992',
+      checkNames: 'مراجعة الأسماء', sendH: 'إرسال الدعوات واحد واحد',
+      adminOnlyH: 'للإدارة فقط', adminOnlyP: 'هذي الصفحة لحسابات الإدارة. تأكد إن إيميلك مكتوب أول ملف setup.txt، وبعدين شغّله مرة ثانية في Supabase.',
+      autoLink: 'ينسوى تلقائياً لما تحفظ', nameEv: 'اكتب اسم المناسبة', badCode: 'اسم الرابط: 8 حروف إنجليزية أو أرقام أو شرطات على الأقل، بدون مسافات',
+      codeTaken: 'اسم الرابط مستخدم، جرب غيره', cantSave: m => 'ما قدرنا نحفظ: ' + m, saved: 'تم الحفظ',
+      host: 'مضيف', doorOnly: 'الباب فقط', sideList: s => `قائمة ${s}`, allLists: 'كل القوائم', accessEnded: 'انتهت الصلاحية', until: 'لين', remove: 'حذف',
+      noHosts: 'ما في مضيفين للحين. أضف إيميل المضيف عشان يقدر يشوف لوحته.', badEmail: 'اكتب إيميل صحيح', dupEmail: 'هذا الإيميل مضاف من قبل', addErr: 'ما قدرنا نضيفهم',
+      memAdded: 'تمت الإضافة. يدخلون من host.html بنفس الإيميل',
+      cardAlt: 'كرت الدعوة', chipsL: 'ألوان من الكرت:', mainCol: 'اللون الأساسي', bgCol: 'لون الخلفية', prevHi: 'حياكم الله', prevBtn: 'تأكيد الحضور', colErr: 'ما قدرنا نحفظ الألوان',
+      uploading: 'جاري رفع الكرت…', colOk: 'أخذنا الألوان من الكرت', cardErr: m => 'ما قدرنا نرفع الكرت: ' + (m || 'جرب صورة JPG'),
+      fileNone: 'ما لقينا أسماء وأرقام بالملف', fileErr: 'ما قدرنا نقرا الملف', lineEach: 'لازم كل سطر يكون فيه اسم ورقم', foundToast: n => `عدد الضيوف ${n}، راجعهم تحت`,
+      foundH: n => `عدد الضيوف: <b>${n}</b>. راجعهم قبل الإضافة:`, thName: 'الاسم', thNum: 'الرقم', thExtras: 'المرافقين', plus: arPlus, more: n => `و${n} غيرهم…`, addList: 'إضافة للقائمة', cancel: 'إلغاء',
+      needN: (need, left) => `الملف يحتاج ${arInvites(need)} والباقي ${left} بس`, noPkg: 'ما باقي دعوات كافية بالباقة', addListErr: m => 'ما قدرنا نضيف القائمة: ' + m,
+      addedN: (a, skip) => `تمت إضافة ${arGuests(a)}` + (skip ? ` (تخطينا ${skip} مكررين)` : ''),
+      qEmpty: 'أضف ضيوف مع أرقامهم فوق، وكل واحد بيطلع هني مع رسالته وزر الإرسال.',
+      qHelp: 'كل ضيف له رسالة فيها اسمه ورابطه الخاص. تقدر تعدل أي رسالة، وبعدين اضغط <b>إرسال بالواتساب</b>: تنفتح محادثته والرسالة جاهزة، وعليك بس تضغط إرسال.',
+      sentOf: (a, b) => `انرسل ${a} من ${b}.`, sent: 'انرسلت', notSent: 'ما انرسلت', msgFor: n => `رسالة ${n}`, sendAgain: 'إرسال مرة ثانية', sendWa: 'إرسال بالواتساب' }
+  };
+  let lang = 'en'; try { lang = localStorage.getItem('admin-lang') === 'ar' ? 'ar' : 'en'; } catch (e) {}
+  let t = T[lang], notAdmin = false;
+  function applyLang() {
+    t = T[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; document.title = t.title;
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t[el.dataset.i18n]; });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t[el.dataset.i18nPh]; });
+    showCodeLink();
+    if (notAdmin) showNotAdmin();
+    if (ev) {
+      // keep any message the admin already changed in the send list
+      const kept = {}; document.querySelectorAll('#queue .sendrow').forEach(r => { kept[r.dataset.id] = r.querySelector('.msgbox').value; });
+      loadMembers(); renderTheme(); renderPreview(); renderQueue();
+      document.querySelectorAll('#queue .sendrow').forEach(r => { const v = kept[r.dataset.id], box = r.querySelector('.msgbox'), g = guests.find(x => x.id === r.dataset.id);
+        if (v != null && g && v !== box.value) { box.value = v; r.querySelector('.wa').href = waLink(g.phone, v); } });
+    }
+  }
+  $('#lang').onclick = () => { lang = lang === 'ar' ? 'en' : 'ar'; try { localStorage.setItem('admin-lang', lang); } catch (e) {} applyLang(); };
+  function showNotAdmin() { $('#auth').innerHTML = `<div class="login box"><h2>${t.adminOnlyH}</h2><p class="sub">${t.adminOnlyP}</p></div>`; }
 
   App.requireLogin($('#auth'), async () => {
     $('#out').hidden = false; $('#out').onclick = App.signOut;
     const { data: admin } = await sb.rpc('is_admin');
-    if (!admin) { $('#auth').innerHTML = '<div class="login box"><h2>Admins only</h2><p class="sub">This page is for admin accounts. Check your email is listed at the top of setup.txt, then run it again in Supabase.</p></div>'; return; }
+    if (!admin) { notAdmin = true; showNotAdmin(); return; }
     v2 = await App.v2Ready();
     $('#mUntilWrap').hidden = !v2;
     $('#adm').hidden = false; await loadEvents();
@@ -103,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function () {
   $('#newEv').onclick = () => open(null);
   function showCodeLink() {
     const c = $('#fCode').value.trim().toLowerCase();
-    $('#codeLink').textContent = c ? `${(CONFIG.SITE_URL || location.origin).replace(/\/$/, '')}/invite.html?e=${c}` : 'created automatically when you save';
+    $('#codeLink').textContent = c ? `${(CONFIG.SITE_URL || location.origin).replace(/\/$/, '')}/invite.html?e=${c}` : t.autoLink;
   }
   $('#fCode').oninput = showCodeLink;
   $('#fLang').onchange = () => { const t = $('#fTpl').value.trim(); if (!t || t === DEFAULT_TEMPLATE.trim() || t === App.DEFAULT_TEMPLATE_EN.trim()) $('#fTpl').value = $('#fLang').value === 'en' ? App.DEFAULT_TEMPLATE_EN : DEFAULT_TEMPLATE; };
@@ -128,16 +211,16 @@ document.addEventListener('DOMContentLoaded', function () {
       venue: $('#fVenue').value.trim() || null, map_url: $('#fMap').value.trim() || null, message_template: $('#fTpl').value, lang: $('#fLang').value,
       note: $('#fNote').value.trim() || null,
       invite_limit: $('#fLimit').value === '' ? null : Math.max(0, parseInt($('#fLimit').value) || 0) };
-    if (!row.title) { toast('Give the event a name'); return; }
+    if (!row.title) { toast(t.nameEv); return; }
     const code = $('#fCode').value.trim().toLowerCase();
     if (code) {
-      if (!/^[a-z0-9-]{8,40}$/.test(code)) { toast('Link name: 8 or more letters, numbers or dashes, no spaces'); return; }
+      if (!/^[a-z0-9-]{8,40}$/.test(code)) { toast(t.badCode); return; }
       row.public_code = code;
     }
     if (row.ends_at && row.starts_at && row.ends_at < row.starts_at) row.ends_at = new Date(new Date(row.ends_at).getTime() + 864e5).toISOString();
     const res = ev ? await sb.from('events').update(row).eq('id', ev.id).select().single() : await sb.from('events').insert({ ...row, created_by: (await sb.auth.getUser()).data.user.id }).select().single();
-    if (res.error) { toast(res.error.code === '23505' ? 'That link name is taken, try another' : 'Couldn\u2019t save: ' + res.error.message); return; }
-    toast('Saved'); ev = res.data; await loadEvents(ev.id);
+    if (res.error) { toast(res.error.code === '23505' ? t.codeTaken : t.cantSave(res.error.message)); return; }
+    toast(t.saved); ev = res.data; await loadEvents(ev.id);
   };
 
   // ---- members ----
@@ -146,13 +229,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const m = data || [];
     const sides = [...new Set([...m.map(x => x.side), ...guests.map(g => g.side)].filter(Boolean))];
     $('#sideOpts').innerHTML = sides.map(s => `<option value="${esc(s)}">`).join('');
-    $('#members').innerHTML = m.length ? m.map(x => `<div class="gi"><div class="gi-main"><b dir="ltr">${esc(x.email)}</b><div class="gi-sub">${x.role === 'host' ? 'Host' : 'Door only'}${x.side ? ' · ' + esc(x.side) + '\u2019s list' : x.role === 'host' ? ' · all lists' : ''}${x.role === 'door' && x.expires_at ? ` · ${new Date(x.expires_at) < new Date() ? 'access ended' : 'until'} ${esc(App.fmtDate(x.expires_at, 'en'))}` : ''}</div></div><div class="gi-act"><button class="icon" data-rm="${x.id}">Remove</button></div></div>`).join('')
-      : '<p class="empty">No hosts yet. Add a host\u2019s email so they can see their dashboard.</p>';
+    $('#members').innerHTML = m.length ? m.map(x => `<div class="gi"><div class="gi-main"><b dir="ltr">${esc(x.email)}</b><div class="gi-sub">${x.role === 'host' ? t.host : t.doorOnly}${x.side ? ' · ' + esc(t.sideList(x.side)) : x.role === 'host' ? ' · ' + t.allLists : ''}${x.role === 'door' && x.expires_at ? ` · ${new Date(x.expires_at) < new Date() ? t.accessEnded : t.until} ${esc(App.fmtDate(x.expires_at, lang))}` : ''}</div></div><div class="gi-act"><button class="icon" data-rm="${x.id}">${t.remove}</button></div></div>`).join('')
+      : `<p class="empty">${t.noHosts}</p>`;
     $('#members').querySelectorAll('[data-rm]').forEach(b => b.onclick = async () => { await sb.from('event_members').delete().eq('id', b.dataset.rm); loadMembers(); });
   }
   $('#addMem').onclick = async () => {
     const email = $('#mEmail').value.trim().toLowerCase();
-    if (!/^\S+@\S+\.\S+$/.test(email)) { toast('Please enter a valid email'); return; }
+    if (!/^\S+@\S+\.\S+$/.test(email)) { toast(t.badEmail); return; }
     const row = { event_id: ev.id, email, role: $('#mRole').value, side: $('#mRole').value === 'host' ? ($('#mSide').value.trim() || null) : null };
     if (v2 && row.role === 'door') {
       // door access ends at the end of the chosen day, or the day after the event
@@ -160,22 +243,22 @@ document.addEventListener('DOMContentLoaded', function () {
       if (until) row.expires_at = kwToIso(until, '23:59');
     }
     const { error } = await sb.from('event_members').insert(row);
-    if (error) { toast(error.code === '23505' ? 'That email is already added' : 'Couldn\u2019t add them'); return; }
-    $('#mEmail').value = ''; $('#mSide').value = ''; $('#mUntil').value = ''; toast('Added. They log in at host.html with that email'); loadMembers();
+    if (error) { toast(error.code === '23505' ? t.dupEmail : t.addErr); return; }
+    $('#mEmail').value = ''; $('#mSide').value = ''; $('#mUntil').value = ''; toast(t.memAdded); loadMembers();
   };
 
   // ---- design ----
   function renderTheme() {
     const v = themeVars(ev.theme_accent, ev.theme_paper);
     $('#theme').innerHTML = `<div class="row" style="align-items:flex-start;margin-top:12px">
-      ${ev.card_image_url ? `<img class="thumb" src="${esc(ev.card_image_url)}" alt="Invite card">` : ''}
+      ${ev.card_image_url ? `<img class="thumb" src="${esc(ev.card_image_url)}" alt="${t.cardAlt}">` : ''}
       <div style="flex:1;min-width:220px">
-        ${chips.length ? `<p class="sub" style="font-size:13px;margin:0">Colours from the card:</p><div class="chips">${chips.map(c => `<button class="chip" style="background:${c}" data-chip="${c}" aria-label="${c}" aria-pressed="${c === ev.theme_accent}"></button>`).join('')}</div>` : ''}
-        <label class="pick"><input type="color" id="tA" value="${esc(ev.theme_accent)}"> Main colour</label>
-        <label class="pick"><input type="color" id="tP" value="${esc(ev.theme_paper)}"> Background colour</label>
+        ${chips.length ? `<p class="sub" style="font-size:13px;margin:0">${t.chipsL}</p><div class="chips">${chips.map(c => `<button class="chip" style="background:${c}" data-chip="${c}" aria-label="${c}" aria-pressed="${c === ev.theme_accent}"></button>`).join('')}</div>` : ''}
+        <label class="pick"><input type="color" id="tA" value="${esc(ev.theme_accent)}"> ${t.mainCol}</label>
+        <label class="pick"><input type="color" id="tP" value="${esc(ev.theme_paper)}"> ${t.bgCol}</label>
         <div style="background:${v['--t-paper']};color:${v['--t-ink']};border:1px solid ${v['--t-line']};border-radius:6px;padding:14px;text-align:center">
-          <p class="serif" style="margin:0 0 8px;font-size:22px;color:${v['--t-accent']}">You\u2019re invited</p>
-          <span style="display:inline-block;padding:6px 16px;border-radius:6px;font-size:13px;font-weight:600;background:${v['--t-accent']};color:${v['--t-accent-ink']}">Confirm attendance</span></div>
+          <p class="serif" style="margin:0 0 8px;font-size:22px;color:${v['--t-accent']}">${t.prevHi}</p>
+          <span style="display:inline-block;padding:6px 16px;border-radius:6px;font-size:13px;font-weight:600;background:${v['--t-accent']};color:${v['--t-accent-ink']}">${t.prevBtn}</span></div>
       </div></div>`;
     $('#theme').querySelectorAll('[data-chip]').forEach(b => b.onclick = () => saveTheme({ theme_accent: b.dataset.chip }));
     $('#tA').onchange = e => saveTheme({ theme_accent: e.target.value });
@@ -183,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   async function saveTheme(patch) {
     const { data, error } = await sb.from('events').update(patch).eq('id', ev.id).select().single();
-    if (error) { toast('Couldn\u2019t save the colours'); return; }
+    if (error) { toast(t.colErr); return; }
     ev = data; renderTheme();
   }
   function palette(img) {
@@ -219,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   $('#cardFile').onchange = async e => {
     const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-    toast('Uploading the card…');
+    toast(t.uploading);
     try {
       const { img, blob } = await toJpeg(f);
       const pal = palette(img); chips = pal.chips;
@@ -228,8 +311,8 @@ document.addEventListener('DOMContentLoaded', function () {
       if (up.error) throw up.error;
       const url = sb.storage.from('cards').getPublicUrl(path).data.publicUrl;
       await saveTheme({ card_image_url: url, theme_accent: pal.accent, theme_paper: pal.paper });
-      toast('Colours taken from the card');
-    } catch (err) { toast('Couldn\u2019t upload the card: ' + (err.message || 'try a JPG photo')); }
+      toast(t.colOk);
+    } catch (err) { toast(t.cardErr(err.message)); }
   };
 
   // ---- guests ----
@@ -266,33 +349,33 @@ document.addEventListener('DOMContentLoaded', function () {
       if (/\.docx$/i.test(f.name)) parsed = fromLines((await mammoth.extractRawText({ arrayBuffer: await f.arrayBuffer() })).value.split(/\n/));
       else { const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' }); parsed = fromRows(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' })); }
       const seen = new Set(); parsed = parsed.filter(g => !seen.has(g.phone) && seen.add(g.phone));
-      if (!parsed.length) toast('No names and numbers found in that file');
-    } catch (err) { toast(err && /helper/.test(err.message) ? err.message : 'Couldn\u2019t read that file'); }
+      if (!parsed.length) toast(t.fileNone);
+    } catch (err) { toast(err && /helper/.test(err.message) ? err.message : t.fileErr); }
     renderPreview();
   };
   $('#readPaste').onclick = () => {
     const lines = $('#pasteList').value.split(/\n/);
     parsed = fromLines(lines);
     const seen = new Set(); parsed = parsed.filter(g => !seen.has(g.phone) && seen.add(g.phone));
-    if (!parsed.length) toast('Put a name and a number on each line'); else toast(`Found ${parsed.length} guests, check them below`);
+    if (!parsed.length) toast(t.lineEach); else toast(t.foundToast(parsed.length));
     renderPreview();
   };
 
   function renderPreview() {
     const p = $('#preview'); if (!parsed.length) { p.innerHTML = ''; return; }
-    p.innerHTML = `<p style="margin:14px 0 8px">Found <b>${parsed.length}</b> guests. Check them before adding:</p>
-      <div class="scroll box" style="padding:0"><table class="t"><thead><tr><th>Name</th><th>Number</th><th>Extras</th></tr></thead><tbody>
-      ${parsed.slice(0, 50).map(g => `<tr><td>${esc(g.name)}</td><td>${esc(showPhone(g.phone))}</td><td>${g.seats > 1 ? '+' + (g.seats - 1) : '–'}</td></tr>`).join('')}</tbody></table></div>
-      ${parsed.length > 50 ? `<p class="sub">and ${parsed.length - 50} more…</p>` : ''}
-      <div class="row" style="margin-top:10px"><button class="btn small" id="imp">Add to list</button><button class="btn small ghost" id="cancelImp">Cancel</button></div>`;
+    p.innerHTML = `<p style="margin:14px 0 8px">${t.foundH(parsed.length)}</p>
+      <div class="scroll box" style="padding:0"><table class="t"><thead><tr><th>${t.thName}</th><th>${t.thNum}</th><th>${t.thExtras}</th></tr></thead><tbody>
+      ${parsed.slice(0, 50).map(g => `<tr><td>${esc(g.name)}</td><td><span dir="ltr">${esc(showPhone(g.phone))}</span></td><td>${g.seats > 1 ? t.plus(g.seats - 1) : '–'}</td></tr>`).join('')}</tbody></table></div>
+      ${parsed.length > 50 ? `<p class="sub">${t.more(parsed.length - 50)}</p>` : ''}
+      <div class="row" style="margin-top:10px"><button class="btn small" id="imp">${t.addList}</button><button class="btn small ghost" id="cancelImp">${t.cancel}</button></div>`;
     $('#cancelImp').onclick = () => { parsed = []; renderPreview(); };
     $('#imp').onclick = async () => {
       const impSide = $('#impSide').value.trim() || null;
-      if (ev.invite_limit != null) { const used = guests.reduce((a, g) => a + g.seats, 0), need = parsed.reduce((a, g) => a + g.seats, 0); if (used + need > ev.invite_limit) { toast(`This file needs ${need} invites but only ${Math.max(0, ev.invite_limit - used)} are left`); return; } }
+      if (ev.invite_limit != null) { const used = guests.reduce((a, g) => a + g.seats, 0), need = parsed.reduce((a, g) => a + g.seats, 0); if (used + need > ev.invite_limit) { toast(t.needN(need, Math.max(0, ev.invite_limit - used))); return; } }
       const rows = parsed.map(g => ({ ...g, event_id: ev.id, side: impSide }));
       const { data, error } = await sb.from('guests').upsert(rows, { onConflict: 'event_id,phone', ignoreDuplicates: true }).select('id');
-      if (error) { toast(/limit/i.test(error.message || '') ? 'Not enough invites left in the package' : 'Couldn\u2019t add the list: ' + error.message); return; }
-      const added = (data || []).length; toast(`Added ${added} guests` + (parsed.length - added ? ` (skipped ${parsed.length - added} duplicates)` : ''));
+      if (error) { toast(/limit/i.test(error.message || '') ? t.noPkg : t.addListErr(error.message)); return; }
+      const added = (data || []).length; toast(t.addedN(added, parsed.length - added));
       parsed = []; $('#pasteList').value = ''; renderPreview(); loadGuests();
     };
   }
@@ -302,15 +385,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const q = $('#queue'), tpl = App.templateFor(ev);
     const list = guests.filter(g => g.phone).sort((a, b) => (a.sent_at ? 1 : 0) - (b.sent_at ? 1 : 0));
     if (!list.length) {
-      q.innerHTML = `<p class="empty" style="padding:6px">Add guests with a number above, and each one will appear here with their own message and a Send button.</p>`;
+      q.innerHTML = `<p class="empty" style="padding:6px">${t.qEmpty}</p>`;
       return;
     }
     const sentN = list.filter(g => g.sent_at).length;
-    q.innerHTML = `<p class="sub" style="margin:0 0 12px">Each guest has their own message with their name and personal link. Change any message if you like, then tap <b>Send on WhatsApp</b>: their chat opens with it ready, and you tap send. ${sentN ? `${sentN} of ${list.length} sent.` : ''}</p>
+    q.innerHTML = `<p class="sub" style="margin:0 0 12px">${t.qHelp} ${sentN ? t.sentOf(sentN, list.length) : ''}</p>
       <div class="sendlist">${list.map(g => `<div class="sendrow" data-id="${g.id}">
-        <div class="row" style="justify-content:space-between;margin-bottom:6px"><b>${esc(g.name)}</b><span class="pill ${g.sent_at ? 'yes' : 'pending'}">${g.sent_at ? 'Sent' : 'Not sent yet'}</span></div>
-        <textarea class="msgbox" rows="7" aria-label="Message for ${esc(g.name)}">${esc(fillTemplate(tpl, ev, g))}</textarea>
-        <div class="row" style="margin-top:8px"><a class="btn small wa" target="_blank" rel="noopener" href="${waLink(g.phone, fillTemplate(tpl, ev, g))}">${WA}<span>${g.sent_at ? 'Send again' : 'Send on WhatsApp'}</span></a><span class="sub" style="margin:0;font-size:13px">${esc(showPhone(g.phone))}</span></div>
+        <div class="row" style="justify-content:space-between;margin-bottom:6px"><b>${esc(g.name)}</b><span class="pill ${g.sent_at ? 'yes' : 'pending'}">${g.sent_at ? t.sent : t.notSent}</span></div>
+        <textarea class="msgbox" rows="7" dir="auto" aria-label="${esc(t.msgFor(g.name))}">${esc(fillTemplate(tpl, ev, g))}</textarea>
+        <div class="row" style="margin-top:8px"><a class="btn small wa" target="_blank" rel="noopener" href="${waLink(g.phone, fillTemplate(tpl, ev, g))}">${WA}<span>${g.sent_at ? t.sendAgain : t.sendWa}</span></a><span class="sub" style="margin:0;font-size:13px" dir="ltr">${esc(showPhone(g.phone))}</span></div>
       </div>`).join('')}</div>`;
     q.querySelectorAll('.sendrow').forEach(row => {
       const g = guests.find(x => x.id === row.dataset.id), box = row.querySelector('.msgbox'), btn = row.querySelector('.wa');
@@ -318,12 +401,13 @@ document.addEventListener('DOMContentLoaded', function () {
       btn.onclick = async () => {
         g.sent_at = new Date().toISOString();
         await sb.from('guests').update({ sent_at: g.sent_at }).eq('id', g.id);
-        const pill = row.querySelector('.pill'); pill.className = 'pill yes'; pill.textContent = 'Sent';
-        btn.querySelector('span').textContent = 'Send again';
+        const pill = row.querySelector('.pill'); pill.className = 'pill yes'; pill.textContent = t.sent;
+        btn.querySelector('span').textContent = t.sendAgain;
       };
     });
   }
   const WA = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2.2A9.7 9.7 0 0 0 3.7 16.9L2.4 21.6l4.8-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.6a7.9 7.9 0 0 1-4-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A7.9 7.9 0 1 1 12 19.8zm4.4-5.9c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.7-1.8c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.4-.6 1.6-1.2.2-.6.2-1 .1-1.2l-.4-.2z"/></svg>';
+  applyLang();
 });
 </script>
 </body>

@@ -24,7 +24,7 @@ declare missing text := '';
     ['events','theme_paper'],['events','card_image_url'],
     ['guests','id'],['guests','event_id'],['guests','name'],['guests','phone'],['guests','seats'],
     ['guests','status'],['guests','token'],['guests','decline_reason'],['guests','checked_in_at'],['guests','side'],
-    ['event_members','event_id'],['event_members','email'],['event_members','role']];
+    ['event_members','event_id'],['event_members','email'],['event_members','role'],['event_members','side']];
   i int;
 begin
   for i in 1 .. array_length(need, 1) loop
@@ -428,6 +428,11 @@ revoke all on function public.get_invite_v2(text), public.get_event_public_v2(te
   public.host_set_rules_v2(uuid, timestamptz, boolean, boolean), public.list_exceptions_v2(uuid), public.decide_exception_v2(uuid, boolean),
   public.audit_log_v2(uuid), public.door_list_v2(uuid), public.check_in_v2(uuid, int),
   public.request_exception_v2(uuid, uuid, text, int, text) from public;
+-- Supabase gives new functions to everyone by default: host/door ones are for logged-in users only.
+revoke all on function public.host_set_reply_v2(uuid, text, int), public.host_set_extras_v2(uuid, int),
+  public.host_set_rules_v2(uuid, timestamptz, boolean, boolean), public.list_exceptions_v2(uuid), public.decide_exception_v2(uuid, boolean),
+  public.audit_log_v2(uuid), public.door_list_v2(uuid), public.check_in_v2(uuid, int),
+  public.request_exception_v2(uuid, uuid, text, int, text), public._v2_guest_limits() from anon;
 grant execute on function public.get_invite_v2(text), public.get_event_public_v2(text), public.respond_v2(text, text, int, text),
   public.public_rsvp_v2(text, text, text, text, text) to anon, authenticated;
 grant execute on function public.host_set_reply_v2(uuid, text, int), public.host_set_extras_v2(uuid, int),

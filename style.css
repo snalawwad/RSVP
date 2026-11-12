@@ -219,3 +219,6 @@ label.check input{width:20px;height:20px;accent-color:var(--plum)}
 .door-act input.cnt{width:64px;min-height:38px;padding:6px 8px;text-align:center}
 @media (max-width:560px){.door-act{justify-content:flex-end}}
 .coming-n{margin:4px 0 0;font-size:17px;color:var(--t-muted)}
+
+/* Arabic (right-to-left) host/admin pages: numbers, emails and links stay left-to-right but sit on the right */
+[dir="rtl"] input[dir="ltr"]{text-align:right}

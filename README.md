@@ -1,68 +1,55 @@
-# Setup from your phone
+# RSVP
 
-Everything is in one folder with no sub-folders, so you can upload it to GitHub from your phone. There is one SQL file to paste.
+Digital invitations and RSVPs for events in Kuwait. A static site on GitHub Pages with a Supabase database. No build step: every file is served as-is.
 
 | File | What it is |
 | --- | --- |
-| `invite.html` | The guest page (opens from the WhatsApp link) |
-| `host.html` | Host app: replies, decline reasons, add or remove guests |
-| `admin.html` | You and Sama: event details, card, guest list, sending |
-| `door.html` | Door check-in (not needed for the MVP) |
-| `index.html` | Simple landing page |
-| `config.js` | Your Supabase keys and site address go here |
-| `setup.txt` | The whole database, in one file |
+| `invite.html` | Guest page. Personal link (`?t=…`) or the event's shared link (`?e=…`) |
+| `host.html` | Host dashboard: replies, guests, invite design, RSVP rules, door requests, activity |
+| `admin.html` | Admin (Sara and Sama): events, hosts and door staff, card, guest lists, sending |
+| `door.html` | Door check-in by name, with a head count. Arabic and English |
+| `index.html` | Sends visitors to the host dashboard (keeps login links working) |
+| `config.js` | Supabase URL, publishable key, site address, support WhatsApp |
 | `core.js`, `style.css` | Shared code and design |
+| `migrations/` | Database changes, in order, with an undo file for each |
 
-## 1. Unzip
+The publishable key in `config.js` is meant to be public. The database rules decide what each person can see. Never put a `service_role` or secret key in this repository.
 
-In the **Files** app, tap the zip once. It makes a folder with all the files inside.
+## Database upgrade: `migrations/002_mvp_core.sql`
 
-## 2. Supabase: create the database
+The pages work with or without this upgrade. Until it is installed, they behave exactly as before. Once it is installed, these switch on automatically:
 
-1. Open supabase.com in Safari, sign in, and tap **New project**. Name it `rsvp`, pick a strong database password (save it), and choose a region near Kuwait, such as Frankfurt. Wait a minute while it sets up.
-2. Open `setup.txt` in the Files app, select all and copy. Your admin email is already in it.
-3. In Supabase, open **SQL Editor**, tap **New query**, paste, and tap **Run**. You should see "Setup finished".
-4. Open **Project Settings** → **API** (or **Data API**) and keep that page open. You need the **Project URL** and the **anon public** key next.
+- **Extras (+0 to +5).** Each guest can bring up to 5 extra people. Guests with extras choose how many are coming.
+- **RSVP rules.** A reply-by date, whether guests can change their reply, and whether the shared link takes new replies.
+- **Door check-in with numbers.** Check in part of a party now and the rest later. Two door phones can't double count.
+- **Door requests.** The door asks the host about someone unlisted or extra people. The host approves or turns down from the dashboard. Door staff can't approve their own requests.
+- **Door access end date.** Door staff lose access after the date the admin sets (default: the day after the event).
+- **Host corrections.** Change a guest's reply, head count or extras by hand.
+- **Activity log.** Replies, changes, check-ins and decisions, with who did them.
+- **Limits enforced by the database.** 1 to 6 seats per guest, and the package limit, even when two imports run at once.
 
-## 3. GitHub: put the site online
+### To install
 
-1. Open github.com in Safari (desktop view helps: tap **aA** → **Request Desktop Website**).
-2. Tap **New repository**, name it `rsvp`, set it to **Public**, and tap **Create repository**.
-3. Tap **uploading an existing file**, choose all the files from the unzipped folder, and tap **Commit changes**.
-4. Open **Settings** → **Pages**. Under **Branch**, pick `main` and `/ (root)`, then **Save**. After a minute it shows your address, like `https://yourname.github.io/rsvp`.
+1. Supabase → **SQL Editor** → **New query**.
+2. Paste the whole of `migrations/002_mvp_core.sql` and tap **Run**. You should see **Upgrade finished**.
+3. If it says **Stopped, nothing changed**, the database isn't shaped the way the file expects. Nothing was changed. Send the message to Claude.
 
-## 4. Connect the two
+It is safe to run more than once. It only adds things; it doesn't change or remove any existing function, so links already sent keep working.
 
-1. In GitHub, tap `config.js`, then the pencil icon to edit.
-2. Paste the **Project URL** into `SUPABASE_URL`, the **anon public** key into `SUPABASE_ANON_KEY`, and your GitHub Pages address into `SITE_URL` (no slash at the end).
-3. Tap **Commit changes**. The site updates within a couple of minutes.
+### To undo
 
-The anon key is meant to be public, so it's safe in these files. Never paste the **service_role** key anywhere.
+Run `migrations/002_rollback.sql` the same way. Pages fall back to the old behaviour. Door requests and the activity log are deleted. Guest replies are kept.
 
-## 5. Turn on email login
+## Sending invites
 
-1. In Supabase, open **Authentication** → **URL Configuration**.
-2. Set **Site URL** to your GitHub Pages address.
-3. Under **Redirect URLs**, add your address followed by `/**`, for example `https://yourname.github.io/rsvp/**`.
-4. Open **Authentication** → **Emails** → **Magic Link**, and add this line to the template so the email includes a 6-digit code:
-   `Your code: {{ .Token }}`
+Invites are sent one by one from your own WhatsApp: the **Send** button opens the chat with the message ready, and you tap send. The dashboard records that WhatsApp was opened, not that the message was delivered. Automatic sending from a business number needs an approved WhatsApp Business provider (with its own costs and approval). That isn't set up yet.
 
-## 6. Log in
+## Before going live
 
-Open `https://yourname.github.io/rsvp/admin.html`, type your email, and enter the code from the email. You're the admin straight away, because your email is already in `setup.txt`.
+- Test on a test event with made-up names and your own number, never a real event.
+- Check on an iPhone and an Android phone, in Arabic and English.
+- Replace `SUPPORT_WHATSAPP` in `config.js` with the business number (the help link stays hidden until then).
 
-## 7. Ghala's shower
+## Testing
 
-`setup.txt` already created it. In **admin.html**:
-
-1. Tap the event, add the venue and Google Maps link, and tap **حفظ**.
-2. Upload the card under **تصميم الدعوة**.
-3. Upload your guest list (Excel: name, number, number of invites).
-4. Add yourself as a test guest, tap **بدء الإرسال**, and send the first one to yourself to check it.
-
-Replies show up in **host.html**.
-
-## Good to know
-
-- Supabase's built-in email login is for testing and sends only a few emails per hour. That's fine while it's just you and Sama logging in.
-- To add another admin later (for example Sama), add their email to the list at the top of `setup.txt` and run it again. Your data stays.
+Changes are tested on a local copy of the database in headless Chrome. Nothing touches the live site or real guests. The test scripts live outside this repository.
