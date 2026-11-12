@@ -8,12 +8,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="config.js"></script>
-<script src="core.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script defer src="config.js"></script>
+<script defer src="core.js"></script>
 </head>
 <body>
 <div class="topbar"><a class="brand" id="brand" href="host.html"></a><a href="host.html">Dashboard</a><button class="link" id="out" hidden>Log out</button></div>
@@ -55,9 +52,10 @@
           <div><label class="f" for="mEmail">Email</label><input type="email" id="mEmail"></div>
           <div><label class="f" for="mRole">Access</label><select id="mRole"><option value="host">Host (full dashboard)</option><option value="door">Door only</option></select></div>
           <div><label class="f" for="mSide">List (optional)</label><input type="text" id="mSide" list="sideOpts" placeholder="Empty = sees every list"><datalist id="sideOpts"></datalist></div>
+          <div id="mUntilWrap" hidden><label class="f" for="mUntil">Door access ends (door only)</label><input type="date" id="mUntil"></div>
           <div style="display:flex;align-items:flex-end"><button class="btn small" id="addMem" style="width:100%">Add</button></div>
         </div>
-        <p class="sub" style="font-size:13px;margin:6px 0 0">If you set a list, that host only sees and adds guests on their own list.</p>
+        <p class="sub" style="font-size:13px;margin:6px 0 0">If you set a list, that host only sees and adds guests on their own list. Door access ends at midnight (Kuwait time) on the date you pick; empty = the day after the event.</p>
 
         <h3>Invite design</h3>
         <p class="sub" style="margin-bottom:8px">Upload the invite card (photo or PDF) and the guest page takes its colours.</p>
@@ -79,17 +77,18 @@
   </section>
 </main>
 <script>
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
   const { sb, $, esc, toast, normPhone, showPhone, kwToIso, isoToKw, inviteLink, waLink, fillTemplate, DEFAULT_TEMPLATE, rgb2hex, lum, themeVars } = App;
   $('#brand').textContent = CONFIG.BRAND_EN || CONFIG.BRAND;
-  if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  let events = [], ev = null, guests = [], parsed = [], chips = [];
+  let events = [], ev = null, guests = [], parsed = [], chips = [], v2 = false;
   const Q = { list: [], i: 0 };
 
   App.requireLogin($('#auth'), async () => {
     $('#out').hidden = false; $('#out').onclick = App.signOut;
     const { data: admin } = await sb.rpc('is_admin');
     if (!admin) { $('#auth').innerHTML = '<div class="login box"><h2>Admins only</h2><p class="sub">This page is for admin accounts. Check your email is listed at the top of setup.txt, then run it again in Supabase.</p></div>'; return; }
+    v2 = await App.v2Ready();
+    $('#mUntilWrap').hidden = !v2;
     $('#adm').hidden = false; await loadEvents();
   });
 
@@ -147,16 +146,22 @@
     const m = data || [];
     const sides = [...new Set([...m.map(x => x.side), ...guests.map(g => g.side)].filter(Boolean))];
     $('#sideOpts').innerHTML = sides.map(s => `<option value="${esc(s)}">`).join('');
-    $('#members').innerHTML = m.length ? m.map(x => `<div class="gi"><div class="gi-main"><b dir="ltr">${esc(x.email)}</b><div class="gi-sub">${x.role === 'host' ? 'Host' : 'Door only'}${x.side ? ' · ' + esc(x.side) + '\u2019s list' : x.role === 'host' ? ' · all lists' : ''}</div></div><div class="gi-act"><button class="icon" data-rm="${x.id}">Remove</button></div></div>`).join('')
+    $('#members').innerHTML = m.length ? m.map(x => `<div class="gi"><div class="gi-main"><b dir="ltr">${esc(x.email)}</b><div class="gi-sub">${x.role === 'host' ? 'Host' : 'Door only'}${x.side ? ' · ' + esc(x.side) + '\u2019s list' : x.role === 'host' ? ' · all lists' : ''}${x.role === 'door' && x.expires_at ? ` · ${new Date(x.expires_at) < new Date() ? 'access ended' : 'until'} ${esc(App.fmtDate(x.expires_at, 'en'))}` : ''}</div></div><div class="gi-act"><button class="icon" data-rm="${x.id}">Remove</button></div></div>`).join('')
       : '<p class="empty">No hosts yet. Add a host\u2019s email so they can see their dashboard.</p>';
     $('#members').querySelectorAll('[data-rm]').forEach(b => b.onclick = async () => { await sb.from('event_members').delete().eq('id', b.dataset.rm); loadMembers(); });
   }
   $('#addMem').onclick = async () => {
     const email = $('#mEmail').value.trim().toLowerCase();
     if (!/^\S+@\S+\.\S+$/.test(email)) { toast('Please enter a valid email'); return; }
-    const { error } = await sb.from('event_members').insert({ event_id: ev.id, email, role: $('#mRole').value, side: $('#mRole').value === 'host' ? ($('#mSide').value.trim() || null) : null });
+    const row = { event_id: ev.id, email, role: $('#mRole').value, side: $('#mRole').value === 'host' ? ($('#mSide').value.trim() || null) : null };
+    if (v2 && row.role === 'door') {
+      // door access ends at the end of the chosen day, or the day after the event
+      const until = $('#mUntil').value || (ev.starts_at ? App.isoToKw(new Date(new Date(ev.starts_at).getTime() + 864e5).toISOString()).date : '');
+      if (until) row.expires_at = kwToIso(until, '23:59');
+    }
+    const { error } = await sb.from('event_members').insert(row);
     if (error) { toast(error.code === '23505' ? 'That email is already added' : 'Couldn\u2019t add them'); return; }
-    $('#mEmail').value = ''; $('#mSide').value = ''; toast('Added. They log in at host.html with that email'); loadMembers();
+    $('#mEmail').value = ''; $('#mSide').value = ''; $('#mUntil').value = ''; toast('Added. They log in at host.html with that email'); loadMembers();
   };
 
   // ---- design ----
@@ -199,6 +204,7 @@
   async function toJpeg(f) {
     let src;
     if (f.type === 'application/pdf' || /\.pdf$/i.test(f.name)) {
+      await App.need('pdf');
       const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await f.arrayBuffer()) }).promise;
       const pg = await pdf.getPage(1); const vp = pg.getViewport({ scale: 1 }); const v = pg.getViewport({ scale: Math.min(2, 1400 / vp.width) });
       const cv = document.createElement('canvas'); cv.width = v.width; cv.height = v.height;
@@ -242,7 +248,7 @@
     const head = rows[0].map(String); const sc = head.findIndex(h => /عدد|seats|count|كم/i.test(h)); let nc = -1;
     for (let c = 0; c < cols; c++) { if (c === pc || c === sc) continue; if (rows.filter(r => /[ء-يa-zA-Z]/.test(String(r[c]))).length >= rows.length / 2) { nc = c; break; } }
     if (nc < 0) return [];
-    return rows.filter(r => isPhone(r[pc])).map(r => ({ name: String(r[nc]).trim(), phone: normPhone(r[pc]), seats: Math.max(1, parseInt(sc >= 0 ? r[sc] : 1) || 1) })).filter(g => g.name);
+    return rows.filter(r => isPhone(r[pc])).map(r => ({ name: String(r[nc]).trim(), phone: normPhone(r[pc]), seats: App.clampSeats(sc >= 0 ? r[sc] : 1) })).filter(g => g.name);
   }
   function fromLines(lines) {
     const out = []; let pending = null;
@@ -256,11 +262,12 @@
   $('#listFile').onchange = async e => {
     const f = e.target.files[0]; e.target.value = ''; if (!f) return;
     try {
+      if (/\.docx$/i.test(f.name)) await App.need('mammoth'); else await App.need('xlsx');
       if (/\.docx$/i.test(f.name)) parsed = fromLines((await mammoth.extractRawText({ arrayBuffer: await f.arrayBuffer() })).value.split(/\n/));
       else { const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' }); parsed = fromRows(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' })); }
       const seen = new Set(); parsed = parsed.filter(g => !seen.has(g.phone) && seen.add(g.phone));
       if (!parsed.length) toast('No names and numbers found in that file');
-    } catch (err) { toast('Couldn\u2019t read that file'); }
+    } catch (err) { toast(err && /helper/.test(err.message) ? err.message : 'Couldn\u2019t read that file'); }
     renderPreview();
   };
   $('#readPaste').onclick = () => {
@@ -274,8 +281,8 @@
   function renderPreview() {
     const p = $('#preview'); if (!parsed.length) { p.innerHTML = ''; return; }
     p.innerHTML = `<p style="margin:14px 0 8px">Found <b>${parsed.length}</b> guests. Check them before adding:</p>
-      <div class="scroll box" style="padding:0"><table class="t"><thead><tr><th>Name</th><th>Number</th><th>Invites</th></tr></thead><tbody>
-      ${parsed.slice(0, 50).map(g => `<tr><td>${esc(g.name)}</td><td>${esc(showPhone(g.phone))}</td><td>${g.seats}</td></tr>`).join('')}</tbody></table></div>
+      <div class="scroll box" style="padding:0"><table class="t"><thead><tr><th>Name</th><th>Number</th><th>Extras</th></tr></thead><tbody>
+      ${parsed.slice(0, 50).map(g => `<tr><td>${esc(g.name)}</td><td>${esc(showPhone(g.phone))}</td><td>${g.seats > 1 ? '+' + (g.seats - 1) : '–'}</td></tr>`).join('')}</tbody></table></div>
       ${parsed.length > 50 ? `<p class="sub">and ${parsed.length - 50} more…</p>` : ''}
       <div class="row" style="margin-top:10px"><button class="btn small" id="imp">Add to list</button><button class="btn small ghost" id="cancelImp">Cancel</button></div>`;
     $('#cancelImp').onclick = () => { parsed = []; renderPreview(); };
@@ -284,7 +291,7 @@
       if (ev.invite_limit != null) { const used = guests.reduce((a, g) => a + g.seats, 0), need = parsed.reduce((a, g) => a + g.seats, 0); if (used + need > ev.invite_limit) { toast(`This file needs ${need} invites but only ${Math.max(0, ev.invite_limit - used)} are left`); return; } }
       const rows = parsed.map(g => ({ ...g, event_id: ev.id, side: impSide }));
       const { data, error } = await sb.from('guests').upsert(rows, { onConflict: 'event_id,phone', ignoreDuplicates: true }).select('id');
-      if (error) { toast('Couldn\u2019t add the list: ' + error.message); return; }
+      if (error) { toast(/limit/i.test(error.message || '') ? 'Not enough invites left in the package' : 'Couldn\u2019t add the list: ' + error.message); return; }
       const added = (data || []).length; toast(`Added ${added} guests` + (parsed.length - added ? ` (skipped ${parsed.length - added} duplicates)` : ''));
       parsed = []; $('#pasteList').value = ''; renderPreview(); loadGuests();
     };
@@ -317,7 +324,7 @@
     });
   }
   const WA = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2.2A9.7 9.7 0 0 0 3.7 16.9L2.4 21.6l4.8-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.6a7.9 7.9 0 0 1-4-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A7.9 7.9 0 1 1 12 19.8zm4.4-5.9c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.7-1.8c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.4-.6 1.6-1.2.2-.6.2-1 .1-1.2l-.4-.2z"/></svg>';
-})();
+});
 </script>
 </body>
 </html>

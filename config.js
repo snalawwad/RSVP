@@ -8,6 +8,5 @@ window.CONFIG = {
   SITE_URL: 'https://snalawwad.github.io/RSVP',   // where invite.html lives, no slash at the end
   BRAND: '',                                    // brand name shown at the top (empty = none)
   BRAND_EN: '',
-  SUPPORT_WHATSAPP: '965XXXXXXXX',              // your business WhatsApp, digits only
-  SHOW_QR: false                                // true = guests get a QR pass to show at the door
+  SUPPORT_WHATSAPP: '965XXXXXXXX'               // your business WhatsApp, digits only (placeholder = hidden)
 };

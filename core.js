@@ -130,6 +130,55 @@
   }
   async function signOut() { if (sb) await sb.auth.signOut(); location.reload(); }
 
+  // Big libraries load only when someone actually uploads a file.
+  const LIBS = {
+    xlsx: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+    mammoth: 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
+    pdf: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'
+  };
+  const loaded = {};
+  function need(name) {
+    if (!loaded[name]) loaded[name] = new Promise((res, rej) => {
+      const s = document.createElement('script'); s.src = LIBS[name]; s.async = true;
+      s.onload = () => {
+        if (name === 'pdf' && window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        res();
+      };
+      s.onerror = () => { delete loaded[name]; rej(new Error('Couldn’t load a helper. Check your connection and try again.')); };
+      document.head.appendChild(s);
+    });
+    return loaded[name];
+  }
+
+  // The upgraded database functions (migrations/002_mvp_core.sql). Until they are installed,
+  // every page keeps working the old way.
+  const missingFn = err => !!err && (err.code === 'PGRST202' || err.code === '42883' || /Could not find the function/i.test(err.message || ''));
+  let v2Probe = null;
+  function v2Ready() {
+    if (!sb) return Promise.resolve(false);
+    if (!v2Probe) v2Probe = sb.rpc('get_event_public_v2', { p_code: '-' }).then(r => !missingFn(r.error), () => false);
+    return v2Probe;
+  }
+  // Try the upgraded function first, fall back to the old one if it isn't installed yet.
+  async function rpc2(name, args, oldName, oldArgs) {
+    const r = await sb.rpc(name, args);
+    if (!missingFn(r.error)) { v2Probe = Promise.resolve(true); return { ...r, v2: true }; }
+    v2Probe = Promise.resolve(false);
+    if (!oldName) return { data: null, error: r.error, v2: false };
+    return { ...(await sb.rpc(oldName, oldArgs)), v2: false };
+  }
+
+  // Name search that ignores capitals, Arabic diacritics and the usual spelling variants.
+  const normName = s => String(s || '').toLowerCase()
+    .replace(/[ً-ْـ]/g, '').replace(/[أإآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي')
+    .replace(/\s+/g, ' ').trim();
+
+  // Seats: each guest is 1 person plus 0..5 extras.
+  const MAX_EXTRAS = 5;
+  const clampSeats = n => Math.max(1, Math.min(1 + MAX_EXTRAS, parseInt(n, 10) || 1));
+  const peopleComing = g => g.status === 'yes' ? (g.confirmed_count || g.seats || 1) : 0;
+
   window.App = { sb, $, esc, toast, normPhone, showPhone, fmtDate, fmtTime, kwToIso, isoToKw, inviteLink, waLink, fillTemplate, DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_EN, templateFor,
-    mix, lum, rgb2hex, themeVars, applyTheme, calLink, icsBlobUrl, requireLogin, signOut, configured };
+    mix, lum, rgb2hex, themeVars, applyTheme, calLink, icsBlobUrl, requireLogin, signOut, configured,
+    need, v2Ready, rpc2, missingFn, normName, MAX_EXTRAS, clampSeats, peopleComing };
 })();

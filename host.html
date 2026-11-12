@@ -8,12 +8,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="config.js"></script>
-<script src="core.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script defer src="config.js"></script>
+<script defer src="core.js"></script>
 </head>
 <body>
 <div class="topbar"><a class="brand" id="brand" href="host.html"></a><a href="door.html">Door</a><a href="admin.html" id="adminLink" hidden>Admin</a><button class="link" id="out" hidden>Log out</button></div>
@@ -47,6 +44,16 @@
       <label class="drop"><input type="file" id="eCard" accept="image/*,.pdf"><p style="margin:0 0 10px">Upload your invite card (photo or PDF). It shows at the top of the invite page.</p><span class="btn small">Upload card</span></label>
       <div id="eTheme"></div>
       <div class="row" style="margin-top:14px"><button class="btn" id="eSave">Save changes</button><a class="btn ghost" id="ePreview" target="_blank" rel="noopener" href="#">See guest page</a></div>
+      <div id="rulesBox" hidden>
+        <h3>RSVP rules</h3>
+        <div class="grid2">
+          <div><label class="f" for="rDate">Reply by (optional)</label><input type="date" id="rDate"></div>
+          <div><label class="f" for="rTime">Time</label><input type="time" id="rTime"></div>
+        </div>
+        <label class="check"><input type="checkbox" id="rChange"> Guests can change their reply</label>
+        <label class="check"><input type="checkbox" id="rLink"> The shared invite link accepts new replies</label>
+        <div class="row" style="margin-top:10px"><button class="btn small" id="rSave">Save rules</button></div>
+      </div>
     </div>
     <div class="box" id="bulkBox" hidden style="margin-bottom:16px">
       <h3 style="margin-top:0">Add guests</h3>
@@ -57,37 +64,40 @@
       <div id="bPreview"></div>
     </div>
     <p class="sub" id="balance" style="margin:-4px 0 12px;font-size:14px" hidden></p>
+    <div class="box" id="reqBox" style="margin-bottom:14px" hidden></div>
     <div class="box" id="pubBox" style="margin-bottom:14px" hidden></div>
     <div class="stats" id="stats" role="group" aria-label="Filter by reply"></div>
     <div class="bar-rsvp" id="bar" aria-hidden="true"></div>
 
     <div class="toolbar">
       <input type="search" id="q" placeholder="Search by name or number" aria-label="Search">
-      <button class="btn small" id="toggleAdd" aria-expanded="false" hidden>+ Add guest</button>
+      <button class="btn small" id="toggleAdd" aria-expanded="false">+ Add guest</button>
     </div>
     <div class="box" id="addBox" hidden style="margin-top:10px">
       <div class="grid2">
         <div><label class="f" for="nName">Name</label><input type="text" id="nName"></div>
         <div><label class="f" for="nPhone">WhatsApp number</label><input type="tel" id="nPhone" placeholder="9XXXXXXX" inputmode="tel"></div>
-        <div><label class="f" for="nSeats">Invites</label><input type="number" id="nSeats" min="1" value="1"></div>
+        <div><label class="f" for="nSeats">Extra guests they can bring</label><select id="nSeats"><option value="1">None</option><option value="2">+1</option><option value="3">+2</option><option value="4">+3</option><option value="5">+4</option><option value="6">+5</option></select></div>
         <div id="nSideWrap"><label class="f" for="nSide">List</label><input type="text" id="nSide" list="sidesList" placeholder="e.g. Bride’s mum"><datalist id="sidesList"></datalist></div>
-        <div style="display:flex;align-items:flex-end"><button class="btn" id="addGuest" style="width:100%">Add and send</button></div>
+        <div style="display:flex;align-items:flex-end"><button class="btn" id="addGuest" style="width:100%">Add and open WhatsApp</button></div>
       </div>
     </div>
     <p class="sub" id="listHead" style="margin:22px 0 6px;font-size:14px"></p>
     <div class="glist" id="rows"></div>
+    <details id="logBox" hidden style="margin-top:22px"><summary class="sub" style="cursor:pointer">Activity</summary><div class="glist" id="logRows" style="margin-top:8px"></div></details>
   </section>
 </main>
 <script>
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
   const { sb, $, esc, toast, normPhone, showPhone, fmtDate, fmtTime, waLink, fillTemplate, DEFAULT_TEMPLATE } = App;
   $('#brand').textContent = CONFIG.BRAND_EN || CONFIG.BRAND;
-  let events = [], ev = null, guests = [], members = [], mySide = null, side = 'all', view = 'rsvp', filter = 'all', attFilter = 'all', query = '', channel = null, poll = null, admin = false, myEmail = '';
+  let events = [], ev = null, guests = [], members = [], mySide = null, side = 'all', view = 'rsvp', filter = 'all', attFilter = 'all', query = '', channel = null, poll = null, admin = false, myEmail = '', v2 = false, reqs = [], editing = null;
 
   App.requireLogin($('#auth'), async (session) => {
     myEmail = (session.user.email || '').toLowerCase();
     $('#out').hidden = false; $('#out').onclick = App.signOut;
     admin = !!(await sb.rpc('is_admin')).data;
+    v2 = await App.v2Ready();
     $('#adminLink').hidden = !admin;
     const { data: evs, error } = await sb.from('events').select('*').order('starts_at', { ascending: true });
     if (error) { toast('Couldn\u2019t load your events'); return; }
@@ -113,11 +123,13 @@
     $('#evlist').querySelectorAll('button').forEach(b => b.onclick = () => pick(events.find(x => x.id === b.dataset.id)));
     $('#title').textContent = ev.title;
     $('#meta').textContent = [fmtDate(ev.starts_at, 'en'), fmtTime(ev.starts_at, 'en'), ev.venue].filter(Boolean).join(' · ');
-    renderPub();
-    await loadGuests();
+    renderPub(); editing = null;
+    $('#rulesBox').hidden = !v2 || !!mySide;
+    $('#logBox').hidden = !v2; $('#logBox').open = false;
+    await loadGuests(); loadReqs();
     if (channel) sb.removeChannel(channel);
     channel = sb.channel('guests-' + ev.id).on('postgres_changes', { event: '*', schema: 'public', table: 'guests', filter: `event_id=eq.${ev.id}` }, loadGuests).subscribe();
-    clearInterval(poll); poll = setInterval(loadGuests, 30000);
+    clearInterval(poll); poll = setInterval(() => { loadGuests(); loadReqs(); }, 20000);
   }
 
   function renderPub() {
@@ -136,7 +148,9 @@
   async function loadGuests() {
     const { data, error } = await sb.from('guests').select('*').eq('event_id', ev.id).order('created_at');
     if (error) { toast('Couldn\u2019t load the guest list'); return; }
-    guests = data || []; render();
+    guests = data || [];
+    if (editing && $('#rows .editor')) return;   // don't wipe a change the host is in the middle of
+    render();
   }
 
   const sidesOf = () => [...new Set([...guests.map(g => g.side), ...members.filter(m => m.event_id === ev.id).map(m => m.side)].filter(Boolean))];
@@ -175,23 +189,106 @@
   function renderRsvp(pool, seats, match) {
     const of = st => pool.filter(g => st === 'all' || g.status === st);
     const K = [['all', 'Everyone'], ['yes', 'Coming'], ['pending', 'No reply yet'], ['no', 'Can\u2019t make it']];
-    $('#stats').innerHTML = K.map(([k, l]) => `<button class="stat s-${k}" data-f="${k}" aria-pressed="${filter === k}"><b>${of(k).length}</b><span>${l}</span><small>${seats(of(k)) !== of(k).length ? seats(of(k)) + ' invites' : (of(k).length === 1 ? 'guest' : 'guests')}</small></button>`).join('');
+    const people = list => list.reduce((a, g) => a + App.peopleComing(g), 0);
+    const small = k => { const l = of(k), n = k === 'yes' ? people(l) : seats(l); return n !== l.length ? `${n} ${k === 'yes' ? (n === 1 ? 'person' : 'people') : 'invites'}` : (l.length === 1 ? 'guest' : 'guests'); };
+    $('#stats').innerHTML = K.map(([k, l]) => `<button class="stat s-${k}" data-f="${k}" aria-pressed="${filter === k}"><b>${of(k).length}</b><span>${l}</span><small>${small(k)}</small></button>`).join('');
     $('#stats').querySelectorAll('button').forEach(b => b.onclick = () => { filter = filter === b.dataset.f && b.dataset.f !== 'all' ? 'all' : b.dataset.f; render(); });
     const tot = seats(pool) || 1;
-    $('#bar').innerHTML = `<i class="y" style="width:${seats(of('yes')) / tot * 100}%"></i><i class="w" style="width:${seats(of('pending')) / tot * 100}%"></i><i class="n" style="width:${seats(of('no')) / tot * 100}%"></i>`;
+    $('#bar').innerHTML = `<i class="y" style="width:${people(of('yes')) / tot * 100}%"></i><i class="w" style="width:${seats(of('pending')) / tot * 100}%"></i><i class="n" style="width:${seats(of('no')) / tot * 100}%"></i>`;
     const order = { pending: 0, yes: 1, no: 2 };
     const list = of(filter).filter(match).sort((a, b) => filter === 'all' ? order[a.status] - order[b.status] : 0);
     const lbl = { yes: 'Coming', no: 'Can\u2019t make it', pending: 'No reply yet' };
     $('#listHead').textContent = `${K.find(k => k[0] === filter)[1]} (${list.length})`;
     $('#rows').innerHTML = list.length ? list.map(g => `<div class="gi"><div class="gi-main">
         <div class="gi-top"><b>${esc(g.name)}</b><span class="pill ${g.status}">${lbl[g.status]}</span>${g.checked_in_at ? '<span class="pill yes">Arrived</span>' : ''}</div>
-        <div class="gi-sub">${g.phone ? `<span dir="ltr">${esc(showPhone(g.phone))}</span>` : '<span>Replied via link</span>'}<span>${g.seats} ${g.seats > 1 ? 'invites' : 'invite'}</span>${g.side && side === 'all' && !mySide ? `<span>${esc(g.side)}</span>` : ''}${g.sent_at || !g.phone ? '' : '<span style="color:var(--wait)">Not sent yet</span>'}</div>
-        ${g.status === 'no' && g.decline_reason ? `<p class="gi-why">“${esc(g.decline_reason)}”</p>` : ''}</div>
-        <div class="gi-act">${g.phone ? `<a class="icon" href="${waLink(g.phone, fillTemplate(App.templateFor(ev), ev, g))}" target="_blank" rel="noopener" data-sent="${g.id}">${g.sent_at ? 'Resend' : 'Send'}</a>` : ''}<button class="icon" data-del="${g.id}">Remove</button></div></div>`).join('')
+        <div class="gi-sub">${g.phone ? `<span dir="ltr">${esc(showPhone(g.phone))}</span>` : '<span>Replied via link</span>'}<span>${g.status === 'yes' && g.seats > 1 && g.confirmed_count ? `${g.confirmed_count} of ${g.seats} coming` : g.seats > 1 ? `+${g.seats - 1} extra${g.seats > 2 ? 's' : ''}` : '1 invite'}</span>${g.side && side === 'all' && !mySide ? `<span>${esc(g.side)}</span>` : ''}${g.sent_at || !g.phone ? '' : '<span style="color:var(--wait)">Not sent yet</span>'}</div>
+        ${g.status === 'no' && g.decline_reason ? `<p class="gi-why">“${esc(g.decline_reason)}”</p>` : ''}${editing === g.id ? editorHtml(g) : ''}</div>
+        <div class="gi-act">${g.phone ? `<a class="icon" href="${waLink(g.phone, fillTemplate(App.templateFor(ev), ev, g))}" target="_blank" rel="noopener" data-sent="${g.id}">${g.sent_at ? 'Resend' : 'Send'}</a>` : ''}${v2 ? `<button class="icon" data-edit="${g.id}" aria-expanded="${editing === g.id}">Edit</button>` : ''}<button class="icon" data-del="${g.id}">Remove</button></div></div>`).join('')
       : `<p class="empty">${query.trim() ? 'No one matches that search.' : 'No one here yet. Share your invite link and replies will appear here.'}</p>`;
     $('#rows').querySelectorAll('[data-sent]').forEach(a => a.onclick = () => markSent(a.dataset.sent));
     $('#rows').querySelectorAll('[data-del]').forEach(b => b.onclick = () => del(b));
+    $('#rows').querySelectorAll('[data-edit]').forEach(b => b.onclick = () => { editing = editing === b.dataset.edit ? null : b.dataset.edit; render(); });
+    bindEditor();
   }
+
+  // ---------- change a guest by hand (upgraded database only) ----------
+  function editorHtml(g) {
+    const opt = (v, l, cur) => `<option value="${v}" ${String(v) === String(cur) ? 'selected' : ''}>${l}</option>`;
+    const cnt = g.confirmed_count || g.seats;
+    return `<div class="editor" data-g="${g.id}"><div class="grid2" style="gap:8px">
+      <div><label class="f" for="edS">Reply</label><select id="edS">${opt('yes', 'Coming', g.status)}${opt('pending', 'No reply yet', g.status)}${opt('no', 'Can\u2019t make it', g.status)}</select></div>
+      <div><label class="f" for="edC">People coming</label><select id="edC">${Array.from({ length: g.seats }, (_, i) => opt(i + 1, i + 1, cnt)).join('')}</select></div>
+      <div><label class="f" for="edX">Extras allowed</label><select id="edX">${[0, 1, 2, 3, 4, 5].map(n => opt(n, n ? '+' + n : 'None', g.seats - 1)).join('')}</select></div>
+      <div style="display:flex;align-items:flex-end;gap:6px"><button class="btn small" id="edSave">Save</button><button class="btn small ghost" id="edCancel">Cancel</button></div></div></div>`;
+  }
+  function bindEditor() {
+    const box = $('#rows .editor'); if (!box) return;
+    const g = guests.find(x => x.id === box.dataset.g); if (!g) return;
+    $('#edX').onchange = () => { const n = 1 + (+$('#edX').value), c = Math.min(+$('#edC').value, n); $('#edC').innerHTML = Array.from({ length: n }, (_, i) => `<option value="${i + 1}" ${i + 1 === c ? 'selected' : ''}>${i + 1}</option>`).join(''); };
+    $('#edCancel').onclick = () => { editing = null; render(); };
+    $('#edSave').onclick = async () => {
+      $('#edSave').disabled = true;
+      const extras = +$('#edX').value, st = $('#edS').value, cnt = +$('#edC').value;
+      if (extras !== g.seats - 1) {
+        const r = await sb.rpc('host_set_extras_v2', { p_guest: g.id, p_extras: extras });
+        if (r.error) { $('#edSave').disabled = false; toast(/limit/i.test(r.error.message) ? 'Not enough invites left in the package' : 'Couldn\u2019t save: ' + r.error.message); return; }
+      }
+      if (st !== g.status || (st === 'yes' && cnt !== (g.confirmed_count || g.seats))) {
+        const r = await sb.rpc('host_set_reply_v2', { p_guest: g.id, p_status: st, p_count: st === 'yes' ? cnt : null });
+        if (r.error) { $('#edSave').disabled = false; toast('Couldn\u2019t save: ' + r.error.message); return; }
+      }
+      editing = null; toast('Saved'); loadGuests();
+    };
+  }
+
+  // ---------- door requests waiting for the host ----------
+  async function loadReqs() {
+    if (!v2 || !ev) { $('#reqBox').hidden = true; return; }
+    const { data, error } = await sb.rpc('list_exceptions_v2', { p_event: ev.id });
+    if (error) return;
+    reqs = data || [];
+    const open = reqs.filter(r => r.status === 'pending');
+    $('#reqBox').hidden = !open.length;
+    $('#reqBox').innerHTML = open.length ? `<p class="kicker" style="text-align:start;margin-bottom:4px">✦ the door is asking ✦</p>
+      <div class="glist" style="box-shadow:none">${open.map(r => `<div class="gi"><div class="gi-main"><div class="gi-top"><b>${esc(r.name)}</b><span class="pill pending">${r.people} ${r.people === 1 ? 'person' : 'people'}</span></div>
+        <div class="gi-sub"><span>${r.guest_id ? 'Extra people on this invite' : 'Not on the list'}</span>${r.note ? `<span>${esc(r.note)}</span>` : ''}${r.requested_by ? `<span>${esc(r.requested_by)}</span>` : ''}</div></div>
+        <div class="gi-act"><button class="btn small" data-ok="${r.id}">Let in</button><button class="btn small ghost" data-no="${r.id}">Turn down</button></div></div>`).join('')}</div>` : '';
+    const decide = async (id, yes, b) => {
+      b.disabled = true;
+      const { error: e } = await sb.rpc('decide_exception_v2', { p_id: id, p_approve: yes });
+      if (e) { b.disabled = false; toast('Couldn\u2019t save: ' + e.message); return; }
+      toast(yes ? 'Approved. The door can see it now' : 'Turned down'); loadReqs(); loadGuests();
+    };
+    $('#reqBox').querySelectorAll('[data-ok]').forEach(b => b.onclick = () => decide(b.dataset.ok, true, b));
+    $('#reqBox').querySelectorAll('[data-no]').forEach(b => b.onclick = () => decide(b.dataset.no, false, b));
+  }
+
+  // ---------- activity log ----------
+  const ACT = { guest_reply: 'Guest replied', link_reply: 'Reply via shared link', host_set_reply: 'Reply changed by host', host_set_extras: 'Extras changed', set_rules: 'RSVP rules changed',
+    check_in: 'Checked in at the door', request_exception: 'Door asked the host', decide_exception: 'Host decided a door request', door_open_list: 'Door opened the list' };
+  $('#logBox').ontoggle = async () => {
+    if (!$('#logBox').open) return;
+    const { data, error } = await sb.rpc('audit_log_v2', { p_event: ev.id });
+    if (error) { $('#logRows').innerHTML = '<p class="empty">Couldn\u2019t load the activity.</p>'; return; }
+    const name = id => { const g = guests.find(x => x.id === id); return g ? g.name : ''; };
+    const rows = (data || []).filter(a => a.action !== 'door_open_list').slice(0, 100);
+    $('#logRows').innerHTML = rows.length ? rows.map(a => { const d = a.details || {}; return `<div class="gi"><div class="gi-main"><div class="gi-top"><b>${esc(ACT[a.action] || a.action)}</b>${d.guest ? `<span>${esc(name(d.guest))}</span>` : ''}${d.people ? `<span class="pill yes">${d.people}</span>` : ''}${d.status ? `<span class="pill ${esc(d.status)}">${esc(d.status)}</span>` : ''}</div>
+      <div class="gi-sub"><span>${esc(fmtDate(a.created_at, 'en'))} ${esc(fmtTime(a.created_at, 'en'))}</span>${a.actor ? `<span>${esc(a.actor)}</span>` : '<span>Guest</span>'}</div></div></div>`; }).join('') : '<p class="empty">Nothing yet.</p>';
+  };
+
+  // ---------- RSVP rules ----------
+  function fillRules() {
+    const d = App.isoToKw(ev.rsvp_deadline);
+    $('#rDate').value = d.date; $('#rTime').value = ev.rsvp_deadline ? d.time : '';
+    $('#rChange').checked = ev.allow_changes !== false; $('#rLink').checked = ev.public_link_enabled !== false;
+  }
+  $('#rSave').onclick = async () => {
+    const date = $('#rDate').value, deadline = date ? App.kwToIso(date, $('#rTime').value || '23:59') : null;
+    const { data, error } = await sb.rpc('host_set_rules_v2', { p_event: ev.id, p_deadline: deadline, p_allow_changes: $('#rChange').checked, p_link_enabled: $('#rLink').checked });
+    if (error) { toast('Couldn\u2019t save: ' + error.message); return; }
+    ev = { ...ev, ...data }; const i = events.findIndex(x => x.id === ev.id); if (i >= 0) events[i] = ev;
+    fillRules(); toast('Rules saved');
+  };
 
   function renderAtt(pool, seats, match) {
     const came = pool.filter(g => g.checked_in_at), notYet = pool.filter(g => !g.checked_in_at && g.status !== 'no');
@@ -224,7 +321,7 @@
     const head = rows[0].map(String); const sc = head.findIndex(h => /عدد|seats|count|كم/i.test(h)); let nc = -1;
     for (let c = 0; c < cols; c++) { if (c === pc || c === sc) continue; if (rows.filter(r => /[ء-يa-zA-Z]/.test(String(r[c]))).length >= rows.length / 2) { nc = c; break; } }
     if (nc < 0) return [];
-    return rows.filter(r => isPhone(r[pc])).map(r => ({ name: String(r[nc]).trim(), phone: normPhone(r[pc]), seats: Math.max(1, parseInt(sc >= 0 ? r[sc] : 1) || 1) })).filter(g => g.name);
+    return rows.filter(r => isPhone(r[pc])).map(r => ({ name: String(r[nc]).trim(), phone: normPhone(r[pc]), seats: App.clampSeats(sc >= 0 ? r[sc] : 1) })).filter(g => g.name);
   }
   function fromLines(lines) {
     const out = []; let pending = null;
@@ -253,6 +350,7 @@
   async function toJpeg(f) {
     let src;
     if (f.type === 'application/pdf' || /\.pdf$/i.test(f.name)) {
+      await App.need('pdf');
       const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await f.arrayBuffer()) }).promise;
       const pg = await pdf.getPage(1); const vp = pg.getViewport({ scale: 1 }); const v = pg.getViewport({ scale: Math.min(2, 1400 / vp.width) });
       const cv = document.createElement('canvas'); cv.width = v.width; cv.height = v.height;
@@ -266,7 +364,6 @@
     return { img, blob };
   }
 
-  if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   const { kwToIso, isoToKw, rgb2hex, lum, themeVars } = App;
 
   // ---------- edit invite ----------
@@ -275,6 +372,7 @@
     $('#eTitle').value = ev.title || ''; $('#eLine').value = ev.invite_line || ''; $('#eNote').value = ev.note || ''; $('#eHead').value = ev.headline || '';
     $('#eDate').value = s.date; $('#eTime').value = s.time; $('#eEnd').value = en.time; $('#eVenue').value = ev.venue || ''; $('#eMap').value = ev.map_url || '';
     $('#eLang').value = ev.lang || 'en'; $('#eTpl').value = App.templateFor(ev);
+    if (v2 && !mySide) fillRules();
     $('#ePreview').href = ev.public_code ? `${(CONFIG.SITE_URL || location.origin).replace(/\/$/, '')}/invite.html?e=${ev.public_code}` : '#';
     renderEditTheme();
   }
@@ -333,16 +431,17 @@
   $('#bFile').onchange = async e => {
     const f = e.target.files[0]; e.target.value = ''; if (!f) return;
     try {
+      if (/\.docx$/i.test(f.name)) await App.need('mammoth'); else await App.need('xlsx');
       if (/\.docx$/i.test(f.name)) parsed = fromLines((await mammoth.extractRawText({ arrayBuffer: await f.arrayBuffer() })).value.split(/\n/));
       else { const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' }); parsed = fromRows(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' })); }
       parsed = dedupe(parsed); if (!parsed.length) toast('No names and numbers found in that file');
-    } catch (err) { toast('Couldn\u2019t read that file'); }
+    } catch (err) { toast(err && /helper/.test(err.message) ? err.message : 'Couldn\u2019t read that file'); }
     renderBulk();
   };
   function renderBulk() {
     const p = $('#bPreview'); if (!parsed.length) { p.innerHTML = ''; return; }
     p.innerHTML = `<p style="margin:14px 0 8px">Found <b>${parsed.length}</b> guests:</p>
-      <div class="glist">${parsed.map(g => `<div class="gi"><div class="gi-main"><b>${esc(g.name)}</b><div class="gi-sub"><span>${esc(showPhone(g.phone))}</span></div></div></div>`).join('')}</div>
+      <div class="glist">${parsed.map(g => `<div class="gi"><div class="gi-main"><b>${esc(g.name)}</b><div class="gi-sub"><span>${esc(showPhone(g.phone))}</span>${g.seats > 1 ? `<span>+${g.seats - 1}</span>` : ''}</div></div></div>`).join('')}</div>
       <div class="row" style="margin-top:10px"><button class="btn small" id="bAdd">Add to my list</button><button class="btn small ghost" id="bCancel">Cancel</button></div>`;
     $('#bCancel').onclick = () => { parsed = []; renderBulk(); };
     $('#bAdd').onclick = async () => {
@@ -367,18 +466,18 @@
   $('#q').oninput = e => { query = e.target.value; render(); };
   $('#toggleAdd').onclick = () => { const b = $('#addBox'), open = b.hidden; b.hidden = !open; $('#toggleAdd').setAttribute('aria-expanded', open); $('#toggleAdd').textContent = open ? 'Close' : '+ Add guest'; if (open) { if (side !== 'all' && !$('#nSide').value) $('#nSide').value = side; $('#nName').focus(); } };
   $('#addGuest').onclick = async () => {
-    const name = $('#nName').value.trim(), phone = normPhone($('#nPhone').value), seats = Math.max(1, parseInt($('#nSeats').value) || 1);
+    const name = $('#nName').value.trim(), phone = normPhone($('#nPhone').value), seats = App.clampSeats($('#nSeats').value);
     const gSide = mySide || $('#nSide').value.trim() || null;
     if (!name) { toast('Type the guest\u2019s name'); return; }
     if (phone.length < 10) { toast('That WhatsApp number looks too short'); return; }
     if (ev.invite_limit != null && guests.reduce((a, g) => a + g.seats, 0) + seats > ev.invite_limit) { toast('Not enough invites left in the package'); return; }
     const { data, error } = await sb.from('guests').insert({ event_id: ev.id, name, phone, seats, side: gSide, sent_at: new Date().toISOString() }).select().single();
     if (error) { toast(error.code === '23505' ? 'That number is already on the list' : /limit/.test(error.message || '') ? 'Not enough invites left in the package' : 'Couldn\u2019t add that guest'); return; }
-    $('#nName').value = ''; $('#nPhone').value = ''; $('#nSeats').value = 1;
+    $('#nName').value = ''; $('#nPhone').value = ''; $('#nSeats').value = '1';
     window.open(waLink(data.phone, fillTemplate(App.templateFor(ev), ev, data)), '_blank', 'noopener');
     toast('Added ' + name); loadGuests();
   };
-})();
+});
 </script>
 </body>
 </html>

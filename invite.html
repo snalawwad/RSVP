@@ -6,12 +6,12 @@
 <meta name="robots" content="noindex">
 <title>دعوة</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://hexnxpufurftldpfcukd.supabase.co" crossorigin><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="config.js"></script>
-<script src="core.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script defer src="config.js"></script>
+<script defer src="core.js"></script>
 </head>
 <body>
 <main>
@@ -20,7 +20,7 @@
   <p style="text-align:center;margin-top:18px;font-size:13px;color:var(--muted)" id="help"></p>
 </main>
 <script>
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
   const { sb, $, esc, toast, fmtDate, fmtTime, applyTheme, calLink, icsBlobUrl } = App;
   const params = new URLSearchParams(location.search);
   const eventCode = params.get('e');
@@ -32,13 +32,15 @@
   let inv = null, mode = '', showOrig = false;
   const L = {
     ar: { hi: 'حياكم الله', date: 'التاريخ', time: 'الوقت', venue: 'المكان', seats: 'إجمالي الدعوات', yes: 'تأكيد الحضور', no: 'اعتذار', map: 'اللوكيشن', cal: 'أضف إلى التقويم',
-      confirmed: 'تم تأكيد الحضور', showCode: 'اعرضوا هذا الرمز عند الدخول', ics: 'تحميل ملف التقويم (آيفون)', change: 'تغيير الرد', declined: 'تم تسجيل الاعتذار', miss: 'نتمنى نشوفكم بالأفراح دوم',
+      confirmed: 'تم تأكيد الحضور', ics: 'تحميل ملف التقويم (آيفون)', change: 'تغيير الرد', declined: 'تم تسجيل الاعتذار', miss: 'نتمنى نشوفكم بالأفراح دوم',
       why: 'نقدّر ردّكم، ممكن تخبرونا السبب؟', reasonPh: 'اكتبوا السبب هنا', reasonLbl: 'سبب الاعتذار', send: 'إرسال الاعتذار', back: 'رجوع', showCard: 'عرض بطاقة الدعوة', hideCard: 'إخفاء بطاقة الدعوة',
-      card: 'بطاقة الدعوة', qr: 'رمز الدخول', nameLbl: 'الاسم الكامل', namePh: 'اكتبوا اسمكم الكامل', nameReq: 'اكتبوا اسمكم الكامل أول', reply: 'تأكيد الحضور أو الاعتذار', saveErr: 'ما قدرنا نحفظ الرد، حاولوا مرة ثانية', help: 'تحتاجون مساعدة؟', helpLink: 'راسلونا على الواتساب', dear: '', rYes: 'بكل سرور، سأحضر', rNo: 'أعتذر عن الحضور', rDoneYes: 'ننتظركم', rDoneNo: 'شكراً لإبلاغنا', rMiss: 'نتمنى نشوفكم بالأفراح دوم', rWhy: 'تحبون تتركون رسالة لصاحبة الدعوة؟', rWhyPh: 'اختياري', rSend: 'إرسال الرد', rNamePh: 'اكتبوا اسمكم' },
+      card: 'بطاقة الدعوة', nameLbl: 'الاسم الكامل', namePh: 'اكتبوا اسمكم الكامل', nameReq: 'اكتبوا اسمكم الكامل أول', reply: 'تأكيد الحضور أو الاعتذار', saveErr: 'ما قدرنا نحفظ الرد، حاولوا مرة ثانية', help: 'تحتاجون مساعدة؟', helpLink: 'راسلونا على الواتساب', dear: '', rYes: 'بكل سرور، سأحضر', rNo: 'أعتذر عن الحضور', howMany: 'كم شخص بيحضر؟', howManySub: 'بما فيهم أنتم', people: n => n === 1 ? 'شخص واحد' : n === 2 ? 'شخصين' : n + ' أشخاص', comingN: n => 'الحضور: ' + (n === 1 ? 'شخص واحد' : n === 2 ? 'شخصين' : n + ' أشخاص'),
+      closed: 'انتهى وقت تأكيد الحضور', closedSub: 'للاستفسار تواصلوا مع صاحبة الدعوة', locked: 'ما يمكن تغيير الرد لهذه المناسبة', linkClosed: 'رابط الدعوة مغلق حالياً' },
     en: { hi: 'You\u2019re invited', date: 'Date', time: 'Time', venue: 'Venue', seats: 'Invitations', yes: 'Confirm attendance', no: 'Decline', map: 'Location', cal: 'Add to calendar',
-      confirmed: 'Attendance confirmed', showCode: 'Show this code at the entrance', ics: 'Download calendar file (iPhone)', change: 'Change my reply', declined: 'Your reply has been saved', miss: 'We\u2019ll miss you',
+      confirmed: 'Attendance confirmed', ics: 'Download calendar file (iPhone)', change: 'Change my reply', declined: 'Your reply has been saved', miss: 'We\u2019ll miss you',
       why: 'We understand. Would you like to tell us why?', reasonPh: 'Type your reason here', reasonLbl: 'Reason for declining', send: 'Send reply', back: 'Back', showCard: 'View invitation card', hideCard: 'Hide invitation card',
-      card: 'Invitation card', qr: 'Entry code', nameLbl: 'Your full name', namePh: 'Your full name', nameReq: 'Please type your full name first', reply: 'Will you be joining us?', saveErr: 'Your reply wasn\u2019t saved. Please try again.', help: 'Need help?', helpLink: 'Message us on WhatsApp', dear: 'Dear', rYes: 'Joyfully accept', rNo: 'Regretfully decline', rDoneYes: 'See you there.', rDoneNo: 'Thank you for letting us know.', rMiss: 'We\u2019ll miss you.', rWhy: 'Would you like to leave a note for the host?', rWhyPh: 'Optional', rSend: 'Send my reply', rNamePh: 'Write your name' }
+      card: 'Invitation card', nameLbl: 'Your full name', namePh: 'Your full name', nameReq: 'Please type your full name first', reply: 'Will you be joining us?', saveErr: 'Your reply wasn\u2019t saved. Please try again.', help: 'Need help?', helpLink: 'Message us on WhatsApp', dear: 'Dear', rYes: 'Joyfully accept', rNo: 'Regretfully decline', howMany: 'How many of you are coming?', howManySub: 'Including you', people: n => n === 1 ? '1 person' : n + ' people', comingN: n => (n === 1 ? '1 person' : n + ' people') + ' coming',
+      closed: 'RSVPs are now closed', closedSub: 'Please contact the host if you have a question.', locked: 'Replies for this event can\u2019t be changed', linkClosed: 'This invitation link is closed' }
   };
   let t = L.ar;
   const I = {
@@ -57,10 +59,10 @@
     applyTheme(card); setHelp();
     if (!sb) { card.innerHTML = '<p class="lead">الموقع قيد الإعداد. This site is being set up.</p>'; return; }
     if (eventCode) {
-      const r = await sb.rpc('get_event_public', { p_code: eventCode });
+      const r = await App.rpc2('get_event_public_v2', { p_code: eventCode }, 'get_event_public', { p_code: eventCode });
       if (r.error || !r.data) { card.innerHTML = '<p class="serif" style="font-size:24px;margin:0">الدعوة غير موجودة</p><p class="lead">Invitation not found. Please check the link you received on WhatsApp.</p>'; return; }
       pub = r.data;
-      if (token) { const g = await sb.rpc('get_invite', { p_token: token }); if (!g.error && g.data) { inv = g.data; } else token = null; }
+      if (token) { const g = await App.rpc2('get_invite_v2', { p_token: token }, 'get_invite', { p_token: token }); if (!g.error && g.data) { inv = g.data; } else token = null; }
       if (!inv) inv = { name: '', seats: 1, status: 'pending', token: null, event: pub };
       const lang = pub.lang === 'en' ? 'en' : 'ar'; t = L[lang];
       document.documentElement.lang = lang; document.documentElement.dir = lang === 'en' ? 'ltr' : 'rtl';
@@ -68,7 +70,7 @@
       applyTheme(card, pub.theme_accent, pub.theme_paper); setHelp(); render(); return;
     }
     if (!token) { card.innerHTML = '<p class="lead">الرابط ناقص. افتحوا الرابط اللي وصلكم على الواتساب.<br>This link is incomplete. Please open the link you received on WhatsApp.</p>'; return; }
-    const { data, error } = await sb.rpc('get_invite', { p_token: token });
+    const { data, error } = await App.rpc2('get_invite_v2', { p_token: token }, 'get_invite', { p_token: token });
     if (error || !data) { card.innerHTML = '<p class="serif" style="font-size:24px;margin:0">الدعوة غير موجودة</p><p class="lead">Invitation not found. Please check the link you received on WhatsApp.</p>'; return; }
     inv = data;
     const lang = inv.event.lang === 'en' ? 'en' : 'ar';
@@ -79,20 +81,41 @@
     render();
   }
 
-  async function respond(status, reason) {
+  // Friendly text for the upgraded database's rule errors.
+  function errText(err) {
+    const m = (err && err.message) || '';
+    if (/RSVP_CLOSED/.test(m)) return t.closed;
+    if (/CHANGES_LOCKED/.test(m)) return t.locked;
+    if (/LINK_CLOSED/.test(m)) return t.linkClosed;
+    if (/NAME_REQUIRED/.test(m)) return t.nameReq;
+    return t.saveErr;
+  }
+  let busy = false;
+  async function respond(status, reason, count) {
+    if (busy) return;
     if (eventCode) {
       if (status === 'pending') { mode = 'edit'; inv = { ...inv, status: 'pending' }; render(); return; }
       const nm = (($('#gname') && $('#gname').value) || inv.name || '').trim();
       if (nm.length < 2) { toast(t.nameReq); const n = $('#gname'); if (n) n.focus(); return; }
-      const r = await sb.rpc('public_rsvp', { p_code: eventCode, p_name: nm, p_status: status, p_reason: reason || null, p_token: token });
-      if (r.error) { toast(t.saveErr); return; }
+      busy = true;
+      const args = { p_code: eventCode, p_name: nm, p_status: status, p_reason: reason || null, p_token: token };
+      const r = await App.rpc2('public_rsvp_v2', args, 'public_rsvp', args);
+      busy = false;
+      if (r.error) { toast(errText(r.error)); return; }
       inv = r.data; token = inv.token; try { localStorage.setItem(KEY, token); } catch (e) {}
       mode = ''; render(); return;
     }
-    const { data, error } = await sb.rpc('respond', { p_token: token, p_status: status, p_reason: reason || null });
-    if (error) { toast(t.saveErr); return; }
-    inv = data; mode = ''; render();
+    busy = true;
+    const r = await App.rpc2('respond_v2', { p_token: token, p_status: status, p_count: count || null, p_reason: reason || null },
+      'respond', { p_token: token, p_status: status, p_reason: reason || null });
+    busy = false;
+    if (r.error) { toast(errText(r.error)); return; }
+    inv = r.data; mode = ''; render();
   }
+  // Guests with extras choose how many are coming (1..their seats). Only with the upgraded database.
+  const canCount = () => !eventCode && inv.seats > 1 && 'confirmed_count' in inv;
+  const isOpen = () => !inv.event || inv.event.rsvp_open !== false;
+  const canChange = () => !inv.event || inv.event.allow_changes !== false;
 
   function render() {
     const e = inv.event, lang = e.lang === 'en' ? 'en' : 'ar';
@@ -101,12 +124,22 @@
     let body = '';
     if (inv.status === 'yes' && mode !== 'decline') {
       body = `<div class="state reveal"><div class="mark">✓</div><p class="serif" style="font-size:24px;margin:6px 0 0">${t.confirmed}</p>
-        ${CONFIG.SHOW_QR ? `<p class="lead" style="margin-bottom:4px">${t.showCode}</p><div class="qr" id="qr" aria-label="${t.qr}"></div>` : ''}</div>
+        ${inv.seats > 1 && inv.confirmed_count ? `<p class="coming-n">${t.comingN(inv.confirmed_count)}</p>` : ''}</div>
         ${links}${e.starts_at ? `<p style="margin:10px 0 0"><a class="link" id="ics" download="invite.ics" href="#">${t.ics}</a></p>` : ''}
-        <button class="link" data-act="reset" style="margin-top:12px">${t.change}</button>`;
+        ${isOpen() && canChange() ? `<button class="link" data-act="reset" style="margin-top:12px">${t.change}</button>` : ''}`;
     } else if (inv.status === 'no' && mode !== 'decline') {
       body = `<div class="state reveal"><div class="mark">✕</div><p class="serif" style="font-size:24px;margin:6px 0 0">${t.declined}</p><p class="lead">${t.miss}</p></div>
-        <button class="link" data-act="reset">${t.change}</button>`;
+        ${isOpen() && canChange() ? `<button class="link" data-act="reset">${t.change}</button>` : ''}`;
+    } else if (!isOpen()) {
+      body = `<div class="state reveal"><p class="serif" style="font-size:24px;margin:6px 0 0">${t.closed}</p><p class="lead">${t.closedSub}</p></div>${links}`;
+    } else if (eventCode && inv.event && inv.event.public_link_enabled === false && !inv.token) {
+      body = `<div class="state reveal"><p class="serif" style="font-size:24px;margin:6px 0 0">${t.linkClosed}</p></div>${links}`;
+    } else if (mode === 'count') {
+      const n = inv.seats, picked = inv.confirmed_count || n;
+      body = `<div class="reveal">${cardMode ? '<div class="rsvp-kicker"><span>RSVP</span></div>' : ''}<h2 class="rsvp-q" style="margin-bottom:4px">${t.howMany}</h2><p class="lead" style="margin:0 0 14px">${t.howManySub}</p>
+        <div class="countpick" role="radiogroup" aria-label="${t.howMany}">${Array.from({ length: n }, (_, i) => i + 1).map(k => `<button type="button" role="radio" aria-checked="${k === picked}" data-n="${k}">${k}</button>`).join('')}</div>
+        <div class="actions"><button class="btn" data-act="sendYes">${I.yes}<span id="cntLbl">${t.yes} · ${t.people(picked)}</span></button></div>
+        <p style="margin:12px 0 0"><button class="link" data-act="back">${t.back}</button></p></div>`;
     } else if (mode === 'decline') {
       body = `<div class="reveal" style="text-align:start">${eventCode || cardMode ? '<div class="rsvp-kicker"><span>RSVP</span></div>' : ''}<p class="rsvp-why">${t.why}</p>
         <textarea id="reason" rows="4" placeholder="${t.reasonPh}" aria-label="${t.reasonLbl}"></textarea>
@@ -133,51 +166,30 @@
       <div class="when">${e.starts_at ? `<div><b>${t.date}</b>${esc(fmtDate(e.starts_at, lang))}</div><div><b>${t.time}</b>${esc(fmtTime(e.starts_at, lang))}</div>` : ''}${e.venue ? `<div style="grid-column:1/-1"><b>${t.venue}</b>${esc(e.venue)}</div>` : ''}</div>
       ${eventCode || (cardMode && inv.seats <= 1) ? '' : `<div class="seats"><span>${t.seats}</span><b>${inv.seats}</b></div>`}${body}${orig}`;
 
-    const qr = $('#qr');
-    if (qr && window.QRCode) new QRCode(qr, { text: inv.token, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
     const ics = $('#ics'); if (ics) ics.href = icsBlobUrl(e);
 
     bindActs();
   }
 
-  function renderReply(e, lang, links) {
-    const ink = App.mix(e.theme_paper || '#F3D2B8', '#FFF6EE', .35);
-    card.style.setProperty('--r-ink', ink);
-    const lines = String(e.note || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
-    const note = lines.length ? `<div class="r-notes">${lines.map((l, i) => `<p class="${i ? 'r-small' : 'r-note'}">${esc(l)}</p>`).join('')}</div>` : '';
-    const dear = inv.name ? `<p class="r-dear">${t.dear ? t.dear + ' ' : ''}${esc(inv.name)}</p>` : '';
-    const rlinks = `<p class="r-links">${e.map_url ? `<a href="${esc(e.map_url)}" target="_blank" rel="noopener">${t.map}</a>` : ''}${e.starts_at ? `<a href="${calLink(e)}" target="_blank" rel="noopener">${t.cal}</a>` : ''}</p>`;
-    let html;
-    if (inv.status === 'yes' && mode !== 'decline') {
-      html = `${dear}<h2 class="r-q reveal">${t.rDoneYes}</h2>${note}${rlinks}<button class="r-change" data-act="reset">${t.change}</button>`;
-    } else if (inv.status === 'no' && mode !== 'decline') {
-      html = `${dear}<h2 class="r-q reveal">${t.rDoneNo}</h2><p class="r-small">${t.rMiss}</p><button class="r-change" data-act="reset">${t.change}</button>`;
-    } else if (mode === 'decline') {
-      html = `${dear}<h2 class="r-q r-q-sm">${t.rWhy}</h2>
-        <textarea id="reason" class="r-text" rows="2" placeholder="${t.rWhyPh}" aria-label="${t.reasonLbl}"></textarea>
-        <div class="r-actions"><button class="r-btn r-yes" data-act="sendNo">${t.rSend}</button><button class="r-change" data-act="back">${t.back}</button></div>`;
-    } else {
-      const nameLine = eventCode ? `<input type="text" id="gname" class="r-line" aria-label="${t.nameLbl}" autocomplete="name" placeholder="${t.rNamePh}" value="${esc(inv.name || '')}">` : '';
-      html = `${dear}<h2 class="r-q">${t.reply}</h2>${note}${nameLine}
-        <div class="r-actions"><button class="r-btn r-yes" data-act="yes">${t.rYes}</button><button class="r-btn r-no" data-act="no">${t.rNo}</button></div>${rlinks}`;
-    }
-    card.innerHTML = html;
-  }
-
   function bindActs() {
     card.querySelectorAll('[data-act]').forEach(b => b.onclick = () => {
       const a = b.dataset.act;
-      if (a === 'yes') respond('yes');
+      if (a === 'yes') { if (canCount()) { mode = 'count'; render(); } else respond('yes', null, 1); }
+      if (a === 'sendYes') { const c = card.querySelector('.countpick [aria-checked="true"]'); respond('yes', null, c ? +c.dataset.n : inv.seats); }
       if (a === 'no') { if (eventCode) { const n = $('#gname'); const v = n ? n.value.trim() : inv.name; if (!v || v.length < 2) { toast(t.nameReq); if (n) n.focus(); return; } inv = { ...inv, name: v }; } mode = 'decline'; render(); const r = $('#reason'); if (r) r.focus(); }
       if (a === 'back') { mode = ''; render(); }
       if (a === 'reset') respond('pending');
       if (a === 'orig') { showOrig = !showOrig; render(); }
       if (a === 'sendNo') respond('no', $('#reason').value.trim());
     });
+    card.querySelectorAll('.countpick button').forEach(b => b.onclick = () => {
+      card.querySelectorAll('.countpick button').forEach(x => x.setAttribute('aria-checked', x === b));
+      const l = $('#cntLbl'); if (l) l.textContent = `${t.yes} · ${t.people(+b.dataset.n)}`;
+    });
   }
 
   load();
-})();
+});
 </script>
 </body>
 </html>

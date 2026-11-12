@@ -6,103 +6,181 @@
 <meta name="robots" content="noindex">
 <title>Door check-in</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="config.js"></script>
-<script src="core.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script defer src="config.js"></script>
+<script defer src="core.js"></script>
 </head>
 <body>
-<div class="topbar"><a class="brand" id="brand" href="host.html"></a><button class="link" id="out" hidden>Log out</button></div>
+<div class="topbar"><a class="brand" id="brand" href="host.html"></a><button class="link" id="lang">العربية</button><button class="link" id="out" hidden></button></div>
 <main>
   <div id="auth"></div>
   <section id="door" hidden>
     <div class="evlist" id="evlist"></div>
     <h2 id="title" style="margin-top:14px"></h2>
-    <p class="sub" id="count"></p>
-    <div id="reader"></div>
-    <div class="row" style="justify-content:center;margin-top:12px"><button class="btn" id="cam">Start camera</button></div>
+    <div class="stats" id="counts" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px"></div>
     <div id="result" aria-live="assertive"></div>
-
-    <h3>Find by name</h3>
-    <input type="search" id="q" placeholder="Type the guest’s name" aria-label="Find by name">
+    <label class="f" for="q" id="qLbl"></label>
+    <input type="search" id="q" autocomplete="off">
     <div class="glist" id="list" style="margin-top:10px"></div>
+    <div class="row" style="margin-top:14px"><button class="btn small ghost" id="unlisted"></button></div>
+    <div class="box" id="exForm" hidden style="margin-top:12px"></div>
+    <div id="myReqs"></div>
   </section>
 </main>
 <script>
-(function () {
-  const { sb, $, esc, toast } = App;
+document.addEventListener('DOMContentLoaded', function () {
+  const { sb, $, esc, toast, normName, showPhone } = App;
   $('#brand').textContent = CONFIG.BRAND_EN || CONFIG.BRAND;
-  let events = [], ev = null, list = [], scanner = null, busy = false;
+  const T = {
+    en: { out: 'Log out', other: 'العربية', search: 'Find a guest by name or number', searchPh: 'Type a name', arrived: 'Arrived', confirmed: 'Confirmed', waiting: 'Waiting for host',
+      people: n => n === 1 ? '1 person' : n + ' people', typeName: 'Type a name to find a guest.', notFound: 'Not on the list. You can ask the host below.',
+      coming: 'Coming', declined: 'Declined', noReply: 'No reply', of: (a, b) => `${a} of ${b} arrived`, allIn: 'All arrived', checkIn: 'Check in', howMany: 'How many now',
+      askHost: 'Ask the host', unlisted: '+ Someone not on the list', name: 'Name', count: 'How many people', note: 'Note for the host (optional)', send: 'Send to host', cancel: 'Cancel',
+      sent: 'Sent to the host. You’ll see their answer below.', reqs: 'Your requests to the host', pending: 'Waiting', approved: 'Approved, let them in', rejected: 'Not approved',
+      over: (n, l) => `${n}: only ${l} more can come in`, overNone: n => `${n}: no more seats on this invite`, ok: (n, p) => `✓ ${n}`, okSub: (p, l) => `${p} checked in${l ? ` · ${l} still to come` : ''}`,
+      hadDeclined: 'had declined', noReplySub: 'hadn’t replied', err: 'Couldn’t do that. Check your connection and try again.', noEvents: 'This email isn’t linked to any event right now.', noEventsH: 'No events',
+      already: 'Already checked in', reason: 'Reason' },
+    ar: { out: 'تسجيل خروج', other: 'English', search: 'ابحث عن ضيف بالاسم أو الرقم', searchPh: 'اكتب الاسم', arrived: 'وصلوا', confirmed: 'مؤكدين', waiting: 'بانتظار المضيفة',
+      people: n => n === 1 ? 'شخص واحد' : n === 2 ? 'شخصين' : n + ' أشخاص', typeName: 'اكتب اسم الضيف للبحث.', notFound: 'الاسم مو موجود بالقائمة. تقدر تطلب موافقة المضيفة تحت.',
+      coming: 'بيحضر', declined: 'معتذر', noReply: 'ما رد', of: (a, b) => `وصل ${a} من ${b}`, allIn: 'وصلوا كلهم', checkIn: 'تسجيل دخول', howMany: 'كم شخص الحين',
+      askHost: 'اطلب موافقة المضيفة', unlisted: '+ شخص مو موجود بالقائمة', name: 'الاسم', count: 'عدد الأشخاص', note: 'ملاحظة للمضيفة (اختياري)', send: 'أرسل للمضيفة', cancel: 'إلغاء',
+      sent: 'تم الإرسال للمضيفة. بيطلع ردها تحت.', reqs: 'طلباتك للمضيفة', pending: 'بالانتظار', approved: 'تمت الموافقة، دخّلهم', rejected: 'ما تمت الموافقة',
+      over: (n, l) => `${n}: باقي ${l} فقط يقدرون يدخلون`, overNone: n => `${n}: ما باقي مقاعد بهذي الدعوة`, ok: (n) => `✓ ${n}`, okSub: (p, l) => `تم تسجيل ${p}${l ? ` · باقي ${l}` : ''}`,
+      hadDeclined: 'كان معتذر', noReplySub: 'ما كان راد', err: 'ما قدرنا نكمل. تأكد من الاتصال وحاول مرة ثانية.', noEvents: 'هذا الإيميل مو مربوط بأي مناسبة حالياً.', noEventsH: 'ما في مناسبات',
+      already: 'مسجل دخول من قبل', reason: 'السبب' }
+  };
+  let lang = 'en'; try { lang = localStorage.getItem('door-lang') === 'ar' ? 'ar' : 'en'; } catch (e) {}
+  let t = T[lang];
+  let events = [], ev = null, list = [], v2 = false, busy = false, poll = null, exPrefill = null;
+
+  function applyLang() {
+    t = T[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    $('#lang').textContent = t.other; $('#out').textContent = t.out; $('#qLbl').textContent = t.search; $('#q').placeholder = t.searchPh; $('#unlisted').textContent = t.unlisted;
+    if (ev) { renderList(); renderForm(); loadReqs(); }
+  }
+  $('#lang').onclick = () => { lang = lang === 'ar' ? 'en' : 'ar'; try { localStorage.setItem('door-lang', lang); } catch (e) {} applyLang(); };
+  applyLang();
 
   App.requireLogin($('#auth'), async () => {
     $('#out').hidden = false; $('#out').onclick = App.signOut;
+    v2 = await App.v2Ready();
     const { data } = await sb.from('events').select('id, title, starts_at').order('starts_at');
     events = data || [];
-    if (!events.length) { $('#auth').innerHTML = '<div class="login box"><h2>No events</h2><p class="sub">This email isn\u2019t linked to any event.</p></div>'; return; }
+    if (!events.length) { $('#auth').innerHTML = `<div class="login box"><h2>${t.noEventsH}</h2><p class="sub">${t.noEvents}</p></div>`; return; }
     pick(events[0]);
   });
 
   async function pick(e) {
-    ev = e; $('#door').hidden = false; $('#title').textContent = ev.title; $('#result').innerHTML = '';
+    ev = e; $('#door').hidden = false; $('#title').textContent = ev.title; $('#result').innerHTML = ''; exPrefill = null; renderForm();
+    $('#unlisted').hidden = !v2;
     $('#evlist').innerHTML = events.length > 1 ? events.map(x => `<button data-id="${x.id}" aria-current="${x.id === ev.id}">${esc(x.title)}</button>`).join('') : '';
     $('#evlist').querySelectorAll('button').forEach(b => b.onclick = () => pick(events.find(x => x.id === b.dataset.id)));
-    await loadList();
+    await loadList(); loadReqs();
+    clearInterval(poll); poll = setInterval(() => { loadList(); loadReqs(); }, 15000);
   }
 
   async function loadList() {
-    const { data, error } = await sb.rpc('door_list', { p_event: ev.id });
-    if (error) { toast('Couldn\u2019t load the guest list'); return; }
-    list = data || []; renderList();
+    const { data, error } = v2 ? await sb.rpc('door_list_v2', { p_event: ev.id }) : await sb.rpc('door_list', { p_event: ev.id });
+    if (error) { toast(t.err); return; }
+    list = (data || []).map(g => ({ ...g, checked_in_count: g.checked_in_count ?? (g.checked_in_at ? g.seats : 0) }));
+    renderList();
   }
 
+  const allowed = g => g.status === 'yes' ? (g.confirmed_count || g.seats) : g.status === 'pending' ? g.seats : 0;
+  const leftOf = g => Math.max(0, allowed(g) - (g.checked_in_count || 0));
+
   function renderList() {
-    const arrived = list.filter(g => g.checked_in_at).reduce((a, g) => a + g.seats, 0);
-    const expected = list.filter(g => g.status === 'yes').reduce((a, g) => a + g.seats, 0);
-    $('#count').textContent = `${arrived} arrived of ${expected} confirmed`;
-    const q = $('#q').value.trim();
-    const rows = q ? list.filter(g => g.name.includes(q)).slice(0, 30) : [];
-    $('#list').innerHTML = !q ? '<p class="empty">Type a name to check someone in by hand.</p>' : rows.length ? rows.map(g => `<div class="gi"><div class="gi-main"><div class="gi-top"><b>${esc(g.name)}</b>
-      <span class="pill ${g.status}">${{ yes: 'Coming', no: 'Declined', pending: 'No reply' }[g.status]}</span></div><div class="gi-sub"><span>${g.seats} ${g.seats > 1 ? 'invites' : 'invite'}</span></div></div>
-      <div class="gi-act">${g.checked_in_at ? '<span class="pill yes">Arrived</span>' : `<button class="icon" data-in="${g.id}">Check in</button>`}</div></div>`).join('')
-      : '<p class="empty">Not on the list. Check with the host.</p>';
-    $('#list').querySelectorAll('[data-in]').forEach(b => b.onclick = async () => {
-      const { data, error } = await sb.rpc('check_in_guest', { p_guest: b.dataset.in });
-      if (error) { toast('Couldn\u2019t check them in'); return; }
-      show(data); loadList();
-    });
+    const arrived = list.reduce((a, g) => a + (g.checked_in_count || 0), 0);
+    const confirmed = list.reduce((a, g) => a + App.peopleComing(g), 0);
+    $('#counts').innerHTML = `<div class="stat"><b>${arrived}</b><span>${t.arrived}</span></div><div class="stat"><b>${confirmed}</b><span>${t.confirmed}</span></div><div class="stat"><b id="waitN">${reqs.filter(r => r.status === 'pending').length}</b><span>${t.waiting}</span></div>`;
+    const q = normName($('#q').value), qd = $('#q').value.replace(/\D/g, '');
+    const rows = q ? list.filter(g => normName(g.name).includes(q) || (qd.length >= 3 && (g.phone || '').includes(qd))).slice(0, 30) : [];
+    const st = { yes: t.coming, no: t.declined, pending: t.noReply };
+    $('#list').innerHTML = !q ? `<p class="empty">${t.typeName}</p>` : rows.length ? rows.map(g => {
+      const left = leftOf(g), done = g.checked_in_count || 0;
+      const act = !v2 ? (g.checked_in_at ? `<span class="pill yes">${t.already}</span>` : `<button class="btn small" data-in="${g.id}">${t.checkIn}</button>`)
+        : left > 0 ? `<label class="sr" for="n-${g.id}">${t.howMany}</label><input class="cnt" type="number" id="n-${g.id}" min="1" max="${left}" value="${left}" inputmode="numeric" aria-label="${t.howMany}"><button class="btn small" data-in="${g.id}">${t.checkIn}</button>`
+        : `<span class="pill yes">${done ? t.allIn : st[g.status]}</span><button class="icon" data-ask="${g.id}">${t.askHost}</button>`;
+      return `<div class="gi"><div class="gi-main"><div class="gi-top"><b>${esc(g.name)}</b><span class="pill ${g.status}">${st[g.status]}</span></div>
+        <div class="gi-sub">${v2 ? `<span>${t.of(done, allowed(g) || g.seats)}</span>` : `<span>${t.people(g.seats)}</span>`}${g.phone ? `<span dir="ltr">${esc(showPhone(g.phone))}</span>` : ''}${g.side ? `<span>${esc(g.side)}</span>` : ''}</div>
+        ${g.status === 'no' && g.decline_reason ? `<p class="gi-why">${t.reason}: “${esc(g.decline_reason)}”</p>` : ''}</div>
+        <div class="gi-act door-act">${act}</div></div>`;
+    }).join('') : `<p class="empty">${t.notFound}</p>`;
+    $('#list').querySelectorAll('[data-in]').forEach(b => b.onclick = () => checkIn(b.dataset.in));
+    $('#list').querySelectorAll('[data-ask]').forEach(b => b.onclick = () => { const g = list.find(x => x.id === b.dataset.ask); exPrefill = { guest: g.id, name: g.name, people: 1 }; renderForm(); });
   }
   $('#q').oninput = renderList;
 
-  function show(r) {
-    const el = $('#result');
-    if (!r.ok) { el.innerHTML = '<div class="result bad reveal"><b>Not on the list</b>Check with the host. They decide.</div>'; return; }
-    const seats = `${r.seats} ${r.seats > 1 ? 'people' : 'person'}`;
-    if (r.already) { el.innerHTML = `<div class="result warn reveal"><b>${esc(r.name)}</b>Already checked in. ${seats}</div>`; return; }
-    const note = r.status === 'yes' ? '' : r.status === 'no' ? ' · had declined' : ' · hadn\u2019t replied';
-    el.innerHTML = `<div class="result good reveal"><b>✓ ${esc(r.name)}</b>${seats}${note}</div>`;
-  }
-
-  async function onScan(text) {
+  async function checkIn(id) {
     if (busy) return; busy = true;
-    let token = text.trim();
-    try { const u = new URL(token); token = u.searchParams.get('t') || token; } catch (e) {}
-    const { data, error } = await sb.rpc('check_in', { p_token: token, p_event: ev.id });
-    if (error) toast('Couldn\u2019t check that, try again'); else { show(data); loadList(); }
-    setTimeout(() => { busy = false; }, 2500);
+    const g = list.find(x => x.id === id);
+    let r;
+    if (v2) {
+      const inp = $('#n-' + id), n = Math.max(1, parseInt(inp && inp.value, 10) || 1);
+      r = await sb.rpc('check_in_v2', { p_guest: id, p_people: n });
+    } else r = await sb.rpc('check_in_guest', { p_guest: id });
+    busy = false;
+    if (r.error) { toast(t.err); return; }
+    show(r.data, g); loadList();
   }
 
-  $('#cam').onclick = async () => {
-    if (scanner) { await scanner.stop().catch(() => {}); scanner = null; $('#cam').textContent = 'Start camera'; return; }
-    if (!window.Html5Qrcode) { toast('Couldn\u2019t start the scanner'); return; }
-    scanner = new Html5Qrcode('reader');
-    try {
-      await scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 240, height: 240 } }, onScan);
-      $('#cam').textContent = 'Stop camera';
-    } catch (e) { scanner = null; toast('Allow camera access in your browser settings'); }
-  };
-})();
+  function show(r, g) {
+    const el = $('#result');
+    if (v2) {
+      if (!r.ok && r.reason === 'over') {
+        el.innerHTML = `<div class="result warn reveal"><b>${esc(r.left ? t.over(r.name, r.left) : t.overNone(r.name))}</b><button class="btn small" id="askNow" style="margin-top:8px">${t.askHost}</button></div>`;
+        $('#askNow').onclick = () => { exPrefill = { guest: g.id, name: g.name, people: 1 }; renderForm(); };
+        return;
+      }
+      if (!r.ok) { el.innerHTML = `<div class="result bad reveal"><b>${t.notFound}</b></div>`; return; }
+      const note = r.status === 'no' ? ` · ${t.hadDeclined}` : r.status === 'pending' ? ` · ${t.noReplySub}` : '';
+      el.innerHTML = `<div class="result good reveal"><b>${esc(t.ok(r.name))}</b>${esc(t.okSub(t.people(r.people), r.left))}${note}</div>`;
+      return;
+    }
+    if (!r.ok) { el.innerHTML = `<div class="result bad reveal"><b>${t.notFound}</b></div>`; return; }
+    if (r.already) { el.innerHTML = `<div class="result warn reveal"><b>${esc(r.name)}</b>${t.already} · ${t.people(r.seats)}</div>`; return; }
+    const note = r.status === 'yes' ? '' : r.status === 'no' ? ` · ${t.hadDeclined}` : ` · ${t.noReplySub}`;
+    el.innerHTML = `<div class="result good reveal"><b>✓ ${esc(r.name)}</b>${t.people(r.seats)}${note}</div>`;
+  }
+
+  // ---- asking the host (unlisted guests, extra people) ----
+  $('#unlisted').onclick = () => { exPrefill = { guest: null, name: $('#q').value.trim(), people: 1 }; renderForm(); };
+  function renderForm() {
+    const f = $('#exForm');
+    if (!exPrefill) { f.hidden = true; f.innerHTML = ''; return; }
+    f.hidden = false;
+    f.innerHTML = `<h3 style="margin-top:0">${t.askHost}</h3><div class="grid2">
+      <div><label class="f" for="xName">${t.name}</label><input type="text" id="xName" value="${esc(exPrefill.name)}" ${exPrefill.guest ? 'readonly' : ''}></div>
+      <div><label class="f" for="xN">${t.count}</label><input type="number" id="xN" min="1" max="20" value="${exPrefill.people}" inputmode="numeric"></div>
+      <div style="grid-column:1/-1"><label class="f" for="xNote">${t.note}</label><input type="text" id="xNote" maxlength="500"></div></div>
+      <div class="row" style="margin-top:10px"><button class="btn small" id="xSend">${t.send}</button><button class="btn small ghost" id="xCancel">${t.cancel}</button></div>`;
+    $('#xCancel').onclick = () => { exPrefill = null; renderForm(); };
+    $('#xSend').onclick = async () => {
+      const name = $('#xName').value.trim(), n = Math.min(20, Math.max(1, parseInt($('#xN').value, 10) || 1));
+      if (!name) { toast(t.name); $('#xName').focus(); return; }
+      if (busy) return; busy = true;
+      const { error } = await sb.rpc('request_exception_v2', { p_event: ev.id, p_guest: exPrefill.guest, p_name: name, p_people: n, p_note: $('#xNote').value.trim() || null });
+      busy = false;
+      if (error) { toast(t.err); return; }
+      exPrefill = null; renderForm(); toast(t.sent); $('#result').innerHTML = ''; loadReqs();
+    };
+    $('#xName').focus();
+  }
+
+  let reqs = [];
+  async function loadReqs() {
+    if (!v2 || !ev) { $('#myReqs').innerHTML = ''; return; }
+    const { data, error } = await sb.rpc('list_exceptions_v2', { p_event: ev.id });
+    if (error) return;
+    reqs = data || [];
+    const w = $('#waitN'); if (w) w.textContent = reqs.filter(r => r.status === 'pending').length;
+    const lbl = { pending: t.pending, approved: t.approved, rejected: t.rejected }, cls = { pending: 'pending', approved: 'yes', rejected: 'no' };
+    $('#myReqs').innerHTML = reqs.length ? `<h3>${t.reqs}</h3><div class="glist">${reqs.slice(0, 30).map(r => `<div class="gi"><div class="gi-main"><div class="gi-top"><b>${esc(r.name)}</b><span class="pill ${cls[r.status]}">${lbl[r.status]}</span></div>
+      <div class="gi-sub"><span>${t.people(r.people)}</span>${r.note ? `<span>${esc(r.note)}</span>` : ''}</div></div></div>`).join('')}</div>` : '';
+  }
+});
 </script>
 </body>
 </html>
