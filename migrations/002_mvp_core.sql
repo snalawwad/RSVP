@@ -24,6 +24,7 @@ declare missing text := '';
     ['events','theme_paper'],['events','card_image_url'],
     ['guests','id'],['guests','event_id'],['guests','name'],['guests','phone'],['guests','seats'],
     ['guests','status'],['guests','token'],['guests','decline_reason'],['guests','checked_in_at'],['guests','side'],
+    ['guests','responded_at'],['guests','source'],
     ['event_members','event_id'],['event_members','email'],['event_members','role'],['event_members','side']];
   i int;
 begin
@@ -45,12 +46,17 @@ begin
                  where n.nspname = 'public' and p.proname = 'is_admin' and p.pronargs = 0) then
     raise exception 'Stopped, nothing changed. Function public.is_admin() not found.';
   end if;
+  if not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                 where n.nspname = 'public' and p.proname = 'event_role' and p.pronargs = 1)
+     or not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                 where n.nspname = 'public' and p.proname = 'current_email' and p.pronargs = 0) then
+    raise exception 'Stopped, nothing changed. Functions public.event_role(uuid) / public.current_email() not found.';
+  end if;
 end $$;
 
 -- ---------- 1. New columns ----------
 alter table public.guests add column if not exists confirmed_count int;
 alter table public.guests add column if not exists checked_in_count int not null default 0;
-alter table public.guests add column if not exists replied_at timestamptz;
 
 alter table public.events add column if not exists rsvp_deadline timestamptz;
 alter table public.events add column if not exists allow_changes boolean not null default true;
@@ -168,8 +174,18 @@ $$;
 
 create or replace function public._v2_guest_json(g public.guests, e public.events) returns jsonb
 language sql stable set search_path = public as $$
-  select jsonb_build_object('name', g.name, 'seats', g.seats, 'status', g.status, 'token', g.token,
+  select jsonb_build_object('name', g.name, 'seats', g.seats, 'status', g.status, 'token', g.token, 'decline_reason', g.decline_reason,
     'confirmed_count', g.confirmed_count, 'event', public._v2_event_json(e))
+$$;
+
+-- Door access ends at expires_at for every page, old and new: the existing role
+-- check now ignores door members whose access has ended. (Undo restores the original.)
+create or replace function public.event_role(p_event uuid) returns text
+language sql stable security definer set search_path to 'public' as $$
+  select role from public.event_members
+  where event_id = p_event and lower(email) = public.current_email()
+    and (role <> 'door' or expires_at is null or expires_at > now())
+  limit 1
 $$;
 
 -- ---------- 4. Server-side seat rules (package limit, 1–6 seats) ----------
@@ -202,7 +218,7 @@ create or replace function public.get_invite_v2(p_token text) returns jsonb
 language plpgsql stable security definer set search_path = public as $$
 declare g public.guests; e public.events;
 begin
-  if p_token is null or length(p_token) < 8 then return null; end if;
+  if p_token is null or length(p_token) < 24 then return null; end if;
   select * into g from public.guests where token::text = p_token;
   if not found then return null; end if;
   select * into e from public.events where id = g.event_id;
@@ -213,6 +229,7 @@ create or replace function public.get_event_public_v2(p_code text) returns jsonb
 language plpgsql stable security definer set search_path = public as $$
 declare e public.events;
 begin
+  if length(coalesce(p_code, '')) < 8 then return null; end if;
   select * into e from public.events where public_code = lower(trim(p_code));
   if not found then return null; end if;
   return public._v2_event_json(e);
@@ -224,6 +241,7 @@ returns jsonb language plpgsql security definer set search_path = public as $$
 declare g public.guests; e public.events;
 begin
   if p_status not in ('yes', 'no', 'pending') then raise exception 'Invalid reply'; end if;
+  if p_token is null or length(p_token) < 24 then raise exception 'Invitation not found'; end if;
   select * into g from public.guests where token::text = p_token for update;
   if not found then raise exception 'Invitation not found'; end if;
   select * into e from public.events where id = g.event_id;
@@ -233,7 +251,7 @@ begin
     status = p_status,
     confirmed_count = case p_status when 'yes' then least(g.seats, greatest(1, coalesce(p_count, g.seats))) when 'no' then 0 else null end,
     decline_reason = case when p_status = 'no' then nullif(left(trim(coalesce(p_reason, '')), 500), '') else null end,
-    replied_at = case when p_status = 'pending' then g.replied_at else now() end
+    responded_at = case when p_status = 'pending' then null else now() end
   where id = g.id returning * into g;
   perform public._v2_log(g.event_id, 'guest_reply', jsonb_build_object('guest', g.id, 'status', g.status, 'people', g.confirmed_count));
   return public._v2_guest_json(g, e);
@@ -243,10 +261,11 @@ end $$;
 -- p_token = the token this phone got the first time, so a guest edits their own reply only.
 create or replace function public.public_rsvp_v2(p_code text, p_name text, p_status text, p_reason text default null, p_token text default null)
 returns jsonb language plpgsql security definer set search_path = public as $$
-declare e public.events; g public.guests; nm text := left(regexp_replace(trim(coalesce(p_name, '')), '\s+', ' ', 'g'), 80); used int;
+declare e public.events; g public.guests; nm text := left(regexp_replace(trim(coalesce(p_name, '')), '\s+', ' ', 'g'), 80);
 begin
-  if p_status not in ('yes', 'no', 'pending') then raise exception 'Invalid reply'; end if;
+  if p_status not in ('yes', 'no') then raise exception 'Invalid reply'; end if;
   if length(nm) < 2 then raise exception 'NAME_REQUIRED'; end if;
+  if length(coalesce(p_code, '')) < 8 then raise exception 'Invitation not found'; end if;
   select * into e from public.events where public_code = lower(trim(p_code));
   if not found then raise exception 'Invitation not found'; end if;
   if not e.public_link_enabled then raise exception 'LINK_CLOSED'; end if;
@@ -257,15 +276,15 @@ begin
   if g.id is not null then
     if g.status in ('yes', 'no') and not e.allow_changes and p_status is distinct from g.status then raise exception 'CHANGES_LOCKED'; end if;
     update public.guests set name = case when g.phone is null then nm else g.name end, status = p_status,
-      confirmed_count = case p_status when 'yes' then 1 when 'no' then 0 else null end,
+      confirmed_count = case p_status when 'yes' then least(g.seats, greatest(1, coalesce(g.confirmed_count, 1))) else 0 end,
       decline_reason = case when p_status = 'no' then nullif(left(trim(coalesce(p_reason, '')), 500), '') else null end,
-      replied_at = now()
+      responded_at = now()
     where id = g.id returning * into g;
   else
     -- a link reply takes one seat from the package (the trigger enforces the limit)
-    insert into public.guests(event_id, name, phone, seats, status, confirmed_count, decline_reason, replied_at)
-    values (e.id, nm, null, 1, p_status, case p_status when 'yes' then 1 when 'no' then 0 else null end,
-            case when p_status = 'no' then nullif(left(trim(coalesce(p_reason, '')), 500), '') else null end, now())
+    insert into public.guests(event_id, name, phone, seats, status, confirmed_count, decline_reason, responded_at, source)
+    values (e.id, nm, null, 1, p_status, case p_status when 'yes' then 1 else 0 end,
+            case when p_status = 'no' then nullif(left(trim(coalesce(p_reason, '')), 500), '') else null end, now(), 'link')
     returning * into g;
   end if;
   perform public._v2_log(e.id, 'link_reply', jsonb_build_object('guest', g.id, 'status', g.status));
@@ -285,7 +304,7 @@ begin
   if coalesce(r, '') not in ('admin', 'host') or (s is not null and g.side is distinct from s) then raise exception 'Not allowed'; end if;
   update public.guests set status = p_status,
     confirmed_count = case p_status when 'yes' then least(g.seats, greatest(1, coalesce(p_count, g.seats))) when 'no' then 0 else null end,
-    replied_at = now()
+    responded_at = now()
   where id = g.id returning * into g;
   perform public._v2_log(g.event_id, 'host_set_reply', jsonb_build_object('guest', g.id, 'status', g.status, 'people', g.confirmed_count));
   return to_jsonb(g);
@@ -348,8 +367,8 @@ begin
        where id = x.guest_id returning * into g;
     else
       -- an unlisted guest becomes a guest row so the counts stay right
-      insert into public.guests(event_id, name, phone, seats, status, confirmed_count, checked_in_count, checked_in_at, side, replied_at)
-      values (x.event_id, x.name, null, least(6, x.people), 'yes', least(6, x.people), x.people, now(), 'Door', now())
+      insert into public.guests(event_id, name, phone, seats, status, confirmed_count, checked_in_count, checked_in_at, side, responded_at, source)
+      values (x.event_id, x.name, null, least(6, x.people), 'yes', least(6, x.people), x.people, now(), 'Door', now(), 'door')
       returning * into g;
       update public.attendance_exceptions set guest_id = g.id where id = x.id;
     end if;

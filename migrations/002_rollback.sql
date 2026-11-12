@@ -5,7 +5,7 @@
 -- The pages switch back to the old behaviour on their own once the *_v2
 -- functions are gone. Guest replies are kept. What is LOST: door requests,
 -- the check-in log and the activity log (their tables are deleted).
--- The added columns (confirmed_count, checked_in_count, replied_at,
+-- The added columns (confirmed_count, checked_in_count,
 -- rsvp_deadline, allow_changes, public_link_enabled, expires_at) are kept
 -- because removing them would lose data; the old pages simply ignore them.
 -- ======================================================================
@@ -31,6 +31,13 @@ drop function if exists public._v2_log(uuid, text, jsonb);
 drop function if exists public._v2_host_side(uuid);
 drop function if exists public._v2_role(uuid);
 drop function if exists public._v2_email();
+-- restore the original role check (without door end dates)
+create or replace function public.event_role(p_event uuid) returns text
+language sql stable security definer set search_path to 'public' as $$
+  select role from public.event_members
+  where event_id = p_event and lower(email) = public.current_email()
+  limit 1
+$$;
 drop table if exists public.checkin_events;
 drop table if exists public.attendance_exceptions;
 drop table if exists public.audit_logs;
