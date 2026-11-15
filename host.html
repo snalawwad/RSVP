@@ -257,6 +257,7 @@ document.addEventListener('DOMContentLoaded', function () {
       letIn: 'Let them in', turnDown: 'Turn them down', approved: 'Approved. The door can see it now', turnedDown: nm => `Turned down: ${nm}`, doorTold: 'The door can see your answer now',
       loadErrEv: 'Couldn’t load your events', loadErrG: 'Couldn’t load the guest list', doorH: 'Door check-in', doorP: 'Your account is set up for checking guests in at the door.', doorBtn: 'Open the door screen',
       noEvH: 'We’re preparing your event', noEvP: 'There’s no event linked to this email yet. Message us on WhatsApp and we’ll add it.',
+      adminNoH: 'No events yet', adminNoP: 'You’re an admin. Create events and add people’s emails on the admin page.', adminNoB: 'Open the admin page',
       help: [['How do I send the invitations?', 'On Home or Guests, tap Send the invitations. WhatsApp opens for one guest at a time. Send the message there, come back here and tap Yes, it’s sent.'],
         ['Why do you ask “Did you send it?”', 'Opening WhatsApp doesn’t mean the message went. We only mark a guest as invited when you say so, so no one is missed.'],
         ['What’s the difference between guests and people?', 'A guest is one invitation, like a family. People are everyone who can come on that invitation. A guest with 3 people means up to 3 can come, the guest included.'],
@@ -346,6 +347,7 @@ document.addEventListener('DOMContentLoaded', function () {
       letIn: 'إي، خلوهم يدخلون', turnDown: 'لا، ما يدخلون', approved: 'وصلت موافقتكم للباب', turnedDown: nm => `رفضتوا دخول ${nm}`, doorTold: 'وصل ردكم للباب',
       loadErrEv: 'ما قدرنا نحمّل مناسباتكم', loadErrG: 'ما قدرنا نحمّل قائمة الضيوف', doorH: 'تسجيل وصول الضيوف', doorP: 'حسابكم مخصص للباب، تسجلون فيه الضيوف أول ما يوصلون.', doorBtn: 'افتحوا شاشة الباب',
       noEvH: 'قاعدين نجهّز مناسبتكم', noEvP: 'هذا الإيميل مو مربوط بأي مناسبة للحين. راسلونا على الواتساب ونضيفها لكم.',
+      adminNoH: 'ما في مناسبات للحين', adminNoP: 'عندكم صلاحية الإدارة. سوّوا المناسبات وأضيفوا إيميلات الناس من صفحة الإدارة.', adminNoB: 'افتحوا صفحة الإدارة',
       help: [['كيف نرسل الدعوات؟', 'من الرئيسية أو الضيوف اضغطوا «أرسلوا الدعوات». الواتساب يفتح لكل ضيف بروحه، أرسلوا الرسالة هناك وارجعوا هني واضغطوا «إي، انرسلت».'],
         ['ليش نسألكم إذا انرسلت؟', 'فتح الواتساب ما يعني إن الرسالة راحت. ما نحسب الضيف وصلته الدعوة إلا إذا قلتوا إي، عشان ما يفوتكم أحد.'],
         ['وش الفرق بين الضيف والشخص؟', 'الضيف يعني دعوة وحدة، مثل عائلة. والأشخاص هم كل اللي يقدرون يجون على هالدعوة. ضيف بـ3 أشخاص يعني يقدرون يجون 3 أشخاص بالكثير، والضيف منهم.'],
@@ -396,8 +398,10 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   $('#lang').onclick = () => { lang = lang === 'ar' ? 'en' : 'ar'; ls.set('host-lang', lang); applyLang(); };
   function showNoEvents() {
-    $('#auth').innerHTML = `<div class="login-wrap">` + (noEv === 'door' ? `<div class="login box"><h2>${t.doorH}</h2><p class="sub">${t.doorP}</p><a class="btn primary" href="door.html">${t.doorBtn}</a></div>`
-      : `<div class="login box"><h2>${t.noEvH}</h2><p class="sub">${t.noEvP}</p></div>`) + `</div>`;
+    const mark = `<p class="brandmark">${App.BRAND[lang]}</p>`;
+    $('#auth').innerHTML = `<div class="login-wrap">` + (noEv === 'door' ? `<div class="login box">${mark}<h2>${t.doorH}</h2><p class="sub">${t.doorP}</p><a class="btn primary" href="door.html">${t.doorBtn}</a></div>`
+      : noEv === 'admin' ? `<div class="login box">${mark}<h2>${t.adminNoH}</h2><p class="sub">${t.adminNoP}</p><a class="btn primary" href="admin.html">${t.adminNoB}</a></div>`
+      : `<div class="login box">${mark}<h2>${t.noEvH}</h2><p class="sub">${t.noEvP}</p></div>`) + `</div>`;
   }
   const kwDay = d => new Date(new Date(d).getTime() + 3 * 3600e3).toISOString().slice(0, 10);
   const daysTo = iso => iso ? Math.round((new Date(kwDay(iso)) - new Date(kwDay(new Date()))) / 864e5) : null;
@@ -452,7 +456,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const mine = members.filter(m => m.email.toLowerCase() === myEmail);
     const doorOnly = new Set(mine.filter(m => m.role === 'door').map(m => m.event_id));
     events = (evs || []).filter(e => admin || !doorOnly.has(e.id));
-    if (!events.length) { noEv = doorOnly.size ? 'door' : 'none'; showNoEvents(); return; }
+    if (!events.length) { noEv = admin ? 'admin' : doorOnly.size ? 'door' : 'none'; showNoEvents(); return; }
     const saved = new URLSearchParams(location.search).get('event');
     pick(events.find(e => e.id === saved) || events[0]);
   });

@@ -706,3 +706,9 @@ body.app details>summary{min-height:44px}
 
 /* The business name on the login card: type only, no logo */
 body.app .login .brandmark{font-family:var(--display);font-size:var(--fs-h,22px);font-weight:600;color:var(--plum,var(--accent));margin:0 0 6px;letter-spacing:0}
+
+/* Message cards in the arch (no events, admin only…): keep the first line clear of the curve on narrow phones */
+body.app .login.box>h2:first-child{margin-top:clamp(28px,10vw,44px)}
+body.app .login.box h2,body.app .login.box .sub{text-wrap:balance}
+body.app .login.box>.btn{margin-top:16px;width:100%}
+body.app .login.box h2{font-size:clamp(28px,8.6vw,36px)}
