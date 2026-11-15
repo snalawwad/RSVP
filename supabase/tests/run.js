@@ -15,7 +15,10 @@ async function as(role, claims, sql, params) {
   await c.query('drop schema if exists public cascade; create schema public; grant all on schema public to public;');
   await c.query(fs.readFileSync(__dirname + '/supabase-stub.sql', 'utf8'));
   await c.query(fs.readFileSync(repo + '/supabase/migrations/0000_baseline.sql', 'utf8')); ok(true, 'baseline runs on an empty database');
-  for (const f of fs.readdirSync(repo + '/supabase/migrations').filter(f => f >= '0001').sort()) {
+  // Order: baseline (live before 12 Nov) -> migrations/002_mvp_core.sql (already on live) -> supabase/migrations/0003+
+  const core = fs.readFileSync(repo + '/migrations/002_mvp_core.sql', 'utf8');
+  await c.query(core); await c.query(core); ok(true, '002_mvp_core.sql runs on the baseline, and runs again safely');
+  for (const f of fs.readdirSync(repo + '/supabase/migrations').filter(f => f >= '0003').sort()) {
     const sql = fs.readFileSync(repo + '/supabase/migrations/' + f, 'utf8');
     await c.query(sql); await c.query(sql); ok(true, f + ' runs, and runs again safely');
   }
@@ -27,6 +30,8 @@ async function as(role, claims, sql, params) {
   const E1 = await ev('Solo party'), E2 = await ev('Shared wedding');
   await c.query(`insert into public.event_members(event_id,email,role) values ($1,'solo@test.local','host'),($2,'solo@test.local','host'),($2,'cohost@test.local','host'),($1,'door@test.local','door')`, [E1, E2]);
   await c.query(`insert into public.guests(event_id,name,phone,seats) values ($1,'G1','96500000001',2),($1,'G2','96500000002',1),($2,'G3','96500000003',1)`, [E1, E2]);
+  await c.query(`insert into public.audit_logs(event_id, actor, action) values ($1, 'solo@test.local', 'test')`, [E2]);
+  await c.query(`insert into public.checkin_events(event_id, people, by_email) values ($1, 1, 'solo@test.local')`, [E2]);
   const tok = (await c.query(`select token from public.guests where name='G3'`)).rows[0].token;
   const claims = n => ({ sub: U[n], email: n + '@test.local', role: 'authenticated' });
 
@@ -51,6 +56,8 @@ async function as(role, claims, sql, params) {
   ok(left.e1 === 0 && left.g1 === 0, 'their solo event and its guests are gone');
   ok(left.e2 === 1 && left.g2 === 1 && left.m2 === 1, 'the shared event, its guests and the other host stay');
   ok(left.m === 0, 'all their access is removed');
+  const trace = (await c.query(`select (select count(*) from public.audit_logs where actor ilike 'solo@%')::int a, (select count(*) from public.checkin_events where by_email ilike 'solo@%')::int b, (select count(*) from public.audit_logs where event_id=$1)::int kept`, [E2])).rows[0];
+  ok(trace.a === 0 && trace.b === 0 && trace.kept >= 1, 'their email is blanked in shared events\' records, the records stay');
   const log = (await c.query(`select * from public.account_deletions`)).rows; ok(log.length === 1 && !JSON.stringify(log).includes('@'), 'deletion log has no email');
   r = await as('authenticated', claims('cohost'), `select count(*)::int n from public.account_deletions`); ok(r.rows[0].n === 0, 'hosts cannot read the deletion log');
   r = await as('authenticated', claims('admin'), `select count(*)::int n from public.account_deletions`); ok(r.rows[0].n === 1, 'admins can read the deletion log');

@@ -1,4 +1,6 @@
--- 0001 account deletion (App Store and Google Play require it).
+-- 0003 account deletion (App Store and Google Play require it).
+-- Runs AFTER migrations/002_mvp_core.sql (already on live), which adds
+-- checkin_events, attendance_exceptions and audit_logs.
 -- ADD-ONLY: one new table, two new functions. Nothing existing is changed or removed,
 -- so the live guest page, host page, admin and door keep working exactly as before.
 --
@@ -11,7 +13,8 @@
 -- What gets deleted for a host:
 --   * every event_members row with their email (host or door access)
 --   * every event where they were the ONLY host, with its guests (guests cascade)
--- Events that have another host stay; only this person's access goes.
+-- Events that have another host stay; only this person's access goes, and their
+-- email is blanked out of those events' check-in, door-request and activity records.
 -- Admin accounts (Sara and Sama) can never be deleted this way.
 
 -- A record that a deletion happened, with no personal details (no email, no names).
@@ -100,7 +103,13 @@ begin
     delete from public.event_members where lower(email) = em;
     get diagnostics n_members = row_count;
 
-    delete from public.events where id = any(ev_ids);  -- guests and members cascade
+    delete from public.events where id = any(ev_ids);  -- guests, members, logs cascade
+
+    -- Shared events stay: remove this person's email from their records.
+    update public.checkin_events set by_email = null where lower(by_email) = em;
+    update public.attendance_exceptions set requested_by = null where lower(requested_by) = em;
+    update public.attendance_exceptions set decided_by = null where lower(decided_by) = em;
+    update public.audit_logs set actor = null where lower(actor) = em;
   else
     ev_ids := '{}';
   end if;
