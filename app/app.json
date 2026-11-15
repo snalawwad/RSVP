@@ -1,0 +1,67 @@
+{
+  "expo": {
+    "name": "[Brand] Host",
+    "slug": "rsvp-host",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.CHANGEME.host",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#F4EDE3",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.CHANGEME.host"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": [
+              "en",
+              "ar"
+            ],
+            "android": [
+              "en",
+              "ar"
+            ]
+          }
+        }
+      ],
+      "expo-sqlite",
+      "expo-status-bar",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "backgroundColor": "#FFFFFF",
+          "dark": {
+            "backgroundColor": "#121412"
+          }
+        }
+      ],
+      "expo-font"
+    ],
+    "scheme": "rsvphost",
+    "backgroundColor": "#FFFFFF",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
