@@ -6,8 +6,8 @@ window.CONFIG = {
   SUPABASE_URL: 'https://hexnxpufurftldpfcukd.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_KvhA9bBosF5fpqcONI1qPg_hcHz31dE',
   SITE_URL: 'https://snalawwad.github.io/RSVP',   // where invite.html lives, no slash at the end
-  BRAND: '',                                    // brand name shown at the top (empty = none)
-  BRAND_EN: '',
+  BRAND: 'سنة',                                 // business name in Arabic (Sina, as Kuwaitis say "year")
+  BRAND_EN: 'Sina',
   SUPPORT_WHATSAPP: '965XXXXXXXX',              // your business WhatsApp, digits only (placeholder = hidden)
   SUPPORT_EMAIL: ''                             // support email for privacy/support pages (empty = hidden)
 };

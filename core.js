@@ -107,7 +107,7 @@
   const uiLang = () => document.documentElement.lang === 'ar' ? 'ar' : 'en';
   const ENVELOPE = '<svg class="login-env" viewBox="0 0 40 30" width="40" height="30" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="1.5" width="37" height="27" rx="3"/><path class="flap" d="M2.5 3l17.5 13L37.5 3"/></svg>';
   // The business name. No logo yet: the name is set in type only.
-  const BRAND = { en: 'Sina', ar: 'سنة' };
+  const BRAND = { en: (window.CONFIG && CONFIG.BRAND_EN) || 'Sina', ar: (window.CONFIG && CONFIG.BRAND) || 'سنة' };
   const brandTitle = (s, lang) => (s ? s + ' · ' : '') + BRAND[lang || uiLang()];
   async function requireLogin(mount, onReady) {
     if (!sb) { const t = LT[uiLang()]; mount.innerHTML = `<div class="login-wrap"><div class="login box"><h2>${t.cfgH}</h2><p class="sub">${t.cfgP}</p></div></div>`; return; }

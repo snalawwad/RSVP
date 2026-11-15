@@ -2,7 +2,7 @@
 -- RSVP: door Undo (optional, additive)
 --
 -- HOW TO RUN: Supabase → SQL Editor → New query → paste this whole file → Run.
--- Run it only after 002_mvp_core.sql.
+-- Run it only after migrations/002_mvp_core.sql (already on live). Independent of 0003.
 --
 -- WHAT IT DOES
 --  * Adds ONE new function, public.undo_check_in_v2(guest, people).
