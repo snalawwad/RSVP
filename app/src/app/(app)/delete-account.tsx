@@ -1,71 +1,70 @@
-// Account deletion (required by Apple and Google). Shows exactly what will go, then asks
-// the host to type DELETE. The delete-account Edge Function does the work server side.
+// Account deletion (required by Apple and Google). Shows exactly what will go, then asks the person to
+// type DELETE. The delete-account Edge Function does the work server side; then we log out.
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, View } from 'react-native';
-import { Button, Card, Field, Screen, T } from '../../components/ui';
+import { View } from 'react-native';
+import { Busy, Button, Field, Panel, Row, RowList, Screen, Txt, useToast } from '../../components';
+import { accountSummary, deleteAccount, signOut, type AccountSummary } from '../../lib/api';
 import { fmtDate } from '../../lib/format';
-import { supabase, type AccountSummary } from '../../lib/supabase';
+import { countWordHost } from '../../lib/words';
 import { useApp } from '../../providers/AppProvider';
 import { space } from '../../theme/tokens';
 
 export default function DeleteAccount() {
-  const { t, f, lang, c } = useApp();
+  const { t, lang } = useApp();
+  const toast = useToast();
   const [summary, setSummary] = useState<AccountSummary | null>(null);
   const [failed, setFailed] = useState(false);
   const [typed, setTyped] = useState('');
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
 
   useEffect(() => {
-    supabase.rpc('my_account_summary').then(({ data, error }) => {
-      if (error) setFailed(true);
-      else setSummary(data as AccountSummary);
+    accountSummary().then(({ data, error }) => {
+      if (error || !data) setFailed(true);
+      else setSummary(data);
     });
   }, []);
 
+  const ready = typed.trim().toUpperCase() === 'DELETE';
   async function remove() {
-    setBusy(true);
-    const { error } = await supabase.functions.invoke('delete-account', { body: { confirm: 'DELETE' } });
-    setBusy(false);
-    if (error) return Alert.alert(t.deleteFailed);
-    await supabase.auth.signOut();
-    Alert.alert(t.deleteDone);
+    if (!ready || busy) return;
+    setBusy(true); setErr('');
+    const { error } = await deleteAccount();
+    if (error) { setBusy(false); setErr(t.deleteFailed); return; }
+    toast(t.deleteDone);
+    await signOut();   // the root layout shows the login again
   }
 
   return (
-    <Screen>
-      <T v="heading2" accessibilityRole="header">{t.deleteTitle}</T>
-      <T>{t.deleteIntro}</T>
-      {failed && <T color={c.no}>{t.couldNotLoad}</T>}
+    <Screen gap={space[4]} testID="delete">
+      <Txt v="title">{t.deleteTitle}</Txt>
+      <Txt v="body">{t.deleteIntro}</Txt>
+      {failed ? <Panel tone="no"><Txt v="body" tone="no">{t.couldNotLoad}</Txt></Panel> : null}
+      {!summary && !failed ? <Busy /> : null}
 
-      {summary?.is_admin && (
-        <Card><T color={c.no}>{t.deleteAdmin}</T></Card>
-      )}
+      {summary?.is_admin ? <Panel tone="no" testID="delete-admin"><Txt v="body" tone="no">{t.deleteAdmin}</Txt></Panel> : null}
 
-      {summary && !summary.is_admin && (
+      {summary && !summary.is_admin ? (
         <>
-          <Card>
-            {summary.events_to_delete.length === 0 ? (
-              <T muted>{t.deleteNoEvents}</T>
-            ) : (
-              <>
-                <T>{t.deleteEvents}</T>
+          {summary.events_to_delete.length === 0 ? (
+            <Panel flat><Txt v="body" tone="muted">{t.deleteNoEvents}</Txt></Panel>
+          ) : (
+            <View style={{ gap: space[2] }}>
+              <Txt v="body">{t.deleteEvents}</Txt>
+              <RowList testID="delete-events">
                 {summary.events_to_delete.map((e) => (
-                  <View key={e.id} style={{ paddingVertical: space[2], borderTopWidth: 1, borderColor: c.line }}>
-                    <T v="title">{e.title}</T>
-                    <T v="caption" muted>
-                      {[e.starts_at ? fmtDate(e.starts_at, lang) : '', f(t.deleteGuests, { n: e.guests })].filter(Boolean).join(' · ')}
-                    </T>
-                  </View>
+                  <Row key={e.id} title={e.title} sub={[e.starts_at ? fmtDate(e.starts_at, lang) : '', countWordHost(e.guests, 'guest', lang)].filter(Boolean).join(' · ')} />
                 ))}
-              </>
-            )}
-          </Card>
-          <Field label={t.deleteTypeToConfirm} value={typed} onChangeText={setTyped} autoCapitalize="characters" autoCorrect={false} />
-          <Button label={t.deleteConfirm} kind="danger" onPress={remove} loading={busy} disabled={typed.trim().toUpperCase() !== 'DELETE'} />
+              </RowList>
+            </View>
+          )}
+          <Field label={t.deleteTypeToConfirm} value={typed} onChangeText={setTyped} autoCapitalize="characters" autoCorrect={false} ltr
+            error={err || undefined} onSubmitEditing={remove} testID="delete-type" />
+          <Button label={t.deleteConfirm} kind="refuse" block onPress={remove} busy={busy} disabled={!ready} testID="delete-confirm" />
         </>
-      )}
-      <Button label={t.cancel} kind="outline" onPress={() => router.back()} />
+      ) : null}
+      <Button label={t.cancel} kind="secondary" block onPress={() => (router.canGoBack() ? router.back() : router.replace('/settings'))} testID="delete-cancel" />
     </Screen>
   );
 }

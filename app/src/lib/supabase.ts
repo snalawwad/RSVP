@@ -21,31 +21,5 @@ if (Platform.OS !== 'web') {
   });
 }
 
-export type EventRow = {
-  id: string;
-  title: string;
-  headline: string | null;
-  starts_at: string | null;
-  venue: string | null;
-  lang: 'ar' | 'en';
-  invite_limit: number | null;
-  card_image_url: string | null;
-};
-
-export type GuestRow = {
-  id: string;
-  name: string;
-  seats: number;
-  status: 'pending' | 'yes' | 'no';
-  checked_in_at: string | null;
-  checked_in_count: number | null;
-};
-
-export type DoorGuest = { id: string; name: string; seats: number; status: GuestRow['status']; checked_in_at: string | null };
-
-export type AccountSummary = {
-  email: string;
-  is_admin: boolean;
-  memberships: number;
-  events_to_delete: { id: string; title: string; starts_at: string | null; guests: number }[];
-};
+// Row types live in ./types (richer, shared with ./api). Re-exported here for the first screens.
+export type { AccountSummary, DoorGuest, EventRow, GuestRow } from './types';

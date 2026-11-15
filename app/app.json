@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "[Brand] Host",
+    "name": "Sina",
     "slug": "rsvp-host",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,7 +10,8 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.CHANGEME.host",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleAllowMixedLocalizations": true
       }
     },
     "android": {
@@ -50,18 +51,22 @@
         {
           "image": "./assets/splash-icon.png",
           "imageWidth": 160,
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#EDE5DA",
           "dark": {
-            "backgroundColor": "#121412"
+            "backgroundColor": "#141514"
           }
         }
       ],
       "expo-font"
     ],
     "scheme": "rsvphost",
-    "backgroundColor": "#FFFFFF",
+    "backgroundColor": "#EDE5DA",
     "experiments": {
       "typedRoutes": true
+    },
+    "locales": {
+      "ar": "./locales/ar.json",
+      "en": "./locales/en.json"
     }
   }
 }

@@ -1,0 +1,93 @@
+// Door words, copied from the web door page (door.html, const T). Keep them in step with the web.
+import { arN, countWord, HOSTS, iso } from '../lib/words';
+import type { Widen } from './widen';
+
+// every number carries its word: "person" = one head, "guest" = one invitation
+const Pen = (n: number) => countWord(n, 'person', 'en');
+const Gen = (n: number) => countWord(n, 'guest', 'en');
+const Par = (n: number) => countWord(n, 'person', 'ar');
+const Gar = (n: number) => countWord(n, 'guest', 'ar');
+
+export const doorEn = { other: 'العربية', out: 'Log out', title: 'Door check-in', colours: 'Colours', hostDash: HOSTS.en.page, events: 'Your events', switchEv: 'Switch event',
+      live: 'Live', offline: 'Offline, retrying',
+      search: 'Find a guest by name or phone', searchPh: 'Guest name or phone', clear: 'Clear search',
+      kbNum: 'Type a phone number', kbAbc: 'Type a name', kbAbcL: 'abc',
+      meterL: (a: number, e: number) => e ? `of ${Pen(e)} in` : (a === 1 ? 'person in' : 'people in'),
+      noReplyN: (n: number) => n === 1 ? '1 guest hasn’t replied' : `${Gen(n)} haven’t replied`,
+      waitChip: (n: number) => `Requests: ${n} waiting`, half: 'Half the guests are in', everyone: 'Everyone’s here',
+      coming: 'Coming', declined: 'Can’t come', noReply: 'No reply',
+      inLeft: (d: number, l: number) => `${Pen(d)} in · ${l} to come`, upTo: (l: number) => `up to ${Pen(l)}`,
+      already: (n: number, tm: string) => `Already in · ${Pen(n)}${tm ? ' · ' + tm : ''}`, alreadyOld: 'Already checked in',
+      invited: (s: number, c: number | null, st: string) => `Invited ${Pen(s)}` + (st === 'yes' && c && c !== s ? ` · said yes for ${Pen(c)}` : st === 'pending' ? ' · no reply' : ''),
+      howMany: 'How many now', less: 'One less', more: 'One more',
+      checkInN: (n: number, left: number) => n >= left ? `Check in ${Pen(n)}` : `Check in ${n} of ${Pen(left)}`, checkInNow: (n: number) => `Check in ${Pen(n)} now`, askAbout: (x: number) => `Ask ${HOSTS.en.plain} about ${iso('+' + x)}`,
+      busy: 'Checking in…', retry: 'Retry check-in',
+      askHost: `Ask ${HOSTS.en.plain}`, unlisted: 'Ask about a guest not on the list',
+      typeName: 'Type a name or phone number to check someone in.', awake: 'Screen stays on', justArrived: 'Just arrived', tapFind: 'Tap a name to find them again.',
+      ambiguous: (n: number) => `${Gen(n)} with similar names. Check the phone number.`, similar: 'Close spellings', didYouMean: 'No exact match. Is it one of these?',
+      notFoundH: 'No exact match', noOne: (q: string) => `Nothing for “${q}”. Try the phone number or family name.`, notFoundOld: `Not on the list. Check with ${HOSTS.en.plain}.`,
+      band: (nm: string, n: number) => `${nm}: ${Pen(n)} in`, bandLeft: (l: number) => `${l} still to come`, hadDeclined: 'had said they can’t come', noReplySub: 'hadn’t replied',
+      undo: 'Undo', undoNo: `Wrong person? Tell ${HOSTS.en.plain} to fix it.`, undoing: 'Undoing…', undone: (nm: string) => `Check-in undone: ${nm}`,
+      undoLate: `Too late to undo here. Tell ${HOSTS.en.plain} to fix it.`, undoNotYours: `That was checked in on another phone. Tell ${HOSTS.en.plain}.`, undoNothing: 'Nothing to undo.',
+      undoFail: `Couldn’t undo here. Tell ${HOSTS.en.plain} to fix it.`, alreadyK: (_n?: number) => 'Already in', alreadyNow: (n: number) => `${Pen(n)} already in on this invite. No need to check them in again.`,
+      overK: 'Over the limit', over: (l: number) => `Only ${Pen(l)} more can come in on this invite`, overNone: 'No more places on this invite', close: 'Close', closeNote: 'Close this notice',
+      askH: `Ask ${HOSTS.en.plain}`, allowedLine: (a: number, d: number) => `Allowed ${Pen(a)} · ${Pen(d)} in`, name: 'Name', count: 'How many people', reasonL: 'Why', reasons: ['Extra family', 'Not on the list', 'Invited by phone', 'Child'],
+      otherNote: 'Other note (optional)', send: (n: number) => `Send ${HOSTS.en.to} · ${Pen(n)}`, needName: 'Type their name first', sent: 'Sent. The hosts’ answer will show at the top.',
+      reqs: `Your requests ${HOSTS.en.to}`, pending: 'Waiting', approved: 'Approved', rejected: 'Not approved', answered: (n: number) => `Answered requests (${n})`,
+      reqLine: { pending: (n: number) => `Asked ${HOSTS.en.plain} about ${Pen(n)} more · waiting`, approved: (n: number) => `${HOSTS.en.cap} said yes to ${Pen(n)} more (already counted)`, rejected: (n: number) => `${HOSTS.en.cap} said no to ${Pen(n)} more` },
+      ago: (m: number) => m < 1 ? 'just now' : m < 60 ? `${m} min ago` : `${Math.floor(m / 60)} h ago`,
+      okBanner: (nm: string, p: string) => `${HOSTS.en.cap} approved: let ${nm} in (${p})`, okBannerSub: 'Already counted. No need to check them in again.', noBanner: (nm: string) => `${HOSTS.en.cap} said no: ${nm}`, noBannerSub: 'Please let the guest know kindly.', dismiss: 'Hide this answer',
+      err: 'Couldn’t do that. Check your connection and try again.', noEvents: 'This email isn’t linked to any event right now.', noEventsH: 'No events', reason: 'Reason',
+      digitsHint: 'Type at least 4 digits of the number', bigN: '7 or more', moreAns: (n: number) => `Show ${n} more ${n === 1 ? 'answer' : 'answers'}`,
+      when: (d: number) => d === 0 ? '' : d < 0 ? 'This event has passed' : d === 1 ? 'The event is tomorrow' : `The event is in ${d} days`,
+      help: [
+        ['Checking someone in', 'Type part of their name, or at least 4 digits of their phone number. Tap the big button: it says how many people go in.'],
+        ['Two guests with the same name', 'When two or more guests have similar names, in Arabic or English letters, a line above the cards says so. Check the phone number before you tap. Someone who is already in shows first, in amber, with the time they came.'],
+        ['Undoing a check-in', 'The green band shows your latest check-in, with Undo, for 2 minutes or until the next check-in. Under “Just arrived”, each check-in made on this phone keeps its own Undo for 10 minutes. After that, tell the hosts.'],
+        ['More people than allowed', 'Tap + to the real number. Check in the people allowed now, then tap “Ask the hosts about +1” for the rest. The hosts’ answer shows at the top of this screen.'],
+        ['Someone not on the list', 'Try the phone number or the family name first. If they’re still not there, tap “Ask the hosts”.'],
+        ['Phone numbers', 'Tap 123 next to the search box for the number keyboard, and abc to go back to letters.']
+      ] };
+
+export type DoorStrings = Widen<typeof doorEn>;
+
+export const doorAr: DoorStrings = { other: 'English', out: 'تسجيل خروج', title: 'شاشة الباب', colours: 'الألوان', hostDash: HOSTS.ar.page, events: 'مناسباتكم', switchEv: 'تغيير المناسبة',
+      live: 'متصل', offline: 'ما في نت',
+      search: 'دوّروا بالاسم أو الرقم', searchPh: 'اسم الضيف أو رقمه', clear: 'مسح البحث',
+      kbNum: 'كتابة رقم التلفون', kbAbc: 'كتابة الاسم', kbAbcL: 'أ ب ت',
+      meterL: (a, e) => (a === 0 ? 'ما وصل أحد للحين' : a === 1 ? 'وصل' : 'وصلوا') + (e ? ` من أصل ${Par(e)}` : ''),
+      noReplyN: n => n === 1 ? 'ضيف واحد ما ردّ' : `${Gar(n)} ما ردّوا`,
+      waitChip: n => `طلباتكم: ${n} بالانتظار`, half: 'نص الضيوف وصلوا', everyone: 'كل الضيوف وصلوا',
+      coming: 'بيحضرون', declined: 'اعتذروا', noReply: 'ما ردّوا',
+      inLeft: (d, l) => `وصل ${Par(d)} · باقي ${Par(l)}`, upTo: l => `مسموح ${Par(l)}`,
+      already: (n, tm) => `${n === 1 ? 'وصل' : 'وصلوا'} من قبل · ${Par(n)}${tm ? ' · ' + tm : ''}`, alreadyOld: 'وصلوا من قبل',
+      invited: (s, c, st) => { const p = Par(s); return `الدعوة ${/^\d/.test(p) ? 'لـ' : 'ل'}${p}` + (st === 'yes' && c && c !== s ? ` · أكّدوا ${Par(c)}` : st === 'pending' ? ' · ما ردّوا' : ''); },
+      howMany: 'كم شخص الحين', less: 'واحد أقل', more: 'واحد زيادة',
+      checkInN: (n, left) => n >= left ? `سجّلوا وصول ${Par(n)}` : `سجّلوا وصول ${n} من ${Par(left)}`, checkInNow: n => `سجّلوا وصول ${Par(n)} الحين`, askAbout: x => `اسألوا ${HOSTS.ar.plain} عن ${iso('+' + x)}`,
+      busy: 'لحظة…', retry: 'حاولوا مرة ثانية',
+      askHost: `اسألوا ${HOSTS.ar.plain}`, unlisted: 'اسألوا عن ضيف مو بالقائمة',
+      typeName: 'اكتبوا اسم الضيف أو رقمه عشان تسجلون وصوله.', awake: 'الشاشة ما بتطفي', justArrived: 'وصلوا توّهم', tapFind: 'اضغطوا على أي اسم عشان ترجعون له.',
+      ambiguous: n => `${Gar(n)} بأسماء متشابهة. تأكدوا من الرقم.`, similar: 'أسماء قريبة', didYouMean: 'ما لقينا الاسم بالضبط. يمكن واحد من هذول؟',
+      notFoundH: 'ما لقينا الاسم', noOne: q => `مو بالقائمة باسم «${q}». جرّبوا رقم التلفون أو اسم العائلة.`, notFoundOld: 'مو بالقائمة. اسألوا أهل المناسبة.',
+      band: (nm, n) => `${nm}: وصل ${Par(n)}`, bandLeft: l => `باقي ${Par(l)}`, hadDeclined: 'كانوا معتذرين', noReplySub: 'ما كانوا رادّين',
+      undo: 'تراجع', undoNo: 'غلط بالاسم؟ قولوا لأهل المناسبة يعدّلونه.', undoing: 'لحظة…', undone: nm => `انلغى تسجيل وصول ${nm}`,
+      undoLate: 'فات وقت التراجع من هني. قولوا لأهل المناسبة يعدّلونه.', undoNotYours: 'وصولهم انسجّل من تلفون ثاني. قولوا لأهل المناسبة.', undoNothing: 'ما في شي نتراجع عنه.',
+      undoFail: 'ما قدرنا نتراجع من هني. قولوا لأهل المناسبة يعدّلونه.', alreadyK: n => n === 1 ? 'وصل من قبل' : 'وصلوا من قبل', alreadyNow: n => n === 1 ? 'شخص واحد وصل من قبل على هالدعوة. لا تسجلون وصوله مرة ثانية.' : `${Par(n)} وصلوا من قبل على هالدعوة. لا تسجلون وصولهم مرة ثانية.`,
+      overK: 'أكثر من المسموح', over: l => `باقي ${Par(l)} بس على هالدعوة`, overNone: 'الدعوة مكتملة', close: 'إغلاق', closeNote: 'إغلاق التنبيه',
+      askH: `اسألوا ${HOSTS.ar.plain}`, allowedLine: (a, d) => `${a ? `مسموح ${Par(a)}` : 'ما لهم مكان على الدعوة'} · ${d ? `وصل ${Par(d)}` : 'ما وصل أحد'}`, name: 'الاسم', count: 'كم شخص', reasonL: 'السبب', reasons: ['أهل زيادة', 'مو بالقائمة', 'معزومين بالتلفون', 'ياهل'],
+      otherNote: 'ملاحظة (اختياري)', send: n => `أرسلوا ${HOSTS.ar.to} · ${Par(n)}`, needName: 'اكتبوا الاسم أول', sent: 'انرسل. ردّ أهل المناسبة بيطلع فوق.',
+      reqs: `طلباتكم ${HOSTS.ar.to}`, pending: 'بالانتظار', approved: 'وافقوا', rejected: 'ما وافقوا', answered: n => `طلبات انردّ عليها (${n})`,
+      reqLine: { pending: n => `سألتوا أهل المناسبة عن ${Par(n)} زيادة · بالانتظار`, approved: n => `أهل المناسبة وافقوا على ${Par(n)} زيادة (انحسبوا)`, rejected: n => `أهل المناسبة ما وافقوا على ${Par(n)} زيادة` },
+      ago: m => m < 1 ? 'توّه' : m === 1 ? 'قبل دقيقة' : m === 2 ? 'قبل دقيقتين' : m <= 10 ? `قبل ${m} دقايق` : m < 60 ? `قبل ${m} دقيقة` : `قبل ${arN(Math.floor(m / 60), 'ساعة', 'ساعتين', 'ساعات', 'ساعة')}`,
+      okBanner: (nm, p) => `أهل المناسبة وافقوا: دخّلوا ${nm} (${p})`, okBannerSub: 'انحسبوا، لا تسجلون وصولهم مرة ثانية.', noBanner: nm => `أهل المناسبة ما وافقوا: ${nm}`, noBannerSub: 'بلّغوهم بلطف.', dismiss: 'إخفاء الرد',
+      err: 'ما مشى. شيكوا على النت وحاولوا مرة ثانية.', noEvents: 'هالإيميل مو مربوط بأي مناسبة.', noEventsH: 'ما في مناسبات', reason: 'السبب',
+      digitsHint: 'اكتبوا 4 أرقام أو أكثر', bigN: '7 أو أكثر', moreAns: n => `شوفوا باقي الردود (${n})`,
+      when: d => d === 0 ? '' : d < 0 ? 'هالمناسبة خلصت' : d === 1 ? 'المناسبة باجر' : d === 2 ? 'المناسبة بعد يومين' : d <= 10 ? `المناسبة بعد ${d} أيام` : `المناسبة بعد ${d} يوم`,
+      help: [
+        ['تسجيل وصول ضيف', 'اكتبوا جزء من اسمه، أو 4 أرقام أو أكثر من رقم تلفونه. بعدين اضغطوا الزر الكبير، ومكتوب عليه كم شخص بتسجلون وصوله.'],
+        ['ضيفين بنفس الاسم', 'إذا فيه ضيفين أو أكثر بأسماء متشابهة، بالعربي أو بالإنجليزي، يطلع لكم سطر فوق الأسماء ينبهكم. تأكدوا من رقم التلفون قبل لا تضغطون. واللي وصل من قبل يطلع أول، باللون الأصفر ومعاه وقت وصوله.'],
+        ['التراجع عن تسجيل الوصول', 'الشريط الأخضر يبيّن آخر وصول سجلتوه، ومعاه زر «تراجع»، لمدة دقيقتين أو لين تسجلون الوصول اللي بعده. وتحت «وصلوا توّهم» كل وصول سجلتوه من هالتلفون يبقى له «تراجع» لمدة 10 دقايق. بعدها قولوا لأهل المناسبة.'],
+        ['عددهم أكثر من المسموح', 'زيدوا العدد بزر + للعدد الصح. سجّلوا وصول المسموح لهم الحين، وبعدين اضغطوا «اسألوا أهل المناسبة عن +1» للباقين. ردّهم يطلع فوق بهالشاشة.'],
+        ['ضيف مو بالقائمة', 'جرّبوا رقم التلفون أو اسم العائلة أول. وإذا بعده مو موجود، اضغطوا «اسألوا أهل المناسبة».'],
+        ['أرقام التلفون', 'اضغطوا 123 جنب البحث عشان تطلع لوحة الأرقام، و«أ ب ت» عشان ترجعون للحروف.']
+      ] };
