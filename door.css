@@ -1,209 +1,216 @@
 /* =====================================================================
-   DOOR CHECK-IN: thumb-first, glanceable at night, one hand.
-   Builds on the body.app design system at the end of style.css; only
-   door-specific layout lives here.
+   DOOR CHECK-IN: thumb-first, loud and unmistakable, one hand.
+   Builds on the body.app design system in style.css (type scale, tones,
+   .panel, .tag, .undoband, .stepper, .rowlist); only door layout lives here.
+   Text never goes under 14px (--fs-s).
    ===================================================================== */
-body.app.door main{padding-top:6px;padding-bottom:180px}
+body.app.door main{padding-top:4px;padding-bottom:160px}
 body.app.door ::placeholder{color:var(--muted);opacity:.85}
+body.app.door [hidden]{display:none!important}
 
-/* ---------- masthead: one line, the event's name ---------- */
-.dmast{padding:8px 0 10px}
-.dmast-row{display:flex;align-items:center;gap:12px;min-width:0}
-.dmast .kicker{flex:1;min-width:0;margin:0 0 2px}
-.dmast .kicker span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ---------- masthead: the event's name on one line, and the live dot ---------- */
+.dmast{display:flex;align-items:center;gap:12px;min-width:0;padding:6px 0 4px}
+body.app .dmast-t{flex:1;min-width:0;margin:0;font-family:var(--display);font-weight:600;font-size:var(--fs-h);line-height:1.3;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.app .dmast-t .amp{font-weight:600;color:inherit}
+html[lang="ar"] body.app .dmast-t{font-weight:700;line-height:1.6}
 .dmast .live{flex:none;white-space:nowrap}
-body.app .dmast-t{flex:1;min-width:0;margin:0;font-family:var(--display);font-weight:600;font-size:28px;line-height:1.2;letter-spacing:-.02em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variation-settings:"opsz" 144}
-body.app .dmast-t .amp{font-style:italic;font-weight:400;color:var(--plum)}
-html[lang="ar"] body.app .dmast-t{font-family:var(--display);font-weight:700;line-height:1.5;letter-spacing:0}
-.ev-sw{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:13.5px;font-weight:600}
-.ev-sw .i{color:var(--plum)}
 
-/* ---------- sticky head: meter + search, always under the thumb's eye ---------- */
-.dhead{position:sticky;top:var(--dtb,var(--tb));z-index:15;margin:0 -16px;padding:12px 16px 14px;background:color-mix(in srgb,var(--bg) 94%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.dm-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px}
-.dm-n{display:flex;align-items:baseline;gap:6px;margin:0;min-width:0;white-space:nowrap}
-.dm-n b{font-family:var(--display);font-weight:600;font-size:36px;line-height:1;letter-spacing:-.02em;color:var(--ok);font-variation-settings:"opsz" 24}
-.dm-of{font-family:var(--display);font-size:21px;color:var(--muted);font-weight:500}
-.dm-l{font-size:15px;font-weight:600;color:var(--ink);margin-inline-start:4px;overflow:hidden;text-overflow:ellipsis}
-.dm-wait{min-height:44px;flex:none;background:var(--wait-bg);border-color:color-mix(in srgb,var(--wait-mark) 45%,transparent);color:var(--wait)}
-.dm-wait .d{animation:pulse 2s infinite;box-shadow:0 0 0 0 color-mix(in srgb,var(--wait-mark) 60%,transparent)}
-.dm-bar{position:relative;height:6px;border-radius:9px;background:color-mix(in srgb,var(--line) 70%,var(--surface));margin-top:8px;overflow:hidden}
-.dm-bar i{display:block;height:100%;width:0;border-radius:9px;background:var(--ok-mark);transition:width .7s cubic-bezier(.2,.8,.2,1)}
-.dm-bar.sheen::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.75) 50%,transparent 70%);transform:translateX(-100%);animation:dSheen .9s ease-out forwards}
-@keyframes dSheen{to{transform:translateX(100%)}}
+/* ---------- sticky head: meter, search, and the green band under it ---------- */
+.dhead{position:sticky;top:var(--dtb,var(--tb));z-index:15;margin:0 -16px;padding:8px 16px 12px;background:color-mix(in srgb,var(--bg) 94%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.dm-row{display:flex;align-items:center;justify-content:space-between;gap:8px 10px;min-height:44px;flex-wrap:wrap}
+.dm-n{display:flex;align-items:baseline;gap:8px;margin:0;min-width:0}
+.dm-n b{font-family:var(--display);font-weight:600;font-size:var(--fs-num);line-height:1;color:var(--ok);font-variant-numeric:lining-nums tabular-nums}
+.dm-l{font-size:var(--fs-b);font-weight:600;color:var(--ink)}
+.dm-row2{display:flex;align-items:center;justify-content:space-between;gap:6px 10px;flex-wrap:wrap;margin-top:4px}
+.dm-s{flex:0 1 auto;min-width:0;margin:0;font-size:var(--fs-s);color:var(--muted)}
+.dm-row2 .dm-wait{margin-inline-start:auto}
+.dm-wait{display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:0 10px 0 14px;flex:none;border-radius:var(--r-pill);border:1px solid var(--wait-mark);background:var(--wait-bg);color:var(--wait);font-size:var(--fs-s);font-weight:600;white-space:nowrap}
+.dm-wait .dot{width:10px;height:10px}
+.dm-bar{position:relative;height:6px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--line) 70%,var(--surface));margin-top:8px;overflow:hidden}
+.dm-bar i{display:block;height:100%;width:0;border-radius:var(--r-pill);background:var(--ok-mark);transition:width var(--m-panel) var(--ease)}
 
-/* the search: big, forgiving, with a real clear button */
-.dsearch{margin-top:12px}
-body.app .dsearch input[type=search]{min-height:56px;font-size:19px;border-radius:16px;padding:10px 52px;-webkit-appearance:none;appearance:none}
+/* the search: big, forgiving, with a real clear button and the 123 key */
+.dsearch-row{display:flex;gap:8px;margin-top:10px;align-items:stretch}
+.dsearch{flex:1;min-width:0}
+body.app .dsearch input[type=search]{width:100%;min-height:56px;font-size:var(--fs-name);border-radius:var(--r-m);padding:10px 52px;-webkit-appearance:none;appearance:none}
 body.app .dsearch input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;display:none}
 .dsearch>.i{width:22px;height:22px;inset-inline-start:16px}
 html[dir="rtl"] .dsearch input:placeholder-shown{direction:rtl;text-align:right}
 .qx{position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:0;background:transparent;color:var(--muted);display:inline-flex;align-items:center;justify-content:center}
-.qx:hover{color:var(--plum);background:var(--surface)}
+.kb{flex:none;width:60px;min-height:56px;border-radius:var(--r-m);border:1px solid var(--field-line);background:var(--card);color:var(--ink);font-family:var(--body);font-size:var(--fs-b);font-weight:600;font-variant-numeric:lining-nums}
+.kb[aria-pressed="true"]{box-shadow:inset 0 0 0 1.5px var(--ink);border-color:var(--ink)}
+html[lang="ar"] .kb{font-weight:500}
 
-/* typing a name: the meter tucks down to its thin bar so the results sit right under the search */
-#door.typing .dm-row{display:none}
+/* the green band after a check-in (App.undoBand, mounted here): stays readable above the keyboard */
+.undo-slot:empty{display:none}
+.undo-slot{margin-top:10px}
+body.app .undo-slot .undoband{box-shadow:none;animation:none}
+body.app .undoband .ub-t{display:flex;flex-direction:column;gap:1px;line-height:1.4}
+body.app .undoband .ub-t b{font-weight:700;overflow-wrap:anywhere}
+body.app .undoband .ub-s{font-size:var(--fs-s);font-weight:500;opacity:.95}
+body.app .undoband .ub-hint{font-weight:600}
+body.app .undoband .ub-undo{min-width:76px;min-height:48px}
+
+/* typing a name: the title and meter tuck away so the results sit right under the search */
+#door.typing .dmast,#door.typing .dm-row,#door.typing .dm-row2,#door.typing #myReqs,#door.typing .dlinks{display:none}
 #door.typing .dm-bar{margin-top:0}
-#door.typing #answers{display:none}
+#door.typing .answer:not(:first-child),#door.typing .an-more{display:none}
+#door.typing .answer .an-m span{display:none}
+/* with the keyboard open everything above the results is one line high: the band keeps its name and Undo,
+   the newest answer its first line, so the first result's button stays above the keyboard */
+#door.typing .undo-slot{margin-top:8px}
+body.app #door.typing .undoband{min-height:48px;padding-block:2px}
+body.app #door.typing .undoband .ub-s{display:none}
+body.app #door.typing .undoband .ub-t b{font-size:var(--fs-b);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.app #door.typing .undoband .ub-undo{min-height:44px}
+#door.typing #answers{margin-top:8px}
+body.app #door.typing .answer{padding-block:0;align-items:center}
+#door.typing .answer>.i{margin-top:0}
+#door.typing .answer .an-m b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#door.typing .answer .an-x{margin-top:0}
+#door.typing .dlist{margin-top:8px;gap:8px}
+#door.typing .dnote{line-height:1.3}
+html[lang="ar"] #door.typing .dnote{line-height:1.5}
 
-/* answers from the host: just under the search, in the page flow (they scroll away); newest two, the rest fold */
+/* answers from the hosts: just under the search; the newest stays up even while typing */
 #answers:empty{display:none}
 #answers{margin-top:12px}
 .an-more{margin:8px auto 0;display:flex}
 .an-more .i{transform:rotate(90deg)}
-.answer{display:flex;align-items:flex-start;gap:10px;margin-top:10px;padding:10px 4px 10px 14px;border-radius:14px;border:1px solid;animation:arriveIn .3s cubic-bezier(.2,.8,.2,1)}
-html[dir="rtl"] .answer{padding:10px 14px 10px 4px}
+body.app .answer{display:flex;align-items:flex-start;gap:10px;margin-top:10px;padding:10px 4px 10px 14px}
+html[dir="rtl"] body.app .answer{padding:10px 14px 10px 4px}
 .answer:first-child{margin-top:0}
 .answer>.i{margin-top:3px}
-.answer.ok{background:var(--ok-bg);border-color:var(--ok-mark);color:var(--ok)}
-.answer.no{background:var(--no-bg);border-color:var(--no-mark);color:var(--no)}
 .an-m{flex:1;min-width:0}
-.an-m b{display:block;color:var(--ink);font-weight:600;font-size:15.5px;line-height:1.4}
-.an-m span{display:block;font-size:13.5px;margin-top:2px}
+.an-m b{display:block;color:var(--ink);font-weight:600;font-size:var(--fs-b);line-height:1.45}
+.an-m span{display:block;font-size:var(--fs-s);margin-top:2px;color:var(--ink)}
 .an-m .nb{white-space:nowrap}
-.an-x{flex:none;width:44px;height:44px;margin-top:-6px;border:0;border-radius:50%;background:transparent;color:inherit;display:inline-flex;align-items:center;justify-content:center}
+.an-x{flex:none;width:44px;height:44px;margin-top:-6px;border:0;border-radius:50%;background:transparent;color:var(--ink);display:inline-flex;align-items:center;justify-content:center}
 
-/* ---------- guest rows: colour edge, arch monogram, seat dots ---------- */
-.dlist{display:flex;flex-direction:column;gap:10px;margin-top:14px}
-.drow{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;align-items:start;padding:14px 14px 14px 16px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);animation:rowIn .25s ease-out}
-html[dir="rtl"] .drow{padding:14px 16px 14px 14px}
-@keyframes rowIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-.drow::before{content:"";position:absolute;inset-block:14px;inset-inline-start:-1px;width:4px;border-start-end-radius:4px;border-end-end-radius:4px;background:var(--edge,var(--line))}
-.drow.st-open{--edge:var(--ok-mark)}
-.drow.st-part{--edge:var(--wait-mark)}
-.drow.st-wait{--edge:var(--gold)}
-.drow.st-no{--edge:var(--no-mark)}
-.drow.st-all{--edge:var(--field-line);background:color-mix(in srgb,var(--card) 55%,var(--bg));box-shadow:none}
-.drow.st-all .d-name,.drow.st-all .mono{opacity:.72}
-.drow .mono{margin-top:1px}
-.d-main{min-width:0}
-.d-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-.d-name{font-size:19px;font-weight:600;line-height:1.35;color:var(--ink);overflow-wrap:anywhere;min-width:0}
-.d-top .pill{flex:none;margin-top:2px}
-.d-sub{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;margin-top:5px;font-size:14.5px;color:var(--muted)}
-html[lang="ar"] .d-sub{font-size:14.5px}
-.d-count{font-weight:700;color:var(--ink);font-size:15px}
-.d-ph{letter-spacing:.01em}
+/* ---------- results ---------- */
+.dlist{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.dnote{display:flex;align-items:center;gap:8px;margin:2px 2px 0;font-size:var(--fs-b);font-weight:600;color:var(--ink);line-height:1.45}
+.dnote.tone-wait{color:var(--wait)}
+.drow{position:relative;display:flex;flex-direction:column;gap:6px;padding:14px 16px 16px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-l);box-shadow:var(--shadow)}
+.d-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;min-width:0}
+.d-name{font-size:var(--fs-name);font-weight:600;line-height:1.35;color:var(--ink);overflow-wrap:anywhere;min-width:0}
+.d-ph{flex:none;font-size:var(--fs-s);color:var(--muted);font-weight:500}
+.d-sub{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:0;font-size:var(--fs-b);color:var(--ink)}
+.d-count{font-weight:600}
+.d-side{font-size:var(--fs-s);color:var(--muted)}
+.d-req{margin:0;font-size:var(--fs-s);font-weight:600}
+/* already in: amber, full contrast, with the time they came */
+body.app .drow.st-all{box-shadow:none}
+.d-already{margin:0;font-size:var(--fs-name);font-weight:700;line-height:1.4}
+.drow.st-all .d-sub{font-size:var(--fs-s);color:var(--ink)}
+.tm{white-space:nowrap;unicode-bidi:isolate}
+.d-sub .nw{white-space:nowrap}
 /* the matched letters: a gold wash with an underline, readable on night cards too */
-body.app .drow mark{background:color-mix(in srgb,var(--gold) 30%,transparent);color:var(--ink);box-shadow:inset 0 -2px 0 var(--gold);border-radius:3px 3px 0 0;padding:0 1px}
-.seatdots{display:inline-flex;align-items:center;gap:4px}
-.seatdots i{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--muted);flex:none}
-.seatdots i.on{background:var(--ok-mark);border-color:var(--ok-mark)}
-.seatdots i.x{background:var(--wait-mark);border-color:var(--wait-mark)}
-.seatdots em{font-style:normal;font-size:12.5px;font-weight:600;color:var(--muted);margin-inline-start:2px}
-body.app .drow .gi-why{grid-column:auto;margin:8px 0 0;font-size:14px}
+body.app .drow mark{background:color-mix(in srgb,var(--gold) 26%,transparent);color:var(--ink);box-shadow:inset 0 -2px 0 var(--gold);border-radius:0;padding:0 1px}
+body.app .drow .gi-why{margin:0;font-size:var(--fs-s);padding:6px 10px}
 
-/* actions: stepper | count-carrying button */
-.door-act{grid-column:1/-1;display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;margin-top:10px;align-items:center}
+/* actions: stepper | count-carrying button; over the limit adds a second row */
+.door-act{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;margin-top:6px;align-items:center}
 .door-act.one{grid-template-columns:minmax(0,1fr)}
-.door-act.one .d-more{justify-self:start}
-body.app .door-act .btn.ci,body.app .door-act .btn.block{min-height:54px;font-size:17px;padding:8px 16px;border-radius:999px}
-body.app .btn.ci{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-flex;transition:background-color .2s,color .2s,border-color .2s,transform .15s}
-body.app .btn.ci.ask{background:var(--wait-bg);color:var(--wait);border-color:var(--wait-mark)}
-body.app .btn.ci.ask::before{content:"";width:18px;height:18px;flex:none;background:currentColor;-webkit-mask:var(--bell) center/contain no-repeat;mask:var(--bell) center/contain no-repeat;--bell:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z'/%3E%3Cpath d='M10 20a2 2 0 0 0 4 0'/%3E%3C/svg%3E")}
+body.app .door-act .btn{min-height:56px;font-size:var(--fs-name);padding:8px 14px;line-height:1.3}
+body.app .btn.ci{white-space:normal;text-align:center;overflow-wrap:anywhere}
 body.app .btn.ci.retry{background:var(--no-bg);color:var(--no);border-color:var(--no-mark)}
 body.app .btn.ci[aria-busy="true"]{opacity:1}
-.door-act .stepper button{font-family:var(--body);font-weight:500}
+body.app .drow.st-all .btn.secondary{background:var(--card)}
+.door-act .stepper{height:56px;box-sizing:border-box}
+.door-act .stepper button{font-family:var(--body);font-weight:500;width:46px;height:46px}
 .door-act .stepper button:active{background:var(--accent-soft)}
-.door-act .stepper output{color:var(--ink)}
+.door-act .stepper output{color:var(--ink);min-width:34px}
 #list.is-busy .drow .btn:not([aria-busy="true"]),#list.is-busy .stepper{opacity:.55;pointer-events:none}
 
 @media (min-width:640px){
-  .drow{grid-template-columns:auto minmax(0,1fr) auto;align-items:center}
-  .door-act{grid-column:3;grid-row:1;margin-top:0;min-width:300px}
-  .door-act.one{min-width:200px}
-  .door-act.one .d-more{justify-self:end}
-  .d-top{justify-content:flex-start}
+  .door-act{max-width:440px}
+}
+/* narrow phones (under 375px): the stepper sits on its own line so the Check-in pill keeps one or two lines */
+@media (max-width:374px){
+  .door-act{grid-template-columns:minmax(0,1fr)}
+  .door-act .stepper{justify-self:start}
 }
 
 /* ---------- idle: just arrived + hint ---------- */
-body.app .d-cap{margin:22px 4px 10px;line-height:1.4}
-.rlist{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
-.rrow{display:flex;align-items:center;gap:12px;width:100%;min-height:60px;padding:10px 14px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);text-align:start}
-.rrow:last-child{border-bottom:0}
-.rrow:hover{background:var(--surface)}
-.rr-m{flex:1;min-width:0;display:flex;flex-direction:column}
-.rr-m b{font-weight:600;font-size:16.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rr-s{font-size:13.5px;color:var(--muted)}
-.rr-t{flex:none;font-size:13.5px;color:var(--muted);font-weight:600}
-.rrow .mono{width:32px;height:38px;font-size:15px}
+body.app .d-cap{margin:22px 4px 10px;font-size:var(--fs-s);line-height:1.4}
+html[lang="ar"] body.app h2.d-cap{font-family:var(--body);font-weight:600;line-height:1.5}
+body.app .rlist{box-shadow:var(--shadow)}
+/* a row = the name (tap to find them again) and, for 10 minutes after this phone checked them in, Undo */
+body.app .rowlist>.rrow{padding:0;gap:0}
+body.app .rr-find{flex:1;min-width:0;display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 16px;border:0;background:none;color:var(--ink);text-align:start;font:inherit}
+.rrow .row-main{display:flex;flex-direction:column}
+.rrow .row-main b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.app .rrow .rr-undo{flex:none;min-height:44px;margin-inline-end:12px;padding:0 16px}
 .d-tip{margin:8px 4px 0}
-.didle{text-align:center;color:var(--muted);padding:34px 18px 10px}
-.didle p{margin:0 auto;max-width:300px}
-.d-arch{width:48px;height:60px;display:block;margin:0 auto 14px;fill:none;stroke:var(--gold);stroke-width:1.4;stroke-linejoin:round;opacity:.8}
-.d-awake{display:inline-flex !important;align-items:center;gap:8px;margin-top:12px !important;font-size:13px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card)}
+.didle{text-align:center;color:var(--muted);padding:28px 18px 6px}
+.didle p{margin:0 auto;max-width:320px}
+.d-awake{display:inline-flex !important;align-items:center;gap:8px;margin-top:12px !important;font-size:var(--fs-s);padding:6px 12px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--card)}
 
 /* not on the list */
-.dnf{text-align:center;padding:22px 18px 18px;background:var(--card);border:1px dashed var(--field-line);border-radius:var(--radius)}
-.dnf-h{margin:0;font-family:var(--display);font-weight:600;font-size:23px;color:var(--ink)}
-html[lang="ar"] .dnf-h{font-family:var(--display);font-weight:700}
-.dnf-s{margin:4px 0 16px;color:var(--muted);overflow-wrap:anywhere}
-body.app .dnf .btn{min-height:54px;font-size:16.5px}
+.dnf{text-align:center;padding:20px 18px 18px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-l);box-shadow:var(--shadow)}
+.dnf-h{margin:0;font-family:var(--display);font-weight:600;font-size:var(--fs-h);color:var(--ink)}
+html[lang="ar"] .dnf-h{font-weight:700}
+.dnf-s{margin:4px 0 16px;color:var(--ink);overflow-wrap:anywhere}
 body.app .dnf .btn{height:auto;padding:12px 20px;line-height:1.35}
 body.app .dnf .btn span{min-width:0;overflow-wrap:anywhere;text-align:center}
 .dmore{display:flex;justify-content:center;margin-top:16px}
-.dmore[hidden]{display:none}
 .dhint{padding-top:22px}
+.dlinks{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 12px;margin-top:22px}
+body.app .dlinks .btn{color:var(--ink)}
 
-/* ---------- arrival card (the .arrive arch) ---------- */
-.arrive::before{content:"";position:absolute;inset:7px;border:1px solid currentColor;opacity:.22;border-radius:153px 153px 15px 15px;pointer-events:none}
-.arrive>*{position:relative}
-.arrive .a-k{margin:0 0 2px;font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase}
-html[lang="ar"] .arrive .a-k{letter-spacing:0;font-size:13.5px}
-.arrive b{overflow-wrap:anywhere;line-height:1.25}
-.arrive .a-s{margin:6px 0 0;font-size:16px;color:var(--ink)}
-.arrive .a-ms{display:inline-flex;align-items:center;gap:6px;margin:10px 0 0;padding:4px 12px;border-radius:999px;background:var(--card);color:var(--ok);font-size:14px;font-weight:600}
-.arrive .a-row{display:flex;gap:10px;justify-content:center;margin-top:16px}
-.arrive .a-row .btn{flex:1;min-width:0;padding-inline:16px}
-.arrive .a-row .btn.ghost{flex:none}
-.arrive .a-t{position:absolute;inset-inline:40px;bottom:9px;height:2px;border-radius:2px;background:currentColor;opacity:.35;transform-origin:left;animation:dShrink linear forwards}
-html[dir="rtl"] .arrive .a-t{transform-origin:right}
-.arrive.hold .a-t{animation-play-state:paused}
-.arrive.warn{background:var(--wait-bg);border-color:var(--wait-mark);color:var(--wait)}
-.arrive.bad{background:var(--no-bg);border-color:var(--no-mark);color:var(--no)}
-.arrive.warn .tick path,.arrive.bad .tick path{stroke-dasharray:none;stroke-dashoffset:0;animation:none}
-.arrive.out{opacity:0;transform:translateY(16px);transition:opacity .18s,transform .18s}
-@keyframes dShrink{to{transform:scaleX(0)}}
+/* a notice that waits for Close: over the limit (another door got there first), not found */
+.dnotice{margin-top:12px}
+.dn-k{margin:0;font-size:var(--fs-b);font-weight:700}
+.dnotice b{display:block;margin-top:2px;overflow-wrap:anywhere}
+.dn-s{margin:4px 0 0;color:var(--ink)}
+.dn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.dn-row .btn{flex:1 1 auto}
+.dn-row .btn.quiet{flex:none}
 
 /* ---------- requests ---------- */
 #myReqs{scroll-margin-top:calc(var(--dtb,var(--tb)) + 190px)}
-.rq{display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 14px;border-bottom:1px solid var(--line)}
-.rq:last-child{border-bottom:0}
-.rq-m{flex:1;min-width:0}
-.rq-m b{display:block;font-weight:600;font-size:16px;overflow-wrap:anywhere}
-.rq-s{display:flex;flex-wrap:wrap;gap:2px 10px;font-size:13.5px;color:var(--muted)}
-.rq .pill{flex:none;display:inline-flex;align-items:center}
+.rq-s{display:flex;flex-wrap:wrap;gap:2px 10px;font-size:var(--fs-s);color:var(--muted)}
+.rq b{display:block;overflow-wrap:anywhere}
 .dots{display:inline-flex;gap:3px;margin-inline-start:6px}
-.dots i{width:4px;height:4px;border-radius:50%;background:currentColor;animation:dBlink 1.2s infinite}
-.dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
-@keyframes dBlink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.dots i{width:4px;height:4px;border-radius:50%;background:currentColor}
 .rdone{margin-top:10px}
-body.app .rdone>summary{list-style:none;gap:8px;padding:0 4px;font-weight:600;font-size:14px}
+body.app .rdone>summary{list-style:none;gap:8px;padding:0 4px;font-weight:600;font-size:var(--fs-s);color:var(--ink)}
 .rdone>summary::-webkit-details-marker{display:none}
-.rdone>summary .i{transform:rotate(90deg);transition:transform .2s}
+.rdone>summary .i{transform:rotate(90deg);transition:transform var(--m-in) var(--ease)}
 .rdone[open]>summary .i{transform:rotate(-90deg)}
 
-/* ---------- ask-the-host sheet ---------- */
-.ask-who{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--surface);margin:4px 0 6px}
-.ask-who b{display:block;font-size:18px;font-weight:600;overflow-wrap:anywhere}
-.ask-who div>span{display:block;font-size:14px;color:var(--muted)}
+/* ---------- ask-the-hosts sheet ---------- */
+.ask-who{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:var(--r-m);background:var(--surface);margin:4px 0 6px}
+.ask-who b{overflow-wrap:anywhere}
 #askBody label.f{margin-top:16px}
-.f-cap{margin:18px 0 8px;color:var(--muted);font-weight:600;font-size:12.5px;letter-spacing:.02em}
-html[lang="ar"] .f-cap{font-size:14px;letter-spacing:0}
+.f-cap{margin:18px 0 8px;color:var(--muted);font-weight:600;font-size:var(--fs-s)}
 .pchips{display:flex;gap:6px}
-.pchips button{flex:1 1 0;min-width:44px;max-width:56px;aspect-ratio:1;min-height:44px;padding:0;border-radius:50%;border:1px solid var(--field-line);background:var(--card);color:var(--ink);font-family:var(--display);font-size:21px;font-weight:600;display:inline-flex;align-items:center;justify-content:center}
-.pchips button[aria-pressed="true"]{background:var(--plum);border-color:var(--plum);color:var(--plum-ink)}
-.pchips button.big{font-size:17px;letter-spacing:-.01em}
+.pchips button{flex:1 1 0;min-width:44px;max-width:56px;aspect-ratio:1;min-height:44px;padding:0;border-radius:50%;border:1px solid var(--field-line);background:var(--card);color:var(--ink);font-family:var(--body);font-size:var(--fs-name);font-weight:600;display:inline-flex;align-items:center;justify-content:center}
+.pchips button[aria-pressed="true"]{background:var(--card);border-color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.pchips button.big{font-size:var(--fs-b)}
 .pbig{margin-top:10px}
-.pbig[hidden]{display:none}
 .pbig .stepper button{font-family:var(--body);font-weight:500}
 .pbig .stepper output{color:var(--ink);min-width:56px}
 .rchips .fchip{min-height:44px}
-body.app .xsend{margin-top:22px;min-height:56px;font-size:17px}
+body.app .xsend{margin-top:22px}
 
-/* ---------- menu extras ---------- */
-.menu-cap{margin:16px 6px 0;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-html[lang="ar"] .menu-cap{letter-spacing:0;font-size:13px}
-.menu-nav button[aria-current="true"]{color:var(--plum)}
-.menu-nav .menu-ev{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-html[lang="ar"] body.app h2.d-cap{font-family:var(--body);font-weight:600;line-height:1.5}
+/* ---------- event switch sheet ---------- */
+body.app .evpick .row{width:100%;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);text-align:start;font:inherit}
+body.app .evpick .row:first-child{border-top:0}
+body.app .evpick .row[aria-current="true"]{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.evpick .row-main bdi{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- quiet feedback on the door's own controls (the shared .btn/.row/.chip rules live in style.css) ---------- */
+body.app :is(.kb,.pchips button,.dm-wait,.qx,.an-x){transition:transform var(--m-out) var(--ease),background-color var(--m-out) var(--ease),border-color var(--m-out) var(--ease),color var(--m-out) var(--ease)}
+@media (hover:hover) and (pointer:fine){
+  body.app :is(.kb,.pchips button):hover{border-color:var(--ink);transition-duration:var(--m-in)}
+  body.app .dm-wait:hover{background:color-mix(in srgb,var(--wait) 10%,var(--wait-bg));transition-duration:var(--m-in)}
+  body.app :is(.qx,.an-x):hover{background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink);transition-duration:var(--m-in)}
+}
+body.app :is(.kb,.pchips button,.dm-wait,.an-x):active{transform:scale(.97);transition-duration:var(--m-press)}
+body.app .qx:active{transform:translateY(-50%) scale(.97);transition-duration:var(--m-press)}
+@media (prefers-reduced-motion:reduce){
+  body.app :is(.kb,.pchips button,.dm-wait,.an-x):active{transform:none}
+  body.app .qx:active{transform:translateY(-50%)}
+}

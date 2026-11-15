@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>Admin</title>
+<title>Admin · Sina</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -15,8 +15,8 @@
 <script defer src="core.js"></script>
 </head>
 <body class="app adm">
-<div class="topbar"><a class="brand" href="host.html" aria-label="Home" data-i18n-aria="home"></a><span class="tb-title" id="tbTitle"></span><button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu"><i class="i i-menu"></i><span class="menu-l">Menu</span></button></div>
-<dialog class="sheet" id="menu" aria-labelledby="menuH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="menuH">Menu</h2><button class="sheet-x" data-close aria-label="Close"><i class="i i-x"></i></button></div><nav class="menu-nav" id="menuNav"></nav><div class="menu-row"><span data-i18n="colours">Colours</span><span class="themesw" id="themeSw"></span></div><div class="menu-foot"><button class="btn ghost" id="lang" data-i18n="other">العربية</button><button class="btn ghost" id="out" hidden data-i18n="out">Log out</button></div></dialog>
+<div class="topbar"><a class="brand" id="brand" href="admin.html" aria-label="All events" data-i18n-aria="back"></a><span class="tb-title" id="tbTitle"></span><button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu"><i class="i i-menu"></i><span class="menu-l">Menu</span></button></div>
+<dialog class="sheet" id="menu" aria-labelledby="menuH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="menuH">Menu</h2><button class="sheet-x" data-close aria-label="Close"><i class="i i-x"></i></button></div><div class="menu-row"><span data-i18n="colours">Colours</span><span class="themesw" id="themeSw"></span></div><button class="btn ghost" id="lang" data-i18n="other">العربية</button><button class="btn ghost" id="out" hidden data-i18n="out">Log out</button></dialog>
 <dialog class="sheet" id="newSheet" aria-labelledby="newH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="newH" data-i18n="newH">New event</h2><button class="sheet-x" data-close aria-label="Close" data-i18n-aria="close"><i class="i i-x"></i></button></div><div id="newBody"></div></dialog>
 <main>
   <div id="auth"></div>
@@ -24,175 +24,161 @@
 
     <!-- ===== home: every event, upcoming first ===== -->
     <div id="home">
-      <header class="mast home-mast" id="homeMast">
-        <p class="mast-k" data-i18n="homeK">The back office</p>
-        <h1 class="mast-t" data-i18n="homeT">Events</h1>
-        <p class="mast-v" id="homeSub"></p>
-        <div class="mast-row"><button class="btn" id="newEv"><i class="i i-plus"></i><span data-i18n="newEv">New event</span></button></div>
+      <header class="home-head" id="homeMast">
+        <div class="hh-t"><h1 class="t-title" data-i18n="homeT">Events</h1><p class="t-small" id="homeSub"></p></div>
+        <button class="btn primary" id="newEv"><i class="i i-plus"></i><span data-i18n="newEv">New event</span></button>
       </header>
       <div class="searchbox" id="searchWrap" hidden><i class="i i-search"></i><input type="search" id="evSearch" dir="auto" autocomplete="off" data-i18n-ph="searchPh" data-i18n-aria="searchPh" placeholder="Search events" aria-label="Search events"></div>
       <div id="evlist"></div>
     </div>
 
-    <!-- ===== one event: masthead, step rail, five steps ===== -->
     <div id="evArea" hidden>
-      <div class="ev-top">
-        <button class="btn quiet small back" id="toList"><i class="i i-chev"></i><span data-i18n="back">All events</span></button>
-        <header class="mast" id="mast">
-          <p class="mast-k" id="mastK"></p>
-          <h1 class="mast-t" id="mastT" dir="auto"></h1>
-          <div class="mast-v2"><p class="mast-v" id="mastV" hidden></p><span class="countdown" id="mastCd" hidden></span></div>
-          <p class="copied" id="copiedNote" hidden></p>
-          <div class="mast-row mast-acts">
-            <a class="btn small ghost" id="openHost" href="#"><i class="i i-home"></i><span data-i18n="openHost">Dashboard</span></a>
-            <a class="btn small ghost" id="testInv" href="#" target="_blank" rel="noopener" hidden><i class="i i-env"></i><span data-i18n="testInv">Guest page</span></a>
-            <a class="btn small ghost" id="openDoor" href="door.html"><i class="i i-door"></i><span data-i18n="openDoor">Door</span></a>
-          </div>
+      <!-- ===== one event: progress first, then the setup checklist ===== -->
+      <div id="ovView">
+        <header class="evhead" id="mast">
+          <button type="button" class="btn quiet small back" id="toList"><i class="i i-chev"></i><span data-i18n="back">All events</span></button>
+          <h1 class="t-title evname" id="mastT" dir="auto"></h1>
+          <p class="t-small evwhen" id="mastK"></p>
         </header>
+        <div id="ovSave" aria-live="polite"></div>
+        <div class="panel pgpanel" id="progress" aria-live="polite"></div>
+        <div class="panel nextcard" id="nextCard"></div>
+        <h2 class="sect" data-i18n="setupH">Setup</h2>
+        <div class="rowlist checklist" id="checklist"></div>
+        <h2 class="sect" data-i18n="openH">Other screens</h2>
+        <div class="rowlist evlinks">
+          <a class="row lrow" id="openHost" href="#"><i class="i i-home"></i><span class="row-main"><span class="t-name" data-i18n="openHost">Host dashboard</span><span class="t-small" data-i18n="openHostP">Replies and guests</span></span><i class="i i-chev"></i></a>
+          <a class="row lrow" id="openDoor" href="door.html"><i class="i i-door"></i><span class="row-main"><span class="t-name" data-i18n="openDoor">Door screen</span><span class="t-small" data-i18n="openDoorP">Checking guests in</span></span><i class="i i-chev"></i></a>
+          <a class="row lrow" id="testInv" href="#" target="_blank" rel="noopener" hidden><i class="i i-env"></i><span class="row-main"><span class="t-name" data-i18n="testInv">Guest page</span><span class="t-small" data-i18n="testInvP">The invitation as the first guest sees it</span></span><i class="i i-chev"></i></a>
+        </div>
       </div>
 
-      <nav class="rail" id="rail" aria-label="Steps" data-i18n-aria="stepsL"></nav>
+      <!-- ===== one setup step at a time ===== -->
+      <div id="stepView" hidden>
+        <header class="stephead" id="stepHead">
+          <button type="button" class="iconbtn" id="toOv" aria-label="Back" data-i18n-aria="toOv"><i class="i i-chev"></i></button>
+          <div class="sh-t"><p class="t-small" id="stepK"></p><h1 class="t-title" id="stepT"></h1></div>
+          <div class="savestate" id="saveState" aria-live="polite"></div>
+        </header>
+        <p class="copied" id="copiedNote" hidden></p>
 
-      <div class="ev-body">
-        <!-- 01 details -->
-        <section class="step" id="s-details" data-s="details" aria-labelledby="h-details">
-          <header class="step-h"><span class="step-n" aria-hidden="true">01</span><div><h2 class="step-t" id="h-details" data-i18n="hDetails">Event details</h2><p class="step-state" id="st-details"></p></div></header>
+        <!-- 1 details -->
+        <section class="step" id="s-details" data-s="details">
           <form id="detailsForm" novalidate onsubmit="return false">
-            <fieldset class="fs">
-              <legend class="kicker" data-i18n="lgEvent">The event</legend>
-              <div class="fgrid">
-                <div class="fld full"><label class="f" for="fTitle" data-i18n="fTitle">Event name (shown to the host)</label><input type="text" id="fTitle" dir="auto" data-i18n-ph="fTitlePh" placeholder="Ghala’s bridal shower"><p class="ferr" id="err-fTitle" hidden></p></div>
+            <div class="fld"><label class="f" for="fTitle" data-i18n="fTitle">Event name</label><input type="text" id="fTitle" dir="auto" data-i18n-ph="fTitlePh" placeholder="Ghala’s bridal shower"><p class="help guestq" id="guestsRead"></p><p class="ferr" id="err-fTitle" hidden></p></div>
+            <div class="pair">
+              <div class="fld"><label class="f" for="fDate" data-i18n="date">Date</label><input type="date" id="fDate"></div>
+              <div class="fld"><label class="f" for="fTime" data-i18n="time">Time</label><input type="time" id="fTime"></div>
+            </div>
+            <p class="ferr" id="err-fDate" hidden></p>
+            <div class="fld"><label class="f" for="fVenue" data-i18n="venue">Venue</label><input type="text" id="fVenue" dir="auto"><p class="ferr" id="err-fVenue" hidden></p></div>
+            <div class="fld"><span class="f lbl" id="langL" data-i18n="fLangL">Guests read the invitation in</span>
+              <div class="seg fill" id="langSeg" role="group" aria-labelledby="langL"><button type="button" data-l="ar" lang="ar">العربية</button><button type="button" data-l="en" lang="en">English</button></div>
+              <select id="fLang" hidden tabindex="-1" aria-hidden="true"><option value="en">English</option><option value="ar">العربية</option></select>
+            </div>
+            <details class="more" id="moreOpts">
+              <summary><span class="more-t"><span class="t-name" data-i18n="moreH">More options</span><span class="t-small" data-i18n="moreP">End time, map link, card text, package size, invite link</span></span><i class="i i-chev" aria-hidden="true"></i></summary>
+              <div class="more-body">
                 <div class="pair">
+                  <div class="fld"><label class="f" for="fEnd" data-i18n="endT">Ends at (optional)</label><input type="time" id="fEnd"></div>
                   <div class="fld"><label class="f" for="fType" data-i18n="fType">Type</label><select id="fType">
                     <option value="wedding" data-i18n="tWedding">Wedding</option><option value="milka" data-i18n="tMilka">Milka</option><option value="engagement" data-i18n="tEngagement">Engagement</option><option value="ghabga" data-i18n="tGhabga">Ghabga</option>
                     <option value="graduation" data-i18n="tGraduation">Graduation</option><option value="birthday" data-i18n="tBirthday">Birthday</option><option value="baby" data-i18n="tBaby">Baby shower</option><option value="corporate" data-i18n="tCorporate">Company event</option><option value="other" data-i18n="tOther">Other</option></select></div>
-                  <div class="fld"><label class="f" for="fLang" data-i18n="fLang">Guest page language</label><select id="fLang"><option value="en" data-i18n="optEn">English</option><option value="ar" data-i18n="optAr">Arabic</option></select></div>
                 </div>
-                <div class="fld full"><label class="f" for="fLimit" data-i18n="fLimit">Invites in the package</label><input type="number" id="fLimit" min="0" inputmode="numeric"><p class="help" data-i18n="fLimitHelp">Leave empty for no limit.</p></div>
-              </div>
-            </fieldset>
-            <fieldset class="fs">
-              <legend class="kicker" data-i18n="lgCard">On the card</legend>
-              <div class="fgrid">
-                <div class="fld full"><label class="f" for="fHead" data-i18n="fHead">Big title on the card</label><input type="text" id="fHead" dir="auto" placeholder="ليلة غلا"></div>
-                <div class="fld full"><label class="f" for="fLine" data-i18n="line">Invite line</label><input type="text" id="fLine" dir="auto" data-i18n-ph="linePh" placeholder="Join us for Ghala’s bridal shower"></div>
-                <div class="fld full"><label class="f" for="fNote" data-i18n="note">Note on the invite page (optional)</label><textarea id="fNote" rows="3" dir="auto" data-i18n-ph="notePh"></textarea><p class="help" data-i18n="noteHelp">The first line shows highlighted. Put anything extra on the next lines.</p></div>
-              </div>
-            </fieldset>
-            <fieldset class="fs">
-              <legend class="kicker" data-i18n="lgWhen">When &amp; where</legend>
-              <div class="fgrid">
-                <div class="fld full"><label class="f" for="fDate" data-i18n="date">Date</label><input type="date" id="fDate"></div>
-                <div class="pair">
-                  <div class="fld"><label class="f" for="fTime" data-i18n="from">From</label><input type="time" id="fTime"></div>
-                  <div class="fld"><label class="f" for="fEnd" data-i18n="toOpt">To (optional)</label><input type="time" id="fEnd"></div>
+                <div class="fld"><label class="f" for="fMap" data-i18n="map">Google Maps link</label><input type="url" id="fMap" dir="ltr" inputmode="url"></div>
+                <div class="fld"><label class="f" for="fHead" data-i18n="fHead">Big title on the card</label><input type="text" id="fHead" dir="auto" placeholder="ليلة غلا"></div>
+                <div class="fld"><label class="f" for="fLine" data-i18n="line">Invite line</label><input type="text" id="fLine" dir="auto" data-i18n-ph="linePh" placeholder="Join us for Ghala’s bridal shower"></div>
+                <div class="fld"><label class="f" for="fNote" data-i18n="note">Note on the invite page (optional)</label><textarea id="fNote" rows="3" dir="auto" data-i18n-ph="notePh"></textarea><p class="help" data-i18n="noteHelp">The first line shows highlighted. Put anything extra on the next lines.</p></div>
+                <div class="fld"><label class="f" for="fLimit" data-i18n="fLimit">People in the package</label><input type="number" id="fLimit" min="0" inputmode="numeric"><p class="help" data-i18n="fLimitHelp">Leave empty for no limit.</p></div>
+                <div class="fld">
+                  <label class="f" for="fCode" data-i18n="fCode">Invite link name</label>
+                  <input type="text" id="fCode" dir="ltr" maxlength="40" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="off" aria-describedby="codeHint">
+                  <p class="codehint" id="codeHint" aria-live="polite"></p>
+                  <p class="ferr" id="err-fCode" hidden></p>
+                  <button type="button" class="fchip slug" id="slugBtn" hidden></button>
+                  <div class="urlrow"><bdi dir="ltr" class="urlline" id="codeLink"></bdi><button type="button" class="btn small secondary" id="copyLink" hidden><i class="i i-copy"></i><span data-i18n="copy">Copy the link</span></button></div>
                 </div>
-                <div class="fld full"><label class="f" for="fVenue" data-i18n="venue">Venue</label><input type="text" id="fVenue" dir="auto"></div>
-                <div class="fld full"><label class="f" for="fMap" data-i18n="map">Google Maps link</label><input type="url" id="fMap" dir="ltr" inputmode="url"></div>
               </div>
-            </fieldset>
-            <fieldset class="fs">
-              <legend class="kicker" data-i18n="lgLink">Invite link</legend>
-              <div class="fld full">
-                <label class="f" for="fCode" data-i18n="fCode">Link name</label>
-                <div class="prefixed" dir="ltr"><span class="pre" aria-hidden="true">invite.html?e=</span><input type="text" id="fCode" dir="ltr" maxlength="40" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="off" placeholder="laylatghala" aria-describedby="codeHint"></div>
-                <p class="codehint" id="codeHint" aria-live="polite"></p>
-                <p class="ferr" id="err-fCode" hidden></p>
-                <button type="button" class="fchip slug" id="slugBtn" hidden></button>
-                <div class="urlrow"><bdi dir="ltr" class="urlline" id="codeLink"></bdi><button type="button" class="btn small ghost" id="copyLink" hidden><i class="i i-copy"></i><span data-i18n="copy">Copy</span></button></div>
-              </div>
-            </fieldset>
+            </details>
           </form>
         </section>
 
-        <p class="locked-hint" id="needSave" hidden><i class="i i-arch"></i><span data-i18n="lockedHint">Save the details to open the next steps.</span></p>
+        <!-- 2 team -->
+        <section class="step" id="s-team" data-s="team" hidden>
+          <p class="t-small lead" data-i18n="teamLead">The hosts see the replies and the guest list. The door team only checks guests in.</p>
+          <div class="rowlist members" id="members"></div>
+          <div id="memNote" aria-live="polite"></div>
+          <div class="panel flat addmem">
+            <h2 class="t-name" data-i18n="addSomeone">New team member</h2>
+            <div class="seg fill" id="roleSeg" role="group" aria-label="Access" data-i18n-aria="access">
+              <button type="button" data-role="host" aria-pressed="true"><i class="i i-person sm"></i><span data-i18n="roleHost">Hosts</span></button>
+              <button type="button" data-role="door" aria-pressed="false"><i class="i i-door sm"></i><span data-i18n="roleDoor">Door team</span></button>
+            </div>
+            <p class="help" id="roleHelp"></p>
+            <div class="fld" id="mSideWrap"><span class="f lbl" id="mSideL" data-i18n="mSide">Only sees guests from</span><div class="fchips sidechips" id="mSideChips" role="group" aria-labelledby="mSideL"></div><input type="text" id="mSide" dir="auto" autocomplete="off" data-i18n-ph="mSidePh" data-i18n-aria="mSideNew" placeholder="Another side, e.g. Groom’s mum" aria-label="Another side"><p class="help" data-i18n="mSideHelp">With a side, they only see and add that side’s guests.</p></div>
+            <div class="fld" id="mUntilWrap" hidden><label class="f" for="mUntil" data-i18n="mUntil">Access ends</label><input type="date" id="mUntil"><p class="help" data-i18n="mUntilHelp">At midnight Kuwait time on this day.</p></div>
+            <div class="fld"><label class="f" for="mEmail" data-i18n="email">Email</label><div class="inrow"><input type="email" id="mEmail" dir="ltr" inputmode="email" autocapitalize="none" spellcheck="false" autocomplete="off" placeholder="name@example.com"><button type="button" class="btn secondary" id="addMem" data-i18n="add">Add to the team</button></div></div>
+          </div>
+        </section>
 
-        <div id="afterSave">
-          <!-- 02 team -->
-          <section class="step" id="s-team" data-s="team" aria-labelledby="h-team">
-            <header class="step-h"><span class="step-n" aria-hidden="true">02</span><div><h2 class="step-t" id="h-team" data-i18n="hTeam">Hosts and door team</h2><p class="step-state" id="st-team"></p></div></header>
-            <div class="glist members" id="members"></div>
-            <div id="memNote"></div>
-            <div class="addmem">
-              <p class="kicker" data-i18n="addSomeone">Add someone</p>
-              <div class="seg fill" id="roleSeg" role="group" aria-label="Access" data-i18n-aria="access">
-                <button type="button" data-role="host" aria-pressed="true"><i class="i i-person sm"></i><span data-i18n="roleHost">Host</span></button>
-                <button type="button" data-role="door" aria-pressed="false"><i class="i i-door sm"></i><span data-i18n="roleDoor">Door</span></button>
-              </div>
-              <p class="help" id="roleHelp"></p>
-              <div class="fld" id="mSideWrap"><label class="f" for="mSide" data-i18n="mSide">Their list (optional)</label><input type="text" id="mSide" dir="auto" list="sideOpts" data-i18n-ph="mSidePh" placeholder="e.g. Groom’s mum"><datalist id="sideOpts"></datalist><p class="help" data-i18n="mSideHelp">Leave empty to see every list.</p></div>
-              <div class="fld" id="mUntilWrap" hidden><label class="f" for="mUntil" data-i18n="mUntil">Access ends</label><input type="date" id="mUntil"><p class="help" data-i18n="mUntilHelp">At midnight Kuwait time on this day.</p></div>
-              <div class="fld"><label class="f" for="mEmail" data-i18n="email">Email</label><div class="inrow"><input type="email" id="mEmail" dir="ltr" inputmode="email" autocapitalize="none" spellcheck="false" autocomplete="off" placeholder="name@example.com"><button type="button" class="btn" id="addMem" data-i18n="add">Add</button></div></div>
-            </div>
-          </section>
+        <!-- 3 card and colours -->
+        <section class="step" id="s-design" data-s="design" hidden>
+          <p class="t-small lead" data-i18n="designHelp">Upload the invitation card (photo or PDF) and the guest page takes its colours.</p>
+          <div id="theme"></div>
+          <div id="colours"></div>
+          <label class="drop dz" id="cardDrop"><input type="file" id="cardFile" accept="image/*,.pdf"><i class="i i-upload lg"></i><b id="cardDropT" data-i18n="uploadCard">Upload the card</b><span class="help" data-i18n="cardFmt">A photo or PDF. Drop it here or tap to choose.</span><span class="dz-bar" aria-hidden="true"></span></label>
+        </section>
 
-          <!-- 03 design -->
-          <section class="step" id="s-design" data-s="design" aria-labelledby="h-design">
-            <header class="step-h"><span class="step-n" aria-hidden="true">03</span><div><h2 class="step-t" id="h-design" data-i18n="hDesign">Invite design</h2><p class="step-state" id="st-design"></p></div></header>
-            <p class="sub lead2" data-i18n="designHelp">Upload the invite card (photo or PDF) and the guest page takes its colours.</p>
-            <div class="designgrid">
-              <div id="theme"></div>
-              <div class="design-tools">
-                <label class="drop dz" id="cardDrop"><input type="file" id="cardFile" accept="image/*,.pdf"><i class="i i-upload lg"></i><b id="cardDropT" data-i18n="uploadCard">Upload the card</b><span class="help" data-i18n="cardFmt">A photo or PDF. Drop it here or tap to choose.</span><span class="dz-bar" aria-hidden="true"></span></label>
-                <div id="colours"></div>
-              </div>
-            </div>
-          </section>
+        <!-- 4 guests -->
+        <section class="step" id="s-guests" data-s="guests" hidden>
+          <div id="gSummary"></div>
+          <div class="fld imside"><span class="f lbl" id="impSideL" data-i18n="impSide">Side (optional)</span><div class="fchips sidechips" id="impSideChips" role="group" aria-labelledby="impSideL"></div><input type="text" id="impSide" dir="auto" autocomplete="off" placeholder="Another side, e.g. Groom’s mum" data-i18n-ph="impSidePh" data-i18n-aria="impSideNew" aria-label="Another side"><p class="help" data-i18n="impSideHelp">Hosts who only see this side will see these guests.</p></div>
+          <div class="seg fill" id="impMode" role="group" aria-label="How to add" data-i18n-aria="impModeL">
+            <button type="button" data-m="paste" aria-pressed="true"><i class="i i-pen sm"></i><span data-i18n="modePaste">Type or paste</span></button>
+            <button type="button" data-m="file" aria-pressed="false"><i class="i i-upload sm"></i><span data-i18n="modeFile">Upload a file</span></button>
+          </div>
+          <div id="pPaste">
+            <label class="f" for="pasteList" data-i18n="pasteHelp">One guest per line, with their name and number</label>
+            <textarea id="pasteList" rows="6" dir="auto" data-i18n-ph="bulkPh"></textarea>
+            <p class="help" data-i18n="orderHelp">They’re sent in this order, from the top.</p>
+            <div class="row" style="margin-top:10px"><button type="button" class="btn secondary" id="readPaste" data-i18n="checkNames">Check names</button></div>
+          </div>
+          <div id="pFile" hidden>
+            <label class="drop dz" id="listDrop"><input type="file" id="listFile" accept=".xlsx,.xls,.csv,.docx"><i class="i i-env lg"></i><b id="listDropT" data-i18n="dropT">Drop an Excel, CSV or Word file</b><span class="help" data-i18n="fileHelp">Names and numbers, and how many people each, if you have it.</span><span class="btn small secondary fake" data-i18n="chooseFile">Choose file</span><span class="dz-bar" aria-hidden="true"></span></label>
+          </div>
+          <div id="preview" aria-live="polite"></div>
+        </section>
 
-          <!-- 04 guests -->
-          <section class="step" id="s-guests" data-s="guests" aria-labelledby="h-guests">
-            <header class="step-h"><span class="step-n" aria-hidden="true">04</span><div><h2 class="step-t" id="h-guests" data-i18n="hGuests">Guest list</h2><p class="step-state" id="st-guests"></p></div></header>
-            <div id="gSummary"></div>
-            <div class="fld imside"><label class="f" for="impSide" data-i18n="impSide">Which list? (optional)</label><input type="text" id="impSide" dir="auto" list="sideOpts" placeholder="e.g. Groom’s mum" data-i18n-ph="impSidePh"><p class="help" data-i18n="impSideHelp">A host with this list will see these guests.</p></div>
-            <div class="seg fill" id="impMode" role="group" aria-label="How to add" data-i18n-aria="impModeL">
-              <button type="button" data-m="file" aria-pressed="true"><i class="i i-upload sm"></i><span data-i18n="modeFile">Upload a file</span></button>
-              <button type="button" data-m="paste" aria-pressed="false"><i class="i i-pen sm"></i><span data-i18n="modePaste">Type or paste</span></button>
-            </div>
-            <div id="pFile">
-              <label class="drop dz" id="listDrop"><input type="file" id="listFile" accept=".xlsx,.xls,.csv,.docx"><i class="i i-env lg"></i><b id="listDropT" data-i18n="dropT">Drop an Excel, CSV or Word file</b><span class="help" data-i18n="fileHelp">Names and numbers, and how many invites each, if you have it.</span><span class="btn small ghost fake" data-i18n="chooseFile">Choose file</span><span class="dz-bar" aria-hidden="true"></span></label>
-            </div>
-            <div id="pPaste" hidden>
-              <label class="f" for="pasteList" data-i18n="pasteHelp">One guest per line, with their name and number</label>
-              <textarea id="pasteList" rows="6" dir="auto" data-i18n-ph="bulkPh"></textarea>
-              <div class="row" style="margin-top:10px"><button type="button" class="btn" id="readPaste" data-i18n="checkNames">Check names</button></div>
-            </div>
-            <div id="preview" aria-live="polite"></div>
-          </section>
+        <!-- 5 message and sending -->
+        <section class="step" id="s-send" data-s="send" hidden>
+          <div id="queue">
+            <div id="sendGate" aria-live="polite"></div>
+            <div id="qTop"></div>
+            <details class="allmsgs" id="allMsgs" hidden>
+              <summary><i class="i i-list"></i><span id="allMsgsT"></span></summary>
+              <p class="help" id="qHelp"></p>
+              <div class="seg" id="qSeg" role="group"></div>
+              <div class="sendlist" id="qList"></div>
+            </details>
+          </div>
+          <div class="composer">
+            <h2 class="sect" id="tplL" data-i18n="tplL">The message for everyone</h2>
+            <p class="help tplhelp" data-i18n="tplHelp">Tap a word to add it. Each guest gets their own name, number of people and link.</p>
+            <div class="tokens" id="tokens"></div>
+            <div class="msgbox msged" id="msgEd" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="tplL" dir="auto" spellcheck="false"></div>
+            <textarea id="fTpl" hidden tabindex="-1" aria-hidden="true"></textarea>
+            <div class="warnstrip" id="linkWarn" hidden><span id="linkWarnT"></span><button type="button" class="btn small secondary" id="addLinkTok"><i class="i i-link sm"></i><span id="addLinkL"></span></button></div>
+            <div class="tplfoot"><button type="button" class="btn quiet small" id="resetTpl" data-i18n="resetTpl">Reset to the standard message</button></div>
+            <p class="cap" id="howSee"></p>
+            <div class="chat"><div class="wabubble" id="bubble" dir="auto"></div></div>
+          </div>
+        </section>
 
-          <!-- 05 send -->
-          <section class="step" id="s-send" data-s="send" aria-labelledby="h-send">
-            <header class="step-h"><span class="step-n" aria-hidden="true">05</span><div><h2 class="step-t" id="h-send" data-i18n="hSend">Send the invites</h2><p class="step-state" id="st-send"></p></div></header>
-            <div class="composer">
-              <div class="cmp-l">
-                <label class="f" for="fTpl" data-i18n="tplL">WhatsApp message</label>
-                <p class="help tplhelp" data-i18n="tplHelp">Tap a word to add it. It fills in for each guest.</p>
-                <div class="tokens" id="tokens"></div>
-                <textarea id="fTpl" rows="8" dir="auto"></textarea>
-                <div class="warnstrip" id="linkWarn" hidden><span data-i18n="noLink">Add the Link, or guests can’t reply.</span><button type="button" class="btn small soft" id="addLinkTok"><i class="i i-link sm"></i><span data-i18n="addLink">Add link</span></button></div>
-                <div class="tplfoot"><span class="help" data-i18n="tplSaveHint">Changes to the message save with the Save button.</span><button type="button" class="btn quiet small" id="resetTpl" data-i18n="resetTpl">Reset to the standard message</button></div>
-              </div>
-              <div class="cmp-r">
-                <p class="cap" id="howSee"></p>
-                <div class="chat"><div class="wabubble" id="bubble" dir="auto"></div></div>
-              </div>
-            </div>
-            <div id="queue">
-              <div id="sendGate" aria-live="polite"></div>
-              <div id="qTop"></div>
-              <details class="allmsgs" id="allMsgs" hidden>
-                <summary><i class="i i-list"></i><span id="allMsgsT"></span></summary>
-                <p class="help" id="qHelp"></p>
-                <div class="seg" id="qSeg" role="group"></div>
-                <div class="sendlist" id="qList"></div>
-              </details>
-            </div>
-          </section>
-        </div>
+        <div class="stepnext" id="stepNext"><button type="button" class="btn primary block" id="nextBtn"></button></div>
 
         <div class="savebar" id="savebar" hidden role="region" aria-live="polite" aria-label="Save" data-i18n-aria="saveL">
           <span class="sb-l" id="sbL"></span>
-          <button type="button" class="btn quiet small" id="discard" data-i18n="discard">Undo</button>
-          <button type="button" class="btn small" id="saveEv"><span id="saveEvL">Save</span></button>
+          <button type="button" class="btn primary small" id="saveEv"><span id="saveEvL">Create event</span></button>
         </div>
       </div>
     </div>
@@ -200,152 +186,219 @@
 </main>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  const { sb, $, esc, toast, normPhone, showPhone, kwToIso, isoToKw, inviteLink, waLink, fillTemplate, rgb2hex, lum, themeVars, bdi, normName } = App;
+  const { sb, $, esc, toast, normPhone, showPhone, kwToIso, isoToKw, inviteLink, waLink, fillTemplate, rgb2hex, lum, themeVars, bdi, normName, countWord, arN } = App;
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const SITE = (CONFIG.SITE_URL || location.origin).replace(/\/$/, '');
   const TZ = 'Asia/Kuwait';
   const STEPS = ['details', 'team', 'design', 'guests', 'send'];
-  const motion = () => App.reducedMotion() ? 'auto' : 'smooth';
   let events = [], stats = {}, ev = null, guests = [], members = [], parsed = [], badLines = [], chips = [], chipsFor = '', v2 = false, booted = false;
-  let baseline = '', dirty = false, savedFlash = false, copyFrom = null, draft = {}, role = 'host', impMode = 'file', lastImport = null, lastAdded = null, rmAsk = null, pickSw = null, openSeq = 0;
-  let sentUndo = null, skipped = new Set(), forceNext = null, editingMsg = false, msgEdit = {}, qFilter = 'todo', justFinished = false, lastSentN = 0, view = 'home', curStep = 'details';
+  let copyFrom = null, draft = {}, role = 'host', impMode = 'paste', lastImport = null, lastAdded = null, rmAsk = null, pickSw = null, openSeq = 0, colWarn = false;
+  let sentUndo = null, skipped = new Set(), forceNext = null, editingMsg = false, msgEdit = {}, qFilter = 'todo', justFinished = false, lastSentN = 0;
+  let asking = null, rowAsk = null;   // "Did you send it?" waits on these
+  let view = 'home', step = 'details', newDirty = false;
+  let saved = {}, saveTimer = null, saving = null, saveAgain = false, saveSt = '', saveMsg = '', takenCode = '', retryTimer = null, retryN = 0;
+  let guestsErr = false, membersErr = false, eventsErr = false;   // a failed load is never shown as "no guests"
+  // the Arabic standard message (same as the host page): a person is one head, so "عدد الأشخاص"
+  const AR_DEFAULT = 'حياكم الله {الاسم}\n\nنتشرف بدعوتكم لحضور {المناسبة} يوم {التاريخ} الساعة {الوقت}.\n\nعدد الأشخاص: {العدد}\nلتأكيد الحضور أو الاعتذار:\n{الرابط}';
+  const stdTpl = l => l === 'en' ? App.DEFAULT_TEMPLATE_EN : AR_DEFAULT;
+  const tplFor = e => (e && e.message_template) || stdTpl(e && e.lang);
+  const isStdTpl = v => [App.DEFAULT_TEMPLATE, App.DEFAULT_TEMPLATE_EN, AR_DEFAULT].some(d => v === d.trim());
 
-  // ---- language (English / Kuwaiti Arabic) ----
-  const arN = (n, one, two, few, many) => n === 1 ? one : n === 2 ? two : (n % 100 >= 3 && n % 100 <= 10) ? `${n} ${few}` : `${n} ${many}`;
-  const arInvites = n => arN(n, 'دعوة وحدة', 'دعوتين', 'دعوات', 'دعوة');
-  const arGuests = n => arN(n, 'ضيف واحد', 'ضيفين', 'ضيوف', 'ضيف');
-  const arHosts = n => arN(n, 'مضيفة وحدة', 'مضيفتين', 'مضيفات', 'مضيفة');
-  const arPlus = n => '⁦+' + n + '⁩';   // keep "+2" reading left-to-right inside Arabic text
+  // ---- language (English / Kuwaiti Arabic). guest = one invitation, person = one head ----
   const enS = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+  const cw = (n, k, l) => countWord(n, k, l || lang);
   const T = {
-    en: { title: 'Admin', home: 'Home', close: 'Close', other: 'العربية', out: 'Log out', colours: 'Colours', optEn: 'English', optAr: 'Arabic',
-      homeK: 'The back office', homeT: 'Events', homeSub: (u, p) => `${u} coming up` + (p ? ` · ${p} past` : ''), newEv: 'New event', searchPh: 'Search events',
+    en: { title: 'Admin', close: 'Close', other: 'العربية', out: 'Log out', colours: 'Colours',
+      homeT: 'Events', homeSub: (u, p) => (u ? `${enS(u, 'event', 'events')} coming up` : 'No events coming up') + (p ? ` · ${p} past` : ''), newEv: 'New event', searchPh: 'Search events',
       upcomingH: 'Coming up', pastH: n => `Past events (${n})`, noDate: 'No date yet', noEventsH: 'No events yet', noEventsP: 'Create the first one. It takes a couple of minutes.',
-      noMatch: q => `Nothing matches “${q}”`, nGuests: n => enS(n, 'guest', 'guests'), nSent: n => `${n} sent`, noGuestsShort: 'No guests yet', stepsDone: n => `${n} of 5 steps done`,
-      menuEvents: 'All events', menuHost: 'Host dashboard', menuDoor: 'Door screen', back: 'All events', 
+      noMatch: q => `Nothing matches “${q}”`, noGuestsShort: 'No guests yet', rowSent: (a, b) => `${a} of ${b} sent`, sep: ' · ', back: 'All events', toOv: 'Back to the event',
       newH: 'New event', blank: 'Start blank', blankP: 'An empty event with the standard message', copyH: 'Copy settings from', copyP: 'Copies the type, wording, message, package and colours. Never the name, date, venue, link or guests.',
-      copyCard: 'Also use the same card design', newK: 'New event', newT: 'Untitled event', copiedFrom: n => `Copied from ${n}. Change anything below.`, clearCopy: 'Start blank instead',
-      openHost: 'Dashboard', testInv: 'Guest page', openDoor: 'Door', stepsL: 'Steps',
-      s_details: 'Details', s_team: 'Team', s_design: 'Design', s_guests: 'Guests', s_send: 'Send',
-      hDetails: 'Event details', hTeam: 'Hosts and door team', hDesign: 'Invite design', hGuests: 'Guest list', hSend: 'Send the invites',
-      stNew: 'Not saved yet', stSaved: 'Saved', stNeedDate: 'Add the date and venue', stTeam: (h, d) => `${enS(h, 'host', 'hosts')} · ${d} door`, stNone: 'No one yet',
-      stCard: 'Card uploaded', stNoCard: 'No card yet', stGuests: (g, i) => `${enS(g, 'guest', 'guests')} · ${enS(i, 'invite', 'invites')}`, stNoGuests: 'No guests yet',
-      stAddFirst: 'Add guests first', stAllSent: 'All sent', stSent: (a, b) => `${a} of ${b} sent`, lockedHint: 'Save the details to open the next steps.',
-      lgEvent: 'The event', lgCard: 'On the card', lgWhen: 'When & where', lgLink: 'Invite link',
-      fTitle: 'Event name (shown to the host)', fTitlePh: 'Ghala’s bridal shower', fType: 'Type', tWedding: 'Wedding', tMilka: 'Milka', tEngagement: 'Engagement',
-      tGhabga: 'Ghabga', tGraduation: 'Graduation', tBirthday: 'Birthday', tBaby: 'Baby shower', tCorporate: 'Company event', tOther: 'Other', fLang: 'Guest page language',
-      fLimit: 'Invites in the package', fLimitHelp: 'Leave empty for no limit.',
-      line: 'Invite line', linePh: 'Join us for Ghala’s bridal shower', note: 'Note on the invite page (optional)', notePh: 'A samra night, bring your thoub!\nNote: we will have a male samra group.',
-      noteHelp: 'The first line shows highlighted. Put anything extra on the next lines.', fHead: 'Big title on the card', date: 'Date', from: 'From', toOpt: 'To (optional)', venue: 'Venue', map: 'Google Maps link',
-      fCode: 'Link name', codeEmpty: 'Leave empty and we’ll make one when you save.', codeKeep: 'Leave empty to keep the current link.', codeShort: n => `${n} / 8 characters minimum`,
-      codeBad: 'Only English letters, numbers and dashes', codeOk: 'Looks good', useSlug: 'Use', autoLink: 'The full link shows here once there’s a name.', copy: 'Copy', copied: 'Link copied', copyPrompt: 'Copy this link:',
-      nameEv: 'Give the event a name', badCode: 'Link name: 8 or more letters, numbers or dashes, no spaces', codeTaken: 'That link name is taken, try another', cantSave: m => 'Couldn’t save: ' + m, saved: 'Saved',
-      sbDirty: 'Unsaved changes', sbNew: 'New event, not saved yet', save: 'Save', create: 'Create event', discard: 'Undo', saveL: 'Save', leaveQ: 'You have unsaved changes. Leave without saving?',
-      addSomeone: 'Add someone', access: 'Access', roleHost: 'Host', roleDoor: 'Door', roleHostP: 'Sees the full dashboard: replies, guests and sending.', roleDoorP: 'Only checks guests in at the door.',
-      email: 'Email', mSide: 'Their list (optional)', mSidePh: 'e.g. Groom’s mum', mSideHelp: 'Leave empty to see every list. With a list, they only see and add their own guests.',
-      mUntil: 'Access ends', mUntilHelp: 'At midnight Kuwait time on this day. Empty = the day after the event.', add: 'Add',
-      host: 'Host', doorOnly: 'Door', sideList: s => `${s}’s list`, allLists: 'all lists', accessEnded: 'access ended', until: 'until', removeWho: e => `Remove ${e}`,
-      rmQ: 'Remove?', rmYes: 'Yes, remove', rmNo: 'Keep', rmErr: 'Couldn’t remove them',
-      noHosts: 'No one yet. Add the host’s email first.', badEmail: 'Please enter a valid email', dupEmail: 'That email is already added', addErr: 'Couldn’t add them',
-      memAdded: 'Added. They log in with that email', addedWho: e => `Added ${e}`, copyNote: 'Copy login note', noteCopied: 'Login note copied', loginNote: (e, u) => `Log in at ${u} with ${e}`,
-      designHelp: 'Upload the invite card (photo or PDF) and the guest page takes its colours.', cardAlt: 'Invite card', noCard: 'No card yet', uploadCard: 'Upload the card', replaceCard: 'Replace the card',
+      copyCard: 'Also use the same card design', newT: 'Untitled event', copiedFrom: n => `Copied from ${n}. Change anything below.`, clearCopy: 'Start blank instead',
+      // overview
+      repliesK: 'Replies', noGuestsYet: 'No guests yet. Replies show here once the invitations go out.',
+      coming: n => n ? `${n} ${n === 1 ? 'person' : 'people'} coming` : 'No one coming yet', comingW: n => n === 1 ? 'person coming' : 'people coming',
+      cant: n => `${n} ${n === 1 ? 'guest' : 'guests'} can’t come`,
+      noReply: n => n ? `${n} ${n === 1 ? 'guest hasn’t' : 'guests haven’t'} replied` : 'Everyone has replied',
+      arrived: n => `${n} ${n === 1 ? 'person has' : 'people have'} arrived`,
+      sentK: 'Invitations sent', sentOf: (a, b) => `${a} of ${countWord(b, 'guest', 'en')}`, noPhones: 'No numbers to send to yet',
+      nextK: 'Next step', gErr: 'Couldn’t load the guests. Check the connection and try again.', gErrH: 'The guest list didn’t load', gErrShort: 'Guests didn’t load', stLoadErr: 'Didn’t load',
+      evErr: 'Couldn’t load your events. Check the connection and try again.', ovErr: 'A change didn’t save.', leaveErrQ: 'A change to this event didn’t save. Leave without it?',
+      nDetailsH: 'Add the date and venue', nDetailsP: 'Guests need them in the message and on the invite page.', nDetailsB: 'Add the details',
+      nDesignH: 'Upload the invitation card', nDesignP: 'Guests see it when they open their link.', nDesignB: 'Upload the card',
+      nGuestsH: 'Add the guest list', nGuestsP: 'Paste names and numbers, or upload a file.', nGuestsB: 'Add guests',
+      nSendH: n => n === 1 ? 'Send the last invitation' : 'Send the invitations', nSendP: n => `${countWord(n, 'guest', 'en')} still to send, one by one on WhatsApp.`, nSendB: 'Start sending', nSendB2: 'Carry on sending',
+      nTeamH: 'Add the hosts', nTeamP: 'They log in with their email to see the replies, and can help at the door.', nTeamB: 'Add the hosts’ emails',
+      nTodayH: 'The event is today', nTodayP: 'Follow the arrivals live on the ' + App.hostWord('en', 'page') + '.', nPastH: 'The event is over', nPastP: 'The arrivals and replies stay on the ' + App.hostWord('en', 'page') + '.',
+      nDoneH: 'All set', nDoneP: 'Every invitation is out. Replies show here as they come in.', nDoneB: 'Open the ' + App.hostWord('en', 'page'),
+      setupH: 'Setup', openH: 'Other screens', openHost: App.hostWord('en', 'page'), openHostP: 'Replies and guests', openDoor: 'Door screen', openDoorP: 'Checking guests in',
+      testInv: 'Guest page', testInvP: 'The invitation as the first guest sees it', done: 'done', notDone: 'not done yet',
+      s_details: 'Event details', s_team: 'Hosts and door', s_design: 'Card and colours', s_guests: 'Guest list', s_send: 'Message and sending',
+      stNeedDate: 'Add the date and venue', stTeam: (h, d) => [h ? enS(h, 'host', 'hosts') : '', d ? `${d} at the door` : ''].filter(Boolean).join(' · '), stNone: 'No one yet',
+      stCard: 'Card uploaded', stNoCard: 'Not done yet', stGuests: (g, p) => `${countWord(g, 'guest', 'en')} · ${countWord(p, 'person', 'en')}`, stNoGuests: 'No guests yet',
+      stAddFirst: 'Add guests first', stAllSent: 'All sent', stSent: (a, b) => `${a} of ${countWord(b, 'guest', 'en')} sent`,
+      // step screens + saving
+      stepOf: i => `Step ${i} of 5`, go: { team: 'Add the hosts and door team', design: 'Choose the card and colours', guests: 'Add the guest list', send: 'Send the invitations' }, saving: 'Saving…', savedS: 'Saved', heldS: 'Not saved yet', errS: 'Couldn’t save', retry: 'Try again',
+      // details
+      fTitle: 'Event name', fTitlePh: 'Ghala’s bridal shower', guestsRead: 'Guests will read:', nameOnPage: 'The name shows on the invite page.',
+      fType: 'Type', tWedding: 'Wedding', tMilka: 'Milka', tEngagement: 'Engagement', tGhabga: 'Ghabga', tGraduation: 'Graduation', tBirthday: 'Birthday', tBaby: 'Baby shower', tCorporate: 'Company event', tOther: 'Other',
+      fLangL: 'Guests read the invitation in', date: 'Date', time: 'Time', endT: 'Ends at (optional)', venue: 'Venue', map: 'Google Maps link',
+      moreH: 'More options', moreP: 'End time, type, map link, card text, package size, invite link',
+      fHead: 'Big title on the card', line: 'Invite line', linePh: 'Join us for Ghala’s bridal shower', note: 'Note on the invite page (optional)', notePh: 'A samra night, bring your thoub!\nNote: we will have a male samra group.',
+      noteHelp: 'The first line shows highlighted. Put anything extra on the next lines.', fLimit: 'People in the package', fLimitHelp: 'Leave empty for no limit.',
+      fCode: 'Invite link name', codeEmpty: 'Leave empty and we’ll make one from the event name.', codeKeep: 'Leave empty to keep the current link.', codeShort: n => `${n} of at least 8 characters`,
+      codeBad: 'Only English letters, numbers and dashes', codeOk: 'Looks good', useSlug: 'Use', autoLink: 'The full link shows here once there’s a name.', copy: 'Copy the link', copied: 'Link copied', copyPrompt: 'Copy this link:',
+      needName: 'Give the event a name. The saved name stays until you do.', needDate: 'Pick a date. The saved date stays until you do.', needTime: 'Pick a time. The saved time stays until you do.',
+      needVenue: 'Write the venue. The saved one stays until you do.', nameEv: 'Give the event a name', badCode: 'Link name: 8 or more letters, numbers or dashes, no spaces',
+      codeTaken: 'That link name is taken, try another', cantSave: m => 'Couldn’t save: ' + m,
+      sbNew: 'New event, not saved yet', create: 'Create event', saveL: 'Save', leaveQ: 'This new event isn’t saved. Leave without saving?',
+      // team
+      teamLead: 'The hosts see the replies and the guest list. The door team only checks guests in.', addSomeone: 'New team member', access: 'Access', roleHost: 'Hosts', roleDoor: 'Door team',
+      roleHostP: 'Sees the replies and the guest list, and can send invitations.', roleDoorP: 'Only checks guests in at the door.',
+      email: 'Email', mSide: 'Only sees guests from', mSidePh: 'Another side, e.g. Groom’s mum', mSideNew: 'Another side', mSideHelp: 'With a side, they only see and add that side’s guests.', sideAll: 'Everyone', sideNone: 'No side',
+      mUntil: 'Access ends', mUntilHelp: 'At midnight Kuwait time on this day. Empty means the day after the event.', add: 'Add to the team',
+      host: 'Hosts', doorOnly: 'Door team', sideList: s => `Guests from ${s}`, allLists: 'sees everyone', accessEnded: 'access ended', until: 'until', removeWho: e => `Remove ${e}`,
+      rmQ: 'Remove?', rmYes: 'Yes, remove them', rmNo: 'Keep them', rmErr: 'Couldn’t remove them',
+      noHosts: 'No one yet. Add the hosts’ emails first.', badEmail: 'Please enter a valid email', dupEmail: 'That email is already added', addErr: 'Couldn’t add them',
+      addedWho: e => `Added ${e}. They log in with that email.`, copyNote: 'Copy login note', noteCopied: 'Login note copied', loginNote: (e, u) => `Log in at ${u} with ${e}`,
+      // design
+      designHelp: 'Upload the invitation card (photo or PDF) and the guest page takes its colours.', cardAlt: 'Invitation card', noCard: 'No card yet', uploadCard: 'Upload the card', replaceCard: 'Replace the card',
       cardFmt: 'A photo or PDF. Drop it here or tap to choose.', reading: 'Reading the colours…', uploading: 'Uploading the card…',
-      chipsL: 'Colours from the card', useBtn: 'Use for buttons', useBg: 'Use for background', mainCol: 'Buttons & titles', bgCol: 'Background', prevK: 'How the guest page looks',
-      prevHi: 'You’re invited', prevBtn: 'Confirm attendance', lowC: 'Button text may be hard to read.', fix: 'Fix it', colErr: 'Couldn’t save the colours', colOk: 'Colours taken from the card',
-      cardErr: m => 'Couldn’t upload the card: ' + (m || 'try a JPG photo'),
-      gOnList: n => n === 1 ? 'guest on the list' : 'guests on the list', invN: n => enS(n, 'invite', 'invites'), pkgUsed: (u, l) => `${u} of ${l} invites used · ${Math.max(0, l - u)} left`, noLimit: 'no package limit',
-      impSide: 'Which list? (optional)', impSidePh: 'e.g. Groom’s mum', impSideHelp: 'A host with this list will see these guests.', impModeL: 'How to add', modeFile: 'Upload a file', modePaste: 'Type or paste',
-      dropT: 'Drop an Excel, CSV or Word file', fileHelp: 'Names and numbers, and how many invites each, if you have it.', chooseFile: 'Choose file', readingFile: n => `Reading ${n}…`,
-      pasteHelp: 'One guest per line, with their name and number', bulkPh: 'Dana Alanjeri 55771754\nHuda Alsaleh 99619992', checkNames: 'Check names',
-      sumReady: 'Ready', sumHave: 'Already on the list', sumBad: 'Couldn’t read', badLinesH: 'Lines we couldn’t read', usesL: (n, l) => `Uses ${n} of the ${l} invites left`, overL: (n, l) => `Needs ${n} invites, but only ${l} are left`,
-      addN: n => n === 1 ? 'Add 1 guest' : `Add ${n} guests`, allHave: 'Everyone here is already on the list.', addedH: (n, s) => (n === 1 ? 'Added 1 guest' : `Added ${n} guests`) + (s ? ` to ${s}` : ''),
-      skippedN: n => `Skipped ${n} already on the list`, nextSend: 'Next: send the invites', addMore: 'Add more',
-      fileNone: 'No names and numbers found in that file', fileErr: 'Couldn’t read that file', lineEach: 'Put a name and a number on each line', foundToast: n => `Found ${n} guests, check them below`,
-      thName: 'Name', thNum: 'Number', thExtras: 'Extras', plus: n => '+' + n, more: n => `and ${n} more…`, cancel: 'Cancel',
-      noPkg: 'Not enough invites left in the package', addListErr: m => 'Couldn’t add the list: ' + m, addedN: (a, skip) => `Added ${a} guests` + (skip ? ` (skipped ${skip} duplicates)` : ''),
-      tplL: 'WhatsApp message', tplHelp: 'Tap a word to add it. It fills in for each guest.', tkName: 'Name', tkInv: 'Invites', tkDate: 'Date', tkTime: 'Time', tkVenue: 'Venue', tkEvent: 'Event', tkLink: 'Link',
-      resetTpl: 'Reset to the standard message', noLink: 'Add the Link, or guests can’t reply.', addLink: 'Add link', tplSaveHint: 'Changes to the message save with the Save button.',
-      howSee: n => `How ${n} will see it`, sampleName: 'Dana',
-      gateDirty: 'You changed the message or event details. Save first, so guests get the new version.', gateNoLink: 'The saved message has no link, so guests can’t reply. Add it above, then save.',
-      saveFirst: 'Save your changes before sending', noLinkOne: 'This message has lost its invite link. Put it back so they can reply.',
-      sentK: 'Invitations sent', ofGuests: n => `of ${enS(n, 'guest', 'guests')}`, leftToSend: n => n ? `${n} still to send` : 'all sent', nextK: n => `Next up · ${n} to go`,
-      editMsg: 'Edit this message', doneEdit: 'Done editing', skip: 'Skip for now', sentTo: n => `Sent to ${n}`, undo: 'Undo', markErr: 'Couldn’t mark it as sent',
-      finH: 'Every invitation is out', finP: (g, i) => `${enS(g, 'guest', 'guests')}, ${enS(i, 'invite', 'invites')}`, finBtn: 'Open the host dashboard',
+      chipsL: 'Colours from the card', chipsHelp: 'Or tap one colour, then choose where it goes.', pairsL: 'Ready-made from the card', pairsHelp: 'One tap sets both the buttons and the background.', pairN: i => `Colour set ${i}`, useBtn: 'Use for buttons', useBg: 'Use for background', mainCol: 'Buttons and titles', bgCol: 'Background', prevK: 'How the guest page looks',
+      prevHi: 'You’re invited', prevBtn: 'Confirm attendance', lowC: 'Button text may be hard to read.', fix: 'Darken the buttons', tooClose: 'That colour is too close to the background. Pick another.',
+      colErr: 'Couldn’t save the colours', colOk: 'Colours taken from the card', cardErr: m => 'Couldn’t upload the card: ' + (m || 'try a JPG photo'),
+      // guests
+      gSum: (g, p) => `${countWord(g, 'guest', 'en')} · ${countWord(p, 'person', 'en')}`, pkgUsed: (u, l) => `${u} of ${countWord(l, 'person', 'en')} in the package used · ${Math.max(0, l - u)} left`, noLimit: 'No package limit',
+      impSide: 'Side (optional)', impSidePh: 'Another side, e.g. Groom’s mum', impSideNew: 'Another side', impSideHelp: 'Hosts who only see this side will see these guests.', impModeL: 'How to add', modeFile: 'Upload a file', modePaste: 'Type or paste',
+      dropT: 'Drop an Excel, CSV or Word file', fileHelp: 'Names and numbers, and how many people each, if you have it.', chooseFile: 'Choose file', readingFile: n => `Reading ${n}…`,
+      pasteHelp: 'One guest per line, with their name and number', orderHelp: 'They’re sent in this order, from the top.', bulkPh: 'Dana Alanjeri 55771754\nHuda Alsaleh 99619992', checkNames: 'Check names',
+      sumReady: 'Ready', sumHave: 'Already on the list', sumBad: 'Couldn’t read', badLinesH: 'Lines we couldn’t read',
+      usesL: (n, l) => `Uses ${countWord(n, 'person', 'en')} of the ${l} left in the package`, overL: (n, l) => `Needs ${countWord(n, 'person', 'en')}, but only ${l} left in the package`,
+      addN: n => n === 1 ? 'Add 1 guest' : `Add ${n} guests`, allHave: 'Everyone here is already on the list.', addedH: (n, s) => `Added ${countWord(n, 'guest', 'en')}` + (s ? ` to ${s}` : ''),
+      skippedN: n => `Skipped ${countWord(n, 'guest', 'en')} already on the list`, nextSend: 'Send the invitations', addMore: 'Add more guests',
+      fileNone: 'No names and numbers found in that file', fileErr: 'Couldn’t read that file', lineEach: 'Put a name and a number on each line', foundToast: n => `Found ${countWord(n, 'guest', 'en')}, check them below`,
+      thName: 'Name', thNum: 'Number', thPeople: 'People', fewer: n => `Fewer people for ${n}`, moreP2: n => `More people for ${n}`, more: n => `and ${n} more…`, cancel: 'Don’t add them',
+      noPkg: 'Not enough places left in the package', addListErr: m => 'Couldn’t add the list: ' + m,
+      // message
+      tplL: 'The message for everyone', tplHelp: 'Tap a word to add it. Each guest gets their own name, number of people and link.',
+      tkName: 'Name', tkInv: 'Number of people', tkDate: 'Date', tkTime: 'Time', tkVenue: 'Venue', tkEvent: 'Event name', tkLink: 'Link', addTok: w => `Add ${w}`,
+      resetTpl: 'Reset to the standard message', noLink: 'The message has no link, so guests can’t reply. It isn’t saved until the link is back.', putLink: 'Put the link back',
+      gluedLink: 'The link is stuck to other text, so it won’t open. It isn’t saved until it’s fixed.', fixLink: 'Fix the link', emptyMsg: 'The message is empty. The saved message stays until you write one.',
+      howSee: n => `What ${n} will read`, sampleName: 'Dana',
+      gateNoLink: 'Sending waits: the message needs the link, or guests can’t reply.', noLinkOne: 'This message has lost its invite link. Put it back so they can reply.',
+      // sending
+      sentMeterK: 'Invitations sent', ofGuests: n => `of ${countWord(n, 'guest', 'en')}`, leftToSend: n => n ? `${countWord(n, 'guest', 'en')} still to send` : 'all sent', nextUp: 'Next up',
+      afterThem: (names, more) => `After them: ${names}` + (more ? ` and ${more} more` : ''),
+      editMsg: 'Edit for this guest only', doneEdit: 'Done editing', editAll: 'Change the message for everyone', skip: 'Skip for now', sentTo: n => `Sent to ${n}`, undo: 'Undo', markErr: 'Couldn’t mark it as sent',
+      askQ: n => `Did you send it to ${n}?`, askP: 'We only mark it as sent when you say so.', askYes: 'Yes, it’s sent', askNo: 'Not yet', openAgain: 'Open WhatsApp again', askRow: 'Did you send it?',
+      finH: 'Every invitation is out', finP: (g, p) => `${countWord(g, 'guest', 'en')} · ${countWord(p, 'person', 'en')}`, finBtn: 'Open the ' + App.hostWord('en', 'page'),
       listT: n => `Every guest’s message (${n})`, fTodo: 'Not sent', fSent: 'Sent', fAll: 'All', qNone: 'No one here.',
-      qEmpty: 'Add guests with a number in step 04, and they’ll line up here one by one.',
+      qEmpty: 'Add guests with a number in the guest list, and they’ll line up here one by one.',
       qHelp: 'Each guest has their own message with their name and personal link. Change any message if you like, then tap <b>Send on WhatsApp</b>: their chat opens with it ready, and you tap send.',
       sent: 'Sent', notSent: 'Not sent yet', msgFor: n => `Message for ${n}`, sendAgain: 'Send again', sendWa: 'Send on WhatsApp',
-      adminOnlyH: 'Admins only', adminOnlyP: 'This page is for admin accounts. Check your email is listed at the top of setup.txt, then run it again in Supabase.' },
-    ar: { title: 'الإدارة', home: 'الرئيسية', close: 'إغلاق', other: 'English', out: 'تسجيل خروج', colours: 'الألوان', optEn: 'الإنجليزي', optAr: 'العربي',
-      homeK: 'لوحة الإدارة', homeT: 'المناسبات', homeSub: (u, p) => `${u} جاية` + (p ? ` و${p} خلصت` : ''), newEv: 'مناسبة جديدة', searchPh: 'دوّروا على مناسبة',
+      adminOnlyH: 'Admins only', adminOnlyP: 'This page is for admin accounts. Check your email is listed at the top of setup.txt, then run it again in Supabase.',
+      help: [['Does it save on its own?', 'Yes. Changes save a moment after you stop typing, and “Saved” shows at the top. A new event saves when you tap Create event.'],
+        ['What order do invitations go in?', 'The order of your list. Guests you paste or upload are sent from the top down.'],
+        ['Why do you ask “Did you send it?”', 'Opening WhatsApp doesn’t mean the message went. We only mark a guest as invited when you say so, so no one is missed.'],
+        ['Guest or person?', 'A guest is one invitation. A person is one head. So an invitation for a family of 3 counts as 1 guest and 3 people.']] },
+    ar: { title: 'الإدارة', close: 'إغلاق', other: 'English', out: 'تسجيل خروج', colours: 'الألوان',
+      homeT: 'المناسبات', homeSub: (u, p) => (u ? arN(u, 'مناسبة وحدة جاية', 'مناسبتين جاية', 'مناسبات جاية', 'مناسبة جاية') : 'ما في مناسبات جاية') + (p ? '، و' + arN(p, 'وحدة خلصت', 'ثنتين خلصت', 'خلصت', 'خلصت') : ''),
+      newEv: 'مناسبة جديدة', searchPh: 'دوّروا على مناسبة',
       upcomingH: 'المناسبات الجاية', pastH: n => `مناسبات خلصت (${n})`, noDate: 'بدون تاريخ للحين', noEventsH: 'ما عندكم مناسبات للحين', noEventsP: 'سوّوا أول مناسبة، ما تاخذ إلا دقيقتين.',
-      noMatch: q => `ما لقينا شي باسم «${q}»`, nGuests: n => arGuests(n), nSent: n => `انرسل ${n}`, noGuestsShort: 'بدون ضيوف للحين', stepsDone: n => `خلصت ${n} من 5 خطوات`,
-      menuEvents: 'كل المناسبات', menuHost: 'لوحة المضيفة', menuDoor: 'شاشة الباب', back: 'كل المناسبات',
+      noMatch: q => `ما لقينا شي باسم «${q}»`, noGuestsShort: 'ما في ضيوف للحين', rowSent: (a, b) => `انرسل ${a} من ${b}`, sep: '، ', back: 'كل المناسبات', toOv: 'رجوع للمناسبة',
       newH: 'مناسبة جديدة', blank: 'من الصفر', blankP: 'مناسبة فاضية بالرسالة الأساسية', copyH: 'انسخوا الإعدادات من', copyP: 'ينسخ النوع والكلام والرسالة والباقة والألوان، بدون الاسم والتاريخ والمكان والرابط والضيوف.',
-      copyCard: 'وانسخوا كرت الدعوة بعد', newK: 'مناسبة جديدة', newT: 'مناسبة بدون اسم', copiedFrom: n => `منسوخة من ${n}، عدّلوا اللي تبونه تحت.`, clearCopy: 'ابدوا من الصفر',
-      openHost: 'اللوحة', testInv: 'صفحة الضيف', openDoor: 'الباب', stepsL: 'الخطوات',
-      s_details: 'التفاصيل', s_team: 'الفريق', s_design: 'التصميم', s_guests: 'الضيوف', s_send: 'الإرسال',
-      hDetails: 'تفاصيل المناسبة', hTeam: 'المضيفات وفريق الباب', hDesign: 'كرت الدعوة', hGuests: 'قائمة الضيوف', hSend: 'إرسال الدعوات',
-      stNew: 'ما انحفظت للحين', stSaved: 'محفوظة', stNeedDate: 'باقي التاريخ والمكان', stTeam: (h, d) => `${arHosts(h)} و${d} للباب`, stNone: 'محد للحين',
-      stCard: 'الكرت مرفوع', stNoCard: 'الكرت ما انرفع للحين', stGuests: (g, i) => `${arGuests(g)} و${arInvites(i)}`, stNoGuests: 'ما أضفتوا ضيوف للحين',
-      stAddFirst: 'أضيفوا الضيوف أول', stAllSent: 'انرسلت كلها', stSent: (a, b) => `انرسل ${a} من ${b}`, lockedHint: 'احفظوا التفاصيل عشان تنفتح باقي الخطوات.',
-      lgEvent: 'الأساسيات', lgCard: 'على الكرت', lgWhen: 'متى ووين', lgLink: 'رابط الدعوة',
-      fTitle: 'اسم المناسبة (تشوفه المضيفة)', fTitlePh: 'ليلة غلا', fType: 'النوع', tWedding: 'زواج', tMilka: 'ملكة', tEngagement: 'خطوبة',
-      tGhabga: 'غبقة', tGraduation: 'تخرج', tBirthday: 'عيد ميلاد', tBaby: 'استقبال مولود', tCorporate: 'فعالية شركة', tOther: 'غيرها', fLang: 'لغة صفحة الضيف',
-      fLimit: 'عدد الدعوات بالباقة', fLimitHelp: 'خلوه فاضي إذا ما في حد.',
-      line: 'جملة الدعوة', linePh: 'نتشرف بدعوتكم لحضور ليلة غلا', note: 'ملاحظة بصفحة الدعوة (اختياري)', notePh: 'ليلة سمرة، لا تنسون الثوب\nبيكون عندنا فرقة سمرة رجالية.',
-      noteHelp: 'السطر الأول يطلع بارز، والباقي اكتبوه تحته.', fHead: 'العنوان الكبير على الكرت', date: 'التاريخ', from: 'من', toOpt: 'إلى (اختياري)', venue: 'المكان', map: 'رابط اللوكيشن (قوقل ماب)',
-      fCode: 'اسم الرابط', codeEmpty: 'خلوه فاضي ونسويه لكم لما تحفظون.', codeKeep: 'خلوه فاضي ويبقى نفس الرابط.', codeShort: n => `${n} من 8 حروف على الأقل`,
-      codeBad: 'حروف إنجليزية وأرقام وشرطات بس', codeOk: 'تمام', useSlug: 'استخدموا', autoLink: 'الرابط الكامل يطلع هني بعد ما تكتبون الاسم.', copy: 'نسخ', copied: 'نسخنا الرابط', copyPrompt: 'انسخوا الرابط:',
-      nameEv: 'اكتبوا اسم المناسبة', badCode: 'اسم الرابط: 8 حروف إنجليزية أو أرقام أو شرطات على الأقل، بدون مسافات', codeTaken: 'اسم الرابط مأخوذ، جربوا غيره', cantSave: m => 'ما قدرنا نحفظ: ' + m, saved: 'انحفظت',
-      sbDirty: 'في تعديلات ما انحفظت', sbNew: 'مناسبة جديدة ما انحفظت للحين', save: 'حفظ', create: 'حفظ المناسبة', discard: 'تراجع', saveL: 'الحفظ', leaveQ: 'عندكم تعديلات ما انحفظت. تبون تطلعون بدون حفظ؟',
-      addSomeone: 'إضافة للفريق', access: 'الصلاحية', roleHost: 'مضيفة', roleDoor: 'الباب', roleHostP: 'تشوف كل شي: الردود والضيوف والإرسال.', roleDoorP: 'تسجّل وصول الضيوف عند الباب بس.',
-      email: 'الإيميل', mSide: 'قائمتها (اختياري)', mSidePh: 'مثال: أم المعرس', mSideHelp: 'خلوه فاضي وتشوف كل القوائم. وإذا حددتوا قائمة، تشوف وتضيف ضيوفها بس.',
-      mUntil: 'تنتهي الصلاحية', mUntilHelp: 'الساعة 12 بالليل بتوقيت الكويت. وإذا خليتوه فاضي، باليوم اللي بعد المناسبة.', add: 'إضافة',
-      host: 'مضيفة', doorOnly: 'الباب', sideList: s => `قائمة ${s}`, allLists: 'كل القوائم', accessEnded: 'انتهت الصلاحية', until: 'لين', removeWho: e => `شيل ${e}`,
+      copyCard: 'وانسخوا كرت الدعوة بعد', newT: 'مناسبة بدون اسم', copiedFrom: n => `منسوخة من ${n}، عدّلوا اللي تبونه تحت.`, clearCopy: 'ابدوا من الصفر',
+      repliesK: 'الردود', noGuestsYet: 'ما في ضيوف للحين. الردود تطلع هني أول ما تنرسل الدعوات.',
+      coming: n => n ? arN(n, 'شخص واحد بيحضر', 'شخصين بيحضرون', 'أشخاص بيحضرون', 'شخص بيحضرون') : 'محد أكّد حضوره للحين',
+      comingW: () => 'عدد اللي بيحضرون',
+      cant: n => arN(n, 'ضيف واحد اعتذر', 'ضيفين اعتذروا', 'ضيوف اعتذروا', 'ضيف اعتذروا'),
+      noReply: n => n ? arN(n, 'ضيف واحد ما ردّ', 'ضيفين ما ردّوا', 'ضيوف ما ردّوا', 'ضيف ما ردّوا') : 'الكل ردّ',
+      arrived: n => arN(n, 'شخص واحد وصل', 'شخصين وصلوا', 'أشخاص وصلوا', 'شخص وصلوا'),
+      sentK: 'الدعوات المرسلة', sentOf: (a, b) => b <= 2 ? `${a} من ${b}` : `${a} من ${countWord(b, 'guest', 'ar')}`, noPhones: 'ما في أرقام نرسل لها للحين',
+      nextK: 'الخطوة الجاية', gErr: 'ما قدرنا نجيب الضيوف. تأكدوا من الإنترنت وحاولوا مرة ثانية.', gErrH: 'قائمة الضيوف ما طلعت', gErrShort: 'الضيوف ما طلعوا', stLoadErr: 'ما طلعت',
+      evErr: 'ما قدرنا نجيب المناسبات. تأكدوا من الإنترنت وحاولوا مرة ثانية.', ovErr: 'في تعديل ما انحفظ.', leaveErrQ: 'في تعديل على المناسبة ما انحفظ. تطلعون بدونه؟',
+      nDetailsH: 'أضيفوا التاريخ والمكان', nDetailsP: 'الضيوف يحتاجونها بالرسالة وبصفحة الدعوة.', nDetailsB: 'أضيفوا التفاصيل',
+      nDesignH: 'ارفعوا كرت الدعوة', nDesignP: 'يشوفه الضيف أول ما يفتح رابطه.', nDesignB: 'رفع الكرت',
+      nGuestsH: 'أضيفوا قائمة الضيوف', nGuestsP: 'الصقوا الأسماء والأرقام، أو ارفعوا ملف.', nGuestsB: 'إضافة ضيوف',
+      nSendH: n => n === 1 ? 'أرسلوا آخر دعوة' : 'أرسلوا الدعوات', nSendP: n => `باقي ${countWord(n, 'guest', 'ar')}، واحد واحد على الواتساب.`, nSendB: 'ابدوا الإرسال', nSendB2: 'كمّلوا الإرسال',
+      nTeamH: 'أضيفوا ' + App.hostWord('ar'), nTeamP: 'يدخلون بإيميلاتهم ويشوفون الردود، ويقدرون يساعدون عند الباب.', nTeamB: 'أضيفوا إيميلاتهم',
+      nTodayH: 'المناسبة اليوم', nTodayP: 'تابعوا وصول الضيوف أول بأول من ' + App.hostWord('ar', 'page') + '.', nPastH: 'انتهت المناسبة', nPastP: 'الحضور والردود موجودة في ' + App.hostWord('ar', 'page') + '.',
+      nDoneH: 'كل شي جاهز', nDoneP: 'كل الدعوات انرسلت، والردود تطلع هني أول بأول.', nDoneB: 'افتحوا ' + App.hostWord('ar', 'page'),
+      setupH: 'التجهيز', openH: 'شاشات ثانية', openHost: App.hostWord('ar', 'page'), openHostP: 'الردود والضيوف', openDoor: 'شاشة الباب', openDoorP: 'تسجيل وصول الضيوف',
+      testInv: 'صفحة الضيف', testInvP: 'الدعوة مثل ما يشوفها أول ضيف', done: 'خلصت', notDone: 'ما خلصت للحين',
+      s_details: 'تفاصيل المناسبة', s_team: App.hostWord('ar') + ' والباب', s_design: 'الكرت والألوان', s_guests: 'قائمة الضيوف', s_send: 'الرسالة والإرسال',
+      stNeedDate: 'باقي التاريخ والمكان', stTeam: (h, d) => [h ? arN(h, 'شخص واحد من أهل المناسبة', 'شخصين من أهل المناسبة', 'أشخاص من أهل المناسبة', 'شخص من أهل المناسبة') : '', d ? arN(d, 'واحد للباب', 'اثنين للباب', 'للباب', 'للباب') : ''].filter(Boolean).join(' و'), stNone: 'محد للحين',
+      stCard: 'الكرت مرفوع', stNoCard: 'ما خلصت للحين', stGuests: (g, p) => `${countWord(g, 'guest', 'ar')} و${countWord(p, 'person', 'ar')}`, stNoGuests: 'ما في ضيوف للحين',
+      stAddFirst: 'أضيفوا الضيوف أول', stAllSent: 'انرسلت كلها', stSent: (a, b) => b <= 2 ? `انرسل ${a} من ${b}` : `انرسل ${a} من ${countWord(b, 'guest', 'ar')}`,
+      stepOf: i => `الخطوة ${i} من 5`, go: { team: 'أضيفوا أهل المناسبة وفريق الباب', design: 'اختاروا الكرت والألوان', guests: 'أضيفوا قائمة الضيوف', send: 'أرسلوا الدعوات' }, saving: 'نحفظ…', savedS: 'انحفظ', heldS: 'ما انحفظ للحين', errS: 'ما انحفظ', retry: 'حاولوا مرة ثانية',
+      fTitle: 'اسم المناسبة', fTitlePh: 'ليلة غلا', guestsRead: 'بيقرا الضيف:', nameOnPage: 'الاسم يطلع بصفحة الدعوة.',
+      fType: 'النوع', tWedding: 'زواج', tMilka: 'ملكة', tEngagement: 'خطوبة', tGhabga: 'غبقة', tGraduation: 'تخرج', tBirthday: 'عيد ميلاد', tBaby: 'استقبال مولود', tCorporate: 'فعالية شركة', tOther: 'غيرها',
+      fLangL: 'لغة الدعوة للضيوف', date: 'التاريخ', time: 'الوقت', endT: 'ينتهي الساعة (اختياري)', venue: 'المكان', map: 'رابط اللوكيشن (قوقل ماب)',
+      moreH: 'خيارات أكثر', moreP: 'وقت النهاية، النوع، اللوكيشن، كلام الكرت، الباقة، رابط الدعوة',
+      fHead: 'العنوان الكبير على الكرت', line: 'جملة الدعوة', linePh: 'نتشرف بدعوتكم لحضور ليلة غلا', note: 'ملاحظة بصفحة الدعوة (اختياري)', notePh: 'ليلة سمرة، لا تنسون الثوب\nبيكون عندنا فرقة سمرة رجالية.',
+      noteHelp: 'السطر الأول يطلع بارز، والباقي اكتبوه تحته.', fLimit: 'عدد الأشخاص بالباقة', fLimitHelp: 'خلوه فاضي إذا ما في حد.',
+      fCode: 'اسم رابط الدعوة', codeEmpty: 'خلوه فاضي ونسويه لكم من اسم المناسبة.', codeKeep: 'خلوه فاضي ويبقى نفس الرابط.', codeShort: n => `${n} من 8 حروف على الأقل`,
+      codeBad: 'حروف إنجليزية وأرقام وشرطات بس', codeOk: 'تمام', useSlug: 'استخدموا', autoLink: 'الرابط الكامل يطلع هني بعد ما تكتبون الاسم.', copy: 'نسخ الرابط', copied: 'نسخنا الرابط', copyPrompt: 'انسخوا الرابط:',
+      needName: 'اكتبوا اسم المناسبة. الاسم المحفوظ يبقى لين تكتبون غيره.', needDate: 'اختاروا التاريخ. التاريخ المحفوظ يبقى لين تختارون غيره.', needTime: 'اختاروا الوقت. الوقت المحفوظ يبقى لين تختارون غيره.',
+      needVenue: 'اكتبوا المكان. المكان المحفوظ يبقى لين تكتبون غيره.', nameEv: 'اكتبوا اسم المناسبة', badCode: 'اسم الرابط: 8 حروف إنجليزية أو أرقام أو شرطات على الأقل، بدون مسافات',
+      codeTaken: 'اسم الرابط مأخوذ، جربوا غيره', cantSave: m => 'ما قدرنا نحفظ: ' + m,
+      sbNew: 'مناسبة جديدة ما انحفظت للحين', create: 'حفظ المناسبة', saveL: 'الحفظ', leaveQ: 'المناسبة الجديدة ما انحفظت. تبون تطلعون بدون حفظ؟',
+      teamLead: 'أهل المناسبة يشوفون الردود وقائمة الضيوف، وفريق الباب يسجّل وصول الضيوف بس.', addSomeone: 'شخص جديد للفريق', access: 'الصلاحية', roleHost: App.hostWord('ar'), roleDoor: 'فريق الباب',
+      roleHostP: 'يشوف الردود وقائمة الضيوف، ويقدر يرسل الدعوات.', roleDoorP: 'يسجّل وصول الضيوف عند الباب بس.',
+      email: 'الإيميل', mSide: 'الطرف اللي يشوف ضيوفه', mSidePh: 'طرف ثاني، مثلاً: أم المعرس', mSideNew: 'طرف ثاني', mSideHelp: 'إذا اخترتوا طرف، يشوف ويضيف ضيوف هالطرف بس.', sideAll: 'الكل', sideNone: 'بدون طرف',
+      mUntil: 'تنتهي الصلاحية', mUntilHelp: 'الساعة 12 بالليل بتوقيت الكويت. وإذا خليتوه فاضي، باليوم اللي بعد المناسبة.', add: 'إضافة للفريق',
+      host: 'من أهل المناسبة', doorOnly: 'فريق الباب', sideList: s => `ضيوف طرف ${s}`, allLists: 'يشوف الكل', accessEnded: 'انتهت الصلاحية', until: 'لين', removeWho: e => `شيل ${e}`,
       rmQ: 'نشيله؟', rmYes: 'إي، شيلوه', rmNo: 'لا، خلوه', rmErr: 'ما قدرنا نشيله',
-      noHosts: 'محد للحين. أضيفوا إيميل المضيفة أول.', badEmail: 'اكتبوا إيميل صحيح', dupEmail: 'هالإيميل مضاف من قبل', addErr: 'ما قدرنا نضيفه',
-      memAdded: 'انضاف للفريق، والدخول بنفس الإيميل', addedWho: e => `انضاف ${e}`, copyNote: 'نسخ رسالة الدخول', noteCopied: 'نسخنا رسالة الدخول', loginNote: (e, u) => `ادخلوا من ${u} بإيميل ${e}`,
+      noHosts: 'محد للحين. أضيفوا إيميلات أهل المناسبة أول.', badEmail: 'اكتبوا إيميل صحيح', dupEmail: 'هالإيميل مضاف من قبل', addErr: 'ما قدرنا نضيفه',
+      addedWho: e => `انضاف ${e}، ويدخل بنفس الإيميل.`, copyNote: 'نسخ رسالة الدخول', noteCopied: 'نسخنا رسالة الدخول', loginNote: (e, u) => `ادخلوا من ${u} بإيميل ${e}`,
       designHelp: 'ارفعوا كرت الدعوة (صورة أو PDF) وصفحة الضيف تاخذ ألوانه.', cardAlt: 'كرت الدعوة', noCard: 'الكرت ما انرفع للحين', uploadCard: 'رفع الكرت', replaceCard: 'تغيير الكرت',
       cardFmt: 'صورة أو PDF. اسحبوه هني أو اضغطوا واختاروا.', reading: 'نطلّع الألوان…', uploading: 'نرفع الكرت…',
-      chipsL: 'ألوان الكرت', useBtn: 'للأزرار', useBg: 'للخلفية', mainCol: 'الأزرار والعناوين', bgCol: 'الخلفية', prevK: 'شكل صفحة الضيف',
-      prevHi: 'حياكم الله', prevBtn: 'تأكيد الحضور', lowC: 'كلام الزر يمكن ما ينقرا زين.', fix: 'صلّحوه', colErr: 'ما قدرنا نحفظ الألوان', colOk: 'أخذنا الألوان من الكرت',
-      cardErr: m => 'ما قدرنا نرفع الكرت: ' + (m || 'جربوا صورة JPG'),
-      gOnList: n => (n === 1 || n % 100 > 10 || (n && n % 100 === 0) ? 'ضيف' : 'ضيوف') + ' بالقائمة', invN: n => arInvites(n), pkgUsed: (u, l) => `انستخدم ${u} من ${l}، باقي ${Math.max(0, l - u)}`, noLimit: 'بدون حد',
-      impSide: 'أي قائمة؟ (اختياري)', impSidePh: 'مثال: أم المعرس', impSideHelp: 'المضيفة اللي عندها هالقائمة بتشوف هالضيوف.', impModeL: 'طريقة الإضافة', modeFile: 'رفع ملف', modePaste: 'كتابة أو لصق',
-      dropT: 'اسحبوا ملف إكسل أو CSV أو وورد هني', fileHelp: 'الأسماء والأرقام، وعدد الدعوات لكل ضيف إذا عندكم.', chooseFile: 'اختيار ملف', readingFile: n => `نقرا ${n}…`,
-      pasteHelp: 'كل ضيف بسطر، اسمه ورقمه', bulkPh: 'دانة العنجري 55771754\nهدى الصالح 99619992', checkNames: 'مراجعة الأسماء',
-      sumReady: 'جاهزين', sumHave: 'موجودين من قبل', sumBad: 'ما انقرت', badLinesH: 'أسطر ما قدرنا نقراها', usesL: (n, l) => `بتاخذ ${arInvites(n)} من ${l} باقية`, overL: (n, l) => `تحتاج ${arInvites(n)} والباقي ${l} بس`,
-      addN: n => `إضافة ${arGuests(n)}`, allHave: 'كلهم موجودين بالقائمة من قبل.', addedH: (n, s) => `أضفنا ${arGuests(n)}` + (s ? ` لقائمة ${s}` : ''),
-      skippedN: n => `تخطينا ${n} موجودين من قبل`, nextSend: 'كمّلوا للإرسال', addMore: 'إضافة غيرهم',
-      fileNone: 'ما لقينا أسماء وأرقام بالملف', fileErr: 'ما قدرنا نقرا الملف', lineEach: 'كل سطر لازم فيه اسم ورقم', foundToast: n => `لقينا ${arGuests(n)}، راجعوهم تحت`,
-      thName: 'الاسم', thNum: 'الرقم', thExtras: 'المرافقين', plus: arPlus, more: n => `و${n} غيرهم…`, cancel: 'إلغاء',
-      noPkg: 'الدعوات الباقية بالباقة ما تكفي', addListErr: m => 'ما قدرنا نضيف القائمة: ' + m, addedN: (a, skip) => `أضفنا ${arGuests(a)}` + (skip ? ` (وتخطينا ${skip} مكررين)` : ''),
-      tplL: 'رسالة الواتساب', tplHelp: 'اضغطوا على أي كلمة عشان تنضاف، وتتغير حسب كل ضيف.', tkName: 'الاسم', tkInv: 'العدد', tkDate: 'التاريخ', tkTime: 'الوقت', tkVenue: 'المكان', tkEvent: 'المناسبة', tkLink: 'الرابط',
-      resetTpl: 'رجّعوا الرسالة الأساسية', noLink: 'أضيفوا الرابط، وإلا الضيوف ما يقدرون يردون.', addLink: 'إضافة الرابط', tplSaveHint: 'تعديلات الرسالة تنحفظ لما تضغطون حفظ.',
+      chipsL: 'ألوان الكرت', chipsHelp: 'أو اختاروا لون واحد، وبعدين حددوا وين يروح.', pairsL: 'ألوان جاهزة من الكرت', pairsHelp: 'بضغطة وحدة تتغير ألوان الأزرار والخلفية مع بعض.', pairN: i => `مجموعة الألوان ${i}`, useBtn: 'للأزرار', useBg: 'للخلفية', mainCol: 'الأزرار والعناوين', bgCol: 'الخلفية', prevK: 'شكل صفحة الضيف',
+      prevHi: 'حياكم الله', prevBtn: 'تأكيد الحضور', lowC: 'كلام الزر يمكن ما ينقرا زين.', fix: 'غمّقوا لون الأزرار', tooClose: 'اللون قريب واجد من لون الخلفية، اختاروا غيره.',
+      colErr: 'ما قدرنا نحفظ الألوان', colOk: 'أخذنا الألوان من الكرت', cardErr: m => 'ما قدرنا نرفع الكرت: ' + (m || 'جربوا صورة JPG'),
+      gSum: (g, p) => `${countWord(g, 'guest', 'ar')} و${countWord(p, 'person', 'ar')}`, pkgUsed: (u, l) => `انحجز ${u} من ${countWord(l, 'person', 'ar')} بالباقة، والباقي ${Math.max(0, l - u)}`, noLimit: 'بدون حد للباقة',
+      impSide: 'الطرف (اختياري)', impSidePh: 'طرف ثاني، مثلاً: أم المعرس', impSideNew: 'طرف ثاني', impSideHelp: 'اللي يشوفون هالطرف بس من أهل المناسبة بيشوفون هالضيوف.', impModeL: 'طريقة الإضافة', modeFile: 'رفع ملف', modePaste: 'كتابة أو لصق',
+      dropT: 'اسحبوا ملف إكسل أو CSV أو وورد هني', fileHelp: 'الأسماء والأرقام، وعدد الأشخاص لكل ضيف إذا عندكم.', chooseFile: 'اختيار ملف', readingFile: n => `نقرا ${n}…`,
+      pasteHelp: 'كل ضيف بسطر، اسمه ورقمه', orderHelp: 'تنرسل الدعوات بنفس هالترتيب، من فوق لتحت.', bulkPh: 'دانة العنجري 55771754\nهدى الصالح 99619992', checkNames: 'مراجعة الأسماء',
+      sumReady: 'جاهزين', sumHave: 'موجودين من قبل', sumBad: 'ما انقرت', badLinesH: 'أسطر ما قدرنا نقراها',
+      usesL: (n, l) => `بتاخذ ${countWord(n, 'person', 'ar')} من ${l} باقيين بالباقة`, overL: (n, l) => `تحتاج ${countWord(n, 'person', 'ar')}، والباقي بالباقة ${l} بس`,
+      addN: n => `إضافة ${countWord(n, 'guest', 'ar')}`, allHave: 'كلهم موجودين بالقائمة من قبل.', addedH: (n, s) => `أضفنا ${countWord(n, 'guest', 'ar')}` + (s ? ` لطرف ${s}` : ''),
+      skippedN: n => `تخطينا ${arN(n, 'ضيف واحد موجود', 'ضيفين موجودين', 'ضيوف موجودين', 'ضيف موجودين')} من قبل`, nextSend: 'أرسلوا الدعوات', addMore: 'إضافة ضيوف غيرهم',
+      fileNone: 'ما لقينا أسماء وأرقام بالملف', fileErr: 'ما قدرنا نقرا الملف', lineEach: 'كل سطر لازم فيه اسم ورقم', foundToast: n => `لقينا ${countWord(n, 'guest', 'ar')}، راجعوهم تحت`,
+      thName: 'الاسم', thNum: 'الرقم', thPeople: 'الأشخاص', fewer: n => `أقل لـ${n}`, moreP2: n => `أكثر لـ${n}`, more: n => `و${n} غيرهم…`, cancel: 'لا تضيفونهم',
+      noPkg: 'الأماكن الباقية بالباقة ما تكفي', addListErr: m => 'ما قدرنا نضيف القائمة: ' + m,
+      tplL: 'الرسالة لكل الضيوف', tplHelp: 'اضغطوا على أي كلمة عشان تنضاف، وكل ضيف توصله باسمه وعدده ورابطه.',
+      tkName: 'الاسم', tkInv: 'عدد الأشخاص', tkDate: 'التاريخ', tkTime: 'الوقت', tkVenue: 'المكان', tkEvent: 'اسم المناسبة', tkLink: 'الرابط', addTok: w => `إضافة ${w}`,
+      resetTpl: 'رجّعوا الرسالة الأساسية', noLink: 'الرسالة ما فيها رابط، فالضيوف ما بيقدرون يردون. ما تنحفظ لين يرجع الرابط.', putLink: 'رجّعوا الرابط',
+      gluedLink: 'الرابط لاصق بكلام ثاني، فما بينفتح. ما تنحفظ لين ينصلح.', fixLink: 'صلّحوا الرابط', emptyMsg: 'الرسالة فاضية. الرسالة المحفوظة تبقى لين تكتبون غيرها.',
       howSee: n => `كذا بتوصل ${n}`, sampleName: 'دانة',
-      gateDirty: 'احفظوا التعديلات أول، عشان توصل الضيوف آخر نسخة.', gateNoLink: 'الرسالة ما فيها رابط، فالضيوف ما بيقدرون يردون. أضيفوه فوق واحفظوا.',
-      saveFirst: 'احفظوا قبل لا ترسلون', noLinkOne: 'هالرسالة انمسح منها الرابط. رجّعوه عشان يقدرون يردون.',
-      sentK: 'الدعوات المرسلة', ofGuests: n => 'من ' + arGuests(n), leftToSend: n => n ? `باقي ${arGuests(n)}` : 'انرسلت كلها', nextK: () => 'الدور على',
-      editMsg: 'تعديل الرسالة', doneEdit: 'خلصت التعديل', skip: 'بعدين', sentTo: n => `انرسلت لـ${n}`, undo: 'تراجع', markErr: 'ما قدرنا نسجلها مرسلة',
-      finH: 'كل الدعوات انرسلت', finP: (g, i) => `${arGuests(g)} و${arInvites(i)}`, finBtn: 'لوحة المضيفة',
+      gateNoLink: 'الإرسال واقف: الرسالة لازم فيها الرابط، وإلا الضيوف ما بيقدرون يردون.', noLinkOne: 'هالرسالة انمسح منها الرابط. رجّعوه عشان يقدرون يردون.',
+      sentMeterK: 'الدعوات المرسلة', ofGuests: n => n <= 2 ? `من ${n}` : 'من ' + countWord(n, 'guest', 'ar'), leftToSend: n => n ? `باقي ${countWord(n, 'guest', 'ar')}` : 'انرسلت كلها', nextUp: 'الدور على',
+      afterThem: (names, more) => `وبعدهم: ${names}` + (more ? ` و${more} غيرهم` : ''),
+      editMsg: 'تعديل لهالضيف بس', doneEdit: 'خلصت التعديل', editAll: 'تعديل الرسالة لكل الضيوف', skip: 'بعدين', sentTo: n => `انرسلت لـ${n}`, undo: 'تراجع', markErr: 'ما قدرنا نسجلها مرسلة',
+      askQ: n => `أرسلتوها إلى ${n}؟`, askP: 'ما نحسبها انرسلت إلا إذا قلتوا إي.', askYes: 'إي، انرسلت', askNo: 'للحين لا', openAgain: 'افتحوا الواتساب مرة ثانية', askRow: 'أرسلتوها؟',
+      finH: 'كل الدعوات انرسلت', finP: (g, p) => `${countWord(g, 'guest', 'ar')} و${countWord(p, 'person', 'ar')}`, finBtn: 'افتحوا ' + App.hostWord('ar', 'page'),
       listT: n => `رسائل الضيوف (${n})`, fTodo: 'ما انرسلت', fSent: 'انرسلت', fAll: 'الكل', qNone: 'محد هني.',
-      qEmpty: 'أضيفوا الضيوف بأرقامهم بالخطوة 04، وبيطلعون هني واحد واحد.',
+      qEmpty: 'أضيفوا الضيوف بأرقامهم في قائمة الضيوف، وبيطلعون هني واحد واحد.',
       qHelp: 'كل ضيف له رسالة باسمه ورابطه. عدّلوا اللي تبون، وبعدين اضغطوا <b>إرسال بالواتساب</b>: تنفتح محادثته والرسالة جاهزة، وتضغطون إرسال.',
       sent: 'انرسلت', notSent: 'ما انرسلت للحين', msgFor: n => `رسالة ${n}`, sendAgain: 'إرسال مرة ثانية', sendWa: 'إرسال بالواتساب',
-      adminOnlyH: 'للإدارة فقط', adminOnlyP: 'تأكدوا إن إيميلكم مكتوب أول ملف setup.txt، وبعدين شغّلوه مرة ثانية في Supabase.' }
+      adminOnlyH: 'للإدارة فقط', adminOnlyP: 'تأكدوا إن إيميلكم مكتوب أول ملف setup.txt، وبعدين شغّلوه مرة ثانية في Supabase.',
+      help: [['التعديلات تنحفظ بروحها؟', 'إي. أي تعديل ينحفظ بعد ما توقفون كتابة بلحظة، وتطلع «انحفظ» فوق. والمناسبة الجديدة تنحفظ لما تضغطون «حفظ المناسبة».'],
+        ['الدعوات بأي ترتيب تنرسل؟', 'بنفس ترتيب قائمتكم. الضيوف اللي تلصقونهم أو ترفعونهم بملف ينرسلون من فوق لتحت.'],
+        ['ليش نسألكم إذا انرسلت؟', 'فتح الواتساب ما يعني إن الرسالة راحت. ما نحسب الضيف وصلته الدعوة إلا إذا قلتوا إي، عشان ما يفوتكم أحد.'],
+        ['شنو الفرق بين الضيف والشخص؟', 'الضيف يعني دعوة وحدة، والشخص يعني فرد. يعني دعوة لعائلة من 3 أشخاص تنحسب ضيف واحد و3 أشخاص.']] }
   };
   let lang = 'en'; try { lang = localStorage.getItem('admin-lang') === 'ar' ? 'ar' : 'en'; } catch (e) {}
   let t = T[lang], notAdmin = false;
+  App.setHelp(l => T[l].help);
   const typeLabel = k => t['t' + String(k || 'other').charAt(0).toUpperCase() + String(k || 'other').slice(1)] || t.tOther;
   const kwDay = d => new Date(new Date(d).getTime() + 3 * 3600e3).toISOString().slice(0, 10);
   const isPast = e => !!e.starts_at && kwDay(e.ends_at || e.starts_at) < kwDay(new Date());
   const loc = () => lang === 'ar' ? 'ar-KW-u-nu-latn' : 'en-GB';
   const shortDate = iso => new Date(iso).toLocaleDateString(loc(), { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-  const hasLink = s => /{(link|الرابط)}/.test(s || '');
+  const isAr = s => /[؀-ۿ]/.test(s || '');
 
   function applyLang() {
-    t = T[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; document.title = t.title;
+    t = T[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; document.title = App.brandTitle(t.title, lang);
     $$('[data-i18n]').forEach(el => { const v = t[el.dataset.i18n]; if (typeof v === 'string') el.textContent = v; });
     $$('[data-i18n-ph]').forEach(el => { el.placeholder = t[el.dataset.i18nPh]; });
     $$('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t[el.dataset.i18nAria]); });
@@ -354,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setTb();
   }
   $('#lang').onclick = () => { lang = lang === 'ar' ? 'en' : 'ar'; try { localStorage.setItem('admin-lang', lang); } catch (e) {} applyLang(); };
-  function showNotAdmin() { $('#auth').innerHTML = `<div class="login-wrap"><div class="login box"><p class="kicker">${t.homeK}</p><h2>${t.adminOnlyH}</h2><p class="sub">${t.adminOnlyP}</p></div></div>`; }
+  function showNotAdmin() { $('#auth').innerHTML = `<div class="login-wrap"><div class="login box"><h2>${t.adminOnlyH}</h2><p class="sub">${t.adminOnlyP}</p></div></div>`; }
 
   let me = null;
   App.requireLogin($('#auth'), async session => {
@@ -377,89 +430,170 @@ document.addEventListener('DOMContentLoaded', function () {
       out = out.concat(data || []); if (!data || data.length < 1000) return { data: out };
     }
   }
+  // one set of counts for a list of guests (guest = one invitation, person = one head)
+  function countsOf(list) {
+    const s = { g: 0, people: 0, phones: 0, sent: 0, yesG: 0, coming: 0, no: 0, wait: 0, arrived: 0 };
+    list.forEach(g => {
+      s.g++; s.people += g.seats || 1;
+      if (g.phone) { s.phones++; if (g.sent_at) s.sent++; }
+      if (g.status === 'yes') { s.yesG++; s.coming += App.peopleComing(g); } else if (g.status === 'no') s.no++; else s.wait++;
+      if (g.checked_in_at) s.arrived += g.checked_in_count || 0;
+    });
+    return s;
+  }
   async function loadEvents() {
+    const cols = 'event_id,phone,seats,sent_at,status,checked_in_at,checked_in_count' + (v2 ? ',confirmed_count' : '');
     const [er, gr, mr] = await Promise.all([
       sb.from('events').select('*').order('starts_at', { ascending: true }),
-      pageAll(() => sb.from('guests').select('event_id,phone,seats,sent_at').order('id')),
+      pageAll(() => sb.from('guests').select(cols).order('id')),
       sb.from('event_members').select('event_id,role')]);
+    eventsErr = !!er.error;
+    if (er.error && events.length) { renderHome(); return; }   // keep what we had rather than an empty list
     events = er.data || []; stats = {};
-    const S = id => stats[id] || (stats[id] = { g: 0, inv: 0, phones: 0, sent: 0, hosts: 0, doors: 0 });
-    (gr.data || []).forEach(g => { const s = S(g.event_id); s.g++; s.inv += g.seats || 1; if (g.phone) { s.phones++; if (g.sent_at) s.sent++; } });
-    (mr.data || []).forEach(m => { const s = S(m.event_id); if (m.role === 'host') s.hosts++; else s.doors++; });
+    const by = {}; (gr.data || []).forEach(g => (by[g.event_id] || (by[g.event_id] = [])).push(g));
+    events.forEach(e => { stats[e.id] = { ...countsOf(by[e.id] || []), hosts: 0, doors: 0, err: !!gr.error }; });
+    (mr.data || []).forEach(m => { const s = stats[m.event_id]; if (!s) return; if (m.role === 'host') s.hosts++; else s.doors++; });
     if (ev) { const fresh = events.find(x => x.id === ev.id); if (fresh) ev = fresh; }
-    renderHome(); renderMenu();
+    renderHome();
   }
   function syncStats() {   // keep the home list in step with what changed on this event
-    if (!ev) return; const s = gStats();
-    stats[ev.id] = { ...s, hosts: members.filter(m => m.role === 'host').length, doors: members.filter(m => m.role !== 'host').length };
+    if (!ev) return;
+    stats[ev.id] = { ...countsOf(guests), hosts: members.filter(m => m.role === 'host').length, doors: members.filter(m => m.role !== 'host').length, err: guestsErr };
     const i = events.findIndex(x => x.id === ev.id); if (i >= 0) events[i] = ev;
   }
   async function loadGuests() {
     const id = ev && ev.id; if (!id) return;
-    const { data } = await pageAll(() => sb.from('guests').select('*').eq('event_id', id).order('created_at').order('id'));
+    // created_at keeps the order of the pasted list (each imported row gets its own millisecond)
+    const { data, error } = await pageAll(() => sb.from('guests').select('*').eq('event_id', id).order('created_at').order('id'));
     if (!ev || ev.id !== id) return;
-    guests = data || [];
-    const first = guests[0]; $('#testInv').hidden = !first; if (first) $('#testInv').href = inviteLink(first.token);
+    guestsErr = !!error;
+    if (!error) guests = data || [];   // a failed load keeps what we had, and says so
   }
   async function loadMembers() {
     const id = ev && ev.id; if (!id) return;
-    const { data } = await sb.from('event_members').select('*').eq('event_id', id).order('created_at');
+    const { data, error } = await sb.from('event_members').select('*').eq('event_id', id).order('created_at');
     if (!ev || ev.id !== id) return;
-    members = data || [];
+    membersErr = !!error;
+    if (!error) members = data || [];
   }
-  const gStats = () => { const s = { g: guests.length, inv: 0, phones: 0, sent: 0 }; guests.forEach(g => { s.inv += g.seats || 1; if (g.phone) { s.phones++; if (g.sent_at) s.sent++; } }); return s; };
+  // the event row itself, fresh: what another screen (or a save that finished after leaving) changed
+  async function loadEvent() {
+    const id = ev && ev.id; if (!id) return false;
+    const { data, error } = await sb.from('events').select('*').eq('id', id).maybeSingle();
+    if (error || !data || !ev || ev.id !== id) return false;
+    const i = events.findIndex(x => x.id === id); if (i >= 0) events[i] = data;
+    if (JSON.stringify(data) === JSON.stringify(ev)) return false;
+    ev = data; return true;
+  }
+  async function reloadEvent() {   // "Try again" after a failed load
+    await Promise.all([loadGuests(), loadMembers()]);
+    syncStats(); renderEvent();
+  }
+  // replies and arrivals keep coming in during the event: refresh the overview while it's on screen
+  async function refreshOverview() {
+    if (!ev || view !== 'overview' || document.visibilityState === 'hidden') return;
+    const id = ev.id; await Promise.all([loadGuests(), loadMembers()]);
+    if (!ev || ev.id !== id || view !== 'overview') return;
+    syncStats(); renderOverview();
+  }
+  setInterval(refreshOverview, 45000);
 
   // ---------------------------------------------------------------- views + routing
+  // ?event=<id> opens the overview, &step=<k> one setup step, ?event=new the short new-event form
   function route() {
-    const id = new URLSearchParams(location.search).get('event');
+    const p = new URLSearchParams(location.search), id = p.get('event'), k = p.get('step');
     const e = id && events.find(x => x.id === id);
-    if (id === 'new') open(null, { push: false }); else if (e) open(e, { push: false }); else showView('home');
+    if (id === 'new') { if (!(view === 'step' && !ev)) open(null, { push: false }); }
+    else if (e) { if (ev && ev.id === e.id) (STEPS.includes(k) ? showStep(k, false) : showOverview(false)); else open(e, { push: false, step: STEPS.includes(k) ? k : null }); }
+    else showHome(false);
   }
+  const here = () => ev ? url(ev.id, view === 'step' ? step : null) : (view === 'step' ? '?event=new' : location.pathname);
   function showView(v) {
-    view = v; $('#home').hidden = v !== 'home'; $('#evArea').hidden = v !== 'event';
-    vis.set(v === 'home' ? $('#homeMast') : $('#mast'), true);
-    syncTb(); renderMenu(); renderSavebar();
+    view = v; $('#home').hidden = v !== 'home'; $('#evArea').hidden = v === 'home';
+    $('#ovView').hidden = v !== 'overview'; $('#stepView').hidden = v !== 'step';
+    syncTb(); renderSavebar();
   }
-  function confirmLeave() { if (!dirty) return true; if (!confirm(t.leaveQ)) return false; dirty = false; return true; }
-  function goHome(push = true) {
-    if (!confirmLeave()) return;
-    ev = null; copyFrom = null; showView('home'); renderHome();
+  const url = (id, k) => '?event=' + id + (k ? '&step=' + k : '');
+  function confirmLeave() { if (ev || !newDirty) return true; if (!confirm(t.leaveQ)) return false; newDirty = false; return true; }
+  // a change that couldn't save (offline, an error) is still on screen: it counts as unsaved
+  const failedEdit = () => !!ev && saveSt === 'err' && Object.keys(buildPatch().patch).length > 0;
+  // before leaving this event: finish (or retry) the save, and never drop a change that couldn't save without asking
+  async function leaveOK() {
+    if (!confirmLeave()) return false;
+    if (!ev) return true;
+    const id = ev.id;
+    await flushSave();
+    if (!ev || ev.id !== id) return true;
+    if (failedEdit()) { if (!confirm(t.leaveErrQ)) return false; setSaveState(''); }
+    return true;
+  }
+  async function showHome(push = true) {
+    const was = here();
+    if (!(await leaveOK())) { if (!push) history.pushState({}, '', was); return; }
+    ++openSeq;
+    ev = null; copyFrom = null; clearTimeout(retryTimer); showView('home'); renderHome();
     if (push) history.pushState({}, '', location.pathname);
     window.scrollTo(0, 0);
   }
+  function showOverview(push = true) {
+    if (!ev) return;
+    flushSave();
+    if (push) history.pushState({}, '', url(ev.id));
+    showView('overview'); renderOverview(); window.scrollTo(0, 0);
+  }
+  function showStep(k, push = true) {
+    if (!ev && k !== 'details') return;
+    if (view === 'step' && step !== k) flushSave();
+    step = k; asking = null; rowAsk = null;
+    if (push && ev) history.pushState({}, '', url(ev.id, k));
+    showView('step'); renderStepHead();
+    if (k === 'send') { renderComposer(); renderQueue(); }
+    if (k === 'design') renderTheme();
+    if (k === 'guests') { renderGuestsStep(); renderPreview(); }
+    if (k === 'team') { renderTeamForm(); renderMembers(); }
+    window.scrollTo(0, 0);
+  }
   window.addEventListener('popstate', () => {
-    if (dirty && !confirm(t.leaveQ)) { history.pushState({}, '', ev ? '?event=' + ev.id : '?event=new'); return; }
-    dirty = false; route();
+    if (!ev && newDirty && !confirm(t.leaveQ)) { history.pushState({}, '', '?event=new'); return; }
+    newDirty = false; route();
   });
-  window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
-  $('#toList').onclick = () => goHome();
+  window.addEventListener('beforeunload', e => {
+    const pending = !!(saveTimer || saving) || failedEdit();
+    if (pending) flushSave();
+    if (pending || (!ev && newDirty && view === 'step')) { e.preventDefault(); e.returnValue = ''; }
+  });
+  // going to WhatsApp hides the page: save now. Coming back: retry a failed save, fresh replies
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushSave(); else { if (failedEdit()) autosave(); refreshOverview(); } });
+  window.addEventListener('online', () => { if (failedEdit()) autosave(); });
+  $('#toList').onclick = () => showHome();
+  $('#brand').onclick = e => { e.preventDefault(); if (booted) showHome(); };
+  $('#toOv').onclick = () => { if (ev) showOverview(); else showHome(); };
 
-  // top bar: height for the sticky rail, title once the masthead scrolls away
+  // top bar: the event's name once its heading has scrolled away
   function setTb() { const tb = $('.topbar'); if (tb) document.body.style.setProperty('--tb', tb.offsetHeight + 'px'); }
   window.addEventListener('resize', setTb);
-  const vis = new Map();
-  const io = new IntersectionObserver(es => { es.forEach(e => vis.set(e.target, e.isIntersecting)); syncTb(); });
-  io.observe($('#homeMast')); io.observe($('#mast'));
+  let mastVisible = true;
+  new IntersectionObserver(es => { es.forEach(e => { mastVisible = e.isIntersecting; }); syncTb(); }).observe($('#mast'));
+  function evTitle() { return $('#fTitle').value.trim() || (ev && ev.title) || ''; }
   function syncTb() {
-    const el = view === 'home' ? $('#homeMast') : $('#mast');
-    $('#tbTitle').textContent = view === 'home' ? t.homeT : ($('#fTitle').value.trim() || (ev && ev.title) || t.newT);
-    $('#tbTitle').classList.toggle('on', !$('#adm').hidden && vis.get(el) === false);
+    const on = !$('#adm').hidden && (view === 'step' || (view === 'overview' && !mastVisible));
+    $('#tbTitle').textContent = view === 'home' ? '' : evTitle();
+    $('#tbTitle').classList.toggle('on', on);
   }
 
   // ---------------------------------------------------------------- home: the event list
-  const stepsOf = e => { const s = stats[e.id] || {}; return [!!(e.starts_at && e.venue), (s.hosts || 0) > 0, !!e.card_image_url, (s.g || 0) > 0, (s.phones || 0) > 0 && s.sent === s.phones]; };
   function dblock(e) {
     if (!e.starts_at) return `<span class="dblock none" aria-hidden="true"><i class="i i-calendar"></i></span>`;
     const d = new Date(e.starts_at);
     return `<span class="dblock" aria-hidden="true"><small>${esc(d.toLocaleDateString(loc(), { timeZone: TZ, month: 'short' }))}</small><b class="num">${d.toLocaleDateString('en-GB', { timeZone: TZ, day: 'numeric' })}</b></span>`;
   }
   function evRow(e) {
-    const s = stats[e.id] || { g: 0, sent: 0, phones: 0 }, done = stepsOf(e), n = done.filter(Boolean).length;
+    const s = stats[e.id] || countsOf([]);
     const when = e.starts_at ? shortDate(e.starts_at) : t.noDate;
-    const meta = [typeLabel(e.event_type), s.g ? t.nGuests(s.g) : t.noGuestsShort, s.phones ? t.nSent(s.sent) : ''].filter(Boolean).join(' · ');
-    return `<button type="button" class="evrow" data-id="${esc(e.id)}" aria-label="${esc(e.title + ', ' + when + ', ' + t.stepsDone(n))}">${dblock(e)}
-      <span class="evrow-main"><span class="evrow-t" dir="auto">${esc(e.title)}</span><span class="evrow-m">${esc(meta)}</span>
-      <span class="dots" aria-hidden="true">${done.map(x => `<i${x ? ' class="on"' : ''}></i>`).join('')}<small class="num">${n}/5</small></span></span><i class="i i-chev" aria-hidden="true"></i></button>`;
+    const meta = [typeLabel(e.event_type), s.err ? t.gErrShort : s.g ? cw(s.g, 'guest') : t.noGuestsShort].join(t.sep);
+    const prog = s.g && !s.err ? [s.phones ? t.rowSent(s.sent, s.phones) : '', s.yesG || s.no ? t.coming(s.coming) : ''].filter(Boolean).join(t.sep) : '';
+    return `<button type="button" class="evrow" data-id="${esc(e.id)}" aria-label="${esc([e.title, when, meta, prog].filter(Boolean).join(', '))}">${dblock(e)}
+      <span class="evrow-main"><span class="evrow-t" dir="auto">${esc(e.title)}</span><span class="evrow-m">${esc(meta)}</span>${prog ? `<span class="evrow-p">${esc(prog)}</span>` : ''}</span><i class="i i-chev" aria-hidden="true"></i></button>`;
   }
   function renderHome() {
     const raw = $('#evSearch').value.trim(), q = normName(raw);
@@ -469,17 +603,20 @@ document.addEventListener('DOMContentLoaded', function () {
     const past = events.filter(isPast).sort((a, b) => ts(b) - ts(a));
     $('#homeSub').textContent = events.length ? t.homeSub(up.length, past.length) : '';
     $('#searchWrap').hidden = events.length < 4;
+    $('#newEv').hidden = !events.length;   // the empty screen has its own "New event": one filled button
     const U = up.filter(match), P = past.filter(match);
     let h = '';
-    if (!events.length) h = `<div class="homeempty box"><i class="i i-env lg"></i><h2>${t.noEventsH}</h2><p class="sub">${t.noEventsP}</p><button class="btn" data-new><i class="i i-plus"></i>${t.newEv}</button></div>`;
+    if (!events.length && eventsErr) h = `<div class="warnstrip loaderr"><span>${t.evErr}</span><button type="button" class="btn small secondary" id="reloadEvs">${t.retry}</button></div>`;
+    else if (!events.length) h = `<div class="homeempty panel"><i class="i i-env lg"></i><h2 class="t-title">${t.noEventsH}</h2><p class="t-small">${t.noEventsP}</p><button class="btn primary" data-new><i class="i i-plus"></i>${t.newEv}</button></div>`;
     else if (!U.length && !P.length) h = `<p class="empty">${t.noMatch(esc(raw))}</p>`;
     else {
-      if (U.length) h += `<p class="kicker evgroup">${t.upcomingH}</p><div class="glist evl">${U.map(evRow).join('')}</div>`;
+      if (U.length) h += `<h2 class="sect evgroup">${t.upcomingH}</h2><div class="glist evl">${U.map(evRow).join('')}</div>`;
       if (P.length) h += `<details class="past"${q || !U.length ? ' open' : ''}><summary><span>${t.pastH(P.length)}</span><i class="i i-chev"></i></summary><div class="glist evl">${P.map(evRow).join('')}</div></details>`;
     }
     $('#evlist').innerHTML = h;
     $$('#evlist .evrow').forEach(b => b.onclick = () => open(events.find(x => x.id === b.dataset.id)));
     const nb = $('#evlist [data-new]'); if (nb) nb.onclick = newEvent;
+    if ($('#reloadEvs')) $('#reloadEvs').onclick = async () => { await loadEvents(); if (!eventsErr) route(); };
   }
   $('#evSearch').addEventListener('input', renderHome);
 
@@ -487,246 +624,419 @@ document.addEventListener('DOMContentLoaded', function () {
   function newEvent() {
     if (!events.length) { open(null); return; }
     const recent = [...events].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
-    $('#newBody').innerHTML = `<button type="button" class="nrow" data-blank><span class="nrow-ic"><i class="i i-plus"></i></span><span class="nrow-m"><b>${t.blank}</b><small>${t.blankP}</small></span><i class="i i-chev"></i></button>
-      <p class="kicker nk">${t.copyH}</p><p class="help np">${t.copyP}</p>
+    $('#newBody').innerHTML = `<button type="button" class="nrow row-link" data-blank><span class="nrow-ic"><i class="i i-plus"></i></span><span class="nrow-m"><b>${t.blank}</b><small>${t.blankP}</small></span><i class="i i-chev"></i></button>
+      <h3 class="nk">${t.copyH}</h3><p class="help np">${t.copyP}</p>
       <label class="check"><input type="checkbox" id="copyCard"> <span>${t.copyCard}</span></label>
-      <div class="nlist">${recent.map(e => `<button type="button" class="nrow" data-copy="${esc(e.id)}">${dblock(e)}<span class="nrow-m"><b dir="auto">${esc(e.title)}</b><small>${esc(typeLabel(e.event_type) + ' · ' + (e.starts_at ? shortDate(e.starts_at) : t.noDate))}</small></span><i class="i i-chev"></i></button>`).join('')}</div>`;
+      <div class="nlist">${recent.map(e => `<button type="button" class="nrow row-link" data-copy="${esc(e.id)}">${dblock(e)}<span class="nrow-m"><b dir="auto">${esc(e.title)}</b><small>${esc(typeLabel(e.event_type) + t.sep + (e.starts_at ? shortDate(e.starts_at) : t.noDate))}</small></span><i class="i i-chev"></i></button>`).join('')}</div>`;
     const sh = $('#newSheet');
-    $('#newBody [data-blank]').onclick = () => { sh.close(); open(null); };
-    $$('#newBody [data-copy]').forEach(b => b.onclick = () => { const c = events.find(x => x.id === b.dataset.copy), card = $('#copyCard').checked; sh.close(); open(null, { copy: c, copyCard: card }); });
-    if (sh.showModal) sh.showModal(); else sh.setAttribute('open', '');
+    $('#newBody [data-blank]').onclick = () => { App.closeSheet(sh); open(null); };
+    $$('#newBody [data-copy]').forEach(b => b.onclick = () => { const c = events.find(x => x.id === b.dataset.copy), card = $('#copyCard').checked; App.closeSheet(sh); open(null, { copy: c, copyCard: card }); });
+    App.openSheet(sh);
   }
   $('#newEv').onclick = newEvent;
-  $('#newSheet').addEventListener('click', e => { if (e.target === $('#newSheet') || e.target.closest('[data-close]')) $('#newSheet').close(); });
 
   // ---------------------------------------------------------------- open one event
-  async function open(e, { copy = null, copyCard = false, push = true } = {}) {
-    if (!confirmLeave()) return;
+  async function open(e, { copy = null, copyCard = false, push = true, step: k = null } = {}) {
+    const was = here();
+    if (!(await leaveOK())) { if (!push) history.pushState({}, '', was); return; }
+    if (e) e = events.find(x => x.id === e.id) || e;   // the newest copy we have (a save may have finished after leaving)
     const my = ++openSeq;
-    ev = e || null; copyFrom = copy; draft = {};
-    parsed = []; badLines = []; chips = []; chipsFor = ''; lastImport = null; lastAdded = null; rmAsk = null; pickSw = null;
+    ev = e || null; copyFrom = copy; draft = {}; newDirty = false;
+    parsed = []; badLines = []; chips = []; chipsFor = ''; lastImport = null; lastAdded = null; rmAsk = null; pickSw = null; colWarn = false;
     sentUndo = null; skipped = new Set(); forceNext = null; editingMsg = false; msgEdit = {}; justFinished = false; lastSentN = 0; guests = []; members = [];
-    $('#pasteList').value = ''; $('#impSide').value = ''; $('#mEmail').value = ''; $('#mSide').value = ''; $('#mUntil').value = ''; $('#allMsgs').open = false; $('#testInv').hidden = true;
+    asking = null; rowAsk = null; takenCode = ''; saveSt = ''; saveMsg = ''; guestsErr = false; membersErr = false; clearTimeout(retryTimer); retryN = 0;
+    $('#pasteList').value = ''; $('#impSide').value = ''; $('#mEmail').value = ''; $('#mSide').value = ''; $('#mUntil').value = ''; $('#allMsgs').open = false; $('#moreOpts').open = false;
     fillForm(e, copy, copyCard);
-    if (push) history.pushState({}, '', '?event=' + (e ? e.id : 'new'));
-    showView('event'); window.scrollTo(0, 0);
-    lockSteps(!e);
-    renderEvent();
-    if (e) { await Promise.all([loadGuests(), loadMembers()]); if (my !== openSeq) return; renderEvent(); }
+    if (e) {
+      if (push) history.pushState({}, '', url(e.id, k));
+      renderOverview(); k ? showStep(k, false) : (showView('overview'), window.scrollTo(0, 0));
+      const [fresh] = await Promise.all([loadEvent(), loadGuests(), loadMembers()]); if (my !== openSeq) return;
+      // the row changed since the list loaded: show it, unless an edit has already started
+      if (fresh && !saveTimer && !saving && !Object.keys(buildPatch().patch).length) { const mo = $('#moreOpts').open; fillForm(ev); $('#moreOpts').open = mo; }
+      syncStats(); renderEvent();
+    } else {
+      if (push) history.pushState({}, '', '?event=new');
+      step = 'details'; showView('step'); renderEvent(); window.scrollTo(0, 0);
+    }
   }
-  function lockSteps(on) { $('#needSave').hidden = !on; $('#afterSave').classList.toggle('locked', on); $('#afterSave').inert = on; }
-  function renderEvent() { renderMast(); renderRail(); renderCodeHint(); renderTeamForm(); renderMembers(); renderTheme(); renderGuestsStep(); renderPreview(); renderComposer(); renderQueue(); renderMenu(); renderSavebar(); syncTb(); }
+  function renderEvent() {
+    renderOverview(); renderStepHead(); renderGuestsRead(); renderCodeHint(); renderTeamForm(); renderMembers(); renderTheme(); renderGuestsStep(); renderPreview(); renderComposer(); renderQueue(); renderSavebar(); syncTb();
+  }
   function renderAll() {
-    renderHome(); renderMenu(); syncTb();
-    if (view === 'event') renderEvent();
-    if ($('#newSheet').open) $('#newSheet').close();
+    renderHome(); syncTb(); drawLangSeg();
+    if (view !== 'home') renderEvent();
+    if ($('#newSheet').open) App.closeSheet($('#newSheet'));
   }
 
-  // ---------------------------------------------------------------- 01 details form
+  // ---------------------------------------------------------------- overview: progress, next step, checklist
+  function stepState() {
+    const s = countsOf(guests), hosts = members.filter(m => m.role === 'host').length, doors = members.length - hosts;
+    const e = ev || {};
+    const sep = t.sep, when = e.starts_at ? [shortDate(e.starts_at), App.fmtTime(e.starts_at, lang)].join(sep) : '';
+    return {
+      details: { done: !!(e.starts_at && e.venue), txt: e.starts_at && e.venue ? [when, e.venue].join(sep) : t.stNeedDate, html: e.starts_at && e.venue ? esc(when) + esc(sep) + bdi(e.venue) : '' },
+      team: { done: hosts > 0, txt: membersErr ? t.stLoadErr : members.length ? t.stTeam(hosts, doors) : t.stNone },
+      design: { done: !!e.card_image_url, txt: e.card_image_url ? t.stCard : t.stNoCard },
+      guests: { done: !guestsErr && s.g > 0, txt: guestsErr ? t.stLoadErr : s.g ? t.stGuests(s.g, s.people) : t.stNoGuests },
+      send: { done: !guestsErr && s.phones > 0 && s.sent === s.phones, txt: guestsErr ? t.stLoadErr : !s.phones ? t.stAddFirst : s.sent === s.phones ? t.stAllSent : t.stSent(s.sent, s.phones) }
+    };
+  }
+  // the headline always has its number, in both languages (Arabic "شخصين" alone would lose it)
+  // Arabic puts the label first ("عدد اللي بيحضرون 2"): a digit before شخص/شخصين would break the agreement for 1 and 2
+const bigLine = n => !n ? `<span class="pg-w">${esc(t.coming(0))}</span>` : lang === 'ar' ? `<span class="pg-w">${esc(t.comingW(n))}</span> <b class="t-num">${n}</b>` : `<b class="t-num">${n}</b> <span class="pg-w">${esc(t.comingW(n))}</span>`;
+  // days to go, with Arabic number agreement (يومين، 3 أيام، 11 يوم)
+  function daysLeft(iso) {
+    if (lang !== 'ar') return App.countdown(iso, lang);
+    const day = d => new Date(new Date(d).getTime() + 3 * 3600e3).toISOString().slice(0, 10);
+    const n = Math.round((new Date(day(iso)) - new Date(day(new Date()))) / 864e5);
+    if (n < 0) return 'انتهت المناسبة'; if (n === 0) return 'الليلة'; if (n === 1) return 'باجر';
+    return 'باقي ' + arN(n, 'يوم', 'يومين', 'أيام', 'يوم');
+  }
+  function renderOverview() {
+    if (!ev) return;
+    $('#mastT').textContent = ev.title || t.newT;
+    const cd = ev.starts_at ? daysLeft(ev.starts_at) : '';
+    $('#mastK').innerHTML = ev.starts_at ? [esc(shortDate(ev.starts_at)), `<span class="nowrap">${esc(App.fmtTime(ev.starts_at, lang))}</span>`, ev.venue ? bdi(ev.venue) : '', cd ? esc(cd) : ''].filter(Boolean).join(t.sep) : esc(t.noDate);
+    const s = countsOf(guests);
+    let p = `<p class="t-small pg-k">${t.repliesK}</p>`;
+    if (guestsErr) p += `<div class="warnstrip loaderr"><span>${t.gErr}</span></div>`;
+    else if (!s.g) p += `<p class="t-body pg-none">${t.noGuestsYet}</p>`;
+    else {
+      p += `<p class="pg-big tone-ok">${bigLine(s.coming)}</p><ul class="pg-lines">`
+        + (s.no ? `<li><span class="dot tone-no"></span>${esc(t.cant(s.no))}</li>` : '')
+        + `<li><span class="dot ${s.wait ? 'tone-wait' : 'tone-ok'}"></span>${esc(t.noReply(s.wait))}</li>`
+        + (s.arrived ? `<li><span class="dot tone-ok"></span>${esc(t.arrived(s.arrived))}</li>` : '') + `</ul>`
+        + `<div class="meter-bar" aria-hidden="true">${s.yesG ? `<i class="y" style="flex-grow:${s.yesG}"></i>` : ''}${s.no ? `<i class="n" style="flex-grow:${s.no}"></i>` : ''}${s.wait ? `<i class="w" style="flex-grow:${s.wait}"></i>` : ''}</div>`;
+    }
+    if (!guestsErr) p += `<div class="pg-sent"><span class="t-small">${t.sentK}</span><span class="t-name">${s.phones ? esc(t.sentOf(s.sent, s.phones)) : esc(t.noPhones)}</span></div>`;
+    $('#progress').innerHTML = p;
+    // the one next step
+    const st = stepState(), unsent = s.phones - s.sent;
+    // on the day and after it, setup and sending are over: point to the arrivals on the Host dashboard
+    const today = kwDay(new Date()), night = ev.starts_at && kwDay(ev.starts_at) <= today, over = night && isPast(ev);
+    let n;
+    if (guestsErr) n = ['reload', t.gErrH, '', t.retry];
+    else if (night && st.guests.done) n = ['', over ? t.nPastH : t.nTodayH, over ? t.nPastP : t.nTodayP, t.nDoneB, over ? 'past' : 'today'];
+    else if (night) n = ['guests', t.nGuestsH, t.nGuestsP, t.nGuestsB];
+    else if (!st.details.done) n = ['details', t.nDetailsH, t.nDetailsP, t.nDetailsB];
+    else if (!st.design.done) n = ['design', t.nDesignH, t.nDesignP, t.nDesignB];
+    else if (!st.guests.done) n = ['guests', t.nGuestsH, t.nGuestsP, t.nGuestsB];
+    else if (unsent > 0) n = ['send', t.nSendH(unsent), t.nSendP(unsent), s.sent ? t.nSendB2 : t.nSendB];
+    else if (!st.team.done) n = ['team', t.nTeamH, t.nTeamP, t.nTeamB];
+    else n = ['', t.nDoneH, t.nDoneP, t.nDoneB];
+    $('#nextCard').dataset.k = n[4] || n[0] || 'done';
+    $('#nextCard').innerHTML = `<p class="t-small">${t.nextK}</p><h2 class="t-title">${esc(n[1])}</h2>${n[2] ? `<p class="t-body t-muted">${esc(n[2])}</p>` : ''}`
+      + (n[0] ? `<button type="button" class="btn primary block" id="nextGo" data-step="${n[0]}">${esc(n[3])}</button>` : `<a class="btn primary block" id="nextGo" href="host.html?event=${esc(ev.id)}">${esc(n[3])}</a>`);
+    if (n[0]) $('#nextGo').onclick = () => n[0] === 'reload' ? reloadEvent() : showStep(n[0]);
+    $('#checklist').innerHTML = STEPS.map(k => `<button type="button" class="row ck-row" data-step="${k}" aria-label="${esc(`${t['s_' + k]}: ${st[k].done ? t.done : t.notDone}. ${st[k].txt}`)}">
+      <span class="ck ${st[k].done ? 'tone-ok' : 'tone-wait'}" aria-hidden="true">${st[k].done ? '<i class="i i-check sm"></i>' : '<i class="i i-clock sm"></i>'}</span>
+      <span class="row-main"><span class="t-name">${t['s_' + k]}</span><span class="t-small">${st[k].html || esc(st[k].txt)}</span></span><i class="i i-chev" aria-hidden="true"></i></button>`).join('');
+    $$('#checklist .ck-row').forEach(b => b.onclick = () => showStep(b.dataset.step));
+    $('#openHost').href = `host.html?event=${ev.id}`; $('#openDoor').href = `door.html?event=${ev.id}`;
+    const first = guests.find(g => g.token); $('#testInv').hidden = !first; if (first) $('#testInv').href = inviteLink(first.token);
+  }
+
+  // ---------------------------------------------------------------- step screens: header, continue, save state
+  function renderStepHead() {
+    const i = STEPS.indexOf(step), isNew = !ev;
+    STEPS.forEach(k => { $('#s-' + k).hidden = k !== step; });
+    $('#stepK').textContent = isNew ? '' : t.stepOf(i + 1); $('#stepK').hidden = isNew;
+    $('#stepT').textContent = isNew ? t.newH : t['s_' + step];
+    $('#toOv').setAttribute('aria-label', isNew ? t.back : t.toOv);
+    const nx = STEPS[i + 1];
+    $('#stepNext').hidden = isNew || !nx;
+    if (nx) { $('#nextBtn').textContent = t.go[nx]; $('#nextBtn').onclick = () => showStep(nx); }
+    // after an import the done card already offers "Send the invitations": one button per action on a screen
+    if (step === 'guests' && lastImport && !parsed.length) $('#stepNext').hidden = true;
+    // one filled button per screen: on the guest list the import owns it
+    $('#nextBtn').className = 'btn block ' + (step === 'guests' && (parsed.length || lastImport) ? 'secondary' : 'primary');
+    renderCopied(); renderSaveState();
+  }
+  function renderCopied() {
+    const cn = $('#copiedNote'); cn.hidden = !(!ev && copyFrom);
+    if (!ev && copyFrom) { cn.innerHTML = `<i class="i i-copy sm"></i><span>${t.copiedFrom(bdi(copyFrom.title))}</span> <button type="button" class="link" id="clearCopy">${t.clearCopy}</button>`; $('#clearCopy').onclick = () => { newDirty = false; open(null, { push: false }); }; }
+  }
+  function setSaveState(s, msg = '') { saveSt = s; saveMsg = msg; renderSaveState(); }
+  function renderSaveState() {
+    const el = $('#saveState'), ov = $('#ovSave');
+    // the overview says so too: a change that didn't save is never hidden behind "Back"
+    ov.innerHTML = ev && saveSt === 'err' ? `<div class="warnstrip ovsave"><span>${t.ovErr}</span><button type="button" class="btn small secondary" id="ovRetry">${t.retry}</button></div>` : '';
+    if ($('#ovRetry')) $('#ovRetry').onclick = () => autosave();
+    if (!ev || !saveSt) { el.innerHTML = ''; el.className = 'savestate'; return; }
+    el.className = 'savestate ' + saveSt;
+    if (saveSt === 'saving') el.innerHTML = `<span>${t.saving}</span>`;
+    else if (saveSt === 'saved') el.innerHTML = `<i class="i i-check sm"></i><span>${t.savedS}</span>`;
+    else if (saveSt === 'held') el.innerHTML = `<span>${t.heldS}</span>`;
+    else el.innerHTML = `<span title="${esc(saveMsg)}">${t.errS}</span><button type="button" class="btn quiet small" id="retrySave">${t.retry}</button>`;
+    if ($('#retrySave')) $('#retrySave').onclick = () => autosave();
+  }
+
+  // ---------------------------------------------------------------- 1 details: fill, live checks, autosave
   const FIELDS = ['fTitle', 'fType', 'fLang', 'fLimit', 'fHead', 'fLine', 'fNote', 'fDate', 'fTime', 'fEnd', 'fVenue', 'fMap', 'fCode', 'fTpl'];
-  const snap = () => JSON.stringify(FIELDS.map(id => $('#' + id).value));
+  const vals = () => Object.fromEntries(FIELDS.map(id => [id, $('#' + id).value]));
   function fillForm(e, c, copyCard) {
     const src = e || c || {};
     const s = isoToKw(e && e.starts_at), en = isoToKw(e && e.ends_at);
     $('#fTitle').value = e ? e.title || '' : ''; $('#fType').value = src.event_type || 'wedding'; $('#fLine').value = src.invite_line || ''; $('#fHead').value = e ? e.headline || '' : '';
     $('#fDate').value = s.date; $('#fTime').value = s.time; $('#fEnd').value = en.time; $('#fVenue').value = e ? e.venue || '' : ''; $('#fMap').value = e ? e.map_url || '' : '';
     $('#fNote').value = src.note || ''; $('#fCode').value = e ? e.public_code || '' : ''; $('#fLimit').value = src.invite_limit ?? '';
-    $('#fLang').value = src.lang || 'en';
-    $('#fTpl').value = e ? App.templateFor(e) : c && hasLink(App.templateFor(c)) ? App.templateFor(c) : $('#fLang').value === 'ar' ? App.DEFAULT_TEMPLATE : App.DEFAULT_TEMPLATE_EN;
+    $('#fLang').value = src.lang || lang;
+    $('#fTpl').value = e ? tplFor(e) : c && linkState(tplFor(c)) === 'ok' ? tplFor(c) : stdTpl($('#fLang').value);
     if (!e && c) { draft = { theme_accent: c.theme_accent, theme_paper: c.theme_paper }; if (copyCard && c.card_image_url) draft.card_image_url = c.card_image_url; }
-    clearErrs(); baseline = snap(); dirty = false;
+    saved = vals(); clearErrs(); drawEditor(); drawLangSeg();
   }
+  // every edit: previews follow at once, the save follows a moment later (never on load: only real edits get here)
   function onFormInput(e) {
-    dirty = snap() !== baseline; renderSavebar(); gateAll();
     const id = e && e.target && e.target.id;
-    if (id === 'fTitle') { renderMast(); syncTb(); renderSlug(); clearErr('fTitle'); }
+    if (!ev) newDirty = true;
+    if (id === 'fTitle') { syncTb(); renderSlug(); clearErr('fTitle'); }
     if (['fHead', 'fLine', 'fTitle', 'fLang'].includes(id)) renderTheme();
     if (['fDate', 'fTime', 'fVenue', 'fHead', 'fTitle', 'fLang', 'fTpl'].includes(id)) composerSoon();
+    if (id === 'fDate' || id === 'fTime') clearErr('fDate');
+    if (id === 'fVenue') clearErr('fVenue');
+    renderGuestsRead();
+    if (ev) scheduleSave();
   }
   $('#detailsForm').addEventListener('input', onFormInput); $('#detailsForm').addEventListener('change', onFormInput);
-  $('#fTpl').addEventListener('input', onFormInput);
-  $('#fLang').addEventListener('change', () => { const v = $('#fTpl').value.trim(); if (!v || v === App.DEFAULT_TEMPLATE.trim() || v === App.DEFAULT_TEMPLATE_EN.trim()) { $('#fTpl').value = $('#fLang').value === 'en' ? App.DEFAULT_TEMPLATE_EN : App.DEFAULT_TEMPLATE; onFormInput(); } renderComposer(); });
+  $('#fLang').addEventListener('change', () => {
+    const v = $('#fTpl').value.trim();
+    if (!v || isStdTpl(v)) { $('#fTpl').value = stdTpl($('#fLang').value); }
+    drawEditor(); drawLangSeg(); renderComposer(); onFormInput({ target: $('#fTpl') });
+  });
+  function drawLangSeg() { $$('#langSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.l === $('#fLang').value))); }
+  $$('#langSeg button').forEach(b => b.onclick = () => { if ($('#fLang').value === b.dataset.l) return; $('#fLang').value = b.dataset.l; $('#fLang').dispatchEvent(new Event('change', { bubbles: true })); });
   $('#fTitle').addEventListener('blur', renderSlug);
 
-  function fieldErr(id, msg) {
+  // what guests read: the message line that carries the event name, filled in
+  function renderGuestsRead() {
+    const el = $('#guestsRead'), tpl = draftTpl(), title = $('#fTitle').value.trim();
+    if (!title) { el.textContent = ''; el.hidden = true; return; }
+    const line = tpl.split('\n').find(l => /\{(event|المناسبة)\}/.test(l));
+    const gl = $('#fLang').value === 'ar' ? 'ar' : 'en';
+    const sample = { name: T[gl].sampleName, seats: 2, token: 'preview' };
+    el.hidden = false;
+    el.innerHTML = line ? `<span>${t.guestsRead}</span><span class="gr-q" dir="auto" lang="${gl}">${esc(fillTemplate(line, evLive(), sample).trim())}</span>` : esc(t.nameOnPage);
+  }
+
+  function fieldErr(id, msg, focus = true) {
     const el = $('#' + id), p = $('#err-' + id);
     el.classList.add('bad'); el.setAttribute('aria-invalid', 'true');
     if (p) { p.textContent = msg; p.hidden = false; el.setAttribute('aria-describedby', p.id); }
-    el.scrollIntoView({ behavior: motion(), block: 'center' }); setTimeout(() => el.focus({ preventScroll: true }), 250);
-    toast(msg);
+    if (focus) { if (id === 'fCode') $('#moreOpts').open = true; el.scrollIntoView({ behavior: App.reducedMotion() ? 'auto' : 'smooth', block: 'center' }); setTimeout(() => el.focus({ preventScroll: true }), 250); }
   }
-  function clearErr(id) { const el = $('#' + id), p = $('#err-' + id); el.classList.remove('bad'); el.removeAttribute('aria-invalid'); if (p) p.hidden = true; if (id === 'fCode') el.setAttribute('aria-describedby', 'codeHint'); }
-  function clearErrs() { ['fTitle', 'fCode'].forEach(clearErr); }
+  function clearErr(id) {
+    const el = $('#' + id), p = $('#err-' + id); if (!el) return;
+    el.classList.remove('bad'); el.removeAttribute('aria-invalid'); if (p) p.hidden = true;
+    if (id === 'fCode') el.setAttribute('aria-describedby', 'codeHint'); else el.removeAttribute('aria-describedby');
+    if (id === 'fDate') { $('#fTime').classList.remove('bad'); }
+  }
+  function clearErrs() { ['fTitle', 'fCode', 'fDate', 'fVenue'].forEach(clearErr); }
 
-  // invite link: fixed prefix, live check, full link with copy
+  // invite link name: live check, the full link with copy
   $('#fCode').addEventListener('input', () => {
     const el = $('#fCode'), v = el.value, nv = v.toLowerCase().replace(/\s+/g, '-');
     if (nv !== v) { const p = el.selectionStart; el.value = nv; try { el.setSelectionRange(p, p); } catch (e) {} }
     clearErr('fCode'); renderCodeHint();
   });
   function renderCodeHint() {
-    const c = $('#fCode').value.trim(), saved = ev && ev.public_code;
+    const c = $('#fCode').value.trim(), cur = ev && ev.public_code;
     let cls = '', msg;
-    if (!c) msg = saved ? t.codeKeep : t.codeEmpty;
+    if (!c) msg = cur ? t.codeKeep : t.codeEmpty;
     else if (/[^a-z0-9-]/.test(c)) { cls = 'bad'; msg = t.codeBad; }
     else if (c.length < 8) { cls = 'wait'; msg = t.codeShort(c.length); }
     else { cls = 'ok'; msg = t.codeOk; }
     const h = $('#codeHint'); h.className = 'codehint ' + cls; h.innerHTML = (cls === 'ok' ? '<i class="i i-check sm"></i>' : '') + esc(msg);
-    const show = c && /^[a-z0-9-]{8,40}$/.test(c) ? c : (!c && saved ? saved : '');
+    const show = c && /^[a-z0-9-]{8,40}$/.test(c) ? c : (!c && cur ? cur : '');
     $('#codeLink').textContent = show ? `${SITE}/invite.html?e=${show}` : t.autoLink;
     $('#codeLink').classList.toggle('muted', !show);
-    $('#copyLink').hidden = !(show && show === saved);
+    $('#copyLink').hidden = !(show && show === cur);
+    $('#fCode').placeholder = !ev ? slugFor() : '';
     renderSlug();
   }
+  // a readable link name: from a Latin title, or type + date for an Arabic one (e.g. wedding-18dec26)
   function slugFor() {
-    const title = $('#fTitle').value.trim();
-    if (!title || /[؀-ۿ]/.test(title) || !/[a-z]/i.test(title)) return '';
-    let s = title.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40).replace(/-+$/, '');
-    if (s.length < 8) s = (s + '-' + (($('#fDate').value || '').slice(0, 4) || new Date().getFullYear())).replace(/^-/, '');
+    const title = $('#fTitle').value.trim(), date = $('#fDate').value;
+    let s = '';
+    if (title && !isAr(title) && /[a-z]/i.test(title)) {
+      s = title.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40).replace(/-+$/, '');
+      if (s.length < 8) s = (s + '-' + ((date || '').slice(0, 4) || new Date().getFullYear())).replace(/^-/, '');
+    } else if (title && date) {
+      const d = new Date(date + 'T12:00:00Z'), mon = d.toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' }).toLowerCase().slice(0, 3);
+      s = `${$('#fType').value || 'event'}-${d.getUTCDate()}${mon}${String(d.getUTCFullYear()).slice(2)}`;
+    }
     return /^[a-z0-9-]{8,40}$/.test(s) ? s : '';
   }
   function renderSlug() {
-    const b = $('#slugBtn'), s = !$('#fCode').value.trim() && !(ev && ev.public_code) ? slugFor() : '';
+    const b = $('#slugBtn'), s = ev && !$('#fCode').value.trim() && !ev.public_code ? slugFor() : '';
     b.hidden = !s; if (s) b.innerHTML = `<i class="i i-sparkle sm"></i>${t.useSlug} <bdi dir="ltr">${esc(s)}</bdi>`;
     b.onclick = () => { $('#fCode').value = s; $('#fCode').dispatchEvent(new Event('input', { bubbles: true })); };
+    if (!ev) $('#fCode').placeholder = slugFor();
   }
   $('#copyLink').onclick = async () => { const link = $('#codeLink').textContent; try { await navigator.clipboard.writeText(link); toast(t.copied); } catch (e) { prompt(t.copyPrompt, link); } };
 
-  // the sticky save bar
-  function renderSavebar() {
-    const bar = $('#savebar'); if (savedFlash) return;
-    const show = view === 'event' && (!ev || dirty);
-    bar.hidden = !show; bar.classList.remove('clean');
-    $('#sbL').textContent = ev ? t.sbDirty : t.sbNew;
-    $('#saveEvL').textContent = ev ? t.save : t.create;
-    $('#discard').hidden = !ev || !dirty;
-  }
-  function flashSaved() {
-    const bar = $('#savebar'); savedFlash = true; bar.hidden = false; bar.classList.add('clean');
-    $('#sbL').innerHTML = `<i class="i i-check sm"></i>${t.saved}`; $('#discard').hidden = true;
-    setTimeout(() => { savedFlash = false; renderSavebar(); }, 1200);
-  }
-  $('#discard').onclick = () => { if (!ev) return; fillForm(ev); renderEvent(); };
-  $('#saveEv').onclick = save;
-  async function save() {
-    clearErrs();
-    const date = $('#fDate').value;
-    const row = { title: $('#fTitle').value.trim(), event_type: $('#fType').value, invite_line: $('#fLine').value.trim() || null, headline: $('#fHead').value.trim() || null,
-      starts_at: kwToIso(date, $('#fTime').value), ends_at: date && $('#fEnd').value ? kwToIso(date, $('#fEnd').value) : null,
-      venue: $('#fVenue').value.trim() || null, map_url: $('#fMap').value.trim() || null, message_template: $('#fTpl').value, lang: $('#fLang').value,
-      note: $('#fNote').value.trim() || null,
-      invite_limit: $('#fLimit').value === '' ? null : Math.max(0, parseInt($('#fLimit').value) || 0) };
-    if (!row.title) { fieldErr('fTitle', t.nameEv); return; }
-    const code = $('#fCode').value.trim().toLowerCase();
-    if (code) {
-      if (!/^[a-z0-9-]{8,40}$/.test(code)) { fieldErr('fCode', t.badCode); return; }
-      row.public_code = code;
+  // the patch autosave sends: only fields that changed, never a blank over a saved essential
+  function buildPatch() {
+    const v = vals(), ch = id => v[id] !== saved[id], patch = {}, held = [], done = [];
+    const put = (ids, k, x) => { if (k) patch[k] = x; done.push(...ids); };
+    if (ch('fTitle')) { if (v.fTitle.trim()) put(['fTitle'], 'title', v.fTitle.trim()); else held.push('fTitle'); }
+    if (ch('fType')) put(['fType'], 'event_type', v.fType);
+    if (ch('fLang')) put(['fLang'], 'lang', v.fLang);
+    if (ch('fLimit')) put(['fLimit'], 'invite_limit', v.fLimit === '' ? null : Math.max(0, parseInt(v.fLimit, 10) || 0));
+    if (ch('fHead')) put(['fHead'], 'headline', v.fHead.trim() || null);
+    if (ch('fLine')) put(['fLine'], 'invite_line', v.fLine.trim() || null);
+    if (ch('fNote')) put(['fNote'], 'note', v.fNote.trim() || null);
+    if (ch('fMap')) put(['fMap'], 'map_url', v.fMap.trim() || null);
+    if (ch('fVenue')) { if (v.fVenue.trim()) put(['fVenue'], 'venue', v.fVenue.trim()); else held.push('fVenue'); }
+    if (ch('fDate') || ch('fTime') || ch('fEnd')) {
+      if (!v.fDate && saved.fDate) held.push('fDate');
+      else if (v.fDate && !v.fTime && saved.fTime) held.push('fTime');
+      else if (v.fDate) {
+        const st = kwToIso(v.fDate, v.fTime); let en = v.fEnd ? kwToIso(v.fDate, v.fEnd) : null;
+        if (en && en < st) en = new Date(new Date(en).getTime() + 864e5).toISOString();
+        patch.starts_at = st; patch.ends_at = en; done.push('fDate', 'fTime', 'fEnd');
+      } else done.push('fDate', 'fTime', 'fEnd');
     }
-    if (ev && row.message_template.trim() && !hasLink(row.message_template)) { $('#linkWarn').hidden = false; go('send'); toast(t.noLink); return; }
+    if (ch('fCode')) {
+      const c = v.fCode.trim().toLowerCase();
+      if (!c) done.push('fCode');
+      else if (!/^[a-z0-9-]{8,40}$/.test(c) || c === takenCode) held.push('fCode');
+      else if (ev && c === ev.public_code) done.push('fCode');
+      else put(['fCode'], 'public_code', c);
+    }
+    if (ch('fTpl')) { if (linkState(v.fTpl) === 'ok') put(['fTpl'], 'message_template', v.fTpl); else held.push('fTpl'); }
+    return { patch, held, done, v };
+  }
+  function showHeld(held) {
+    const msg = { fTitle: t.needName, fDate: t.needDate, fTime: t.needTime, fVenue: t.needVenue };
+    ['fTitle', 'fDate', 'fVenue'].forEach(id => { if (!held.includes(id) && !(id === 'fDate' && held.includes('fTime'))) clearErr(id); });
+    held.forEach(id => {
+      if (id === 'fTime') { $('#fTime').classList.add('bad'); const p = $('#err-fDate'); p.textContent = msg.fTime; p.hidden = false; }
+      else if (msg[id]) fieldErr(id, msg[id], false);
+    });
+  }
+  function scheduleSave(ms = 700) { if (!ev) return; clearTimeout(saveTimer); saveTimer = setTimeout(() => { saveTimer = null; autosave(); }, ms); }
+  // save now whatever is waiting (a timer, a save in flight and the one queued behind it, or one that failed)
+  async function flushSave() {
+    if (!ev) return;
+    if (!saveTimer && !saving && saveSt === 'err') { await autosave(); return; }
+    for (let i = 0; i < 6 && (saveTimer || saving); i++) {
+      if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; await autosave(); }
+      else { try { await saving; } catch (e) {} await new Promise(r => setTimeout(r, 0)); }
+    }
+  }
+  // a failed save tries again by itself: when the phone is back online, or after a short wait
+  function retryLater() {
+    clearTimeout(retryTimer);
+    if (retryN >= 4 || navigator.onLine === false) return;
+    retryTimer = setTimeout(() => { if (failedEdit() && !saveTimer && !saving) autosave(); }, 5000 * ++retryN);
+  }
+  async function autosave() {
+    if (!ev) return;
+    if (saving) { saveAgain = true; return saving; }
+    const { patch, held, done, v } = buildPatch();
+    showHeld(held);
+    if (!Object.keys(patch).length) { done.forEach(id => { saved[id] = v[id]; }); if (held.length) setSaveState('held'); else if (saveSt === 'held' || saveSt === 'err') setSaveState('saved'); return; }
+    setSaveState('saving');
+    const id = ev.id;
+    saving = (async () => {
+      const { data, error } = await sb.from('events').update(patch).eq('id', id).select().single();
+      // the list always gets the saved row, even when we've already left this event
+      if (!error && data) { const i = events.findIndex(x => x.id === id); if (i >= 0) events[i] = data; }
+      if (!ev || ev.id !== id) { if (!error) renderHome(); return; }
+      if (error) {
+        if (error.code === '23505' && patch.public_code) { takenCode = patch.public_code; fieldErr('fCode', t.codeTaken, false); saveAgain = true; return; }
+        setSaveState('err', error.message); retryLater(); return;
+      }
+      clearTimeout(retryTimer); retryN = 0;
+      ev = data; done.forEach(k => { saved[k] = v[k]; });
+      syncStats(); setSaveState(held.length ? 'held' : 'saved');
+      renderOverview(); renderCodeHint(); syncTb();
+    })();
+    try { await saving; } finally { saving = null; }
+    if (saveAgain) { saveAgain = false; await autosave(); }
+  }
+
+  // creating a new event: the one place with an explicit save (nothing exists to autosave into yet)
+  function renderSavebar() {
+    const bar = $('#savebar'), show = view === 'step' && !ev;
+    bar.hidden = !show; if (!show) return;
+    $('#sbL').textContent = t.sbNew; $('#saveEvL').textContent = t.create;
+  }
+  $('#saveEv').onclick = createEvent;
+  async function createEvent() {
+    clearErrs();
+    const v = vals(), date = v.fDate;
+    const row = { title: v.fTitle.trim(), event_type: v.fType, invite_line: v.fLine.trim() || null, headline: v.fHead.trim() || null,
+      starts_at: kwToIso(date, v.fTime), ends_at: date && v.fEnd ? kwToIso(date, v.fEnd) : null,
+      venue: v.fVenue.trim() || null, map_url: v.fMap.trim() || null, message_template: v.fTpl, lang: v.fLang, note: v.fNote.trim() || null,
+      invite_limit: v.fLimit === '' ? null : Math.max(0, parseInt(v.fLimit, 10) || 0) };
+    if (!row.title) { fieldErr('fTitle', t.nameEv); toast(t.nameEv); return; }
+    let code = v.fCode.trim().toLowerCase(), auto = false;
+    if (code && !/^[a-z0-9-]{8,40}$/.test(code)) { fieldErr('fCode', t.badCode); toast(t.badCode); return; }
+    if (!code) { code = slugFor(); auto = !!code; }
+    if (code) row.public_code = code;
+    if (linkState(row.message_template) !== 'ok') row.message_template = fixLinkIn(row.message_template);
     if (row.ends_at && row.starts_at && row.ends_at < row.starts_at) row.ends_at = new Date(new Date(row.ends_at).getTime() + 864e5).toISOString();
-    const wasNew = !ev; if (wasNew) Object.assign(row, draft);
+    Object.assign(row, draft);
     const btn = $('#saveEv'); btn.setAttribute('aria-busy', 'true');
-    const res = ev ? await sb.from('events').update(row).eq('id', ev.id).select().single() : await sb.from('events').insert({ ...row, created_by: me || (await sb.auth.getUser()).data.user.id }).select().single();
+    const uid = me || (await sb.auth.getUser()).data.user.id;
+    let res = await sb.from('events').insert({ ...row, created_by: uid }).select().single();
+    if (res.error && res.error.code === '23505' && auto) { delete row.public_code; res = await sb.from('events').insert({ ...row, created_by: uid }).select().single(); }
     btn.removeAttribute('aria-busy');
     if (res.error) { if (res.error.code === '23505') fieldErr('fCode', t.codeTaken); else toast(t.cantSave(res.error.message)); return; }
-    ev = res.data; copyFrom = null; draft = {};
-    $('#fCode').value = ev.public_code || ''; baseline = snap(); dirty = false;
-    toast(t.saved); flashSaved();
-    if (wasNew) { events.push(ev); history.replaceState({}, '', '?event=' + ev.id); lockSteps(false); await Promise.all([loadGuests(), loadMembers()]); }
-    syncStats(); renderHome(); renderEvent();
+    ev = res.data; copyFrom = null; draft = {}; newDirty = false;
+    $('#fCode').value = ev.public_code || ''; $('#fTpl').value = tplFor(ev); saved = vals();
+    events.push(ev); syncStats(); renderHome();
+    history.replaceState({}, '', url(ev.id));
+    showView('overview'); renderEvent(); window.scrollTo(0, 0);
   }
 
-  // ---------------------------------------------------------------- masthead + step rail
-  function renderMast() {
-    const title = $('#fTitle').value.trim() || (ev && ev.title) || '';
-    $('#mastT').innerHTML = title ? App.ampTitle(title) : `<span class="untitled">${t.newT}</span>`;
-    const ar = /[\u0600-\u06FF]/.test(title); $('#mastT').classList.toggle('lat', !!title && !ar); $('#mastT').classList.toggle('arab', ar);
-    $('#mastK').textContent = ev ? [typeLabel(ev.event_type), ev.starts_at ? shortDate(ev.starts_at) + ' · ' + App.fmtTime(ev.starts_at, lang) : t.noDate].join(' · ') : t.newK;
-    const v = $('#mastV'); v.hidden = !(ev && ev.venue); v.innerHTML = ev && ev.venue ? `<i class="i i-arch"></i>${bdi(ev.venue)}` : '';
-    const cd = ev && ev.starts_at ? App.countdown(ev.starts_at, lang) : '';
-    $('#mastCd').hidden = !cd; $('#mastCd').textContent = cd; $('#mastCd').classList.toggle('over', !!(ev && isPast(ev)));
-    $('#openHost').hidden = !ev; $('#openDoor').hidden = !ev;
-    if (ev) { $('#openHost').href = `host.html?event=${ev.id}`; $('#openDoor').href = `door.html?event=${ev.id}`; }
-    $('#testInv').hidden = !(ev && guests[0]);
-    const cn = $('#copiedNote'); cn.hidden = !(!ev && copyFrom);
-    if (!ev && copyFrom) { cn.innerHTML = `<i class="i i-copy sm"></i><span>${t.copiedFrom(bdi(copyFrom.title))}</span> <button type="button" class="link" id="clearCopy">${t.clearCopy}</button>`; $('#clearCopy').onclick = () => { dirty = false; open(null, { push: false }); }; }
-  }
-  function stepState() {
-    const s = gStats(), hosts = members.filter(m => m.role === 'host').length, doors = members.length - hosts;
-    return {
-      details: { done: !!(ev && ev.starts_at && ev.venue), txt: !ev ? t.stNew : ev.starts_at && ev.venue ? t.stSaved : t.stNeedDate },
-      team: { done: hosts > 0, txt: members.length ? t.stTeam(hosts, doors) : t.stNone },
-      design: { done: !!(ev && ev.card_image_url), txt: ev && ev.card_image_url ? t.stCard : t.stNoCard },
-      guests: { done: s.g > 0, txt: s.g ? t.stGuests(s.g, s.inv) : t.stNoGuests },
-      send: { done: s.phones > 0 && s.sent === s.phones, txt: !s.phones ? t.stAddFirst : s.sent === s.phones ? t.stAllSent : t.stSent(s.sent, s.phones) }
-    };
-  }
-  function renderRail() {
-    const st = stepState();
-    $('#rail').innerHTML = STEPS.map((k, i) => `<a href="#s-${k}" class="rail-i${st[k].done ? ' done' : ''}${curStep === k ? ' cur' : ''}" data-s="${k}"${curStep === k ? ' aria-current="step"' : ''}${!ev && i ? ' aria-disabled="true" tabindex="-1"' : ''}>
-      <span class="rail-n num">0${i + 1}${st[k].done ? '<i class="i i-check sm" aria-hidden="true"></i>' : ''}</span><span class="rail-l">${t['s_' + k]}</span><span class="rail-s">${st[k].done ? '<i class="i i-check sm" aria-hidden="true"></i>' : ''}${esc(st[k].txt)}</span></a>`).join('');
-    $$('#rail a').forEach(a => a.onclick = e => { e.preventDefault(); go(a.dataset.s); });
-    STEPS.forEach(k => { $('#st-' + k).innerHTML = (st[k].done ? '<i class="i i-check sm"></i>' : '') + esc(st[k].txt); $('#s-' + k).classList.toggle('done', st[k].done); });
-  }
-  function go(k) { const el = $('#s-' + k); if (el) el.scrollIntoView({ behavior: motion(), block: 'start' }); setCur(k); }
-  function setCur(k) {
-    curStep = k;
-    $$('#rail a').forEach(a => { const on = a.dataset.s === k; a.classList.toggle('cur', on); if (on) a.setAttribute('aria-current', 'step'); else a.removeAttribute('aria-current'); });
-  }
-  const stepIo = new IntersectionObserver(es => { es.forEach(e => { if (e.isIntersecting) setCur(e.target.dataset.s); }); }, { rootMargin: '-38% 0px -58% 0px' });
-  STEPS.forEach(k => stepIo.observe($('#s-' + k)));
-
-  // ---------------------------------------------------------------- menu
-  function renderMenu() {
-    if (!booted) { $('#menuNav').innerHTML = ''; return; }
-    let h = `<a href="admin.html" data-nav="home"${view === 'home' ? ' aria-current="page"' : ''}><i class="i i-list"></i><span>${t.menuEvents}</span><span class="menu-sub num">${events.length || ''}</span></a>`;
-    if (view === 'event') {
-      const st = stepState();
-      h += STEPS.map((k, i) => `<a href="#s-${k}" class="mstep" data-step="${k}"${!ev && i ? ' aria-disabled="true"' : ''}><span class="folio num">0${i + 1}</span><span>${t['s_' + k]}</span>${st[k].done ? '<span class="menu-sub"><i class="i i-check sm"></i></span>' : ''}</a>`).join('');
-      if (ev) h += `<a href="host.html?event=${ev.id}"><i class="i i-home"></i><span>${t.menuHost}</span></a><a href="door.html?event=${ev.id}"><i class="i i-door"></i><span>${t.menuDoor}</span></a>`;
-    }
-    $('#menuNav').innerHTML = h;
-    const close = () => { if ($('#menu').open) $('#menu').close(); };
-    $('#menuNav [data-nav="home"]').onclick = e => { e.preventDefault(); close(); goHome(); };
-    $$('#menuNav [data-step]').forEach(a => a.onclick = e => { e.preventDefault(); if (a.getAttribute('aria-disabled')) return; close(); setTimeout(() => go(a.dataset.step), 60); });
-  }
-
-  // ---------------------------------------------------------------- 02 team
+  // ---------------------------------------------------------------- 2 team
   $$('#roleSeg button').forEach(b => b.onclick = () => { role = b.dataset.role; renderTeamForm(); });
   function renderTeamForm() {
     $$('#roleSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.role === role)));
     $('#mSideWrap').hidden = role !== 'host'; $('#mUntilWrap').hidden = !(v2 && role === 'door');
     $('#roleHelp').textContent = role === 'host' ? t.roleHostP : t.roleDoorP;
-    const sides = [...new Set([...members.map(x => x.side), ...guests.map(g => g.side)].filter(Boolean))];
-    $('#sideOpts').innerHTML = sides.map(s => `<option value="${esc(s)}">`).join('');
+    sideChips('#mSideChips', '#mSide', t.sideAll); sideChips('#impSideChips', '#impSide', t.sideNone);
   }
+  // sides as one-tap chips: "Everyone" (or "No side"), then every side already used; a new one is typed below
+  const sidesNow = () => [...new Set([...members.map(x => x.side), ...guests.map(g => g.side)].filter(Boolean).map(x => x.trim()))].sort((a, b) => a.localeCompare(b));
+  function sideChips(box, input, none) {
+    const v = $(input).value.trim();
+    $(box).innerHTML = [['', none], ...sidesNow().map(x => [x, x])].map(([k, l]) => `<button type="button" class="fchip" data-side="${esc(k)}" aria-pressed="${v === k}"${k ? ' dir="auto"' : ''}>${esc(l)}</button>`).join('');
+    $$(box + ' .fchip').forEach(b => b.onclick = () => { $(input).value = b.dataset.side; sideChips(box, input, none); });
+  }
+  $('#mSide').addEventListener('input', () => sideChips('#mSideChips', '#mSide', t.sideAll));
+  $('#impSide').addEventListener('input', () => sideChips('#impSideChips', '#impSide', t.sideNone));
   function renderMembers() {
     $('#members').innerHTML = members.length ? members.map(x => {
       const ended = x.role === 'door' && x.expires_at && new Date(x.expires_at) < new Date();
       const sub = x.role === 'host' ? (x.side ? t.sideList(bdi(x.side)) : t.allLists) : (x.expires_at ? `${ended ? t.accessEnded : t.until} ${esc(App.fmtDate(x.expires_at, lang))}` : '');
       const act = rmAsk === x.id
-        ? `<span class="rmq">${t.rmQ}</span><button type="button" class="btn small danger" data-rmyes="${esc(x.id)}">${t.rmYes}</button><button type="button" class="btn small ghost" data-rmno>${t.rmNo}</button>`
+        ? `<span class="rmq">${t.rmQ}</span><button type="button" class="btn small danger" data-rmyes="${esc(x.id)}">${t.rmYes}</button><button type="button" class="btn small secondary" data-rmno>${t.rmNo}</button>`
         : `<button type="button" class="iconbtn" data-rm="${esc(x.id)}" aria-label="${esc(t.removeWho(x.email))}"><i class="i i-trash"></i></button>`;
-      return `<div class="gi mem${ended ? ' ended' : ''}"><span class="mono ${x.role === 'host' ? 'host' : 'door'}" aria-hidden="true">${esc((x.email || '?').charAt(0).toUpperCase())}</span>
-        <div class="gi-main"><b class="mem-e" dir="ltr">${esc(x.email)}</b><div class="gi-sub"><span class="pill ${x.role === 'host' ? 'host' : 'door'}">${x.role === 'host' ? t.host : t.doorOnly}</span>${sub ? `<span>${sub}</span>` : ''}</div></div>
-        <div class="gi-act">${act}</div></div>`;
+      return `<div class="row mem${ended ? ' ended' : ''}${rmAsk === x.id ? ' asking' : ''}">
+        <div class="row-main"><b class="mem-e" dir="ltr">${esc(x.email)}</b><div class="mem-sub"><span class="tag ${x.role === 'host' ? 'tone-ok' : 'tone-mute'}">${x.role === 'host' ? t.host : t.doorOnly}</span>${sub ? `<span class="t-small">${sub}</span>` : ''}</div></div>
+        <div class="row-end">${act}</div></div>`;
     }).join('') : `<p class="mem-empty">${t.noHosts}</p>`;
     $$('#members [data-rm]').forEach(b => b.onclick = () => { rmAsk = b.dataset.rm; renderMembers(); const y = $('#members [data-rmyes]'); if (y) y.focus(); });
     $$('#members [data-rmno]').forEach(b => b.onclick = () => { const id = rmAsk; rmAsk = null; renderMembers(); const r = $(`#members [data-rm="${id}"]`); if (r) r.focus(); });
     $$('#members [data-rmyes]').forEach(b => b.onclick = async () => {
       b.setAttribute('aria-busy', 'true');
       const { error } = await sb.from('event_members').delete().eq('id', b.dataset.rmyes);
-      rmAsk = null; if (error) toast(t.rmErr);
-      await loadMembers(); renderMembers(); renderRail(); renderMenu(); syncStats();
+      rmAsk = null; if (error) toast(t.rmErr); else setSaveState('saved');
+      await loadMembers(); renderMembers(); syncStats(); renderOverview();
     });
     renderMemNote();
   }
   function renderMemNote() {
     const n = $('#memNote');
     if (!lastAdded) { n.innerHTML = ''; return; }
-    n.innerHTML = `<div class="memnote"><i class="i i-check"></i><span>${t.addedWho(`<bdi dir="ltr">${esc(lastAdded.email)}</bdi>`)}</span><button type="button" class="btn small ghost" id="copyNote"><i class="i i-copy sm"></i>${t.copyNote}</button></div>`;
+    const note = t.loginNote(lastAdded.email, `${SITE}/${lastAdded.role === 'door' ? 'door' : 'host'}.html`);
+    n.innerHTML = `<div class="memnote"><i class="i i-check"></i><span>${t.addedWho(`<bdi dir="ltr">${esc(lastAdded.email)}</bdi>`)}</span>
+      <div class="memnote-a"><a class="btn small secondary" id="waNote" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(note)}"><i class="i i-whatsapp sm"></i>${t.sendWa}</a><button type="button" class="btn small quiet" id="copyNote"><i class="i i-copy sm"></i>${t.copyNote}</button></div></div>`;
     $('#copyNote').onclick = async () => {
-      const txt = t.loginNote(lastAdded.email, `${SITE}/${lastAdded.role === 'door' ? 'door' : 'host'}.html`);
+      const txt = note;
       try { await navigator.clipboard.writeText(txt); toast(t.noteCopied); } catch (e) { prompt(t.copyPrompt, txt); }
     };
   }
@@ -743,13 +1053,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const { error } = await sb.from('event_members').insert(row);
     b.removeAttribute('aria-busy');
     if (error) { toast(error.code === '23505' ? t.dupEmail : t.addErr); return; }
-    $('#mEmail').value = ''; $('#mSide').value = ''; $('#mUntil').value = ''; lastAdded = { email, role: row.role }; toast(t.memAdded);
-    await loadMembers(); renderMembers(); renderTeamForm(); renderRail(); renderMenu(); syncStats();
+    $('#mEmail').value = ''; $('#mSide').value = ''; $('#mUntil').value = ''; lastAdded = { email, role: row.role }; setSaveState('saved');
+    await loadMembers(); renderMembers(); renderTeamForm(); syncStats(); renderOverview();
   }
   $('#addMem').onclick = addMember;
   $('#mEmail').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addMember(); } });
 
-  // ---------------------------------------------------------------- 03 design
+  // ---------------------------------------------------------------- 3 card and colours
   const contrast = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
   const themeNow = () => ev ? { a: ev.theme_accent, p: ev.theme_paper, card: ev.card_image_url } : { a: draft.theme_accent || '#65060B', p: draft.theme_paper || '#FFFBFA', card: draft.card_image_url || '' };
   function renderTheme() {
@@ -757,19 +1067,21 @@ document.addEventListener('DOMContentLoaded', function () {
     const gl = $('#fLang').value === 'ar' ? 'ar' : 'en', G = T[gl];
     const head = $('#fHead').value.trim() || $('#fTitle').value.trim() || G.prevHi, line = $('#fLine').value.trim();
     const style = esc(Object.entries(v).map(([k, x]) => `${k}:${x}`).join(';'));
-    $('#theme').innerHTML = `<div class="design">
+    $('#theme').innerHTML = `<p class="cap">${t.prevK}</p><div class="design">
       <figure class="archframe${card ? '' : ' empty'}">${card ? `<img src="${esc(card)}" alt="${esc(t.cardAlt)}">` : `<span class="archempty"><i class="i i-arch lg"></i><span>${t.noCard}</span></span>`}</figure>
-      <div class="design-side"><p class="cap">${t.prevK}</p>
-        <div class="minicard" style="${style}" lang="${gl}" dir="${gl === 'ar' ? 'rtl' : 'ltr'}"><p class="mc-hi">${G.prevHi}</p><p class="mc-h" dir="auto">${esc(head)}</p>${line ? `<p class="mc-l" dir="auto">${esc(line)}</p>` : ''}<span class="mc-btn">${G.prevBtn}</span></div>
-      </div></div>`;
-    const low = contrast(v['--t-accent-ink'], v['--t-accent']) < 3;
-    $('#colours').innerHTML = (chips.length ? `<p class="cap">${t.chipsL}</p><div class="swatches" role="group" aria-label="${esc(t.chipsL)}">${chips.map(c => `<button type="button" class="swatch${c === a || c === p ? ' inuse' : ''}" data-c="${esc(c)}" aria-pressed="${c === pickSw}" aria-label="${esc(c)}"><span style="background:${esc(c)}"></span><small dir="ltr">${esc(c.toUpperCase())}</small></button>`).join('')}</div>
-        ${pickSw ? `<div class="swact"><button type="button" class="btn small ghost" data-use="theme_accent"><span class="sw" style="background:${esc(pickSw)}"></span>${t.useBtn}</button><button type="button" class="btn small ghost" data-use="theme_paper"><span class="sw" style="background:${esc(pickSw)}"></span>${t.useBg}</button></div>` : ''}` : '')
-      + `<div class="picks"><label class="pick2"><input type="color" id="tA" value="${esc(a)}"${ev ? '' : ' disabled'}><span><b>${t.mainCol}</b><small dir="ltr">${esc(String(a).toUpperCase())}</small></span></label>
-        <label class="pick2"><input type="color" id="tP" value="${esc(p)}"${ev ? '' : ' disabled'}><span><b>${t.bgCol}</b><small dir="ltr">${esc(String(p).toUpperCase())}</small></span></label></div>
-        ${low ? `<div class="warnstrip"><span>${t.lowC}</span><button type="button" class="btn small soft" id="fixC">${t.fix}</button></div>` : ''}`;
-    $$('#colours [data-c]').forEach(b => b.onclick = () => { pickSw = pickSw === b.dataset.c ? null : b.dataset.c; renderTheme(); const s = $(`#colours [data-c="${CSS.escape(b.dataset.c)}"]`); if (s) s.focus(); });
+      <div class="minicard" style="${style}" lang="${gl}" dir="${gl === 'ar' ? 'rtl' : 'ltr'}"><p class="mc-hi">${G.prevHi}</p><p class="mc-h" dir="auto">${esc(head)}</p>${line ? `<p class="mc-l" dir="auto">${esc(line)}</p>` : ''}<span class="mc-btn">${G.prevBtn}</span></div>
+      </div>`;
+    const low = contrast(v['--t-accent-ink'], v['--t-accent']) < 3, pairs = ev ? pairsFrom(chips) : [];
+    $('#colours').innerHTML = (pairs.length ? `<p class="cap">${t.pairsL}</p><p class="help chiph">${t.pairsHelp}</p><div class="csets" role="group" aria-label="${esc(t.pairsL)}">${pairs.map((x, i) => `<button type="button" class="cset" data-a="${esc(x.a)}" data-p="${esc(x.p)}" aria-pressed="${x.a === a && x.p === p}" aria-label="${esc(t.pairN(i + 1))}" style="background:${esc(x.p)}"><span style="background:${esc(x.a)}"></span></button>`).join('')}</div>` : '')
+      + (chips.length ? `<p class="cap">${t.chipsL}</p><p class="help chiph">${t.chipsHelp}</p><div class="swatches" role="group" aria-label="${esc(t.chipsL)}">${chips.map((c, i) => `<button type="button" class="swatch${c === a || c === p ? ' inuse' : ''}" data-c="${esc(c)}" aria-pressed="${c === pickSw}" aria-label="${esc(t.chipsL + ' ' + (i + 1))}"><span style="background:${esc(c)}"></span></button>`).join('')}</div>
+        ${pickSw ? `<div class="swact"><button type="button" class="btn small secondary" data-use="theme_accent"><span class="sw" style="background:${esc(pickSw)}"></span>${t.useBtn}</button><button type="button" class="btn small secondary" data-use="theme_paper"><span class="sw" style="background:${esc(pickSw)}"></span>${t.useBg}</button></div>` : ''}` : '')
+      + `<div class="picks"><label class="pick2"><input type="color" id="tA" value="${esc(a)}"${ev ? '' : ' disabled'}><span><b>${t.mainCol}</b></span></label>
+        <label class="pick2"><input type="color" id="tP" value="${esc(p)}"${ev ? '' : ' disabled'}><span><b>${t.bgCol}</b></span></label></div>
+        ${colWarn ? `<div class="warnstrip"><span>${t.tooClose}</span></div>` : ''}
+        ${low && !colWarn ? `<div class="warnstrip"><span>${t.lowC}</span><button type="button" class="btn small secondary" id="fixC">${t.fix}</button></div>` : ''}`;
+    $$('#colours [data-c]').forEach(b => b.onclick = () => { pickSw = pickSw === b.dataset.c ? null : b.dataset.c; colWarn = false; renderTheme(); const s = $(`#colours [data-c="${CSS.escape(b.dataset.c)}"]`); if (s) s.focus(); });
     $$('#colours [data-use]').forEach(b => b.onclick = () => { const c = pickSw; pickSw = null; saveTheme({ [b.dataset.use]: c }); });
+    $$('#colours .cset').forEach(b => b.onclick = () => { pickSw = null; saveTheme({ theme_accent: b.dataset.a, theme_paper: b.dataset.p }); });
     $('#tA').onchange = e => saveTheme({ theme_accent: e.target.value });
     $('#tP').onchange = e => saveTheme({ theme_paper: e.target.value });
     if ($('#fixC')) $('#fixC').onclick = () => {
@@ -780,17 +1092,32 @@ document.addEventListener('DOMContentLoaded', function () {
     $('#cardDropT').textContent = card ? t.replaceCard : t.uploadCard;
     if (card && ev && chipsFor !== card) loadChips(card);
   }
+  // up to four readable button + background sets from the card's colours (light, common backgrounds first)
+  function pairsFrom(cs) {
+    const all = [];
+    cs.forEach((p, pi) => cs.forEach(a => {
+      if (a === p || contrast(a, p) < 3) return;
+      const w = themeVars(a, p); if (contrast(w['--t-accent-ink'], w['--t-accent']) < 3) return;
+      all.push({ a, p, s: Math.min(contrast(a, p), 8) + (lum(p) > .55 ? 4 : 0) - pi * .6 });
+    }));
+    all.sort((x, y) => y.s - x.s);
+    const out = []; all.forEach(o => { if (out.length < 4 && out.filter(x => x.p === o.p).length < 2) out.push(o); });
+    return out;
+  }
   // colours from a card that was uploaded earlier (read straight from the picture, nothing is stored)
-  function loadChips(url) {
-    chipsFor = url; const img = new Image(); img.crossOrigin = 'anonymous';
-    img.onload = () => { if (!ev || ev.card_image_url !== url) return; try { chips = palette(img).chips; renderTheme(); } catch (e) {} };
-    img.src = url;
+  function loadChips(src) {
+    chipsFor = src; const img = new Image(); img.crossOrigin = 'anonymous';
+    img.onload = () => { if (!ev || ev.card_image_url !== src) return; try { chips = palette(img).chips; renderTheme(); } catch (e) {} };
+    img.src = src;
   }
   async function saveTheme(patch) {
     if (!ev) return false;
+    // buttons the same colour as the page make the guest page unreadable: refuse, and say why
+    if (!patch.card_image_url && contrast(patch.theme_accent || ev.theme_accent, patch.theme_paper || ev.theme_paper) < 1.8) { colWarn = true; renderTheme(); return false; }
+    colWarn = false;
     const { data, error } = await sb.from('events').update(patch).eq('id', ev.id).select().single();
     if (error) { toast(t.colErr); return false; }
-    ev = data; syncStats(); renderTheme(); renderRail(); renderMenu(); return true;
+    ev = data; syncStats(); renderTheme(); renderOverview(); setSaveState('saved'); return true;
   }
   function palette(img) {
     const W = 90, H = Math.max(1, Math.round(img.naturalHeight * W / img.naturalWidth));
@@ -838,9 +1165,9 @@ document.addEventListener('DOMContentLoaded', function () {
       const path = `${ev.id}/${Date.now()}.jpg`;
       const up = await sb.storage.from('cards').upload(path, blob, { contentType: 'image/jpeg', upsert: true });
       if (up.error) throw up.error;
-      const url = sb.storage.from('cards').getPublicUrl(path).data.publicUrl;
-      chipsFor = url;
-      if (await saveTheme({ card_image_url: url, theme_accent: pal.accent, theme_paper: pal.paper })) toast(t.colOk);
+      const src = sb.storage.from('cards').getPublicUrl(path).data.publicUrl;
+      chipsFor = src;
+      if (await saveTheme({ card_image_url: src, theme_accent: pal.accent, theme_paper: pal.paper })) toast(t.colOk);
     } catch (err) { toast(t.cardErr(err && err.message)); }
     zoneBusy($('#cardDrop'), $('#cardFile'), $('#cardDropT'), ''); renderTheme();
   }
@@ -857,13 +1184,16 @@ document.addEventListener('DOMContentLoaded', function () {
   dropZone($('#cardDrop'), uploadCard);
   dropZone($('#listDrop'), readListFile);
 
-  // ---------------------------------------------------------------- 04 guests
+  // ---------------------------------------------------------------- 4 guests
   $$('#impMode button').forEach(b => b.onclick = () => { impMode = b.dataset.m; renderImpMode(); });
   function renderImpMode() { $$('#impMode button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.m === impMode))); $('#pFile').hidden = impMode !== 'file'; $('#pPaste').hidden = impMode !== 'paste'; }
   function renderGuestsStep() {
-    const s = gStats(), lim = ev ? ev.invite_limit : null;
-    const bar = lim != null && lim > 0 ? `<div class="meter-bar">${s.inv ? `<i class="${s.inv > lim ? 'n' : 'y'}" style="flex-grow:${Math.min(s.inv, lim)}"></i>` : ''}${lim > s.inv ? `<i class="e" style="flex-grow:${lim - s.inv}"></i>` : ''}</div>` : '';
-    $('#gSummary').innerHTML = `<div class="meter sm"><div class="meter-top"><span class="meter-n num">${s.g}</span><span class="meter-l">${t.gOnList(s.g)}<span class="meter-s">${lim != null ? t.pkgUsed(s.inv, lim) : t.invN(s.inv) + ' · ' + t.noLimit}</span></span></div>${bar}</div>`;
+    const s = countsOf(guests), lim = ev ? ev.invite_limit : null;
+    const bar = lim != null && lim > 0 ? `<div class="meter-bar">${s.people ? `<i class="${s.people > lim ? 'n' : 'y'}" style="flex-grow:${Math.min(s.people, lim)}"></i>` : ''}${lim > s.people ? `<i class="e" style="flex-grow:${lim - s.people}"></i>` : ''}</div>` : '';
+    $('#gSummary').innerHTML = guestsErr ? `<div class="warnstrip loaderr"><span>${t.gErr}</span><button type="button" class="btn small secondary" data-reload>${t.retry}</button></div>`
+      : `<div class="panel flat gsum"><p class="t-name">${s.g ? esc(t.gSum(s.g, s.people)) : esc(t.stNoGuests)}</p><p class="t-small">${esc(lim != null ? t.pkgUsed(s.people, lim) : t.noLimit)}</p>${bar}</div>`;
+    $$('#gSummary [data-reload]').forEach(b => b.onclick = reloadEvent);
+    sideChips('#impSideChips', '#impSide', t.sideNone);
     renderImpMode();
   }
   const isPhone = v => { const p = normPhone(v); return p.length >= 10 && p.length <= 15 && !/[a-zA-Zء-ي]/.test(String(v)); };
@@ -883,11 +1213,34 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     return { rows: out, bad };
   }
+  // where the phone is in a line: +965 / 00965 / 965 first, then an international number, then 8 digits, then any long number
+  const PHONE_RES = [/(?<![\d+])(?:\+|00)?965[\s-]?\d{4}[\s-]?\d{4}(?!\d)/, /(?<![\d+])(?:\+|00)[1-9][\d\s-]{6,}\d(?!\d)/, /(?<![\d+])\d{4}[\s-]?\d{4}(?!\d)/, /(?<![\d+])\+?\d[\d\s-]{6,}\d/];
+  function findPhone(l) {
+    const L = App.asciiDigits(l);   // same length: Arabic digits become Western ones in place
+    for (const re of PHONE_RES) {
+      const m = L.match(re); if (!m) continue;
+      let at = m.index, len = m[0].length;
+      // "Noura 2 447700900123": a short number before a space ends the name, it isn't the start of the phone
+      const head = m[0].match(/^(\d{1,3})[\s-]+/);
+      if (head && isPhone(m[0].slice(head[0].length))) { at += head[0].length; len -= head[0].length; }
+      const tail = L.slice(at, at + len).match(/\s([1-6])$/);
+      if (tail && isPhone(L.slice(at, at + len - tail[0].length))) len -= tail[0].length;   // "+44 7700 900123 3": the 3 is the people count
+      if (isPhone(L.slice(at, at + len))) return { i: at, len };
+    }
+    return null;
+  }
   function fromLines(lines) {
     const out = [], bad = []; let pending = null;
     lines.map(l => l.trim()).filter(Boolean).forEach(l => {
-      const m = l.match(/(\+?[\d٠-٩][\d٠-٩\s-]{6,}[\d٠-٩])/);
-      if (m && isPhone(m[1])) { const rest = l.replace(m[1], '').replace(/[-–:,|]/g, ' ').trim(); const name = /[ء-يa-zA-Z]/.test(rest) ? rest : pending; if (name) out.push({ name, phone: normPhone(m[1]), seats: 1 }); else bad.push(l); pending = null; }
+      const ph = findPhone(l);
+      if (ph) {
+        let after = l.slice(ph.i + ph.len), seats = 1;
+        const sm = App.asciiDigits(after).match(/^[\s,;|:–-]*([1-6])\s*$/);
+        if (sm) { seats = +sm[1]; after = ''; }
+        const rest = (l.slice(0, ph.i) + ' ' + after).replace(/[-–:,|]/g, ' ').replace(/\s+/g, ' ').trim();
+        const name = /[ء-يa-zA-Z]/.test(rest) ? rest : pending;
+        if (name) out.push({ name, phone: normPhone(l.slice(ph.i, ph.i + ph.len)), seats: App.clampSeats(seats) }); else bad.push(l); pending = null;
+      }
       else if (/[ء-يa-zA-Z]/.test(l) && !/^(الاسم|name|الرقم|phone)/i.test(l)) { if (pending) bad.push(pending); pending = l; }
       else if (/[\d٠-٩]/.test(l)) bad.push(l);
     });
@@ -905,100 +1258,191 @@ document.addEventListener('DOMContentLoaded', function () {
       if (/\.docx$/i.test(f.name)) r = fromLines((await mammoth.extractRawText({ arrayBuffer: await f.arrayBuffer() })).value.split(/\n/));
       else { const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' }); r = fromRows(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' })); }
       parsed = dedupe(r.rows); badLines = r.bad;
-      if (!parsed.length) toast(t.fileNone); else toast(t.foundToast(parsed.length));
+      if (!parsed.length) toast(t.fileNone);
     } catch (err) { parsed = []; badLines = []; toast(err && /helper/.test(err.message) ? err.message : t.fileErr); }
     zoneBusy($('#listDrop'), $('#listFile'), $('#listDropT'), ''); $('#listDropT').textContent = t.dropT;
-    renderPreview();
+    renderPreview(); renderStepHead();
   }
   $('#listFile').onchange = e => { const f = e.target.files[0]; e.target.value = ''; readListFile(f); };
   $('#readPaste').onclick = () => {
     lastImport = null;
     const r = fromLines($('#pasteList').value.split(/\n/));
     parsed = dedupe(r.rows); badLines = r.bad;
-    if (!parsed.length) toast(t.lineEach); else toast(t.foundToast(parsed.length));
-    renderPreview();
+    if (!parsed.length) toast(t.lineEach);
+    renderPreview(); renderStepHead();
   };
   function renderPreview() {
     const p = $('#preview');
     if (!ev) { p.innerHTML = ''; return; }
     if (lastImport && !parsed.length) {
       p.innerHTML = `<div class="impdone"><span class="okmark"><i class="i i-check"></i></span><div class="impdone-m"><b>${t.addedH(lastImport.n, lastImport.side ? bdi(lastImport.side) : '')}</b>${lastImport.skip ? `<span class="help">${t.skippedN(lastImport.skip)}</span>` : ''}</div>
-        <div class="impdone-a"><button type="button" class="btn" id="toSend"><span>${t.nextSend}</span><i class="i i-chev"></i></button><button type="button" class="btn quiet small" id="impMore">${t.addMore}</button></div></div>`;
-      $('#toSend').onclick = () => go('send');
-      $('#impMore').onclick = () => { lastImport = null; renderPreview(); (impMode === 'paste' ? $('#pasteList') : $('#listDrop')).scrollIntoView({ behavior: motion(), block: 'center' }); };
+        <div class="impdone-a"><button type="button" class="btn primary" id="toSend"><span>${t.nextSend}</span><i class="i i-chev"></i></button><button type="button" class="btn quiet small" id="impMore">${t.addMore}</button></div></div>`;
+      $('#toSend').onclick = () => showStep('send');
+      $('#impMore').onclick = () => { lastImport = null; renderPreview(); renderStepHead(); (impMode === 'paste' ? $('#pasteList') : $('#listDrop')).scrollIntoView({ behavior: App.reducedMotion() ? 'auto' : 'smooth', block: 'center' }); };
       return;
     }
     if (!parsed.length && !badLines.length) { p.innerHTML = ''; return; }
     const have = new Set(guests.map(g => g.phone));
     const ready = parsed.filter(g => !have.has(g.phone)), already = parsed.length - ready.length;
-    const lim = ev.invite_limit, used = guests.reduce((a, g) => a + g.seats, 0), need = ready.reduce((a, g) => a + g.seats, 0);
+    const lim = ev.invite_limit, used = guests.reduce((a, g) => a + (g.seats || 1), 0), need = ready.reduce((a, g) => a + g.seats, 0);
     const left = lim == null ? null : Math.max(0, lim - used), over = lim != null && need > left;
     const seg = (cls, n) => n > 0 ? `<i class="${cls}" style="flex-grow:${n}"></i>` : '';
     p.innerHTML = `<div class="imp">
       <div class="fchips sum"><span class="fchip"><span class="d y"></span>${t.sumReady} <b>${ready.length}</b></span>${already ? `<span class="fchip"><span class="d w"></span>${t.sumHave} <b>${already}</b></span>` : ''}${badLines.length ? `<span class="fchip"><span class="d n"></span>${t.sumBad} <b>${badLines.length}</b></span>` : ''}</div>
       ${badLines.length ? `<details class="badl"><summary><span>${t.badLinesH}</span><i class="i i-chev"></i></summary><ul>${badLines.slice(0, 40).map(l => `<li dir="auto">${esc(l)}</li>`).join('')}</ul></details>` : ''}
       ${lim != null && ready.length ? `<div class="proj${over ? ' over' : ''}"><p>${over ? t.overL(need, left) : t.usesL(need, left)}</p><div class="meter-bar">${seg('y', Math.min(used, lim))}${seg(over ? 'n' : 'w', need)}${seg('e', lim - used - need)}</div></div>` : ''}
-      ${ready.length ? `<div class="scroll tbl"><table class="t"><thead><tr><th>${t.thName}</th><th>${t.thNum}</th><th>${t.thExtras}</th></tr></thead><tbody>
-        ${ready.slice(0, 50).map(g => `<tr><td dir="auto">${esc(g.name)}</td><td><span dir="ltr">${esc(showPhone(g.phone))}</span></td><td>${g.seats > 1 ? t.plus(g.seats - 1) : '–'}</td></tr>`).join('')}</tbody></table></div>
+      ${ready.length ? `<div class="scroll tbl"><table class="t"><thead><tr><th>${t.thName}</th><th>${t.thNum}</th><th>${t.thPeople}</th></tr></thead><tbody>
+        ${ready.slice(0, 50).map(g => `<tr data-ph="${esc(g.phone)}"><td dir="auto">${esc(g.name)}</td><td><span dir="ltr">${esc(showPhone(g.phone))}</span></td><td><div class="stepper sm"><button type="button" data-d="-1" aria-label="${esc(t.fewer(g.name))}"${g.seats <= 1 ? ' disabled' : ''}>−</button><output>${g.seats}</output><button type="button" data-d="1" aria-label="${esc(t.moreP2(g.name))}"${g.seats >= 1 + App.MAX_EXTRAS ? ' disabled' : ''}>+</button></div></td></tr>`).join('')}</tbody></table></div>
         ${ready.length > 50 ? `<p class="help">${t.more(ready.length - 50)}</p>` : ''}` : parsed.length ? `<p class="help">${t.allHave}</p>` : ''}
-      <div class="row acts"><button type="button" class="btn" id="imp"${!ready.length || over ? ' disabled' : ''}>${t.addN(ready.length)}</button><button type="button" class="btn ghost" id="cancelImp">${t.cancel}</button></div></div>`;
-    $('#cancelImp').onclick = () => { parsed = []; badLines = []; renderPreview(); };
+      <div class="row acts"><button type="button" class="btn primary" id="imp"${!ready.length || over || guestsErr ? ' disabled' : ''}>${t.addN(ready.length)}</button><button type="button" class="btn secondary" id="cancelImp">${t.cancel}</button></div></div>`;
+    $$('#preview tr[data-ph] .stepper button').forEach(b => b.onclick = () => {
+      const ph = b.closest('tr').dataset.ph, g = parsed.find(x => x.phone === ph); if (!g) return;
+      g.seats = App.clampSeats(g.seats + +b.dataset.d); renderPreview();
+      const nb = $(`#preview tr[data-ph="${CSS.escape(ph)}"] button[data-d="${b.dataset.d}"]`); if (nb && !nb.disabled) nb.focus();
+    });
+    $('#cancelImp').onclick = () => { parsed = []; badLines = []; renderPreview(); renderStepHead(); };
     $('#imp').onclick = async () => {
       const impSide = $('#impSide').value.trim() || null;
+      if (guestsErr) { toast(t.gErr); return; }
       if (over) { toast(t.overL(need, left)); return; }
-      const rows = ready.map(g => ({ ...g, event_id: ev.id, side: impSide }));
+      // keep the pasted order: each row gets its own created_at, one millisecond apart, after everyone already on the list
+      const base = guests.reduce((m, g) => Math.max(m, new Date(g.created_at).getTime() + 1 || 0), Date.now());
+      const rows = ready.map((g, i) => ({ name: g.name, phone: g.phone, seats: g.seats, event_id: ev.id, side: impSide, created_at: new Date(base + i).toISOString() }));
       const b = $('#imp'); b.setAttribute('aria-busy', 'true');
       const { data, error } = await sb.from('guests').upsert(rows, { onConflict: 'event_id,phone', ignoreDuplicates: true }).select('id');
       b.removeAttribute('aria-busy');
       if (error) { toast(/limit/i.test(error.message || '') ? t.noPkg : t.addListErr(error.message)); return; }
-      const added = (data || []).length; toast(t.addedN(added, parsed.length - added));
+      const added = (data || []).length;
       lastImport = { n: added, side: impSide, skip: parsed.length - added };
       parsed = []; badLines = []; $('#pasteList').value = '';
-      await loadGuests(); syncStats(); renderGuestsStep(); renderPreview(); renderTeamForm(); renderRail(); renderMenu(); renderMast(); renderComposer(); renderQueue();
+      await loadGuests(); syncStats(); renderGuestsStep(); renderPreview(); renderTeamForm(); renderOverview(); renderComposer(); renderQueue(); renderStepHead();
     };
   }
 
-  // ---------------------------------------------------------------- 05 send: composer
+  // ---------------------------------------------------------------- 5 the message: words as pills, never {codes}
   const TOK = [['tkName', 'name', 'الاسم'], ['tkInv', 'invites', 'العدد'], ['tkDate', 'date', 'التاريخ'], ['tkTime', 'time', 'الوقت'], ['tkVenue', 'venue', 'المكان'], ['tkEvent', 'event', 'المناسبة'], ['tkLink', 'link', 'الرابط']];
-  const tokFor = (en, ar) => '{' + ($('#fLang').value === 'ar' ? ar : en) + '}';
-  function insertTok(tok) {
-    const ta = $('#fTpl'), s = ta.selectionStart ?? ta.value.length, e = ta.selectionEnd ?? s;
-    ta.focus(); ta.setRangeText(tok, s, e, 'end');
-    ta.dispatchEvent(new Event('input', { bubbles: true }));
+  const TOKRE = /\{(name|invites|date|time|venue|event|link|الاسم|العدد|التاريخ|الوقت|المكان|المناسبة|الرابط)\}/g;
+  const LINKRE = /\{(link|الرابط)\}/g;
+  const tokRow = w => TOK.find(x => x[1] === w || x[2] === w);
+  const tokStr = k => { const r = tokRow(k); return '{' + ($('#fLang').value === 'ar' ? r[2] : r[1]) + '}'; };
+  // 'ok' | 'none' (no link) | 'glued' (the link touches other text, so WhatsApp would break it)
+  function linkState(s) {
+    s = String(s || ''); let m, st = 'none'; LINKRE.lastIndex = 0;
+    while ((m = LINKRE.exec(s))) { const a = s.charAt(m.index + m[0].length), b = s.charAt(m.index - 1); if ((a && !/\s/.test(a)) || (b && !/[\s:(]/.test(b))) return 'glued'; st = 'ok'; }
+    return st;
   }
-  const tplNow = () => $('#fTpl').value.trim() ? $('#fTpl').value : App.templateFor({ lang: $('#fLang').value });
-  // the event as it is in the form right now, so the preview matches unsaved edits
-  const evLive = () => ({ ...(ev || {}), title: $('#fTitle').value.trim(), headline: $('#fHead').value.trim() || null, venue: $('#fVenue').value.trim(), lang: $('#fLang').value, starts_at: kwToIso($('#fDate').value, $('#fTime').value) });
+  // put the link back, on its own line
+  function fixLinkIn(s) {
+    s = String(s || '');
+    if (!/\{(link|الرابط)\}/.test(s)) return (s.replace(/\s+$/, '') + '\n\n' + tokStr('link')).replace(/^\s+/, '');
+    return s.replace(/[ \t]*(\{(?:link|الرابط)\})[ \t]*/g, (m, tok, i, all) => {
+      const before = all.slice(0, i), after = all.slice(i + m.length);
+      return (before && !/\n$/.test(before) ? '\n' : '') + tok + (after && !/^\n/.test(after) ? '\n' : '');
+    }).replace(/\n+$/, '');
+  }
+  const draftTpl = () => $('#fTpl').value.trim() ? $('#fTpl').value : (ev ? tplFor(ev) : stdTpl($('#fLang').value));
+  const pill = k => { const r = tokRow(k); return `<span class="tokpill${r[1] === 'link' ? ' link' : ''}" contenteditable="false" data-k="${r[1]}">${esc(t[r[0]])}</span>`; };
+  function drawEditor() {
+    const v = $('#fTpl').value; let h = '', i = 0, m; TOKRE.lastIndex = 0;
+    while ((m = TOKRE.exec(v))) { h += esc(v.slice(i, m.index)) + pill(m[1]); i = m.index + m[0].length; }
+    $('#msgEd').innerHTML = h + esc(v.slice(i));
+  }
+  // the editor back to text: pills become {codes} in the guests' language
+  function serial(node) {
+    let out = '';
+    const walk = n => n.childNodes.forEach(c => {
+      if (c.nodeType === 3) out += c.nodeValue.replace(/ /g, ' ');
+      else if (c.nodeName === 'BR') out += '\n';
+      else if (c.dataset && c.dataset.k) out += tokStr(c.dataset.k);
+      else if (c.nodeType === 1) { if (/^(DIV|P)$/.test(c.nodeName) && out && !out.endsWith('\n')) out += '\n'; walk(c); }
+    });
+    walk(node); return out;
+  }
+  const readEditor = () => serial($('#msgEd'));
+  function caretOffset() {   // where the caret is, counted in the saved text
+    const ed = $('#msgEd'), r = lastRange && ed.contains(lastRange.startContainer) ? lastRange : null;
+    if (!r) return null;
+    const pre = document.createRange(); pre.selectNodeContents(ed); pre.setEnd(r.startContainer, r.startOffset);
+    const a = serial(pre.cloneContents()).length;
+    return [a, a + serial(r.cloneContents()).length];
+  }
+  function placeCaret(off) {
+    const ed = $('#msgEd'), sel = getSelection(), r = document.createRange(); let left = off, done = false;
+    for (const c of ed.childNodes) {
+      const len = c.nodeType === 3 ? c.nodeValue.length : c.nodeName === 'BR' ? 1 : c.dataset && c.dataset.k ? tokStr(c.dataset.k).length : serial(c).length;
+      if (left <= len) { if (c.nodeType === 3) r.setStart(c, left); else (left === 0 ? r.setStartBefore(c) : r.setStartAfter(c)); done = true; break; }
+      left -= len;
+    }
+    if (!done) { r.selectNodeContents(ed); r.collapse(false); } else r.collapse(true);
+    sel.removeAllRanges(); sel.addRange(r); lastRange = r.cloneRange();
+  }
+  let lastRange = null;
+  document.addEventListener('selectionchange', () => { const s = getSelection(); if (s.rangeCount && $('#msgEd').contains(s.anchorNode)) lastRange = s.getRangeAt(0).cloneRange(); });
+  // a word goes in with a space (or a new line next to the link) on each side, so it never sticks to its neighbour
+  function insertTok(k) {
+    const v = readEditor(), pos = caretOffset() || [v.length, v.length];
+    const prev = v.slice(0, pos[0]), next = v.slice(pos[1]), tok = tokStr(k);
+    let ins = tok;
+    const prevLink = /\{(link|الرابط)\}$/.test(prev), nextLink = /^\{(link|الرابط)\}/.test(next);
+    if (k === 'link') { if (prev && !/\n$/.test(prev)) ins = '\n' + ins; if (next && !/^\n/.test(next)) ins += '\n'; }
+    else {
+      if (prev && (prevLink || !/\s$/.test(prev))) ins = (prevLink ? '\n' : ' ') + ins;
+      if (next && (nextLink || !/^[\s.,!?،؟:;)]/.test(next))) ins += nextLink ? '\n' : ' ';
+    }
+    $('#fTpl').value = prev + ins + next; drawEditor();
+    $('#msgEd').focus({ preventScroll: true }); placeCaret((prev + ins).length);
+    onMsgChange();
+  }
+  function onMsgChange() { onFormInput({ target: $('#fTpl') }); updateLinkWarn(); }
+  $('#msgEd').addEventListener('input', () => { $('#fTpl').value = readEditor(); onMsgChange(); });
+  $('#msgEd').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.execCommand('insertLineBreak'); } });
+  $('#msgEd').addEventListener('paste', e => {
+    e.preventDefault(); const txt = (e.clipboardData || window.clipboardData).getData('text/plain') || '';
+    document.execCommand('insertText', false, txt);
+    if (TOKRE.test(txt)) { const off = caretOffset(); $('#fTpl').value = readEditor(); drawEditor(); if (off) placeCaret(off[0]); onMsgChange(); }
+    TOKRE.lastIndex = 0;
+  });
+  $('#fTpl').addEventListener('input', () => { drawEditor(); onMsgChange(); });   // when the text is set from outside (reset, tests)
+
+  const evLive = () => {   // the event as guests will get it: unsaved edits included, blanks never
+    const v = vals(), e = { ...(ev || {}) };
+    if (v.fTitle.trim()) e.title = v.fTitle.trim();
+    e.headline = v.fHead.trim() || null; e.lang = v.fLang;
+    if (v.fVenue.trim()) e.venue = v.fVenue.trim();
+    if (v.fDate) e.starts_at = kwToIso(v.fDate, v.fTime || (ev && isoToKw(ev.starts_at).time) || '');
+    return e;
+  };
   const bubbleHtml = s => esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<span class="u" dir="ltr">$1</span>');
   function renderComposer() {
-    $('#tokens').innerHTML = TOK.map(([k, en, ar]) => `<button type="button" class="fchip tok" data-en="${en}" data-ar="${ar}"><i class="i i-plus sm"></i>${t[k]}</button>`).join('');
-    $$('#tokens .tok').forEach(b => b.onclick = () => insertTok(tokFor(b.dataset.en, b.dataset.ar)));
+    $('#tokens').innerHTML = TOK.map(([k, en]) => `<button type="button" class="fchip tok" data-k="${en}" aria-label="${esc(t.addTok(t[k]))}"><i class="i i-plus sm"></i>${t[k]}</button>`).join('');
+    $$('#tokens .tok').forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = () => insertTok(b.dataset.k); });
+    if (!$('#msgEd').contains(document.activeElement)) drawEditor();
     updateComposer();
   }
+  function updateLinkWarn() {
+    const st = linkState($('#fTpl').value), empty = !$('#fTpl').value.trim();
+    $('#linkWarn').hidden = st === 'ok' && !empty;
+    $('#linkWarnT').textContent = empty ? t.emptyMsg : st === 'glued' ? t.gluedLink : t.noLink;
+    $('#addLinkL').textContent = st === 'glued' ? t.fixLink : t.putLink;
+  }
   function updateComposer() {
-    const v = $('#fTpl').value;
-    $('#linkWarn').hidden = !v.trim() || hasLink(v);
+    updateLinkWarn();
     const gl = $('#fLang').value === 'ar' ? 'ar' : 'en';
     const sample = guests.find(g => g.phone) || { name: T[gl].sampleName, seats: 2, token: 'preview' };
     $('#howSee').innerHTML = t.howSee(bdi(sample.name));
-    $('#bubble').innerHTML = bubbleHtml(fillTemplate(tplNow(), evLive(), sample));
+    $('#bubble').innerHTML = bubbleHtml(fillTemplate(draftTpl(), evLive(), sample));
   }
   let cTimer = null;
   function composerSoon() { clearTimeout(cTimer); cTimer = setTimeout(() => { updateComposer(); if (!editingMsg) renderQueue(); }, 120); }
-  $('#addLinkTok').onclick = () => { const ta = $('#fTpl'); ta.value = ta.value.replace(/\s*$/, '') + '\n' + tokFor('link', 'الرابط'); ta.dispatchEvent(new Event('input', { bubbles: true })); ta.focus(); };
-  $('#resetTpl').onclick = () => { $('#fTpl').value = $('#fLang').value === 'ar' ? App.DEFAULT_TEMPLATE : App.DEFAULT_TEMPLATE_EN; $('#fTpl').dispatchEvent(new Event('input', { bubbles: true })); };
+  $('#addLinkTok').onclick = () => { $('#fTpl').value = fixLinkIn($('#fTpl').value.trim() ? $('#fTpl').value : draftTpl()); drawEditor(); onMsgChange(); composerSoon(); };
+  $('#resetTpl').onclick = () => { $('#fTpl').value = stdTpl($('#fLang').value); drawEditor(); onMsgChange(); };
 
-  // ---------------------------------------------------------------- 05 send: one guest at a time
-  // what guests get is always the SAVED message + event. While the message or the details it uses
-  // are edited and not saved yet, sending waits, so the composer preview and what goes out never disagree.
-  const savedTpl = () => ev ? App.templateFor(ev) : '';
-  const msgFor = g => msgEdit[g.id] ?? fillTemplate(savedTpl(), ev, g);
-  const MSGF = ['fTitle', 'fLang', 'fHead', 'fDate', 'fTime', 'fVenue', 'fTpl'];
-  const msgDirty = () => { if (!ev || !dirty) return false; let b; try { b = JSON.parse(baseline); } catch (e) { return true; } return MSGF.some(id => $('#' + id).value !== b[FIELDS.indexOf(id)]); };
+  // ---------------------------------------------------------------- 5 sending: one guest at a time
+  // a guest gets the message as it is on screen (it saves on its own). Sending waits only while the link is missing or broken.
+  const msgFor = g => msgEdit[g.id] ?? fillTemplate(draftTpl(), evLive(), g);
   function blockWhy(g) {   // '' = ok to send
     if (msgEdit[g.id] != null) return msgEdit[g.id].includes(inviteLink(g.token)) ? '' : 'one';
-    if (msgDirty()) return 'dirty';
-    return hasLink(savedTpl()) ? '' : 'nolink';
+    return linkState(draftTpl()) === 'ok' ? '' : 'nolink';
   }
   function gateBtn(a, g) {
     const why = blockWhy(g);
@@ -1008,114 +1452,138 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   function blocked(a) {   // true = the tap was stopped and explained
     if (!a.getAttribute('aria-disabled')) return false;
-    const why = a.dataset.why;
-    toast(why === 'one' ? t.noLinkOne : why === 'dirty' ? t.saveFirst : t.noLink);
-    if (why === 'nolink') { $('#linkWarn').hidden = false; go('send'); setTimeout(() => $('#fTpl').focus({ preventScroll: true }), 300); }
+    toast(a.dataset.why === 'one' ? t.noLinkOne : t.noLink);
+    if (a.dataset.why === 'nolink') { $('#linkWarn').hidden = false; $('#msgEd').scrollIntoView({ behavior: App.reducedMotion() ? 'auto' : 'smooth', block: 'center' }); }
     return true;
   }
   function gateAll() {
-    const has = !!ev && guests.some(g => g.phone), d = has && msgDirty(), nl = has && !d && !hasLink(savedTpl());
-    $('#sendGate').innerHTML = d ? `<div class="warnstrip gate"><i class="i i-pen sm" aria-hidden="true"></i><span>${t.gateDirty}</span><button type="button" class="btn small" id="gateSave">${t.save}</button></div>`
-      : nl ? `<div class="warnstrip gate"><i class="i i-link sm" aria-hidden="true"></i><span>${t.gateNoLink}</span><button type="button" class="btn small soft" id="gateLink">${t.addLink}</button></div>` : '';
-    if ($('#gateSave')) $('#gateSave').onclick = save;
+    const has = !!ev && guests.some(g => g.phone), nl = has && linkState(draftTpl()) !== 'ok';
+    $('#sendGate').innerHTML = nl ? `<div class="warnstrip gate"><i class="i i-link sm" aria-hidden="true"></i><span>${t.gateNoLink}</span><button type="button" class="btn small secondary" id="gateLink">${linkState(draftTpl()) === 'glued' ? t.fixLink : t.putLink}</button></div>` : '';
     if ($('#gateLink')) $('#gateLink').onclick = () => $('#addLinkTok').click();
     const nu = $('#nuSend'); if (nu) { const g = guests.find(x => x.id === nu.dataset.id); if (g) gateBtn(nu, g); }
-    $$('#qList .sendrow').forEach(row => { const g = guests.find(x => x.id === row.dataset.id); if (g) gateBtn(row.querySelector('.wa'), g); });
+    $$('#qList .sendrow').forEach(row => { const g = guests.find(x => x.id === row.dataset.id), a = row.querySelector('.wa'); if (g && a) gateBtn(a, g); });
   }
-  const ENV = '<svg class="fin-env" viewBox="0 0 64 48" width="72" height="54" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="58" height="38" rx="4" pathLength="100"/><path d="M5 8l27 20L59 8" pathLength="100"/><path d="M5 41l19-15M59 41L40 26" pathLength="100"/></svg>';
-  function renderQueue(slide) {
+  function renderQueue() {
     const q = $('#qTop');
     const list = ev ? guests.filter(g => g.phone) : [];
+    if (guestsErr) { q.innerHTML = `<div class="warnstrip loaderr"><span>${t.gErr}</span><button type="button" class="btn small secondary" data-reload>${t.retry}</button></div>`; $$('#qTop [data-reload]').forEach(b => b.onclick = reloadEvent); $('#allMsgs').hidden = true; gateAll(); return; }
     if (!list.length) { q.innerHTML = `<p class="qempty"><i class="i i-env"></i><span>${t.qEmpty}</span></p>`; $('#allMsgs').hidden = true; gateAll(); return; }
     $('#allMsgs').hidden = false;
-    const todo = list.filter(g => !g.sent_at), sentN = list.length - todo.length, inv = list.reduce((a, g) => a + (g.seats || 1), 0);
+    const todo = list.filter(g => !g.sent_at), sentN = list.length - todo.length, people = list.reduce((a, g) => a + (g.seats || 1), 0);
+    recallAsk();
     let g = null;
-    if (todo.length) {
+    if (asking && asking.from === 'card') g = guests.find(x => x.id === asking.id) || null;
+    if (!g && todo.length) {
       g = (forceNext && todo.find(x => x.id === forceNext)) || todo.find(x => !skipped.has(x.id));
       if (!g) { skipped.clear(); g = todo[0]; }
     }
     const und = sentUndo && guests.find(x => x.id === sentUndo.id);
-    const meter = `<div class="meter sendmeter"><p class="kicker">${t.sentK}</p><div class="meter-top"><span class="meter-n num" id="sentN" data-n="${lastSentN}">${lastSentN}</span><span class="meter-l">${t.ofGuests(list.length)}<span class="meter-s">${t.leftToSend(todo.length)}</span></span></div>
+    const meter = `<div class="panel flat sendmeter"><p class="t-small">${t.sentMeterK}</p><div class="meter-top"><span class="meter-n num" id="sentN" data-n="${lastSentN}">${lastSentN}</span><span class="meter-l">${t.ofGuests(list.length)}<span class="meter-s">${t.leftToSend(todo.length)}</span></span></div>
       <div class="meter-bar">${sentN ? `<i class="y" style="flex-grow:${sentN}"></i>` : ''}${todo.length ? `<i class="e" style="flex-grow:${todo.length}"></i>` : ''}</div></div>`;
-    const undo = und && und.sent_at ? `<div class="undo" role="status"><i class="i i-check"></i><span>${t.sentTo(bdi(und.name))}</span><button type="button" class="btn small quiet" id="undoSend">${t.undo}</button></div>` : '';
+    const undo = und && und.sent_at && !asking ? `<div class="undoband tone-ok undo" role="status"><span class="ub-t">${t.sentTo(bdi(und.name))}</span><button type="button" class="ub-undo" id="undoSend">${t.undo}</button></div>` : '';
     let card;
     if (g) {
-      const msg = msgFor(g);
-      card = `<article class="nextup${slide ? ' slide' : ''}" aria-labelledby="nuName">
-        <p class="kicker nu-k">${t.nextK(todo.length)}</p>
-        <h3 class="nu-name${/[\u0600-\u06FF]/.test(g.name) ? '' : ' lat'}" id="nuName" dir="auto">${esc(g.name)}</h3>
-        <p class="nu-meta"><span dir="ltr">${esc(showPhone(g.phone))}</span> · ${t.invN(g.seats || 1)}${g.side ? ' · ' + bdi(g.side) : ''}</p>
-        ${editingMsg ? `<textarea class="msgbox" id="nuMsg" rows="8" dir="auto" aria-label="${esc(t.msgFor(g.name))}">${esc(msg)}</textarea>` : `<div class="wabubble nu-b" dir="auto">${bubbleHtml(msg)}</div>`}
-        <button type="button" class="btn quiet small nu-edit" id="nuEdit"><i class="i i-pen sm"></i>${editingMsg ? t.doneEdit : t.editMsg}</button>
-        <div class="nu-acts"><a class="btn block wa" id="nuSend" data-id="${esc(g.id)}" target="_blank" rel="noopener" href="${esc(waLink(g.phone, msg))}"><i class="i i-whatsapp"></i><span>${t.sendWa}</span></a>
-        ${todo.length > 1 ? `<button type="button" class="btn ghost block" id="nuSkip">${t.skip}</button>` : ''}</div></article>`;
+      const msg = msgFor(g), ask = asking && asking.id === g.id;
+      const rest = todo.filter(x => x.id !== g.id), names = rest.slice(0, 3).map(x => bdi(x.name)).join(lang === 'ar' ? '، ' : ', ');
+      card = `<article class="panel nextup" aria-labelledby="nuName">
+        <p class="t-small nu-k">${t.nextUp}</p>
+        <h3 class="t-title nu-name" id="nuName" dir="auto">${esc(g.name)}</h3>
+        <p class="t-small nu-meta"><span dir="ltr">${esc(showPhone(g.phone))}</span>${t.sep}${esc(cw(g.seats || 1, 'person'))}${g.side ? t.sep + bdi(g.side) : ''}</p>
+        ${editingMsg && !ask ? `<textarea class="msgbox" id="nuMsg" rows="8" dir="auto" aria-label="${esc(t.msgFor(g.name))}">${esc(msg)}</textarea>` : `<div class="wabubble nu-b" dir="auto">${bubbleHtml(msg)}</div>`}
+        ${ask ? `<div class="ask tone-wait" role="alertdialog" aria-labelledby="askQ"><p class="t-name" id="askQ">${t.askQ(bdi(g.name))}</p><p class="t-small">${t.askP}</p>
+            <div class="ask-acts"><button type="button" class="btn primary" id="askYes">${t.askYes}</button><button type="button" class="btn secondary" id="askNo">${t.askNo}</button></div>
+            <a class="btn quiet small" id="nuAgain" target="_blank" rel="noopener" href="${esc(waLink(g.phone, msg))}"><i class="i i-whatsapp sm"></i>${t.openAgain}</a></div>`
+          : `<div class="nu-edits"><button type="button" class="btn quiet small nu-edit" id="nuEdit"><i class="i i-pen sm"></i>${editingMsg ? t.doneEdit : t.editMsg}</button><button type="button" class="btn quiet small" id="nuAll">${t.editAll}</button></div>
+        <div class="nu-acts"><a class="btn primary big block wa" id="nuSend" data-id="${esc(g.id)}" target="_blank" rel="noopener" href="${esc(waLink(g.phone, msg))}"><i class="i i-whatsapp"></i><span>${t.sendWa}</span></a>
+        ${todo.length > 1 ? `<button type="button" class="btn quiet block" id="nuSkip">${t.skip}</button>` : ''}</div>`}
+        ${rest.length && !ask ? `<p class="t-small nu-after">${t.afterThem(names, Math.max(0, rest.length - 3))}</p>` : ''}</article>`;
     } else {
-      card = `<article class="nextup fin${justFinished ? ' play' : ''}">${ENV}<h3 class="fin-t">${t.finH}</h3><p class="fin-p">${t.finP(list.length, inv)}</p><a class="btn" href="host.html?event=${esc(ev.id)}"><i class="i i-home"></i><span>${t.finBtn}</span></a></article>`;
+      card = `<article class="panel nextup fin"><span class="okmark big"><i class="i i-check"></i></span><h3 class="t-title fin-t">${t.finH}</h3><p class="fin-p">${t.finP(list.length, people)}</p><a class="btn primary" href="host.html?event=${esc(ev.id)}"><i class="i i-home"></i><span>${t.finBtn}</span></a></article>`;
       if (justFinished) App.vibrate([12, 60, 12]);
       justFinished = false;
     }
     q.innerHTML = meter + undo + card;
     App.countUp($('#sentN'), sentN); lastSentN = sentN;
-    if (und) $('#undoSend').onclick = undoSent;
-    if (g) {
+    if ($('#undoSend')) $('#undoSend').onclick = undoSent;
+    if (g && asking && asking.id === g.id) {
+      $('#askYes').onclick = () => confirmSent(g);
+      $('#askNo').onclick = () => { asking = null; rememberAsk(null); forceNext = g.id; renderQueue(); const s = $('#nuSend'); if (s) s.focus(); };
+    } else if (g) {
       $('#nuEdit').onclick = () => { editingMsg = !editingMsg; renderQueue(); if (editingMsg) $('#nuMsg').focus(); };
+      $('#nuAll').onclick = () => { $('#msgEd').scrollIntoView({ behavior: App.reducedMotion() ? 'auto' : 'smooth', block: 'center' }); $('#msgEd').focus({ preventScroll: true }); };
       if (editingMsg) $('#nuMsg').oninput = e => { msgEdit[g.id] = e.target.value; gateBtn($('#nuSend'), g); };
       $('#nuSend').onclick = e => {
         if (blocked($('#nuSend'))) { e.preventDefault(); return; }
-        const prev = g.sent_at; g.sent_at = new Date().toISOString(); sentUndo = { id: g.id, prev }; forceNext = null; skipped.delete(g.id); editingMsg = false;
-        if (!list.some(x => !x.sent_at)) justFinished = true;
-        App.vibrate(12); persistSent(g, prev);
-        setTimeout(() => { renderQueue(true); renderRail(); renderMenu(); syncStats(); if ($('#allMsgs').open) renderQList(); }, 350);
+        // WhatsApp opens; nothing is marked sent until they say so
+        flushSave(); asking = { id: g.id, from: 'card' }; rememberAsk(g.id); editingMsg = false; App.vibrate(12);
+        setTimeout(() => { renderQueue(); const y = $('#askYes'); if (y) y.focus({ preventScroll: true }); }, 250);
       };
-      if ($('#nuSkip')) $('#nuSkip').onclick = () => { skipped.add(g.id); if (forceNext === g.id) forceNext = null; editingMsg = false; renderQueue(true); };
+      if ($('#nuSkip')) $('#nuSkip').onclick = () => { skipped.add(g.id); if (forceNext === g.id) forceNext = null; editingMsg = false; renderQueue(); };
     }
     $('#allMsgsT').textContent = t.listT(list.length);
     $('#qHelp').innerHTML = t.qHelp;
     gateAll();
   }
+  // the question is kept on the phone, so it's asked again if the tab was closed while WhatsApp was open
+  const ASK_KEY = 'admin-asking';
+  function rememberAsk(id) { try { if (id && ev) localStorage.setItem(ASK_KEY, JSON.stringify({ e: ev.id, g: id, at: Date.now() })); else localStorage.removeItem(ASK_KEY); } catch (e) {} }
+  function recallAsk() {
+    if (asking || rowAsk || !ev) return;
+    let a = null; try { a = JSON.parse(localStorage.getItem(ASK_KEY) || 'null'); } catch (e) {}
+    if (!a || a.e !== ev.id || Date.now() - a.at > 6 * 3600e3) return;
+    const g = guests.find(x => x.id === a.g); if (!g) return;
+    if (g.sent_at || !g.phone) rememberAsk(null); else asking = { id: g.id, from: 'card' };
+  }
+  function confirmSent(g) {
+    const prev = g.sent_at; g.sent_at = new Date().toISOString(); sentUndo = { id: g.id, prev }; forceNext = null; skipped.delete(g.id); asking = null; rowAsk = null; rememberAsk(null);
+    if (!guests.some(x => x.phone && !x.sent_at)) justFinished = true;
+    persistSent(g, prev);
+    renderQueue(); syncStats(); renderOverview(); if ($('#allMsgs').open) renderQList();
+  }
   async function persistSent(g, prev) {
     const { error } = await sb.from('guests').update({ sent_at: g.sent_at }).eq('id', g.id);
-    if (error) { g.sent_at = prev; sentUndo = null; toast(t.markErr); renderQueue(); renderRail(); }
+    if (error) { g.sent_at = prev; sentUndo = null; toast(t.markErr); renderQueue(); renderOverview(); }
   }
   async function undoSent() {
     const u = sentUndo, g = u && guests.find(x => x.id === u.id); if (!g) return;
     sentUndo = null; const was = g.sent_at; g.sent_at = u.prev; if (!u.prev) forceNext = g.id; justFinished = false;
-    renderQueue(true); renderRail(); renderMenu(); syncStats();
+    renderQueue(); syncStats(); renderOverview();
     const { error } = await sb.from('guests').update({ sent_at: u.prev }).eq('id', g.id);
-    if (error) { g.sent_at = was; toast(t.markErr); renderQueue(); renderRail(); }
+    if (error) { g.sent_at = was; toast(t.markErr); renderQueue(); renderOverview(); }
     if ($('#allMsgs').open) renderQList();
   }
-  // every guest's own message, as before, behind a toggle
+  // every guest's own message, behind a toggle
   $('#allMsgs').addEventListener('toggle', () => { if ($('#allMsgs').open) renderQList(); });
   function renderQList() {
     const list = guests.filter(g => g.phone), n = { todo: list.filter(g => !g.sent_at).length, sent: list.filter(g => g.sent_at).length, all: list.length };
     $('#qSeg').setAttribute('aria-label', t.listT(list.length));
     $('#qSeg').innerHTML = [['todo', t.fTodo], ['sent', t.fSent], ['all', t.fAll]].map(([k, l]) => `<button type="button" data-f="${k}" aria-pressed="${qFilter === k}">${l} <span class="num">${n[k]}</span></button>`).join('');
     $$('#qSeg button').forEach(b => b.onclick = () => { qFilter = b.dataset.f; renderQList(); });
-    const rows = list.filter(g => qFilter === 'all' || (qFilter === 'sent' ? g.sent_at : !g.sent_at));
+    const rows = list.filter(g => qFilter === 'all' || (qFilter === 'sent' ? g.sent_at : !g.sent_at) || g.id === rowAsk);
     $('#qList').innerHTML = rows.length ? rows.map(g => `<div class="sendrow" data-id="${esc(g.id)}">
-        <div class="sr-top"><b dir="auto">${esc(g.name)}</b><span class="pill ${g.sent_at ? 'yes' : 'pending'}">${g.sent_at ? t.sent : t.notSent}</span></div>
+        <div class="sr-top"><b dir="auto">${esc(g.name)}</b><span class="tag ${g.sent_at ? 'tone-ok' : 'tone-wait'}">${g.sent_at ? t.sent : t.notSent}</span></div>
         <textarea class="msgbox" rows="6" dir="auto" aria-label="${esc(t.msgFor(g.name))}">${esc(msgFor(g))}</textarea>
-        <div class="sr-act"><a class="btn small wa" target="_blank" rel="noopener" href="${esc(waLink(g.phone, msgFor(g)))}"><i class="i i-whatsapp"></i><span>${g.sent_at ? t.sendAgain : t.sendWa}</span></a><span class="help" dir="ltr">${esc(showPhone(g.phone))}</span></div>
+        ${rowAsk === g.id ? `<div class="ask row-ask tone-wait"><p class="t-name">${t.askRow}</p><div class="ask-acts"><button type="button" class="btn primary small" data-yes>${t.askYes}</button><button type="button" class="btn secondary small" data-no>${t.askNo}</button></div></div>`
+          : `<div class="sr-act"><a class="btn small secondary wa" target="_blank" rel="noopener" href="${esc(waLink(g.phone, msgFor(g)))}"><i class="i i-whatsapp"></i><span>${g.sent_at ? t.sendAgain : t.sendWa}</span></a><span class="help" dir="ltr">${esc(showPhone(g.phone))}</span></div>`}
       </div>`).join('') : `<p class="help">${t.qNone}</p>`;
     gateAll();
     $$('#qList .sendrow').forEach(row => {
       const g = guests.find(x => x.id === row.dataset.id), box = row.querySelector('.msgbox'), btn = row.querySelector('.wa');
-      box.oninput = () => { msgEdit[g.id] = box.value; gateBtn(btn, g); };
-      btn.onclick = async e => {
+      box.oninput = () => { msgEdit[g.id] = box.value; if (btn) gateBtn(btn, g); };
+      if (btn) btn.onclick = e => {
         if (blocked(btn)) { e.preventDefault(); return; }
-        const prev = g.sent_at; g.sent_at = new Date().toISOString();
-        const pill = row.querySelector('.pill'); pill.className = 'pill yes'; pill.textContent = t.sent;
-        btn.querySelector('span').textContent = t.sendAgain;
-        if (!guests.some(x => x.phone && !x.sent_at) && !prev) justFinished = true;
-        renderQueue(); renderRail(); renderMenu(); syncStats();
-        await persistSent(g, prev);
+        flushSave();
+        if (g.sent_at) return;   // sending again: already counted
+        rowAsk = g.id; rememberAsk(g.id); setTimeout(renderQList, 250);
       };
+      const y = row.querySelector('[data-yes]'), no = row.querySelector('[data-no]');
+      if (y) y.onclick = () => confirmSent(g);
+      if (no) no.onclick = () => { rowAsk = null; rememberAsk(null); renderQList(); };
     });
   }
 
   // ---------------------------------------------------------------- start
-  applyLang(); renderMenu();
+  applyLang();
 });
 </script>
 </body>

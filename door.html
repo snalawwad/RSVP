@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>Door check-in</title>
+<title>Door check-in · Sina</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -23,138 +23,215 @@ try {
 <script defer src="core.js"></script>
 </head>
 <body class="app door">
-<div class="topbar" id="topbar"><a class="brand" href="host.html" aria-label="Home"></a><span class="tb-title" id="tbTitle"></span><button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu"><i class="i i-menu"></i><span class="menu-l">Menu</span></button></div>
-<dialog class="sheet" id="menu" aria-labelledby="menuH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="menuH">Menu</h2><button class="sheet-x" data-close aria-label="Close"><i class="i i-x"></i></button></div><nav class="menu-nav" id="menuNav"></nav><div class="menu-row"><span data-i18n="colours">Colours</span><span class="themesw" id="themeSw"></span></div><div class="menu-foot"><button class="btn ghost" id="lang">العربية</button><button class="btn ghost" id="out" hidden>Log out</button></div></dialog>
+<div class="topbar" id="topbar"><a class="brand" href="door.html" aria-label="Door check-in"></a><span class="tb-title" id="tbTitle"></span><button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu"><i class="i i-menu"></i><span class="menu-l">Menu</span></button></div>
+<dialog class="sheet" id="menu" aria-labelledby="menuH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="menuH">Menu</h2><button class="sheet-x" data-close aria-label="Close"><i class="i i-x"></i></button></div><div class="menu-row"><span data-i18n="colours">Colours</span><span class="themesw" id="themeSw"></span></div><button class="btn ghost" id="lang">العربية</button><button class="btn ghost" id="out" hidden>Log out</button></dialog>
 <main>
   <div id="auth"></div>
   <section id="door" hidden>
     <header class="dmast" id="mast">
-      <div class="dmast-row"><p class="kicker" id="kick"></p><span class="live" id="live" role="status"></span></div>
-      <div class="dmast-row"><h1 class="dmast-t" id="title"></h1><button class="ev-sw" id="evSw" type="button" hidden><i class="i i-calendar sm"></i><span></span></button></div>
+      <h1 class="dmast-t" id="title"></h1>
+      <span class="live" id="live" role="status"></span>
     </header>
     <div class="dhead" id="dhead">
       <div class="dmeter" id="meter">
         <div class="dm-row">
-          <p class="dm-n"><b id="mIn" class="num">0</b><span class="dm-of num" id="mOf"></span><span class="dm-l" id="mL"></span></p>
-          <button class="fchip dm-wait" id="waitChip" type="button" hidden><span class="d w"></span><span id="waitL"></span></button>
+          <p class="dm-n"><b id="mIn" class="num">0</b><span class="dm-l" id="mL"></span></p>
+        </div>
+        <div class="dm-row2" id="mRow2">
+          <p class="dm-s" id="mS"></p>
+          <button class="dm-wait" id="waitChip" type="button" hidden><span id="waitL"></span><i class="i i-chev sm" aria-hidden="true"></i></button>
         </div>
         <div class="dm-bar" id="mBarBox" aria-hidden="true"><i id="mBar"></i></div>
       </div>
-      <div class="searchbox dsearch">
-        <label class="sr" for="q" id="qLbl"></label>
-        <i class="i i-search" aria-hidden="true"></i>
-        <input type="search" id="q" dir="auto" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" enterkeyhint="search">
-        <button class="qx" id="qx" type="button" hidden><i class="i i-x"></i></button>
+      <div class="dsearch-row">
+        <div class="searchbox dsearch">
+          <label class="sr" for="q" id="qLbl"></label>
+          <i class="i i-search" aria-hidden="true"></i>
+          <input type="search" id="q" dir="auto" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" enterkeyhint="search">
+          <button class="qx" id="qx" type="button" hidden><i class="i i-x"></i></button>
+        </div>
+        <button class="kb" id="kb" type="button" aria-pressed="false">123</button>
       </div>
+      <div class="undo-slot" id="undoSlot"></div>
     </div>
     <div id="answers"></div>
     <p class="sr" id="annLive" role="status"></p>
     <div id="result" aria-live="assertive"></div>
     <div class="dlist" id="list"></div>
-    <div class="dmore"><button class="btn quiet small" id="unlisted" type="button"><i class="i i-plus"></i><span></span></button></div>
+    <div class="dmore"><button class="btn quiet" id="unlisted" type="button"><i class="i i-bell"></i><span></span></button></div>
     <section id="myReqs"></section>
+    <div class="dlinks" id="dlinks" hidden></div>
   </section>
 </main>
 <dialog class="sheet" id="ask" aria-labelledby="askH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="askH"></h2><button class="sheet-x" data-close type="button"><i class="i i-x"></i></button></div><div id="askBody"></div></dialog>
+<dialog class="sheet" id="evSheet" aria-labelledby="evH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="evH"></h2><button class="sheet-x" data-close type="button"><i class="i i-x"></i></button></div><div class="rowlist evpick" id="evList"></div></dialog>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const { sb, $, esc, toast, showPhone } = App;
-  const arPeople = n => n === 1 ? 'شخص واحد' : n === 2 ? 'شخصين' : n <= 10 ? n + ' أشخاص' : n + ' شخص';
+  // Every number carries its word. "person" = one head; "guest" = one invitation.
+  const P = (n, l) => App.countWord(n, 'person', l || lang);
+  const G = (n, l) => App.countWord(n, 'guest', l || lang);
+  const ISO = s => `⁦${s}⁩`;      // keep "+2" in one piece inside Arabic
+  // one term for the hosts on every page: "the hosts" / "أهل المناسبة" (App.hostWord)
+  const HE = App.HOSTS.en, HA = App.HOSTS.ar;
   const T = {
-    en: { other: 'العربية', out: 'Log out', title: 'Door check-in', home: 'Home', menuDoor: 'Door check-in', menuDash: 'Host dashboard', events: 'Your events', colours: 'Colours', switchEv: 'Switch',
-      atDoor: 'At the door', live: 'Live', offline: 'Offline, retrying',
+    en: { other: 'العربية', out: 'Log out', title: 'Door check-in', colours: 'Colours', hostDash: HE.page, events: 'Your events', switchEv: 'Switch event',
+      live: 'Live', offline: 'Offline, retrying',
       search: 'Find a guest by name or phone', searchPh: 'Guest name or phone', clear: 'Clear search',
-      arrived: 'arrived', waitChip: n => `${n} waiting for host`, half: 'Half the guests are in', everyone: 'Everyone’s here',
-      people: n => n === 1 ? '1 person' : n + ' people',
-      coming: 'Coming', declined: 'Declined', noReply: 'No reply', allIn: 'All in', already: 'Already checked in',
-      inN: (a, b) => a ? `${a} in · ${b} to come` : `${b} to come`, allInN: n => `All ${n} in`, waitLine: n => `Didn’t reply · can come in (${n})`, declinedLine: 'Said they can’t come',
+      kbNum: 'Type a phone number', kbAbc: 'Type a name', kbAbcL: 'abc',
+      meterL: (a, e) => e ? `of ${P(e)} in` : (a === 1 ? 'person in' : 'people in'),
+      noReplyN: n => n === 1 ? '1 guest hasn’t replied' : `${G(n)} haven’t replied`,
+      waitChip: n => `Requests: ${n} waiting`, half: 'Half the guests are in', everyone: 'Everyone’s here',
+      coming: 'Coming', declined: 'Can’t come', noReply: 'No reply',
+      inLeft: (d, l) => `${P(d)} in · ${l} to come`, upTo: l => `up to ${P(l)}`,
+      already: (n, tm) => `Already in · ${P(n)}${tm ? ' · ' + tm : ''}`, alreadyOld: 'Already checked in',
+      invited: (s, c, st) => `Invited ${P(s)}` + (st === 'yes' && c && c !== s ? ` · said yes for ${P(c)}` : st === 'pending' ? ' · no reply' : ''),
       howMany: 'How many now', less: 'One less', more: 'One more',
-      checkInN: (n, left) => n >= left ? `Check in ${n}` : `Check in ${n} of ${left}`, checkIn1: 'Check in', askOver: x => `Ask host for \u2066+${x}\u2069`,
-      busy: 'Checking in…', retry: 'Try again',
-      askHost: 'Ask the host', askMore: 'Ask host for more', unlisted: 'Someone not on the list',
-      typeName: 'Type a name to check someone in.', awake: 'Screen stays on', justArrived: 'Just arrived', tapFind: 'Tap a name to find them again.',
-      notFoundH: 'Not on the list', noOne: q => `No one called “${q}”.`, notFoundOld: 'Not on the list. Check with the host.',
-      okK: 'Checked in', okSub: (p, l) => `${p} checked in${l ? ` · ${l} still to come` : ''}`, hadDeclined: 'had declined', noReplySub: 'hadn’t replied',
-      over: l => `Only ${l} more can come in on this invite`, overNone: 'No more seats on this invite', overK: 'Over the limit', close: 'Close',
-      askH: 'Ask the host', allowedLine: (a, d) => `${a} allowed · ${d} in`, name: 'Name', count: 'How many people', reasonL: 'Why', reasons: ['Extra family', 'Not on the list', 'Host invited by phone', 'Child'],
-      otherNote: 'Other note (optional)', send: n => `Send to host · ${n === 1 ? '1 person' : n + ' people'}`, needName: 'Type their name first', sent: 'Sent. The host’s answer will show at the top.',
-      reqs: 'Your requests to the host', pending: 'Waiting', approved: 'Approved', rejected: 'Not approved', answered: n => `Answered (${n})`,
+      checkInN: (n, left) => n >= left ? `Check in ${P(n)}` : `Check in ${n} of ${P(left)}`, checkInNow: n => `Check in ${P(n)} now`, askAbout: x => `Ask ${HE.plain} about ${ISO('+' + x)}`,
+      busy: 'Checking in…', retry: 'Retry check-in',
+      askHost: `Ask ${HE.plain}`, unlisted: 'Ask about a guest not on the list',
+      typeName: 'Type a name or phone number to check someone in.', awake: 'Screen stays on', justArrived: 'Just arrived', tapFind: 'Tap a name to find them again.',
+      ambiguous: n => `${G(n)} with similar names. Check the phone number.`, similar: 'Close spellings', didYouMean: 'No exact match. Is it one of these?',
+      notFoundH: 'No exact match', noOne: q => `Nothing for “${q}”. Try the phone number or family name.`, notFoundOld: `Not on the list. Check with ${HE.plain}.`,
+      band: (nm, n) => `${nm}: ${P(n)} in`, bandLeft: l => `${l} still to come`, hadDeclined: 'had said they can’t come', noReplySub: 'hadn’t replied',
+      undo: 'Undo', undoNo: `Wrong person? Tell ${HE.plain} to fix it.`, undoing: 'Undoing…', undone: nm => `Check-in undone: ${nm}`,
+      undoLate: `Too late to undo here. Tell ${HE.plain} to fix it.`, undoNotYours: `That was checked in on another phone. Tell ${HE.plain}.`, undoNothing: 'Nothing to undo.',
+      undoFail: `Couldn’t undo here. Tell ${HE.plain} to fix it.`, alreadyK: () => 'Already in', alreadyNow: n => `${P(n)} already in on this invite. No need to check them in again.`,
+      overK: 'Over the limit', over: l => `Only ${P(l)} more can come in on this invite`, overNone: 'No more places on this invite', close: 'Close', closeNote: 'Close this notice',
+      askH: `Ask ${HE.plain}`, allowedLine: (a, d) => `Allowed ${P(a)} · ${P(d)} in`, name: 'Name', count: 'How many people', reasonL: 'Why', reasons: ['Extra family', 'Not on the list', 'Invited by phone', 'Child'],
+      otherNote: 'Other note (optional)', send: n => `Send ${HE.to} · ${P(n)}`, needName: 'Type their name first', sent: 'Sent. The hosts’ answer will show at the top.',
+      reqs: `Your requests ${HE.to}`, pending: 'Waiting', approved: 'Approved', rejected: 'Not approved', answered: n => `Answered requests (${n})`,
+      reqLine: { pending: n => `Asked ${HE.plain} about ${P(n)} more · waiting`, approved: n => `${HE.cap} said yes to ${P(n)} more (already counted)`, rejected: n => `${HE.cap} said no to ${P(n)} more` },
       ago: m => m < 1 ? 'just now' : m < 60 ? `${m} min ago` : `${Math.floor(m / 60)} h ago`,
-      okBanner: (nm, p) => `Host approved: let ${nm} in (${p})`, okBannerSub: 'Already counted. No need to check them in again.', noBanner: nm => `Host said no: ${nm}`, noBannerSub: 'Please let the guest know kindly.', dismiss: 'Dismiss',
+      okBanner: (nm, p) => `${HE.cap} approved: let ${nm} in (${p})`, okBannerSub: 'Already counted. No need to check them in again.', noBanner: nm => `${HE.cap} said no: ${nm}`, noBannerSub: 'Please let the guest know kindly.', dismiss: 'Hide this answer',
       err: 'Couldn’t do that. Check your connection and try again.', noEvents: 'This email isn’t linked to any event right now.', noEventsH: 'No events', reason: 'Reason',
-      digitsHint: 'Type at least 4 digits of the number', bigN: '7 or more', moreAns: n => `Show the rest (${n})` },
-    ar: { other: 'English', out: 'تسجيل خروج', title: 'شاشة الباب', home: 'الرئيسية', menuDoor: 'شاشة الباب', menuDash: 'لوحة المضيفة', events: 'مناسباتكم', colours: 'الألوان', switchEv: 'تغيير',
-      atDoor: 'على الباب', live: 'متصل', offline: 'ما في نت',
+      digitsHint: 'Type at least 4 digits of the number', bigN: '7 or more', moreAns: n => `Show ${n} more ${n === 1 ? 'answer' : 'answers'}`,
+      when: d => d === 0 ? '' : d < 0 ? 'This event has passed' : d === 1 ? 'The event is tomorrow' : `The event is in ${d} days`,
+      help: [
+        ['Checking someone in', 'Type part of their name, or at least 4 digits of their phone number. Tap the big button: it says how many people go in.'],
+        ['Two guests with the same name', 'When two or more guests have similar names, in Arabic or English letters, a line above the cards says so. Check the phone number before you tap. Someone who is already in shows first, in amber, with the time they came.'],
+        ['Undoing a check-in', 'The green band shows your latest check-in, with Undo, for 2 minutes or until the next check-in. Under “Just arrived”, each check-in made on this phone keeps its own Undo for 10 minutes. After that, tell the hosts.'],
+        ['More people than allowed', 'Tap + to the real number. Check in the people allowed now, then tap “Ask the hosts about +1” for the rest. The hosts’ answer shows at the top of this screen.'],
+        ['Someone not on the list', 'Try the phone number or the family name first. If they’re still not there, tap “Ask the hosts”.'],
+        ['Phone numbers', 'Tap 123 next to the search box for the number keyboard, and abc to go back to letters.']
+      ] },
+    ar: { other: 'English', out: 'تسجيل خروج', title: 'شاشة الباب', colours: 'الألوان', hostDash: HA.page, events: 'مناسباتكم', switchEv: 'تغيير المناسبة',
+      live: 'متصل', offline: 'ما في نت',
       search: 'دوّروا بالاسم أو الرقم', searchPh: 'اسم الضيف أو رقمه', clear: 'مسح البحث',
-      arrived: 'دخلوا', waitChip: n => `${n} بانتظار المضيفة`, half: 'نص الضيوف دخلوا', everyone: 'كل الضيوف دخلوا',
-      people: arPeople,
-      coming: 'جايين', declined: 'معتذرين', noReply: 'ما ردّوا', allIn: 'دخلوا كلهم', already: 'دخلوا من قبل',
-      inN: (a, b) => a ? `دخل ${a} · باقي ${b}` : `باقي ${b}`, allInN: n => `دخلوا كلهم (${n})`, waitLine: n => `ما ردّوا · مسموح ${n}`, declinedLine: 'ما بيحضرون',
+      kbNum: 'كتابة رقم التلفون', kbAbc: 'كتابة الاسم', kbAbcL: 'أ ب ت',
+      meterL: (a, e) => (a === 0 ? 'ما وصل أحد للحين' : a === 1 ? 'وصل' : 'وصلوا') + (e ? ` من أصل ${P(e)}` : ''),
+      noReplyN: n => n === 1 ? 'ضيف واحد ما ردّ' : `${G(n)} ما ردّوا`,
+      waitChip: n => `طلباتكم: ${n} بالانتظار`, half: 'نص الضيوف وصلوا', everyone: 'كل الضيوف وصلوا',
+      coming: 'بيحضرون', declined: 'اعتذروا', noReply: 'ما ردّوا',
+      inLeft: (d, l) => `وصل ${P(d)} · باقي ${P(l)}`, upTo: l => `مسموح ${P(l)}`,
+      already: (n, tm) => `${n === 1 ? 'وصل' : 'وصلوا'} من قبل · ${P(n)}${tm ? ' · ' + tm : ''}`, alreadyOld: 'وصلوا من قبل',
+      invited: (s, c, st) => { const p = P(s); return `الدعوة ${/^\d/.test(p) ? 'لـ' : 'ل'}${p}` + (st === 'yes' && c && c !== s ? ` · أكّدوا ${P(c)}` : st === 'pending' ? ' · ما ردّوا' : ''); },
       howMany: 'كم شخص الحين', less: 'واحد أقل', more: 'واحد زيادة',
-      checkInN: (n, left) => n >= left ? `دخول ${arPeople(n)}` : `دخول ${n} من ${left}`, checkIn1: 'دخول', askOver: x => `اسألوا عن ⁦+${x}⁩`,
+      checkInN: (n, left) => n >= left ? `سجّلوا وصول ${P(n)}` : `سجّلوا وصول ${n} من ${P(left)}`, checkInNow: n => `سجّلوا وصول ${P(n)} الحين`, askAbout: x => `اسألوا ${HA.plain} عن ${ISO('+' + x)}`,
       busy: 'لحظة…', retry: 'حاولوا مرة ثانية',
-      askHost: 'اسألوا المضيفة', askMore: 'اسألوا عن زيادة', unlisted: 'ضيف مو بالقائمة',
-      typeName: 'اكتبوا اسم الضيف فوق.', awake: 'الشاشة ما بتطفي', justArrived: 'دخلوا توّهم', tapFind: 'اضغطوا على أي اسم عشان ترجعون له.',
-      notFoundH: 'مو بالقائمة', noOne: q => `ما لقينا «${q}».`, notFoundOld: 'اسألوا المضيفة.',
-      okK: 'دخلوا', okSub: (p, l) => `${p}${l ? ` · باقي ${l}` : ''}`, hadDeclined: 'كانوا معتذرين', noReplySub: 'ما ردّوا',
-      over: l => `باقي ${l} بس على هالدعوة`, overNone: 'الدعوة مكتملة', overK: 'أكثر من العدد', close: 'إغلاق',
-      askH: 'اسألوا المضيفة', allowedLine: (a, d) => `مسموح ${a} · دخل ${d}`, name: 'الاسم', count: 'كم شخص', reasonL: 'السبب', reasons: ['أهل زيادة', 'مو بالقائمة', 'معزومين بالتلفون', 'ياهل'],
-      otherNote: 'ملاحظة (اختياري)', send: n => `أرسلوا للمضيفة · ${arPeople(n)}`, needName: 'اكتبوا الاسم أول', sent: 'انرسل للمضيفة، وردّها بيطلع فوق.',
-      reqs: 'طلباتكم للمضيفة', pending: 'بالانتظار', approved: 'وافقت', rejected: 'ما وافقت', answered: n => `ردّت (${n})`,
-      ago: m => m < 1 ? 'توّه' : m === 1 ? 'قبل دقيقة' : m === 2 ? 'قبل دقيقتين' : m <= 10 ? `قبل ${m} دقايق` : m < 60 ? `قبل ${m} دقيقة` : `قبل ${Math.floor(m / 60)} ساعة`,
-      okBanner: (nm, p) => `المضيفة وافقت: دخّلوا ${nm} (${p})`, okBannerSub: 'انحسبوا، لا تضغطون دخول.', noBanner: nm => `المضيفة ما وافقت: ${nm}`, noBannerSub: 'بلّغوهم بلطف.', dismiss: 'إخفاء',
+      askHost: `اسألوا ${HA.plain}`, unlisted: 'اسألوا عن ضيف مو بالقائمة',
+      typeName: 'اكتبوا اسم الضيف أو رقمه عشان تسجلون وصوله.', awake: 'الشاشة ما بتطفي', justArrived: 'وصلوا توّهم', tapFind: 'اضغطوا على أي اسم عشان ترجعون له.',
+      ambiguous: n => `${G(n)} بأسماء متشابهة. تأكدوا من الرقم.`, similar: 'أسماء قريبة', didYouMean: 'ما لقينا الاسم بالضبط. يمكن واحد من هذول؟',
+      notFoundH: 'ما لقينا الاسم', noOne: q => `مو بالقائمة باسم «${q}». جرّبوا رقم التلفون أو اسم العائلة.`, notFoundOld: 'مو بالقائمة. اسألوا أهل المناسبة.',
+      band: (nm, n) => `${nm}: وصل ${P(n)}`, bandLeft: l => `باقي ${P(l)}`, hadDeclined: 'كانوا معتذرين', noReplySub: 'ما كانوا رادّين',
+      undo: 'تراجع', undoNo: 'غلط بالاسم؟ قولوا لأهل المناسبة يعدّلونه.', undoing: 'لحظة…', undone: nm => `انلغى تسجيل وصول ${nm}`,
+      undoLate: 'فات وقت التراجع من هني. قولوا لأهل المناسبة يعدّلونه.', undoNotYours: 'وصولهم انسجّل من تلفون ثاني. قولوا لأهل المناسبة.', undoNothing: 'ما في شي نتراجع عنه.',
+      undoFail: 'ما قدرنا نتراجع من هني. قولوا لأهل المناسبة يعدّلونه.', alreadyK: n => n === 1 ? 'وصل من قبل' : 'وصلوا من قبل', alreadyNow: n => n === 1 ? 'شخص واحد وصل من قبل على هالدعوة. لا تسجلون وصوله مرة ثانية.' : `${P(n)} وصلوا من قبل على هالدعوة. لا تسجلون وصولهم مرة ثانية.`,
+      overK: 'أكثر من المسموح', over: l => `باقي ${P(l)} بس على هالدعوة`, overNone: 'الدعوة مكتملة', close: 'إغلاق', closeNote: 'إغلاق التنبيه',
+      askH: `اسألوا ${HA.plain}`, allowedLine: (a, d) => `${a ? `مسموح ${P(a)}` : 'ما لهم مكان على الدعوة'} · ${d ? `وصل ${P(d)}` : 'ما وصل أحد'}`, name: 'الاسم', count: 'كم شخص', reasonL: 'السبب', reasons: ['أهل زيادة', 'مو بالقائمة', 'معزومين بالتلفون', 'ياهل'],
+      otherNote: 'ملاحظة (اختياري)', send: n => `أرسلوا ${HA.to} · ${P(n)}`, needName: 'اكتبوا الاسم أول', sent: 'انرسل. ردّ أهل المناسبة بيطلع فوق.',
+      reqs: `طلباتكم ${HA.to}`, pending: 'بالانتظار', approved: 'وافقوا', rejected: 'ما وافقوا', answered: n => `طلبات انردّ عليها (${n})`,
+      reqLine: { pending: n => `سألتوا أهل المناسبة عن ${P(n)} زيادة · بالانتظار`, approved: n => `أهل المناسبة وافقوا على ${P(n)} زيادة (انحسبوا)`, rejected: n => `أهل المناسبة ما وافقوا على ${P(n)} زيادة` },
+      ago: m => m < 1 ? 'توّه' : m === 1 ? 'قبل دقيقة' : m === 2 ? 'قبل دقيقتين' : m <= 10 ? `قبل ${m} دقايق` : m < 60 ? `قبل ${m} دقيقة` : `قبل ${App.arN(Math.floor(m / 60), 'ساعة', 'ساعتين', 'ساعات', 'ساعة')}`,
+      okBanner: (nm, p) => `أهل المناسبة وافقوا: دخّلوا ${nm} (${p})`, okBannerSub: 'انحسبوا، لا تسجلون وصولهم مرة ثانية.', noBanner: nm => `أهل المناسبة ما وافقوا: ${nm}`, noBannerSub: 'بلّغوهم بلطف.', dismiss: 'إخفاء الرد',
       err: 'ما مشى. شيكوا على النت وحاولوا مرة ثانية.', noEvents: 'هالإيميل مو مربوط بأي مناسبة.', noEventsH: 'ما في مناسبات', reason: 'السبب',
-      digitsHint: 'اكتبوا 4 أرقام أو أكثر', bigN: '7 أو أكثر', moreAns: n => `شوفوا الباقي (${n})` }
+      digitsHint: 'اكتبوا 4 أرقام أو أكثر', bigN: '7 أو أكثر', moreAns: n => `شوفوا باقي الردود (${n})`,
+      when: d => d === 0 ? '' : d < 0 ? 'هالمناسبة خلصت' : d === 1 ? 'المناسبة باجر' : d === 2 ? 'المناسبة بعد يومين' : d <= 10 ? `المناسبة بعد ${d} أيام` : `المناسبة بعد ${d} يوم`,
+      help: [
+        ['تسجيل وصول ضيف', 'اكتبوا جزء من اسمه، أو 4 أرقام أو أكثر من رقم تلفونه. بعدين اضغطوا الزر الكبير، ومكتوب عليه كم شخص بتسجلون وصوله.'],
+        ['ضيفين بنفس الاسم', 'إذا فيه ضيفين أو أكثر بأسماء متشابهة، بالعربي أو بالإنجليزي، يطلع لكم سطر فوق الأسماء ينبهكم. تأكدوا من رقم التلفون قبل لا تضغطون. واللي وصل من قبل يطلع أول، باللون الأصفر ومعاه وقت وصوله.'],
+        ['التراجع عن تسجيل الوصول', 'الشريط الأخضر يبيّن آخر وصول سجلتوه، ومعاه زر «تراجع»، لمدة دقيقتين أو لين تسجلون الوصول اللي بعده. وتحت «وصلوا توّهم» كل وصول سجلتوه من هالتلفون يبقى له «تراجع» لمدة 10 دقايق. بعدها قولوا لأهل المناسبة.'],
+        ['عددهم أكثر من المسموح', 'زيدوا العدد بزر + للعدد الصح. سجّلوا وصول المسموح لهم الحين، وبعدين اضغطوا «اسألوا أهل المناسبة عن +1» للباقين. ردّهم يطلع فوق بهالشاشة.'],
+        ['ضيف مو بالقائمة', 'جرّبوا رقم التلفون أو اسم العائلة أول. وإذا بعده مو موجود، اضغطوا «اسألوا أهل المناسبة».'],
+        ['أرقام التلفون', 'اضغطوا 123 جنب البحث عشان تطلع لوحة الأرقام، و«أ ب ت» عشان ترجعون للحروف.']
+      ] }
   };
   let lang = 'en'; try { lang = localStorage.getItem('door-lang') === 'ar' ? 'ar' : 'en'; } catch (e) {}
   let t = T[lang];
   let events = [], ev = null, list = [], reqs = [], v2 = false, busy = false, pollT = null, exPrefill = null;
   const typed = {};            // head counts the door has chosen, kept across refreshes
+  const extraAsk = {};         // extra people still to ask the host about, after "Check in N now"
   let lastTouch = 0, renderLater = null, busyId = null, failedId = null;
   let lastOk = 0, online = true, wakeOn = false, wake = null;
   const seenReq = new Map(); let reqsLoaded = false, answers = [];
-  let recent = [], prevPct = null, arriveT = null;
+  let recent = [], prevPct = null;
   let canHost = false;               // the host dashboard link only for people who can use it
+  let undoOk = null;                 // null = not known yet, false = the database has no undo yet (003 not run)
+  let band = null, bandInfo = null, numMode = false;
   const announced = new Set(); let showAllAns = false;
-  const MAX_ASK = 20, ANS_SHOWN = 2;
+  const MAX_ASK = 20, ANS_SHOWN = 2, BAND_MS = 120000, UNDO_MS = 600000, ZERO = '00000000-0000-0000-0000-000000000000';
 
   // ---------- small helpers ----------
   const allowed = g => g.status === 'yes' ? (g.confirmed_count || g.seats) : g.status === 'pending' ? g.seats : 0;
   const leftOf = g => Math.max(0, allowed(g) - (g.checked_in_count || 0));
   const MAX_OVER = 6;
-  const initial = s => { const c = [...String(s || '').trim()][0] || '·'; return c.toUpperCase(); };
-  const isAr = s => /[؀-ۿ]/.test(s || '');
-  const monoHtml = (name, cls) => `<span class="mono ${cls}${isAr(name) ? ' ar' : ''}" aria-hidden="true">${esc(initial(name))}</span>`;
+  const tmHtml = iso => iso ? `<bdi class="tm">${esc(App.fmtTime(new Date(iso).toISOString(), lang))}</bdi>` : '';
   const ss = { get(k) { try { return JSON.parse(sessionStorage.getItem(k) || 'null'); } catch (e) { return null; } }, set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
 
   // the upgraded functions went missing (e.g. undone): carry on the old way
-  function dropV2() { v2 = false; $('#unlisted').hidden = true; exPrefill = null; renderForm(); reqs = []; drawReqs(); drawMeter(); }
+  function dropV2() { v2 = false; undoOk = false; $('#unlisted').hidden = true; exPrefill = null; renderForm(); reqs = []; drawReqs(); drawMeter(); drawBand(); }
 
   // ---------- language ----------
   function applyLang() {
     t = T[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-    document.title = t.title;
+    document.title = App.brandTitle(t.title, lang);
     $('#lang').textContent = t.other; $('#lang').setAttribute('lang', lang === 'ar' ? 'en' : 'ar'); $('#out').textContent = t.out;
     document.querySelectorAll('[data-i18n]').forEach(el => { if (typeof t[el.dataset.i18n] === 'string') el.textContent = t[el.dataset.i18n]; });
-    document.querySelector('.topbar .brand').setAttribute('aria-label', t.home);
     $('#qLbl').textContent = t.search; $('#q').placeholder = t.searchPh; $('#qx').setAttribute('aria-label', t.clear);
-    $('#unlisted span').textContent = t.unlisted; $('#evSw span').textContent = t.switchEv;
+    $('#unlisted span').textContent = t.unlisted;
     $('#ask .sheet-x').setAttribute('aria-label', t.close); $('#askH').textContent = t.askH;
-    drawMenu(); $('#annLive').textContent = '';
-    if (ev) { drawMast(); setLive(online && Date.now() - lastOk < 30000); renderList(); drawReqs(); drawAnswers(); if (exPrefill) { keepForm(); renderForm(); } }
+    $('#evSheet .sheet-x').setAttribute('aria-label', t.close); $('#evH').textContent = t.events;
+    drawKb(); drawLinks(); $('#annLive').textContent = '';
+    if (ev) { drawMast(); setLive(online && Date.now() - lastOk < 30000); renderList(); drawReqs(); drawAnswers(); drawBand(); if (exPrefill) { keepForm(); renderForm(); } }
   }
   $('#lang').onclick = () => { lang = lang === 'ar' ? 'en' : 'ar'; try { localStorage.setItem('door-lang', lang); } catch (e) {} applyLang(); };
+  App.setHelp(l => T[l].help);
 
-  function drawMenu() {
-    const d = iso => iso ? new Date(iso).toLocaleDateString(lang === 'ar' ? 'ar-KW-u-nu-latn' : 'en-GB', { timeZone: 'Asia/Kuwait', day: 'numeric', month: 'short' }) : '';
-    $('#menuNav').innerHTML = `<a href="door.html" aria-current="page"><i class="i i-door"></i><span>${t.menuDoor}</span></a>${canHost ? `<a href="host.html"><i class="i i-home"></i><span>${t.menuDash}</span></a>` : ''}`
-      + (events.length > 1 ? `<p class="menu-cap">${t.events}</p>` + events.map(x => `<button type="button" data-ev="${esc(x.id)}" aria-current="${!!ev && x.id === ev.id}"><i class="i ${ev && x.id === ev.id ? 'i-check' : 'i-calendar'}"></i><bdi class="menu-ev">${esc(x.title)}</bdi><span class="menu-sub">${esc(d(x.starts_at))}</span></button>`).join('') : '');
-    $('#menuNav').querySelectorAll('[data-ev]').forEach(b => b.onclick = () => { $('#menu').close(); const e = events.find(x => x.id === b.dataset.ev); if (e && e !== ev) pick(e); });
+  // links that used to sit in the menu now live on the page: the event switch, and the host dashboard (hosts only)
+  function drawLinks() {
+    const brand = document.querySelector('.topbar .brand');
+    brand.setAttribute('href', canHost ? 'host.html' : 'door.html'); brand.setAttribute('aria-label', canHost ? t.hostDash : t.title);
+    const L = $('#dlinks');
+    L.hidden = !(canHost || events.length > 1);
+    L.innerHTML = (events.length > 1 ? `<button class="btn quiet" type="button" id="evSw"><i class="i i-calendar"></i><span>${esc(t.switchEv)}</span></button>` : '')
+      + (canHost ? `<a class="btn quiet" href="host.html" id="hostLink"><i class="i i-home"></i><span>${esc(t.hostDash)}</span></a>` : '');
+    if ($('#evSw')) $('#evSw').onclick = openEvents;
   }
-  $('#evSw').onclick = () => $('#menuBtn').click();
+  function openEvents() {
+    const d = iso => iso ? new Date(iso).toLocaleDateString(lang === 'ar' ? 'ar-KW-u-nu-latn' : 'en-GB', { timeZone: 'Asia/Kuwait', day: 'numeric', month: 'short' }) : '';
+    $('#evList').innerHTML = events.map(x => `<button type="button" class="row" data-ev="${esc(x.id)}" aria-current="${!!ev && x.id === ev.id}"><span class="row-main"><bdi class="t-name">${esc(x.title)}</bdi></span><span class="row-end t-small">${esc(d(x.starts_at))}${ev && x.id === ev.id ? '<i class="i i-check"></i>' : ''}</span></button>`).join('');
+    $('#evList').querySelectorAll('[data-ev]').forEach(b => b.onclick = () => { App.closeSheet($('#evSheet')); const e = events.find(x => x.id === b.dataset.ev); if (e && e !== ev) pick(e); });
+    App.openSheet($('#evSheet'));
+  }
+
+  // the "123" key: switches the phone keyboard to numbers for a phone search, and back
+  function drawKb() {
+    const b = $('#kb');
+    b.textContent = numMode ? t.kbAbcL : '123'; b.setAttribute('aria-pressed', String(numMode)); b.setAttribute('aria-label', numMode ? t.kbAbc : t.kbNum);
+    b.setAttribute('lang', numMode ? lang : 'en');
+  }
+  $('#kb').onclick = () => {
+    numMode = !numMode; const q = $('#q');
+    q.setAttribute('inputmode', numMode ? 'tel' : 'text'); q.setAttribute('autocapitalize', numMode ? 'off' : 'words');
+    drawKb(); App.vibrate(8);
+    // the keyboard only changes when the box is focused again; do it inside the tap (iOS ignores a later focus())
+    q.blur(); q.focus();
+  };
+  // tapping the key must not take the focus away from the search box (that would close the keyboard)
+  $('#kb').addEventListener('mousedown', e => e.preventDefault());
   applyLang();
 
-  // The topbar shows the event's name once the masthead scrolls away
+  // The topbar shows the event's name once the masthead scrolls away (or is tucked away while typing)
   const tbH = () => { const h = $('#topbar').offsetHeight; document.body.style.setProperty('--dtb', h + 'px'); return h; };
   tbH(); window.addEventListener('resize', tbH);
   if ('IntersectionObserver' in window) new IntersectionObserver(es => es.forEach(e => $('#tbTitle').classList.toggle('on', !e.isIntersecting && !$('#door').hidden)), { rootMargin: `-${tbH()}px 0px 0px 0px` }).observe($('#mast'));
@@ -169,10 +246,11 @@ document.addEventListener('DOMContentLoaded', function () {
       const [adm, mem] = await Promise.all([sb.rpc('is_admin'), sb.from('event_members').select('role, email')]);
       canHost = !!(adm && adm.data) || ((mem && mem.data) || []).some(m => m.role === 'host' && (!me || String(m.email || '').toLowerCase() === me));
     } catch (e) { canHost = false; }
-    drawMenu();
     const { data } = await sb.from('events').select('id, title, starts_at').order('starts_at');
     events = data || [];
+    drawLinks();
     if (!events.length) { $('#auth').innerHTML = `<div class="login-wrap"><div class="login box"><h2>${t.noEventsH}</h2><p class="sub">${t.noEvents}</p></div></div>`; return; }
+    probeUndo();
     let keep = null; try { keep = localStorage.getItem('door-ev'); } catch (e) {}
     const today = new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10);
     const kwDay = iso => new Date(new Date(iso).getTime() + 3 * 3600e3).toISOString().slice(0, 10);
@@ -180,23 +258,32 @@ document.addEventListener('DOMContentLoaded', function () {
     keepAwake();
   });
 
+  // Is Undo installed (migrations/003)? A call for a guest that can't exist changes nothing.
+  async function probeUndo() {
+    if (!v2) { undoOk = false; return; }
+    let r; try { r = await sb.rpc('undo_check_in_v2', { p_guest: ZERO, p_people: 1 }); } catch (e) { return; }
+    if (r.error && App.missingFn(r.error)) undoOk = false;
+    else if (!r.error) undoOk = true;
+    drawBand(); if (ev && !$('#q').value.trim()) renderList();
+  }
+
   async function pick(e) {
     ev = e; try { localStorage.setItem('door-ev', e.id); } catch (x) {}
     $('#door').hidden = false; $('#result').innerHTML = ''; exPrefill = null; renderForm();
     list = []; reqs = []; seenReq.clear(); reqsLoaded = false; answers = []; announced.clear(); showAllAns = false; prevPct = null; failedId = null;
+    if (band) { band.close(); band = null; bandInfo = null; }
     recent = ss.get('door-recent-' + ev.id) || [];
     $('#unlisted').hidden = !v2;
-    drawMast(); drawMenu(); drawAnswers(); drawReqs();
+    drawMast(); drawLinks(); drawAnswers(); drawReqs();
     await loadList(); await loadReqs(); schedule();
   }
 
   function drawMast() {
     if (!ev) return;
-    const cd = App.countdown(ev.starts_at, lang);
-    $('#kick').innerHTML = `<span>${t.atDoor}${cd ? ' · ' + esc(cd) : ''}</span>`;
     $('#title').innerHTML = '<bdi>' + App.ampTitle(ev.title) + '</bdi>'; $('#tbTitle').textContent = ev.title;
-    $('#evSw').hidden = events.length < 2;
   }
+  // days until the event (Kuwait dates); 0 on the night
+  const daysTo = iso => { if (!iso) return 0; const day = d => new Date(new Date(d).getTime() + 3 * 3600e3).toISOString().slice(0, 10); return Math.round((new Date(day(iso)) - new Date(day(new Date()))) / 864e5); };
 
   // ---------- refresh: every 15s, every 5s while the door waits for the host ----------
   function schedule() {
@@ -240,39 +327,39 @@ document.addEventListener('DOMContentLoaded', function () {
     renderList();
   }
 
-  // ---------- the meter ----------
+  // ---------- the meter: "8 of 18 people in", and who hasn't replied (they can still come in) ----------
   function drawMeter() {
     const arrived = list.reduce((a, g) => a + (g.checked_in_count || 0), 0);
-    const expected = list.reduce((a, g) => a + App.peopleComing(g), 0);
+    // anyone who came in counts as expected too (a no-reply guest who turns up), so it never reads "22 of 18"
+    const expected = list.reduce((a, g) => a + Math.max(App.peopleComing(g), g.checked_in_count || 0), 0);
+    const noReply = list.filter(g => g.status === 'pending').length;
     App.countUp($('#mIn'), arrived);
-    $('#mOf').textContent = expected ? `/ ${expected}` : '';
+    $('#mL').textContent = t.meterL(arrived, expected);
     const pct = expected ? Math.min(100, arrived / expected * 100) : 0;
     $('#mBar').style.width = pct + '%';
-    $('#meter').setAttribute('aria-label', `${arrived}${expected ? ' / ' + expected : ''} ${t.arrived}`);
+    const noneAr = lang === 'ar' && !arrived;            // "ما وصل أحد للحين", no bare 0 in front of it
+    $('#mIn').hidden = noneAr;
+    $('#meter').setAttribute('aria-label', noneAr ? t.meterL(0, expected) : `${arrived} ${t.meterL(arrived, expected)}`);
+    const when = ev ? t.when(daysTo(ev.starts_at)) : '';
+    $('#mS').textContent = [noReply ? t.noReplyN(noReply) : '', when].filter(Boolean).join(' · ');
     // quiet milestones: half in, everyone in (once per event, per session)
     if (prevPct !== null && expected) for (const m of [50, 100]) {
       const k = `door-ms-${ev.id}-${m}`;
       if (prevPct < m && pct >= m && !ss.get(k)) { ss.set(k, 1); celebrate(m === 100 ? t.everyone : t.half); }
     }
     if (list.length) prevPct = pct;
-    $('#mL').textContent = t.arrived;
     const pend = v2 ? reqs.filter(r => r.status === 'pending').length : 0;
     $('#waitChip').hidden = !pend; $('#waitL').textContent = t.waitChip(pend);
+    $('#mRow2').hidden = !pend && !$('#mS').textContent;
   }
-  // half in, everyone in: a sheen across the bar and a quiet line (on the arrival card if one is up)
-  function celebrate(msg) {
-    const bb = $('#mBarBox'); bb.classList.remove('sheen'); void bb.offsetWidth; bb.classList.add('sheen');
-    const a = $('#arrive');
-    if (a && !a.classList.contains('out')) { const p = document.createElement('p'); p.className = 'a-ms'; p.innerHTML = `<i class="i i-sparkle sm"></i>${esc(msg)}`; a.insertBefore(p, a.querySelector('.a-t')); }
-    else toast(msg);
-  }
+  function celebrate(msg) { toast(msg); }
   $('#waitChip').onclick = () => {
     const s = $('#myReqs'); if (!s) return;
     const y = s.getBoundingClientRect().top + window.scrollY - $('#topbar').offsetHeight - $('#dhead').offsetHeight - 8;
     window.scrollTo({ top: Math.max(0, y), behavior: App.reducedMotion() ? 'auto' : 'smooth' });
   };
 
-  // ---------- forgiving search ----------
+  // ---------- search: best name match first (App.nameScore: spellings, Arabic ↔ Latin), phone by 4+ digits ----------
   const FOLD = { 'أ': 'ا', 'إ': 'ا', 'آ': 'ا', 'ٱ': 'ا', 'ة': 'ه', 'ى': 'ي', 'ؤ': 'و', 'ئ': 'ي' };
   // normalised text plus, for each character, where it came from in the original (for <mark>)
   function nmap(s) {
@@ -290,17 +377,17 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   const squash = m => { let n = '', map = []; for (let i = 0; i < m.n.length; i++) if (m.n[i] !== ' ') { n += m.n[i]; map.push(m.map[i]); } return { n, map }; };
   const stripAl = tk => { const s = tk.replace(/^(al|el|ال)/, ''); return s !== tk && s.length >= 3 ? s : null; };
+  // letter-for-letter match: used to highlight the typed letters, and as a last resort when nothing else matches
   function matchName(name, tokens) {
-    const a = nmap(name), b = squash(a), ranges = []; let score = 0;
+    const a = nmap(name), b = squash(a), ranges = [];
     for (const tk of tokens) {
       let i = a.n.indexOf(tk), m = a, len = tk.length;
       if (i < 0) { i = b.n.indexOf(tk); m = b; }
       if (i < 0) { const s = stripAl(tk); if (s) { i = a.n.indexOf(s); m = a; len = s.length; } }
       if (i < 0) return null;
-      if (m === a && (i === 0 || a.n[i - 1] === ' ')) score += 2; else if (i === 0) score += 1;
       ranges.push([m.map[i], m.map[i + len - 1] + 1]);
     }
-    return { ranges, score };
+    return { ranges };
   }
   function markUp(s, ranges) {
     s = String(s || ''); if (!ranges || !ranges.length) return esc(s);
@@ -309,17 +396,17 @@ document.addEventListener('DOMContentLoaded', function () {
     out.push(esc(s.slice(at))); return out.join('');
   }
   const isDigits = q => !/[^\d\s+\-()٠-٩۰-۹]/.test(q);
+  // score bands from App.nameScore: 5 same name · 4 starts with · 3 word starts · 2 inside · 1 other spelling/script · 0 close
+  const tierOf = s => s >= 100 ? 5 : s >= 80 ? 4 : s >= 60 ? 3 : s >= 45 ? 2 : s >= 30 ? 1 : 0;
   function search(q) {
-    const digitsOnly = isDigits(q), qd = App.asciiDigits(q).replace(/\D/g, '');
-    const tokens = nmap(q).n.split(' ').filter(Boolean), hits = [];
-    for (const g of list) {
-      if (digitsOnly) {
-        if (qd.length >= 4 && (g.phone || '').includes(qd)) hits.push({ g, score: 1, phone: qd });
-        continue;
-      }
-      const m = matchName(g.name, tokens);
-      if (m) hits.push({ g, score: m.score, ranges: m.ranges });
+    if (isDigits(q)) {
+      const qd = App.asciiDigits(q).replace(/\D/g, '');
+      return qd.length >= 4 ? list.filter(g => (g.phone || '').includes(qd)).map(g => ({ g, score: 100, tier: 5, phone: qd })) : [];
     }
+    const tokens = nmap(q).n.split(' ').filter(Boolean);
+    let hits = App.searchNames(list, q).map(({ item, score }) => ({ g: item, score, tier: tierOf(score), ranges: (matchName(item.name, tokens) || {}).ranges }));
+    // last resort: the old letter-for-letter match, shown as a close spelling
+    if (!hits.length) hits = list.map(g => ({ g, m: matchName(g.name, tokens) })).filter(x => x.m).map(x => ({ g: x.g, score: 1, tier: 0, ranges: x.m.ranges }));
     return hits;
   }
 
@@ -332,43 +419,50 @@ document.addEventListener('DOMContentLoaded', function () {
     return done ? 'all' : 'no';
   }
   const curN = g => { const left = leftOf(g); return Math.max(1, Math.min(left + MAX_OVER, typed[g.id] || left || 1)); };
-  const ciLabel = (g, n) => { const left = leftOf(g); return n > left ? t.askOver(n - left) : t.checkInN(n, left); };
-  function seatDots(allowedN, done) {
-    const n = Math.max(allowedN, done), show = Math.min(n, 10);
-    let h = ''; for (let i = 0; i < show; i++) h += `<i class="${i < done ? (i < allowedN ? 'on' : 'on x') : ''}"></i>`;
-    return `<span class="seatdots" aria-hidden="true">${h}${n > show ? `<em>+${n - show}</em>` : ''}</span>`;
+  const lastReq = g => reqs.find(r => r.guest_id === g.id);     // newest first
+  function actHtml(g) {
+    const left = leftOf(g), n = curN(g);
+    const stepper = `<div class="stepper" dir="ltr" role="group" aria-label="${esc(t.howMany)}"><button type="button" data-dec aria-label="${esc(t.less)}" ${n <= 1 ? 'disabled' : ''}>−</button><output id="n-${g.id}" aria-live="polite">${n}</output><button type="button" data-inc aria-label="${esc(t.more)}" ${n >= left + MAX_OVER ? 'disabled' : ''}>+</button></div>`;
+    // over the allowance: check in the people allowed now, and ask the host about the rest
+    if (n > left) return `<div class="door-act">${stepper}${ciBtn(g, t.checkInNow(left))}</div><div class="door-act one"><button class="btn secondary big block" type="button" data-askx="${g.id}">${esc(t.askAbout(n - left))}</button></div>`;
+    return `<div class="door-act">${stepper}${ciBtn(g, t.checkInN(n, left))}</div>`;
   }
   function rowHtml(h) {
     const g = h.g, st = stateOf(g), done = g.checked_in_count || 0, left = leftOf(g), al = allowed(g);
-    const stTxt = { yes: t.coming, no: t.declined, pending: t.noReply };
-    const pill = st === 'all' ? `<span class="pill yes">${v2 ? t.allIn : t.already}</span>` : `<span class="pill ${g.status}">${stTxt[g.status]}</span>`;
-    const monoCls = st === 'no' ? 'no' : st === 'wait' ? 'pending' : 'yes';
-    let line;
-    if (!v2) line = `<span class="d-count">${t.people(g.seats)}</span>`;
-    else if (st === 'all') line = `${seatDots(al, done)}<span class="d-count">${t.allInN(done)}</span>`;
-    else if (st === 'no') line = `<span class="d-count">${t.declinedLine}</span>`;
-    else if (st === 'wait') line = `${seatDots(al, done)}<span class="d-count">${done ? t.inN(done, left) : t.waitLine(left)}</span>`;
-    else line = `${seatDots(al, done)}<span class="d-count">${t.inN(done, left)}</span>`;
     const phone = g.phone ? `<span class="d-ph num" dir="ltr">${h.phone ? markUp(showPhone(g.phone), (() => { const s = showPhone(g.phone), i = s.indexOf(h.phone); return i < 0 ? [] : [[i, i + h.phone.length]]; })()) : esc(showPhone(g.phone))}</span>` : '';
     const side = g.side ? `<bdi class="d-side">${esc(g.side)}</bdi>` : '';
-    let act = '';
-    if (!v2) act = st === 'all' ? '' : ciBtn(g, t.checkInN(g.seats, g.seats), '');
-    else if (st === 'all') act = `<button class="btn quiet small d-more" type="button" data-ask="${g.id}"><i class="i i-plus sm"></i>${t.askMore}</button>`;
-    else if (st === 'no') act = `<button class="btn ghost block" type="button" data-ask="${g.id}">${t.askHost}</button>`;
-    else {
-      const n = curN(g);
-      act = `<div class="stepper" dir="ltr" role="group" aria-label="${esc(t.howMany)}"><button type="button" data-dec aria-label="${esc(t.less)}" ${n <= 1 ? 'disabled' : ''}>−</button><output id="n-${g.id}" aria-live="polite">${n}</output><button type="button" data-inc aria-label="${esc(t.more)}" ${n >= left + MAX_OVER ? 'disabled' : ''}>+</button></div>`
-        + ciBtn(g, ciLabel(g, n), n > left ? 'ask' : '');
+    const top = `<div class="d-top"><b class="d-name"><bdi>${markUp(g.name, h.ranges)}</bdi></b>${phone}</div>`;
+    const rq = v2 && lastReq(g), rqLine = rq ? `<p class="d-req t-tone tone-${rq.status === 'approved' ? 'ok' : rq.status === 'rejected' ? 'no' : 'wait'}">${esc(t.reqLine[rq.status](rq.people))}</p>` : '';
+    // already in: an amber card that says when, never a check-in button
+    if (st === 'all') {
+      const n = v2 ? done : g.seats;
+      const ask = v2 ? `<div class="door-act one"><button class="btn secondary big block" type="button" data-ask="${g.id}">${esc(t.askAbout(extraAsk[g.id] || 1))}</button></div>` : '';
+      return `<article class="drow st-all panel tone-wait" data-id="${g.id}">${top}<p class="d-already t-tone">${v2 ? t.already(n, tmHtml(g.checked_in_at)) : esc(t.alreadyOld) + (g.checked_in_at ? ' · ' + tmHtml(g.checked_in_at) : '')}</p>
+        ${v2 ? `<p class="d-sub"><span>${esc(t.invited(g.seats, g.confirmed_count, g.status))}</span>${side ? `<span class="nw">· ${side}</span>` : ''}</p>` : ''}${rqLine}${ask}</article>`;
     }
-    return `<article class="drow st-${st}" data-id="${g.id}">${monoHtml(g.name, monoCls)}
-      <div class="d-main"><div class="d-top"><b class="d-name"><bdi>${markUp(g.name, h.ranges)}</bdi></b>${pill}</div>
-      <div class="d-sub">${line}${phone}${side}</div>
-      ${g.status === 'no' && g.decline_reason ? `<p class="gi-why">${t.reason}: “<bdi>${esc(g.decline_reason)}</bdi>”</p>` : ''}</div>
-      ${act ? `<div class="door-act${!v2 || st === 'no' || st === 'all' ? ' one' : ''}">${act}</div>` : ''}</article>`;
+    let tag, line = '';
+    if (!v2) { tag = g.status === 'no' ? 'no' : g.status === 'pending' ? 'wait' : 'ok'; line = esc(P(g.seats)); }
+    else if (st === 'no') tag = 'no';
+    else { tag = st === 'wait' ? 'wait' : 'ok'; line = esc(done ? t.inLeft(done, left) : st === 'wait' ? t.upTo(left) : P(left)); }
+    const tagTxt = { ok: t.coming, wait: t.noReply, no: t.declined }[tag];
+    let act;
+    if (!v2) act = `<div class="door-act one">${ciBtn(g, t.checkInN(g.seats, g.seats))}</div>`;
+    else if (st === 'no') act = `<div class="door-act one"><button class="btn secondary big block" type="button" data-ask="${g.id}">${esc(t.askHost)}</button></div>`;
+    else act = actHtml(g);
+    return `<article class="drow st-${st}" data-id="${g.id}">${top}
+      <p class="d-sub"><span class="tag tone-${tag}">${esc(tagTxt)}</span>${line ? `<span class="d-count">${line}</span>` : ''}${side}</p>
+      ${g.status === 'no' && g.decline_reason ? `<p class="gi-why">${t.reason}: “<bdi>${esc(g.decline_reason)}</bdi>”</p>` : ''}${rqLine}
+      ${act}</article>`;
   }
-  function ciBtn(g, label, cls) {
+  // One filled (primary) button per screen: the first card's Check-in. The other cards' Check-in buttons are
+  // outlined, and while a notice with its own main button is up, every card's button is outlined.
+  function onePrimary() {
+    let first = !$('#result .btn.primary');
+    $('#list').querySelectorAll('[data-in]').forEach(b => { b.classList.toggle('primary', first); b.classList.toggle('secondary', !first); first = false; });
+  }
+  function ciBtn(g, label) {
     const b = busyId === g.id, f = failedId === g.id;
-    return `<button class="btn ci ${cls}${f ? ' retry' : ''}" type="button" data-in="${g.id}" ${b ? 'aria-busy="true"' : ''}>${b ? t.busy : f ? t.retry : esc(label)}</button>`;
+    return `<button class="btn primary big ci${f ? ' retry' : ''}" type="button" data-in="${g.id}" ${b ? 'aria-busy="true"' : ''}>${b ? t.busy : f ? t.retry : esc(label)}</button>`;
   }
 
   function renderList() {
@@ -376,28 +470,54 @@ document.addEventListener('DOMContentLoaded', function () {
     drawMeter();
     const raw = $('#q').value, q = raw.trim();
     $('#qx').hidden = !raw;
-    // while a name is being typed the head tucks the meter and answers away so results sit under the search
+    // while a name is being typed the head tucks the title and meter away so results sit right under the search
     $('#door').classList.toggle('typing', !!q);
     $('.dmore').hidden = false;
     const L = $('#list'); L.classList.toggle('is-busy', !!busyId);
     if (!ev) { L.innerHTML = ''; return; }
-    if (!q) { L.innerHTML = idleHtml(); return; }
+    if (!q) { for (const k of Object.keys(typed)) delete typed[k]; L.innerHTML = idleHtml(); return; }
     // a phone number needs 4 digits: fewer is a quiet hint, not "not on the list"
     if (isDigits(q) && App.asciiDigits(q).replace(/\D/g, '').length < 4) { L.innerHTML = `<div class="didle dhint"><p>${t.digitsHint}</p></div>`; return; }
-    const hits = search(q).sort((a, b) => ORDER[stateOf(a.g)] - ORDER[stateOf(b.g)] || b.score - a.score || a.g.name.localeCompare(b.g.name)).slice(0, 30);
-    if (hits.length) { L.innerHTML = hits.map(rowHtml).join(''); return; }
+    const hits = search(q);
+    if (hits.length) {
+      const top = Math.max(...hits.map(h => h.tier)), phoneQ = isDigits(q);
+      // "similar": every real match once 2+ letters are typed, in either script (مريم also finds Mariam); for a
+      // phone, a whole number (8+ digits). Anyone from that set who is already inside comes first (amber, no
+      // check-in button), so a similar not-yet-in name never sits on top of them. Phone numbers are unique
+      // per event, so a phone search never gets the "similar names" line; nor does a single letter.
+      const letters = phoneQ ? 0 : nmap(q).n.replace(/ /g, '').length;
+      const sim = phoneQ ? (hits[0].phone.length >= 8 ? hits : []) : letters >= 2 ? hits.filter(h => h.tier >= 1) : hits.filter(h => h.tier === top && top >= 1);
+      const simSet = new Set(sim);
+      const inFirst = h => simSet.has(h) && stateOf(h.g) === 'all' ? 0 : 1;
+      hits.sort((a, b) => inFirst(a) - inFirst(b) || b.tier - a.tier || ORDER[stateOf(a.g)] - ORDER[stateOf(b.g)] || b.score - a.score || a.g.name.localeCompare(b.g.name));
+      const shown = hits.slice(0, 30);
+      // forget a head count chosen for a guest who is no longer on screen (so it can't come back stale)
+      const onScreen = new Set(shown.map(h => h.g.id));
+      for (const k of Object.keys(typed)) if (!onScreen.has(k)) delete typed[k];
+      let html = '';
+      if (top === 0) html += `<p class="dnote">${esc(t.didYouMean)}</p>`;
+      else if (sim.length > 1 && letters >= 2) html += `<p class="dnote tone-wait" role="status"><span class="dot tone-wait" aria-hidden="true"></span>${esc(t.ambiguous(sim.length))}</p>`;
+      let divided = top === 0;
+      for (const h of shown) {
+        if (!divided && h.tier === 0) { html += `<p class="dnote">${esc(t.similar)}</p>`; divided = true; }
+        html += rowHtml(h);
+      }
+      L.innerHTML = html; onePrimary(); return;
+    }
     $('.dmore').hidden = v2;          // the not-found card already offers "Ask the host"
     L.innerHTML = v2
-      ? `<div class="dnf"><p class="dnf-h">${t.notFoundH}</p><p class="dnf-s">${t.noOne(`<bdi>${esc(q)}</bdi>`)}</p><button class="btn block" type="button" id="askQ"><i class="i i-bell"></i><span>${t.askHost}</span></button></div>`
+      ? `<div class="dnf"><p class="dnf-h">${t.notFoundH}</p><p class="dnf-s">${t.noOne(`<bdi>${esc(q)}</bdi>`)}</p><button class="btn primary big block" type="button" id="askQ"><i class="i i-bell"></i><span>${t.askHost}</span></button></div>`
       : `<div class="dnf"><p class="dnf-h">${t.notFoundH}</p><p class="dnf-s">${t.notFoundOld}</p></div>`;
   }
   function idleHtml() {
-    const tm = at => App.fmtTime(new Date(at).toISOString(), lang);
-    const rec = recent.length ? `<h2 class="eyebrow d-cap">${t.justArrived}</h2><div class="rlist">${recent.map(r => `<button type="button" class="rrow" data-recent="${esc(r.name)}">${monoHtml(r.name, 'yes')}<span class="rr-m"><b><bdi>${esc(r.name)}</bdi></b><span class="rr-s">${esc(t.people(r.n))}</span></span><span class="rr-t num">${esc(tm(r.at))}</span></button>`).join('')}</div><p class="help d-tip">${t.tapFind}</p>` : '';
-    return rec + `<div class="didle">${recent.length ? '' : '<svg class="d-arch" viewBox="0 0 64 80" aria-hidden="true"><path d="M6 78V30a26 26 0 0 1 52 0v48z"/><path d="M16 78V32a16 16 0 0 1 32 0v46"/><path d="M2 78h60"/></svg>'}<p>${t.typeName}</p>${wakeOn ? `<p class="d-awake"><i class="i i-moon sm"></i>${t.awake}</p>` : ''}</div>`;
+    // each row finds the guest again; a check-in made on this phone in the last 10 minutes can be undone from here too
+    const recRow = (r, i) => `<div class="row rrow"><button type="button" class="rr-find row-link" data-recent="${esc(r.name)}"><span class="row-main"><b class="t-name"><bdi>${esc(r.name)}</bdi></b><span class="t-small">${esc(P(r.n))}</span></span><span class="row-end t-small num">${tmHtml(r.at)}</span></button>${canUndoRec(r) ? `<button type="button" class="btn secondary rr-undo" data-undo-rec="${i}" aria-label="${esc(t.undo + ': ' + r.name)}">${esc(t.undo)}</button>` : ''}</div>`;
+    const rec = recent.length ? `<h2 class="eyebrow d-cap">${t.justArrived}</h2><div class="rowlist rlist">${recent.map(recRow).join('')}</div><p class="help d-tip">${t.tapFind}</p>` : '';
+    return rec + `<div class="didle"><p>${t.typeName}</p>${wakeOn ? `<p class="d-awake"><i class="i i-moon sm"></i>${t.awake}</p>` : ''}</div>`;
   }
-  // a card that waits for "Close" (over the limit, not on the list) goes once the next name is typed
-  const clearStaticCard = () => { const a = $('#arrive'); if (a && !a.querySelector('.a-t')) $('#result').innerHTML = ''; };
+  const canUndoRec = r => !!r.u && v2 && undoOk === true && Date.now() - r.at < UNDO_MS;
+  // a notice that waits for "Close" (over the limit, not on the list) goes once the next name is typed
+  const clearStaticCard = () => { $('#result').innerHTML = ''; onePrimary(); };
   $('#q').addEventListener('input', () => { clearStaticCard(); renderList(); });
   $('#q').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); if (e.key === 'Escape') { e.target.value = ''; renderList(); } });
   $('#qx').onclick = () => { $('#q').value = ''; renderList(); $('#q').focus(); };
@@ -408,84 +528,164 @@ document.addEventListener('DOMContentLoaded', function () {
     const step = e.target.closest('[data-inc],[data-dec]');
     if (step && g) {
       const left = leftOf(g), n = Math.max(1, Math.min(left + MAX_OVER, curN(g) + (step.hasAttribute('data-inc') ? 1 : -1)));
+      const wasOver = curN(g) > left;
       typed[g.id] = n; lastTouch = Date.now(); if (failedId === g.id) failedId = null;
+      App.vibrate(8);
+      if (wasOver !== n > left) { row.outerHTML = rowHtml({ g, ranges: matchName(g.name, nmap($('#q').value).n.split(' ').filter(Boolean))?.ranges }); onePrimary(); return; }
       row.querySelector('output').textContent = n;
       row.querySelector('[data-dec]').disabled = n <= 1; row.querySelector('[data-inc]').disabled = n >= left + MAX_OVER;
-      const b = row.querySelector('[data-in]'); b.textContent = ciLabel(g, n); b.classList.toggle('ask', n > left); b.classList.remove('retry');
-      App.vibrate(8); return;
+      const b = row.querySelector('[data-in]'); b.textContent = n > left ? t.checkInNow(left) : t.checkInN(n, left); b.classList.remove('retry');
+      const ax = row.querySelector('[data-askx]'); if (ax) ax.textContent = t.askAbout(n - left);
+      return;
     }
     const ci = e.target.closest('[data-in]');
-    if (ci && g) { if (ci.classList.contains('ask')) openAsk({ guest: g.id, name: g.name, people: Math.min(MAX_OVER, curN(g) - leftOf(g)) }); else checkIn(g.id); return; }
+    if (ci && g) {
+      if (!v2) { checkIn(g.id); return; }
+      const left = leftOf(g), n = curN(g);
+      if (n > left) checkIn(g.id, left, n - left); else checkIn(g.id, n);
+      return;
+    }
+    const ax = e.target.closest('[data-askx]');
+    if (ax && g) { openAsk({ guest: g.id, name: g.name, people: Math.min(MAX_OVER, curN(g) - leftOf(g)) }); return; }
     const ask = e.target.closest('[data-ask]');
-    if (ask && g) { openAsk({ guest: g.id, name: g.name, people: 1 }); return; }
+    if (ask && g) { openAsk({ guest: g.id, name: g.name, people: extraAsk[g.id] || 1 }); return; }
+    const ur = e.target.closest('[data-undo-rec]');
+    if (ur) { const r = recent[+ur.dataset.undoRec]; if (r && canUndoRec(r)) undoCheckIn({ id: r.id, name: r.name, n: r.n, at: r.at, q: r.q, undo: true }); return; }
     const rec = e.target.closest('[data-recent]');
     if (rec) { $('#q').value = rec.dataset.recent; renderList(); return; }
     if (e.target.closest('#askQ')) openAsk({ guest: null, name: $('#q').value.trim(), people: 1 });
   });
 
   // ---------- check in ----------
-  async function checkIn(id) {
+  // n: how many now; extra: people over the allowance still to ask the host about (keeps the guest on screen)
+  async function checkIn(id, n, extra) {
     if (busy) return;
     const g = list.find(x => x.id === id); if (!g) return;
     clearStaticCard();
     busy = true; busyId = id; failedId = null; renderList();
-    let r, n = 1;
+    const before = g.checked_in_count || 0, wasIn = !!g.checked_in_at;
+    if (v2) n = n || curN(g);
+    let r;
     try {
       if (v2) {
-        n = curN(g);
         r = await sb.rpc('check_in_v2', { p_guest: id, p_people: n });
         if (r.error && App.missingFn(r.error)) { busy = false; busyId = null; dropV2(); loadList(); toast(t.err); return; }
       } else r = await sb.rpc('check_in_guest', { p_guest: id });
     } catch (e) { r = { error: { message: String(e) } }; }
-    busy = false; busyId = null;
-    if (r.error) { failedId = id; if (!r.error.code) setLive(false); renderList(); toast(t.err); return; }
-    delete typed[id];
-    renderList(); show(r.data, g); loadList();
-  }
-
-  const TICK = '<svg class="tick" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".4"/><path d="M13.5 22.5l5.8 5.8L31 16.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  const BANG = '<svg class="tick" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".4"/><path d="M22 13v12M22 30.5v.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
-  function card(kind, kicker, name, sub, extra, ms) {
-    clearTimeout(arriveT);
-    const el = $('#result');
-    el.innerHTML = `<div class="arrive ${kind}" id="arrive">${kind ? BANG : TICK}<p class="a-k">${esc(kicker)}</p><b><bdi>${esc(name)}</bdi></b>${sub ? `<p class="a-s">${esc(sub)}</p>` : ''}${extra ? `<div class="a-row">${extra}</div>` : ''}${ms ? `<span class="a-t" style="animation-duration:${ms}ms"></span>` : ''}</div>`;
-    const a = $('#arrive');
-    const go = () => { clearTimeout(arriveT); if (a.isConnected) { a.classList.add('out'); setTimeout(() => { if (a.isConnected) a.remove(); }, 180); } };
-    if (ms) {
-      // a tap dismisses; press and hold pauses (the bar stops too); letting go, or the touch turning into a scroll, resumes
-      let remain = ms, startedAt = Date.now(), downAt = 0;
-      arriveT = setTimeout(go, remain);
-      a.addEventListener('pointerdown', () => { if (a.classList.contains('hold')) return; clearTimeout(arriveT); remain -= Date.now() - startedAt; downAt = Date.now(); a.classList.add('hold'); });
-      const resume = () => { if (!a.classList.contains('hold')) return; a.classList.remove('hold'); remain = Math.max(remain, 700); startedAt = Date.now(); clearTimeout(arriveT); arriveT = setTimeout(go, remain); };
-      ['pointerup', 'pointercancel', 'pointerleave'].forEach(k => a.addEventListener(k, resume));
-      a.addEventListener('click', e => { if (e.target.closest('button')) return; if (downAt && Date.now() - downAt > 400) return; go(); });
-    }
-    a.querySelectorAll('[data-x]').forEach(b => b.onclick = go);
-    return a;
-  }
-  function welcome(name, sub, n, g) {
-    card('', t.okK, name, sub, '', 2200);
-    App.vibrate(25);
-    recent = [{ name, n, at: Date.now(), id: g && g.id }].concat(recent.filter(r => !(g && r.id === g.id))).slice(0, 6);
-    if (ev) ss.set('door-recent-' + ev.id, recent);
-    $('#q').value = ''; renderList(); $('#q').focus();
-  }
-  function show(r, g) {
-    if (v2) {
-      if (!r.ok && r.reason === 'over') {
-        card('warn', t.overK, r.name, r.left ? t.over(r.left) : t.overNone, `<button class="btn" type="button" id="askNow">${t.askHost}</button><button class="btn ghost" type="button" data-x>${t.close}</button>`, 0);
-        $('#askNow').onclick = () => { $('#result').innerHTML = ''; openAsk({ guest: g.id, name: g.name, people: 1 }); };
+    if (r.error && !r.error.code) {
+      // no answer at all (venue Wi-Fi): the server may have saved it before the line dropped. Look again
+      // before offering "Try again", so a second tap never counts the same people twice.
+      await loadList();
+      const f = list.find(x => x.id === id);
+      if (f && (v2 ? (f.checked_in_count || 0) >= before + n : !wasIn && !!f.checked_in_at)) {
+        busy = false; busyId = null; delete typed[id];
+        if (v2 && extra) extraAsk[id] = extra;
+        welcome({ id, name: f.name, n: v2 ? n : f.seats, left: v2 ? leftOf(f) : 0, status: f.status, at: Date.now(), undo: v2 }, !!extra);
         return;
       }
-      if (!r.ok) { card('bad', t.notFoundH, g ? g.name : '', '', `<button class="btn ghost" type="button" data-x>${t.close}</button>`, 0); return; }
-      const note = r.status === 'no' ? ` · ${t.hadDeclined}` : r.status === 'pending' ? ` · ${t.noReplySub}` : '';
-      welcome(r.name, t.okSub(t.people(r.people), r.left) + note, r.people, g);
+    }
+    busy = false; busyId = null;
+    if (r.error) { failedId = id; if (!r.error.code && Date.now() - lastOk > 3000) setLive(false); renderList(); toast(t.err); return; }
+    delete typed[id];
+    const d = r.data || {};
+    if (d.ok && v2) { g.checked_in_count = d.arrived; g.checked_in_at = g.checked_in_at || new Date().toISOString(); if (extra) extraAsk[id] = extra; }
+    else if (d.ok) g.checked_in_at = g.checked_in_at || new Date().toISOString();
+    show(d, g, !!extra); loadList();
+  }
+
+  // a notice in the page (not fixed to the bottom, where the keyboard would cover it)
+  function notice(tone, title, name, sub, buttons) {
+    $('#result').innerHTML = `<div class="dnotice panel tone-${tone}" id="arrive"><p class="dn-k t-tone">${esc(title)}</p><b class="t-name"><bdi>${esc(name)}</bdi></b>${sub ? `<p class="dn-s">${esc(sub)}</p>` : ''}${buttons ? `<div class="dn-row">${buttons}</div>` : ''}</div>`;
+    $('#result').querySelectorAll('[data-x]').forEach(b => b.onclick = clearStaticCard);
+    onePrimary();
+  }
+  function welcome(info, keep) {
+    App.vibrate(25);
+    info.q = $('#q').value;                    // the search that found them, for Undo
+    recent = [{ name: info.name, n: info.n, at: info.at, id: info.id, q: info.q, u: !!info.undo }].concat(recent.filter(r => r.id !== info.id)).slice(0, 6);
+    if (ev) ss.set('door-recent-' + ev.id, recent);
+    showBand(info);
+    if (keep) { renderList(); return; }       // stays on screen, ready for "Ask host about +1"
+    $('#q').value = ''; renderList(); $('#q').focus();
+  }
+  function show(r, g, keep) {
+    if (v2) {
+      // everyone on the invite is already in (another door, or a retry after a lost answer): say so plainly,
+      // not "over the limit", so nobody asks the host for "extra" people who are really the same people
+      if (!r.ok && r.reason === 'over' && !r.left && r.allowed > 0 && (r.arrived || 0) >= r.allowed) {
+        if (g) g.checked_in_count = r.arrived;
+        notice('wait', t.alreadyK(r.arrived), r.name, t.alreadyNow(r.arrived), `<button class="btn secondary" type="button" data-x>${t.closeNote}</button>`);
+        renderList();
+        return;
+      }
+      if (!r.ok && r.reason === 'over') {
+        notice('wait', t.overK, r.name, r.left ? t.over(r.left) : t.overNone,
+          (r.left ? `<button class="btn primary" type="button" id="inNow">${esc(t.checkInNow(r.left))}</button>` : '') + `<button class="btn ${r.left ? 'secondary' : 'primary'}" type="button" id="askNow">${t.askHost}</button><button class="btn quiet" type="button" data-x>${t.closeNote}</button>`);
+        if ($('#inNow')) $('#inNow').onclick = () => { clearStaticCard(); checkIn(g.id, r.left); };
+        $('#askNow').onclick = () => { clearStaticCard(); openAsk({ guest: g.id, name: g.name, people: 1 }); };
+        return;
+      }
+      if (!r.ok) { notice('no', t.notFoundH, g ? g.name : '', '', `<button class="btn secondary" type="button" data-x>${t.closeNote}</button>`); return; }
+      welcome({ id: g.id, name: r.name, n: r.people, left: r.left, status: r.status, at: Date.now(), undo: true }, keep);
       return;
     }
-    if (!r.ok) { card('bad', t.notFoundH, g ? g.name : '', t.notFoundOld, `<button class="btn ghost" type="button" data-x>${t.close}</button>`, 0); return; }
-    if (r.already) { card('warn', t.already, r.name, t.people(r.seats), '', 3500); return; }
-    const note = r.status === 'yes' ? '' : r.status === 'no' ? ` · ${t.hadDeclined}` : ` · ${t.noReplySub}`;
-    welcome(r.name, t.people(r.seats) + note, r.seats, g);
+    if (!r.ok) { notice('no', t.notFoundH, g ? g.name : '', t.notFoundOld, `<button class="btn secondary" type="button" data-x>${t.closeNote}</button>`); return; }
+    if (r.already) { notice('wait', t.alreadyOld, r.name, P(r.seats), `<button class="btn secondary" type="button" data-x>${t.closeNote}</button>`); return; }
+    welcome({ id: g.id, name: r.name, n: r.seats, left: 0, status: r.status, at: Date.now(), undo: false }, false);
+  }
+
+  // ---------- the green band after a check-in: stays until the next one (or 2 minutes), with Undo ----------
+  function showBand(info) {
+    if (band) band.close();
+    bandInfo = info;
+    band = App.undoBand({ text: '', undoLabel: t.undo, onUndo: () => undoCheckIn(info), ms: BAND_MS, tone: 'ok', mount: $('#undoSlot') });
+    const b = band; setTimeout(() => { if (band === b && !b.el.isConnected) { band = null; bandInfo = null; } }, BAND_MS + 50);
+    drawBand();
+  }
+  function drawBand() {
+    if (!band || !bandInfo || !band.el.isConnected) return;
+    const i = bandInfo, el = band.el, canUndo = i.undo && v2 && undoOk !== false;
+    const note = i.status === 'no' ? t.hadDeclined : i.status === 'pending' ? t.noReplySub : '';
+    const sub = [i.left ? t.bandLeft(i.left) : '', note].filter(Boolean).map(esc).concat(tmHtml(i.at)).join(' · ');
+    el.querySelector('.ub-t').innerHTML = `<b>${t.band(`<bdi>${esc(i.name)}</bdi>`, i.n)}</b><span class="ub-s">${sub}</span>${canUndo ? '' : `<span class="ub-s ub-hint">${esc(t.undoNo)}</span>`}`;
+    const u = el.querySelector('.ub-undo'); u.textContent = t.undo; u.hidden = !canUndo;
+  }
+  // a short band with no Undo (the result of an undo)
+  function infoBand(tone, html, ms) {
+    if (band) band.close(); bandInfo = null;
+    band = App.undoBand({ text: '', ms, tone, mount: $('#undoSlot') });
+    band.el.querySelector('.ub-t').innerHTML = html; band.el.querySelector('.ub-undo').hidden = true;
+  }
+  async function undoCheckIn(info) {
+    if (band) band.close();            // Undo from a "Just arrived" row: the band of a later check-in goes too
+    band = null; bandInfo = null;
+    infoBand('wait', `<b>${esc(t.undoing)}</b>`, 0);
+    let r; try { r = await sb.rpc('undo_check_in_v2', { p_guest: info.id, p_people: info.n }); } catch (e) { r = { error: { message: String(e) } }; }
+    if (r.error && App.missingFn(r.error)) { undoOk = false; showBand({ ...info }); return; }
+    // this check-in can't be undone from the door any more: take Undo off its "Just arrived" row too
+    const noMore = () => { recent.forEach(x => { if (x.id === info.id && x.at === info.at) x.u = false; }); if (ev) ss.set('door-recent-' + ev.id, recent); if (!$('#q').value.trim()) renderList(); };
+    if (r.error && r.error.code) {
+      // the server said no (e.g. this phone's door access has ended): retrying won't help
+      noMore();
+      infoBand('no', `<b>${t.band(`<bdi>${esc(info.name)}</bdi>`, info.n)}</b><span class="ub-s">${esc(t.undoFail)}</span>`, 15000);
+      return;
+    }
+    if (r.error) { toast(t.err); showBand(info); return; }
+    const d = r.data || {};
+    if (!d.ok) {
+      const why = d.reason === 'too_late' ? t.undoLate : d.reason === 'not_yours' ? t.undoNotYours : t.undoNothing;
+      noMore();
+      infoBand('no', `<b>${t.band(`<bdi>${esc(info.name)}</bdi>`, info.n)}</b><span class="ub-s">${esc(why)}</span>`, 15000);
+      return;
+    }
+    App.vibrate([20, 40, 20]);
+    const g = list.find(x => x.id === info.id);
+    if (g) { g.checked_in_count = d.arrived; if (!d.arrived) g.checked_in_at = null; }
+    recent = recent.filter(x => !(x.id === info.id && x.at === info.at)); if (ev) ss.set('door-recent-' + ev.id, recent);
+    infoBand('wait', `<b>${t.undone(`<bdi>${esc(info.name)}</bdi>`)}</b>`, 8000);
+    // back to the search that found them, so the right guest is one tap away
+    if (info.q != null && !$('#q').value) $('#q').value = info.q;
+    renderList(); loadList();
   }
 
   // ---------- asking the host (unlisted guests, extra people) ----------
@@ -493,19 +693,17 @@ document.addEventListener('DOMContentLoaded', function () {
   function openAsk(p) {
     exPrefill = { reason: null, note: '', ...p, people: Math.max(1, Math.min(MAX_ASK, p.people || 1)) };
     renderForm();
-    const d = $('#ask');
-    if (!d.open) { if (d.showModal) d.showModal(); else d.setAttribute('open', ''); }
+    App.openSheet($('#ask'));
     if (!exPrefill.guest && !exPrefill.name && $('#xName')) $('#xName').focus();
   }
   $('#ask').addEventListener('close', () => { exPrefill = null; $('#askBody').innerHTML = ''; });
-  $('#ask').addEventListener('click', e => { if (e.target === $('#ask') || e.target.closest('[data-close]')) $('#ask').close(); });
   function keepForm() { if (!exPrefill) return; if ($('#xName')) exPrefill.name = $('#xName').value; if ($('#xNote')) exPrefill.note = $('#xNote').value; }
   function renderForm() {
     const d = $('#ask');
     if (!exPrefill) { if (d.open) d.close(); $('#askBody').innerHTML = ''; return; }
     const p = exPrefill, g = p.guest ? list.find(x => x.id === p.guest) : null;
     $('#askBody').innerHTML = `
-      ${p.guest ? `<div class="ask-who">${monoHtml(p.name, 'yes')}<div><b><bdi>${esc(p.name)}</bdi></b>${g ? `<span>${esc(t.allowedLine(allowed(g), g.checked_in_count || 0))}</span>` : ''}</div></div>`
+      ${p.guest ? `<div class="ask-who"><b class="t-name"><bdi>${esc(p.name)}</bdi></b>${g ? `<span class="t-small">${esc(t.allowedLine(allowed(g), g.checked_in_count || 0))}</span>` : ''}</div>`
         : `<label class="f" for="xName">${t.name}</label><input type="text" id="xName" dir="auto" maxlength="120" autocomplete="off" value="${esc(p.name)}">`}
       <p class="f-cap" id="xNL">${t.count}</p>
       <div class="pchips" role="group" aria-labelledby="xNL">${[1, 2, 3, 4, 5, 6].map(n => `<button type="button" class="num" data-n="${n}" aria-pressed="${n === p.people}">${n}</button>`).join('')}<button type="button" class="num big" data-big aria-pressed="${p.people > 6}" aria-label="${esc(t.bigN)}"><span dir="ltr">7+</span></button></div>
@@ -513,7 +711,7 @@ document.addEventListener('DOMContentLoaded', function () {
       <p class="f-cap" id="xRL">${t.reasonL}</p>
       <div class="fchips rchips" role="group" aria-labelledby="xRL">${t.reasons.map((r, i) => `<button type="button" class="fchip" data-r="${i}" aria-pressed="${p.reason === i}">${r}</button>`).join('')}</div>
       <label class="f" for="xNote">${t.otherNote}</label><input type="text" id="xNote" dir="auto" maxlength="400" autocomplete="off" value="${esc(p.note)}">
-      <button class="btn block xsend" type="button" id="xSend"><i class="i i-bell"></i><span>${esc(t.send(p.people))}</span></button>`;
+      <button class="btn primary big block xsend" type="button" id="xSend"><i class="i i-bell"></i><span>${esc(t.send(p.people))}</span></button>`;
     const setPeople = n => {
       p.people = Math.max(1, Math.min(MAX_ASK, n));
       $('#askBody').querySelectorAll('[data-n]').forEach(x => x.setAttribute('aria-pressed', +x.dataset.n === p.people));
@@ -537,7 +735,9 @@ document.addEventListener('DOMContentLoaded', function () {
       let r; try { r = await sb.rpc('request_exception_v2', { p_event: ev.id, p_guest: p.guest, p_name: name, p_people: n, p_note: note }); } catch (e) { r = { error: { message: String(e) } }; }
       busy = false; if ($('#xSend')) $('#xSend').removeAttribute('aria-busy');
       if (r.error) { toast(t.err); return; }
-      exPrefill = null; renderForm(); toast(t.sent); $('#result').innerHTML = '';
+      // the stepper goes back to the number still allowed; nothing left to ask about
+      if (p.guest) { delete typed[p.guest]; delete extraAsk[p.guest]; }
+      exPrefill = null; renderForm(); toast(t.sent); clearStaticCard();
       $('#q').value = ''; renderList();
       await loadReqs(); schedule();
     };
@@ -559,15 +759,16 @@ document.addEventListener('DOMContentLoaded', function () {
     if (decided) { App.vibrate([30, 60, 30]); drawAnswers(); loadList(); }
     drawReqs(); drawMeter();
   }
-  // the host's answers sit just under the search and scroll away; the newest two show, the rest fold up.
+  // The host's answers sit just under the search; the newest two show, the rest fold up. While a name is
+  // typed only the newest one stays (compact), so an answer is never hidden at the moment the door is busy.
   // Screen readers hear each answer once, through #annLive, not again on every redraw.
   function drawAnswers() {
     const fresh = answers.filter(a => !announced.has(a.id));
     fresh.forEach(a => announced.add(a.id));
-    if (fresh.length) $('#annLive').textContent = fresh.map(a => (a.status === 'approved' ? t.okBanner(a.name, t.people(a.people)) + '. ' + t.okBannerSub : t.noBanner(a.name) + '. ' + t.noBannerSub)).join(' ');
+    if (fresh.length) $('#annLive').textContent = fresh.map(a => (a.status === 'approved' ? t.okBanner(a.name, P(a.people)) + '. ' + t.okBannerSub : t.noBanner(a.name) + '. ' + t.noBannerSub)).join(' ');
     const shown = showAllAns ? answers : answers.slice(0, ANS_SHOWN), rest = answers.length - shown.length;
-    $('#answers').innerHTML = shown.map(a => `<div class="answer ${a.status === 'approved' ? 'ok' : 'no'}"><i class="i ${a.status === 'approved' ? 'i-check' : 'i-x'}"></i><div class="an-m"><b>${a.status === 'approved' ? t.okBanner(`<bdi class="nb">${esc(a.name)}</bdi>`, esc(t.people(a.people))) : t.noBanner(`<bdi class="nb">${esc(a.name)}</bdi>`)}</b><span>${a.status === 'approved' ? t.okBannerSub : t.noBannerSub}</span></div><button class="an-x" type="button" data-dismiss="${esc(a.id)}" aria-label="${t.dismiss}"><i class="i i-x"></i></button></div>`).join('')
-      + (rest > 0 ? `<button class="btn quiet small an-more" type="button" id="ansMore"><i class="i i-chev sm"></i><span>${esc(t.moreAns(rest))}</span></button>` : '');
+    $('#answers').innerHTML = shown.map(a => `<div class="answer panel tone-${a.status === 'approved' ? 'ok' : 'no'}"><i class="i ${a.status === 'approved' ? 'i-check' : 'i-x'} t-tone"></i><div class="an-m"><b>${a.status === 'approved' ? t.okBanner(`<bdi class="nb">${esc(a.name)}</bdi>`, esc(P(a.people))) : t.noBanner(`<bdi class="nb">${esc(a.name)}</bdi>`)}</b><span>${a.status === 'approved' ? t.okBannerSub : t.noBannerSub}</span></div><button class="an-x" type="button" data-dismiss="${esc(a.id)}" aria-label="${t.dismiss}"><i class="i i-x"></i></button></div>`).join('')
+      + (rest > 0 ? `<button class="btn quiet an-more" type="button" id="ansMore"><i class="i i-chev sm"></i><span>${esc(t.moreAns(rest))}</span></button>` : '');
     $('#answers').querySelectorAll('[data-dismiss]').forEach(b => b.onclick = () => { answers = answers.filter(a => a.id !== b.dataset.dismiss); if (answers.length <= ANS_SHOWN) showAllAns = false; drawAnswers(); });
     if ($('#ansMore')) $('#ansMore').onclick = () => { showAllAns = true; drawAnswers(); };
   }
@@ -575,13 +776,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const box = $('#myReqs');
     if (!v2 || !reqs.length) { box.innerHTML = ''; return; }
     const wasOpen = !!(box.querySelector('details') && box.querySelector('details').open);
-    const lbl = { pending: t.pending, approved: t.approved, rejected: t.rejected }, cls = { pending: 'pending', approved: 'yes', rejected: 'no' };
+    const lbl = { pending: t.pending, approved: t.approved, rejected: t.rejected }, tone = { pending: 'wait', approved: 'ok', rejected: 'no' };
     const mins = iso => Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60000));
-    const row = r => `<div class="rq">${monoHtml(r.name, cls[r.status])}<div class="rq-m"><b><bdi>${esc(r.name)}</bdi></b><span class="rq-s"><span>${esc(t.people(r.people))}</span>${r.note ? `<bdi>${esc(r.note)}</bdi>` : ''}${r.created_at ? `<span class="num">${esc(t.ago(mins(r.created_at)))}</span>` : ''}</span></div><span class="pill ${cls[r.status]}">${lbl[r.status]}${r.status === 'pending' ? '<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>' : ''}</span></div>`;
+    const row = r => `<div class="row rq"><div class="row-main"><b class="t-name"><bdi>${esc(r.name)}</bdi></b><span class="rq-s"><span>${esc(P(r.people))}</span>${r.note ? `<bdi>${esc(r.note)}</bdi>` : ''}${r.created_at ? `<span class="num">${esc(t.ago(mins(r.created_at)))}</span>` : ''}</span></div><span class="row-end"><span class="tag tone-${tone[r.status]}">${lbl[r.status]}${r.status === 'pending' ? '<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>' : ''}</span></span></div>`;
     const pend = reqs.filter(r => r.status === 'pending'), done = reqs.filter(r => r.status !== 'pending');
     box.innerHTML = `<h2 class="eyebrow d-cap">${t.reqs}</h2>`
-      + (pend.length ? `<div class="rlist">${pend.slice(0, 30).map(row).join('')}</div>` : '')
-      + (done.length ? `<details class="rdone"${wasOpen || !pend.length ? ' open' : ''}><summary>${t.answered(done.length)}<i class="i i-chev sm"></i></summary><div class="rlist">${done.slice(0, 30).map(row).join('')}</div></details>` : '');
+      + (pend.length ? `<div class="rowlist rlist">${pend.slice(0, 30).map(row).join('')}</div>` : '')
+      + (done.length ? `<details class="rdone"${wasOpen || !pend.length ? ' open' : ''}><summary>${t.answered(done.length)}<i class="i i-chev sm"></i></summary><div class="rowlist rlist">${done.slice(0, 30).map(row).join('')}</div></details>` : '');
   }
 });
 </script>

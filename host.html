@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>Host dashboard</title>
+<title>Host dashboard · Sina</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=DM+Sans:wght@400;500;600&family=Noto+Naskh+Arabic:wght@500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="host.css">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('ui-theme')||'auto'}catch(e){}</script>
@@ -15,311 +15,406 @@
 <script defer src="core.js"></script>
 </head>
 <body class="app host">
-<div class="topbar"><a class="brand" href="host.html" aria-label="Home" data-i18n-aria="home"></a><span class="tb-title" id="tbTitle"></span><button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu"><i class="i i-menu"></i><span class="menu-l">Menu</span></button></div>
-<dialog class="sheet" id="menu" aria-labelledby="menuH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="menuH">Menu</h2><button class="sheet-x" data-close aria-label="Close"><i class="i i-x"></i></button></div><nav class="menu-nav" id="menuNav"></nav><div class="menu-row"><span data-i18n="colours">Colours</span><span class="themesw" id="themeSw"></span></div><div class="menu-foot"><button class="btn ghost" id="lang" data-i18n="other">العربية</button><button class="btn ghost" id="out" hidden data-i18n="out">Log out</button></div></dialog>
+<div class="topbar"><a class="brand" href="host.html" aria-label="Home" data-i18n-aria="home"></a><span class="tb-title" id="tbTitle" dir="auto"></span><button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu"><i class="i i-menu"></i><span class="menu-l">Menu</span></button></div>
+<dialog class="sheet" id="menu" aria-labelledby="menuH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="menuH">Menu</h2><button class="sheet-x" data-close aria-label="Close"><i class="i i-x"></i></button></div><button class="btn ghost" id="lang" data-i18n="other">العربية</button><button class="btn ghost" id="out" hidden data-i18n="out">Log out</button></dialog>
 <main>
   <div id="auth"></div>
   <section id="dash" hidden>
-    <div class="evlist" id="evlist"></div>
-    <header class="mast" id="mast">
-      <p class="mast-k num" id="mastK"></p>
-      <h1 class="mast-t" id="title" dir="auto"></h1>
-      <p class="mast-v" id="mastV"></p>
-      <div class="mast-row"><span class="countdown" id="cd" hidden></span><span class="live" id="live" hidden></span></div>
-    </header>
 
-    <!-- ===== HOME ===== -->
+    <!-- ===== HOME: title, door alert, how many are coming, one next step ===== -->
     <section class="pg" id="pg-home" role="tabpanel" aria-labelledby="tab-home">
-      <section class="next" id="next" aria-live="polite"></section>
-      <div class="box setup" id="setup" hidden></div>
-      <div class="meter" id="rMeter" hidden></div>
+      <div class="evlist" id="evlist"></div>
+      <header class="mast" id="mast">
+        <h1 class="mast-t" id="title" dir="auto"></h1>
+        <p class="mast-k" id="mastK"></p>
+      </header>
+      <div id="homeAlert"></div>
+      <section class="panel sum" id="sum" hidden></section>
+      <section class="panel next" id="next" aria-live="polite"></section>
       <section id="latestBox" hidden>
         <div class="sec-h"><h3 data-i18n="latestH">Latest replies</h3><span class="new-n" id="newN" hidden></span><button class="btn quiet" id="seeAll" data-i18n="seeAll">See all</button></div>
         <div class="glist" id="latest"></div>
       </section>
     </section>
 
-    <!-- ===== GUESTS ===== -->
+    <!-- ===== GUESTS: search + add, one 4-way filter, the list ===== -->
     <section class="pg" id="pg-guests" role="tabpanel" aria-labelledby="tab-guests" hidden>
-      <div id="sideWrap"></div>
-      <div id="sendStrip"></div>
+      <div class="g-head"><p class="g-sum" id="gSum"></p><button class="btn small secondary" id="toggleAdd" aria-haspopup="dialog" aria-controls="addSheet"><i class="i i-plus"></i><span data-i18n="addGuestBtn">Add guest</span></button></div>
       <div class="g-tools">
         <div class="searchbox"><i class="i i-search"></i><input type="search" id="q" dir="auto" placeholder="Search by name or number" aria-label="Search" data-i18n-ph="searchPh" data-i18n-aria="search"></div>
-        <button class="btn small" id="toggleAdd" aria-expanded="false" aria-controls="addWrap"><i class="i i-plus"></i><span data-i18n="addBtn">Add</span></button>
+        <button class="iconbtn sidebtn" id="sideBtn" type="button" hidden aria-haspopup="dialog" aria-label="Show guests from" data-i18n-aria="sideBtn"><i class="i i-filter"></i><span class="dot tone-wait" id="sideDot" hidden></span></button>
       </div>
-      <div class="box addwrap" id="addWrap" hidden>
-        <div class="seg fill" role="group" aria-label="Add guests" data-i18n-aria="bulkH"><button type="button" id="addOneTab" aria-pressed="true" data-i18n="addOne">One guest</button><button type="button" id="toggleBulk" aria-pressed="false" data-i18n="addList">A list or Excel</button></div>
-        <div class="box" id="addBox">
-          <div class="grid2">
-            <div><label class="f" for="nName" data-i18n="name">Name</label><input type="text" id="nName" dir="auto"></div>
-            <div><label class="f" for="nPhone" data-i18n="waNum">WhatsApp number</label><input type="tel" id="nPhone" dir="ltr" placeholder="9XXXXXXX" inputmode="tel"></div>
-            <div><label class="f" for="nSeats" data-i18n="extrasQ">Extra guests they can bring</label><select id="nSeats"><option value="1" data-i18n="none">None</option><option value="2">+1</option><option value="3">+2</option><option value="4">+3</option><option value="5">+4</option><option value="6">+5</option></select></div>
-            <div id="nSideWrap"><label class="f" for="nSide" data-i18n="list">List</label><input type="text" id="nSide" dir="auto" list="sidesList" data-i18n-ph="sidePh" placeholder="e.g. Bride’s mum"><datalist id="sidesList"></datalist></div>
-          </div>
-          <button class="btn block" id="addGuest" style="margin-top:14px"><i class="i i-whatsapp"></i><span data-i18n="addOpenWa">Add and open WhatsApp</span></button>
-        </div>
-        <div class="box" id="bulkBox" hidden>
-          <p class="help" style="margin:0 0 10px" data-i18n="bulkHelp">Type or paste one guest per line with their name and number, or upload an Excel file.</p>
-          <textarea id="bPaste" rows="6" dir="auto" data-i18n-ph="bulkPh" placeholder="Dana Alanjeri 55771754&#10;Huda Alsaleh 99619992"></textarea>
-          <div class="row" style="margin-top:10px"><button class="btn small" id="bRead" data-i18n="checkNames">Check names</button></div>
-          <label class="drop" style="margin-top:14px"><input type="file" id="bFile" accept=".xlsx,.xls,.csv,.docx"><span class="btn small ghost"><i class="i i-upload"></i><span data-i18n="uploadXls">Upload Excel file</span></span></label>
-          <div id="bPreview"></div>
-        </div>
-      </div>
-      <div class="fchips scroll" id="stChips" role="group" aria-label="Filter by reply" data-i18n-aria="filterBy"></div>
+      <div id="sideWrap"></div>
+      <div class="seg fill fseg" id="stChips" role="group" aria-label="Filter by reply" data-i18n-aria="filterBy"></div>
       <p class="list-h" id="listHead" hidden></p>
       <div class="glist gl" id="rows"></div>
     </section>
 
-    <!-- ===== INVITE ===== -->
+    <!-- ===== INVITE: personal invitations first, then the details, the group link last ===== -->
     <section class="pg" id="pg-invite" role="tabpanel" aria-labelledby="tab-invite" hidden>
+      <section class="panel inv-send" id="invSend"></section>
       <div class="inv-top">
         <div class="inv-frame" id="invFrame"></div>
-        <div class="inv-meta"><p class="kicker" data-i18n="yourInvite">Your invite</p><p class="inv-line" id="invT" dir="auto"></p><p id="invW"></p><p id="invV"></p>
-          <a class="btn small ghost" id="ePreview" target="_blank" rel="noopener" href="#"><i class="i i-arch sm"></i><span data-i18n="seeGuest">See guest page</span></a></div>
+        <div class="inv-meta"><p class="inv-line" id="invT" dir="auto"></p><p id="invW"></p><p id="invV"></p>
+          <a class="btn small secondary" id="ePreview" target="_blank" rel="noopener" href="#"><i class="i i-arch sm"></i><span data-i18n="seeGuest">See the guest page</span></a></div>
       </div>
-      <section class="next share" id="pubBox" hidden></section>
-      <div class="box pkg" id="pkgBox" hidden></div>
 
-      <div class="sec-h form-h"><h3 data-i18n="editH">Edit your invite</h3></div>
+      <h2 class="sec-t" data-i18n="editH">Invite details</h2>
       <form id="editForm" onsubmit="return false" novalidate>
-        <details class="grp" id="grp1"><summary><span class="folio">01</span><span class="grp-t"><b data-i18n="grp1">The occasion</b><small id="pv1" dir="auto"></small></span><i class="i i-chev"></i></summary><div class="grp-b"><div class="grid2">
-          <div class="full"><label class="f" for="eTitle" data-i18n="evName">Event name</label><input type="text" id="eTitle" dir="auto"></div>
+        <details class="grp" id="grp1"><summary><span class="grp-t"><b data-i18n="grp1">The occasion</b><small id="pv1" dir="auto"></small></span><i class="i i-chev"></i></summary><div class="grp-b"><div class="grid2">
+          <div class="full"><label class="f" for="eTitle" data-i18n="evName">Event name</label><input type="text" id="eTitle" dir="auto"><p class="ferr" id="err-eTitle" hidden></p></div>
           <div class="full"><label class="f" for="eLine" data-i18n="line">Invite line</label><input type="text" id="eLine" dir="auto" data-i18n-ph="linePh" placeholder="Join us for Ghala’s bridal shower"></div>
           <div class="full"><label class="f" for="eNote" data-i18n="note">Note on the invite page (optional)</label><textarea id="eNote" rows="3" dir="auto" data-i18n-ph="notePh" placeholder="A samra night, Bring your thoub!&#10;Note: we will have a male samra group."></textarea><p class="help" data-i18n="noteHelp">The first line shows highlighted. Put anything extra on the next lines.</p></div>
           <div class="full"><label class="f" for="eHead" data-i18n="head">Title if there’s no card</label><input type="text" id="eHead" dir="auto"></div>
+          <div class="full"><label class="f" for="eLang" data-i18n="invLang">Invite language</label><select id="eLang"><option value="en">English</option><option value="ar">العربية</option></select></div>
         </div></div></details>
-        <details class="grp" id="grp2"><summary><span class="folio">02</span><span class="grp-t"><b data-i18n="grp2">When &amp; where</b><small id="pv2" dir="auto"></small></span><i class="i i-chev"></i></summary><div class="grp-b"><div class="grid2">
-          <div><label class="f" for="eDate" data-i18n="date">Date</label><input type="date" id="eDate"></div>
+        <details class="grp" id="grp2"><summary><span class="grp-t"><b data-i18n="grp2">When &amp; where</b><small id="pv2" dir="auto"></small></span><i class="i i-chev"></i></summary><div class="grp-b"><div class="grid2">
+          <div><label class="f" for="eDate" data-i18n="date">Date</label><input type="date" id="eDate"><p class="ferr" id="err-eDate" hidden></p></div>
           <div class="grid2" style="gap:8px;margin:0;grid-template-columns:1fr 1fr"><div><label class="f" for="eTime" data-i18n="from">From</label><input type="time" id="eTime"></div><div><label class="f" for="eEnd" data-i18n="to">To</label><input type="time" id="eEnd"></div></div>
-          <div><label class="f" for="eVenue" data-i18n="venue">Venue</label><input type="text" id="eVenue" dir="auto"></div>
+          <div><label class="f" for="eVenue" data-i18n="venue">Venue</label><input type="text" id="eVenue" dir="auto"><p class="ferr" id="err-eVenue" hidden></p></div>
           <div><label class="f" for="eMap" data-i18n="map">Google Maps link</label><input type="url" id="eMap" dir="ltr"></div>
-          <div><label class="f" for="eLang" data-i18n="invLang">Invite language</label><select id="eLang"><option value="en">English</option><option value="ar">العربية</option></select></div>
         </div></div></details>
-        <details class="grp" id="grp3"><summary><span class="folio">03</span><span class="grp-t"><b data-i18n="grp3">WhatsApp message</b><small id="pv3" dir="auto"></small></span><i class="i i-chev"></i></summary><div class="grp-b">
-          <label class="f sr" for="eTpl" data-i18n="waMsg">WhatsApp message</label><textarea id="eTpl" rows="7" dir="auto"></textarea>
-          <p class="help" data-i18n="tplHelp">Tap to add a detail that fills in for each guest:</p><div class="toks" id="toks"></div>
+        <details class="grp" id="grp3"><summary><span class="grp-t"><b data-i18n="grp3">WhatsApp message</b><small id="pv3" dir="auto"></small></span><i class="i i-chev"></i></summary><div class="grp-b">
+          <p class="f" id="tplL" data-i18n="waMsg">WhatsApp message</p>
+          <div class="paper tpl-ed" id="tplEd" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="tplL" dir="auto" spellcheck="false"></div>
+          <textarea id="eTpl" hidden aria-hidden="true" tabindex="-1"></textarea>
+          <div class="panel flat tone-no tpl-warn" id="tplWarn" role="alert" hidden><p class="t-tone" data-i18n="needLink">The message needs the guest’s reply link.</p><button type="button" class="btn small secondary" id="putLink"><i class="i i-link sm"></i><span data-i18n="putLink">Put the link back</span></button></div>
+          <p class="help" data-i18n="tplHelp">Tap to add a detail. It fills in for each guest:</p><div class="toks" id="toks"></div>
+          <p class="f prev-h" id="prevH"></p><div class="paper tpl-prev" id="tplPrev" dir="auto"></div>
         </div></details>
-        <details class="grp" id="grp4"><summary><span class="folio">04</span><span class="grp-t"><b data-i18n="grp4">Card &amp; colours</b><small id="pv4" dir="auto"></small></span><i class="i i-chev"></i></summary><div class="grp-b">
-          <label class="drop"><input type="file" id="eCard" accept="image/*,.pdf"><p style="margin:0 0 10px" data-i18n="cardHelp">Upload your invite card (photo or PDF). It shows at the top of the invite page.</p><span class="btn small"><i class="i i-upload"></i><span data-i18n="uploadCard">Upload card</span></span></label>
+        <details class="grp" id="grp4"><summary><span class="grp-t"><b data-i18n="grp4">Card &amp; colours</b><small id="pv4" dir="auto"></small></span><i class="i i-chev"></i></summary><div class="grp-b">
+          <label class="drop"><input type="file" id="eCard" accept="image/*,.pdf"><p style="margin:0 0 10px" data-i18n="cardHelp">Upload your invite card (photo or PDF). It shows at the top of the invite page.</p><span class="btn small secondary"><i class="i i-upload"></i><span data-i18n="uploadCard">Upload card</span></span></label>
           <div id="eTheme"></div>
           <p class="help" data-i18n="instant">Changes here save straight away.</p>
         </div></details>
-        <details class="grp" id="rulesBox" hidden><summary><span class="folio">05</span><span class="grp-t"><b data-i18n="rulesH">Reply rules</b><small id="pv5" dir="auto"></small></span><i class="i i-chev"></i></summary><div class="grp-b">
+        <details class="grp" id="rulesBox" hidden><summary><span class="grp-t"><b data-i18n="rulesH">Reply rules</b><small id="pv5" dir="auto"></small></span><i class="i i-chev"></i></summary><div class="grp-b">
           <div class="grid2">
             <div><label class="f" for="rDate" data-i18n="replyBy">Reply by (optional)</label><input type="date" id="rDate"></div>
             <div><label class="f" for="rTime" data-i18n="time">Time</label><input type="time" id="rTime"></div>
           </div>
           <label class="check"><input type="checkbox" id="rChange"> <span data-i18n="canChange">Guests can change their reply</span></label>
-          <label class="check"><input type="checkbox" id="rLink"> <span data-i18n="linkOpen">The shared invite link accepts new replies</span></label>
+          <label class="check"><input type="checkbox" id="rLink"> <span data-i18n="linkOpen">The group link accepts new replies</span></label>
         </div></details>
-        <div class="savebar" id="saveBar" hidden><span class="sb-l" id="sbL"></span><button type="button" class="btn small quiet" id="eDiscard" data-i18n="discard">Discard</button><button type="button" class="btn small" id="eSave" data-i18n="saveChanges">Save changes</button></div>
+        <div class="savebar" id="saveBar" hidden><span class="sb-l" id="sbL"></span><button type="button" class="btn small quiet" id="eDiscard" data-i18n="discard">Discard</button><button type="button" class="btn small primary" id="eSave" data-i18n="saveChanges">Save changes</button></div>
       </form>
-      <details class="grp" id="logBox" hidden><summary><span class="folio"><i class="i i-clock sm"></i></span><span class="grp-t"><b data-i18n="activity">Activity</b><small data-i18n="activityP">Replies, check-ins and changes</small></span><i class="i i-chev"></i></summary><div class="grp-b"><div class="glist" id="logRows"></div></div></details>
+      <details class="grp share" id="pubBox" hidden></details>
+      <div class="panel flat pkg" id="pkgBox" hidden></div>
+      <details class="grp" id="logBox" hidden><summary><span class="grp-t"><b data-i18n="activity">Activity</b><small data-i18n="activityP">Replies, check-ins and changes</small></span><i class="i i-chev"></i></summary><div class="grp-b"><div class="glist" id="logRows"></div></div></details>
+      <p class="page-links" id="invLinks"></p>
     </section>
 
-    <!-- ===== ARRIVALS ===== -->
+    <!-- ===== ARRIVALS: door requests, who is here ===== -->
     <section class="pg" id="pg-arrivals" role="tabpanel" aria-labelledby="tab-arrivals" hidden>
-      <section class="next door" id="reqAtt" hidden aria-live="polite"></section>
-      <div class="meter" id="aMeter"></div>
+      <section class="panel door" id="reqAtt" hidden aria-live="polite"></section>
+      <div class="panel ameter" id="aMeter"></div>
       <p class="att-note" id="attNote" hidden></p>
+      <div class="seg fill fseg aseg" id="aSeg" role="group"></div>
       <div class="searchbox" id="attTools"><i class="i i-search"></i><input type="search" id="aq" dir="auto" placeholder="Search by name or number" aria-label="Search" data-i18n-ph="searchPh" data-i18n-aria="search"></div>
       <div class="glist" id="attRows"></div>
+      <p class="page-links"><a class="btn quiet" href="door.html"><i class="i i-door"></i><span data-i18n="doorScreen">Open the door screen</span></a></p>
     </section>
   </section>
 </main>
 <nav class="tabs" id="tabs" role="tablist" hidden>
-  <button role="tab" id="tab-home" data-tab="home" aria-controls="pg-home" aria-selected="true"><i class="i i-home"></i><span data-i18n="tHome">Home</span><span class="badge" hidden></span></button>
-  <button role="tab" id="tab-guests" data-tab="guests" aria-controls="pg-guests" aria-selected="false"><i class="i i-list"></i><span data-i18n="tGuests">Guests</span><span class="badge" hidden></span></button>
-  <button role="tab" id="tab-invite" data-tab="invite" aria-controls="pg-invite" aria-selected="false"><i class="i i-env"></i><span data-i18n="tInvite">Invite</span><span class="badge" hidden></span></button>
-  <button role="tab" id="tab-arrivals" data-tab="arrivals" aria-controls="pg-arrivals" aria-selected="false"><i class="i i-people"></i><span data-i18n="tArr">Arrivals</span><span class="badge" hidden></span></button>
+  <button role="tab" id="tab-home" data-tab="home" aria-controls="pg-home" aria-selected="true"><i class="i i-home"></i><span data-i18n="tHome">Home</span></button>
+  <button role="tab" id="tab-guests" data-tab="guests" aria-controls="pg-guests" aria-selected="false"><i class="i i-people"></i><span data-i18n="tGuests">Guests</span></button>
+  <button role="tab" id="tab-invite" data-tab="invite" aria-controls="pg-invite" aria-selected="false"><i class="i i-env"></i><span data-i18n="tInvite">Invite</span></button>
+  <button role="tab" id="tab-arrivals" data-tab="arrivals" aria-controls="pg-arrivals" aria-selected="false"><i class="i i-door"></i><span data-i18n="tArr">Arrivals</span></button>
 </nav>
-<dialog class="sheet sendq" id="sendq" aria-labelledby="sqH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="sqH">Send invites</h2><button class="sheet-x" id="sqX" aria-label="Close"><i class="i i-x"></i></button></div><div id="sqBody"></div></dialog>
+
+<!-- send one by one (invitations, reminders, change notices) -->
+<dialog class="sheet sendq" id="sendq" aria-labelledby="sqH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="sqH">Send the invitations</h2><button class="sheet-x" id="sqX" aria-label="Close" data-i18n-aria="close"><i class="i i-x"></i></button></div><div id="sqBody"></div></dialog>
+<!-- add guests -->
+<dialog class="sheet addsheet" id="addSheet" aria-labelledby="addH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="addH" data-i18n="bulkH">Add guests</h2><button class="sheet-x" data-close aria-label="Close" data-i18n-aria="close"><i class="i i-x"></i></button></div>
+  <div class="addwrap" id="addWrap">
+    <div class="seg fill" role="group" aria-label="Add guests" data-i18n-aria="bulkH"><button type="button" id="addOneTab" aria-pressed="true" data-i18n="addOne">One guest</button><button type="button" id="toggleBulk" aria-pressed="false" data-i18n="addList">A list or Excel</button></div>
+    <div id="addBox">
+      <div class="fld"><label class="f" for="nName" data-i18n="name">Name</label><input type="text" id="nName" dir="auto" autocomplete="off"></div>
+      <div class="fld"><label class="f" for="nPhone" data-i18n="waNum">WhatsApp number</label><input type="tel" id="nPhone" dir="ltr" placeholder="9XXXXXXX" inputmode="tel" autocomplete="off"></div>
+      <div class="fld"><p class="f" id="nSeatsL" data-i18n="partyL">People on this invitation</p><div class="step-row"><span id="nStepWrap"></span><span class="help" data-i18n="partyHelp">Count the guest too. 1 means just them.</span></div><input type="hidden" id="nSeats" value="1"></div>
+      <div class="fld" id="nSideWrap"><label class="f" for="nSide" data-i18n="sideL">From whose side (optional)</label><input type="text" id="nSide" dir="auto" list="sidesList" data-i18n-ph="sidePh" placeholder="e.g. Bride’s mum"><datalist id="sidesList"></datalist></div>
+      <p class="form-err" id="addErr" role="alert" hidden></p>
+      <div class="add-act"><button class="btn big block primary" id="addGuest" type="button"><span data-i18n="addSave">Save</span></button><button class="btn block secondary" id="addSend" type="button"><i class="i i-whatsapp"></i><span data-i18n="addSaveSend">Save and send on WhatsApp</span></button></div>
+    </div>
+    <div id="bulkBox" hidden>
+      <p class="help" style="margin:0 0 10px" data-i18n="bulkHelp">Type or paste one guest per line with their name and number, or upload an Excel file.</p>
+      <textarea id="bPaste" rows="6" dir="auto" data-i18n-ph="bulkPh" placeholder="Dana Alanjeri 55771754&#10;Huda Alsaleh 99619992"></textarea>
+      <div class="row" style="margin-top:10px"><button class="btn small primary" id="bRead" type="button" data-i18n="checkNames">Check names</button></div>
+      <label class="drop" style="margin-top:14px"><input type="file" id="bFile" accept=".xlsx,.xls,.csv,.docx"><span class="btn small secondary"><i class="i i-upload"></i><span data-i18n="uploadXls">Upload Excel file</span></span></label>
+      <div id="bPreview"></div>
+    </div>
+  </div>
+</dialog>
+<!-- whose guests to show -->
+<dialog class="sheet" id="sideSheet" aria-labelledby="sideH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="sideH" data-i18n="sideBtn">Show guests from</h2><button class="sheet-x" data-close aria-label="Close" data-i18n-aria="close"><i class="i i-x"></i></button></div><div class="rowlist sidelist" id="sideList"></div></dialog>
+<!-- after a date / time / venue change -->
+<dialog class="sheet" id="chgSheet" aria-labelledby="chgH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="chgH" data-i18n="chgH">Tell your guests?</h2><button class="sheet-x" data-close aria-label="Close" data-i18n-aria="close"><i class="i i-x"></i></button></div><div id="chgBody"></div></dialog>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  const { sb, $, esc, toast, normPhone, showPhone, fmtDate, fmtTime, waLink, fillTemplate } = App;
-  const bdi = App.bdi;
-  const isAr = s => /[\u0600-\u06FF]/.test(s || '');
+  const { sb, $, esc, normPhone, showPhone, fmtDate, fmtTime, waLink, fillTemplate } = App;
+  const bdi = App.bdi, arN = App.arN;
+  const isAr = s => /[؀-ۿ]/.test(s || '');
   // a buzz only after the host has touched the page (browsers block it before that)
   const vibe = ms => { if (!navigator.userActivation || navigator.userActivation.hasBeenActive) App.vibrate(ms); };
+  // every number carries its word: "guest" = one invitation, "person" = one head
+  const E = (n, k) => App.countWord(n, k || 'person', 'en');
+  // Arabic zero reads «ولا ضيف» / «ولا أحد», not «0 ضيف»
+  const A = (n, k) => (+n || 0) === 0 ? ((k || 'person') === 'guest' ? 'ولا ضيف' : 'ولا أحد') : App.countWord(n, k || 'person', 'ar');
+  // keep a time and its AM/PM (ص/م) together on one line
+  const nb = s => String(s || '').replace(/ (ص|م|AM|PM)(?=$|[\s.,،])/g, ' $1');
   let events = [], ev = null, guests = [], members = [], mySide = null, side = 'all', filter = 'all', attFilter = 'all', query = '', aquery = '', channel = null, poll = null, admin = false, myEmail = '', v2 = false, reqs = [], editing = null;
-  let tab = 'home', newSince = 0, prev = null, fresh = new Map(), selfIds = new Set(), lastNextKey = '', snap = null, live = false;
-  // ---------- language (English / Kuwaiti Arabic) ----------
-  const arN = (n, one, two, few, many) => n === 1 ? one : n === 2 ? two : (n % 100 >= 3 && n % 100 <= 10) ? `${n} ${few}` : `${n} ${many}`;
-  const arPeople = n => arN(n, 'شخص واحد', 'شخصين', 'أشخاص', 'شخص');
-  const arInvites = n => arN(n, 'دعوة وحدة', 'دعوتين', 'دعوات', 'دعوة');
-  const arGuests = n => arN(n, 'ضيف واحد', 'ضيفين', 'ضيوف', 'ضيف');
-  const arUnit = (n, sing, pl) => (n % 100 >= 3 && n % 100 <= 10) ? pl : sing;
-  const arPlus = n => '⁦+' + n + '⁩';   // keep "+2" reading left-to-right inside Arabic text
-  const enPeople = n => `${n} ${n === 1 ? 'person' : 'people'}`;
+  let tab = 'home', newSince = 0, prev = null, fresh = new Map(), selfIds = new Set(), snap = null, live = false;
+  // the hosts are «أهل المناسبة» / "the hosts" everywhere (one term, from core)
+  const HW = (l, f) => App.hostWord(l, f);
   const T = {
-    en: { title: 'Host dashboard', other: 'العربية', door: 'Door', admin: 'Admin', out: 'Log out', home: 'Home', colours: 'Colours',
-      tHome: 'Home', tGuests: 'Guests', tInvite: 'Invite', tArr: 'Arrivals', doorScreen: 'Door screen',
-      editH: 'Edit your invite', evName: 'Event name', line: 'Invite line', linePh: 'Join us for Ghala’s bridal shower', note: 'Note on the invite page (optional)',
+    en: { title: HW('en', 'page'), other: 'العربية', out: 'Log out', home: 'Home', close: 'Close', admin: 'Admin', door: 'Door',
+      tHome: 'Home', tGuests: 'Guests', tInvite: 'Invite', tArr: 'Arrivals', doorScreen: 'Open the door screen',
+      // home
+      hero: n => n === 0 ? '<span class="hero-w">No one has said yes yet</span>' : `<b class="t-num">${n}</b> <span class="hero-w">${n === 1 ? 'person' : 'people'} coming</span>`,
+      heroOf: (p, g) => `out of ${E(p)} invited (${E(g, 'guest')})`,
+      K: { all: 'All', yes: 'Coming', pending: 'No reply', no: 'Can’t come' }, notSent: 'Not sent yet',
+      andMore: n => ` and ${n === 1 ? '1 more guest' : n + ' more guests'}`, comma: ', ',
+      reqBar: n => n === 1 ? 'A request from the door' : `${n} requests from the door`, reqGo: 'Answer them',
+      nextK: 'Next step', nAddP: 'Your guest list is empty. Add the people you’re inviting.', nAddB: 'Add guests',
+      nSendP: (n, nm) => `${n === 1 ? '1 guest hasn’t' : E(n, 'guest') + ' haven’t'} got their invitation yet: ${nm}`,
+      nSendB: n => n === 1 ? 'Send the invitation (1)' : `Send the invitations (${n})`,
+      nRemP: (n, nm) => `${n === 1 ? '1 guest hasn’t' : E(n, 'guest') + ' haven’t'} replied yet: ${nm}`,
+      nRemB: n => `Remind who hasn’t replied (${n})`,
+      nWaitP: 'You reminded everyone who hasn’t replied today. Their replies will show here.', nWaitB: 'See who hasn’t replied',
+      nTonightP: n => `Tonight’s the night. ${E(n)} expected. Follow arrivals live.`, nTonightB: 'Open arrivals',
+      nPastP: n => `The night is over. ${E(n)} came. We hope it was lovely.`, nPastB: 'See arrivals',
+      nDoneP: n => `Everyone has replied. ${E(n)} ${n === 1 ? 'is' : 'are'} coming.`, nDoneB: 'See the guest list',
+      latestH: 'Latest replies', seeAll: 'See all replies', justNow: 'just now', mins: n => `${n} min ago`, hrs: n => `${n}h ago`, days: n => n === 1 ? 'yesterday' : `${n} days ago`,
+      newN: n => `${n} new`, msFirst: 'Your first yes is in', msHalf: 'Half your guests are in', msAll: n => `Everyone has replied. ${E(n)} ${n === 1 ? 'is' : 'are'} coming.`, msArr: 'Your first guest has arrived',
+      jYes: (nm, n) => `${nm} just said yes · ${E(n)}`, jNo: nm => `${nm} can’t come`, jIn: nm => `${nm} just arrived`, live: 'Live',
+      cd: n => n < 0 ? 'Event has passed' : n === 0 ? 'Tonight' : n === 1 ? 'Tomorrow' : `${n} days to go`,
+      // guests
+      gSum: (g, p) => `${E(g, 'guest')} · ${E(p)}`, addGuestBtn: 'Add guest', searchPh: 'Search by name or number', search: 'Search', filterBy: 'Filter by reply',
+      sideBtn: 'Show guests from', sideAll: 'Everyone', sideOn: s => `Showing guests from ${s}`, showAll: 'Show everyone', yourList: s => `Your list · ${s}`,
+      toSendT: n => n === 1 ? '1 guest hasn’t got the invitation' : `${n} guests haven’t got the invitation`, toSendP: 'WhatsApp opens for one guest at a time.',
+      results: n => n === 1 ? '1 match' : `${n} matches`, noMatch: 'No one matches that search.', noneHere: 'No one here.',
+      send: 'Send invitation', remind: 'Remind them', arrived: 'Arrived', viaLink: 'Replied via the group link', atDoor: 'Let in at the door',
+      people: E, ofPeople: (c, s) => c === s ? E(s) : `${c} of ${E(s)}`,
+      remAgo: d => d === 0 ? 'Reminded today' : d === 1 ? 'Reminded yesterday' : `Reminded ${d} days ago`,
+      emptyG: 'Start with the people you love most.', wPaste: 'Paste a list', wPasteP: 'Names and numbers, one per line', wXls: 'Upload Excel', wXlsP: 'Or a Word or CSV file', wOne: 'Add one guest', wOneP: 'Name and WhatsApp number',
+      // one guest, opened
+      replyNow: s => `Their reply: ${s}`, changeReply: 'Change their reply', reply: 'Reply', partyL: 'People on this invitation', comingL: 'How many are coming', less: 'Fewer', more: 'More',
+      save: 'Save changes', cancel: 'Cancel', resend: 'Send the invitation again', remove: 'Remove guest', tapRemove: 'Tap again to remove',
+      replyChanged: (a, b) => `Reply changed from “${a}” to “${b}”`, saved: 'Saved', noPkg: 'Not enough people left in your package', cantSave: k => ({ net: 'Couldn’t save: no connection. Try again.', perm: `Couldn’t save: only ${HW('en')} can do this.`, own: `You sent this request from the door, so someone else from ${HW('en')} has to answer it.`, other: 'Couldn’t save. Try again.' })[k],
+      // add
+      bulkH: 'Add guests', addOne: 'One guest', addList: 'A list or Excel', name: 'Name', waNum: 'WhatsApp number', partyHelp: 'Count the guest too. 1 means just them.',
+      sideL: 'From whose side (optional)', sidePh: 'e.g. Bride’s mum', addSave: 'Save guest', addSaveSend: 'Save and send on WhatsApp',
+      bulkHelp: 'Type or paste one guest per line with their name and number, or upload an Excel file.', bulkPh: 'Dana Alanjeri 55771754\nHuda Alsaleh 99619992', checkNames: 'Check names', uploadXls: 'Upload Excel file',
+      badLinesH: n => n === 1 ? 'We couldn’t read a name and number on this line. Fix it, then check names again:' : 'We couldn’t read a name and number on these lines. Fix them, then check names again:',
+      needName: 'Give the event a name. The saved name stays until you do.', needDate: 'Pick a date. The saved date stays until you do.', needTime: 'Pick a time. The saved time stays until you do.',
+      needVenue: 'Write the venue. The saved one stays until you do.',
+      lineEach: 'Put a name and a number on each line', fileNone: 'No names and numbers found in that file', fileErr: 'Couldn’t read that file',
+      found: n => `Found ${E(n, 'guest')}:`, addMine: 'Add to my list', addErr: k => k === 'net' ? 'Couldn’t add them: no connection. Try again.' : 'Couldn’t add them. Try again.',
+      addedN: (a, skip) => `Added ${E(a, 'guest')}` + (skip ? ` (${E(skip, 'guest')} already on the list)` : ''), rmErr: 'Couldn’t remove that guest', removed: n => 'Removed ' + n,
+      typeName: 'Type the guest’s name', short: 'That WhatsApp number looks too short', dupNum: 'That number is already on the list', addOneErr: 'Couldn’t add that guest', added: n => 'Added ' + n,
+      // send one by one
+      sqH: { send: 'Send the invitations', remind: 'Send reminders', update: 'Tell guests about the change' },
+      sqOf: (i, n) => `Guest ${i} of ${n}`, openWa: 'Open WhatsApp', skip: 'Skip this guest', doneForNow: 'Stop sending',
+      askSent: nm => `Did you send it to ${nm}?`, askHelp: 'We only mark it as sent when you say so.', yesSent: 'Yes, it’s sent', notYet: 'Not yet', openAgain: 'Open WhatsApp again',
+      doneTo: { send: nm => `Sent to ${nm}`, remind: nm => `Reminder sent to ${nm}`, update: nm => `Update sent to ${nm}` },
+      endT: (s, k) => (s ? `Sent to ${E(s, 'guest')}` : 'Nothing was sent this time') + (k ? ` · ${E(k, 'guest')} skipped` : ''),
+      sqNone: { send: 'Everyone on this list has their invitation.', remind: 'No one to remind right now.', update: 'No one to tell.' }, sqEndP: 'Replies will show up on Home as they come in.',
+      remindTpl: 'Hello {name}, a gentle reminder about {event} on {date} at {time}. Please let us know if you can make it:\n{link}',
+      updTpl: v => 'Hello {name}, a quick update about {event}: it’s now on {date} at {time}' + (v ? ', at {venue}' : '') + '.\n\nYour invitation link has all the details:\n{link}',
+      // invite
+      persH: 'Personal invitations', persP: 'Each guest gets a message with their name and their own reply link. This is the best way to invite.',
+      persAll: 'Everyone on your list has their invitation.', persNone: 'Add your guests first, then send their invitations from here.', addGuestsB: 'Add guests',
+      seeGuest: 'See the guest page', editH: 'Invite details', evName: 'Event name', line: 'Invite line', linePh: 'Join us for Ghala’s bridal shower', note: 'Note on the invite page (optional)',
       notePh: 'A samra night, Bring your thoub!\nNote: we will have a male samra group.', noteHelp: 'The first line shows highlighted. Put anything extra on the next lines.',
       head: 'Title if there’s no card', date: 'Date', from: 'From', to: 'To', venue: 'Venue', map: 'Google Maps link', invLang: 'Invite language', waMsg: 'WhatsApp message',
-      tplHelp: 'Tap to add a detail that fills in for each guest:', card: 'Invite card', cardHelp: 'Upload your invite card (photo or PDF). It shows at the top of the invite page.',
-      uploadCard: 'Upload card', saveChanges: 'Save changes', seeGuest: 'See guest page', rulesH: 'Reply rules', replyBy: 'Reply by (optional)', time: 'Time',
-      canChange: 'Guests can change their reply', linkOpen: 'The shared invite link accepts new replies', bulkH: 'Add guests',
-      bulkHelp: 'Type or paste one guest per line with their name and number, or upload an Excel file.', bulkPh: 'Dana Alanjeri 55771754\nHuda Alsaleh 99619992', checkNames: 'Check names',
-      uploadXls: 'Upload Excel file', filterBy: 'Filter by reply', searchPh: 'Name or number', search: 'Search', close: 'Close', name: 'Name',
-      waNum: 'WhatsApp number', extrasQ: 'Extra guests they can bring', none: 'None', list: 'List', sidePh: 'e.g. Bride’s mum', addOpenWa: 'Add and open WhatsApp', activity: 'Activity', activityP: 'Replies, check-ins and changes',
-      addBtn: 'Add', addOne: 'One guest', addList: 'A list or Excel',
-      loadErrEv: 'Couldn’t load your events', doorH: 'Door check-in', doorP: 'Your account is set up for checking guests in at the door.', doorBtn: 'Open the door screen',
-      noEvH: 'We’re preparing your event', noEvP: 'There’s no event linked to this email yet. Message us on WhatsApp and we’ll add it.',
-      linkKick: 'Your invite link', linkHelp: 'Send this one link to everyone. Guests type their name and reply, and they show up here straight away.', copy: 'Copy', copiedB: 'Copied',
-      shareWa: 'Share on WhatsApp', copied: 'Link copied', copyPrompt: 'Copy your link:', seeMsg: 'See the message', loadErrG: 'Couldn’t load the guest list', allLists: 'All lists',
-      yourList: s => `Your list · ${s}`, yourInvite: 'Your invite',
-      K: { all: 'All', yes: 'Coming', pending: 'No reply', no: 'Can’t make it' }, st: { yes: 'Coming', no: 'Can’t make it', pending: 'No reply yet' },
-      arrived: 'Arrived', viaLink: 'Replied via link', ofN: (c, s) => `${c} of ${s}`, extras: n => `+${n} extra${n > 1 ? 's' : ''}`, plus: n => '+' + n, notSent: 'Not sent yet',
-      resend: 'Resend invite', send: 'Send', remind: 'Remind', remove: 'Remove guest', tapRemove: 'Tap again to remove', noMatch: 'No one matches that search.',
-      noneYet: 'No one here yet. Share your invite link and replies will appear here.', reply: 'Reply', peopleComing: 'People coming', extrasAllowed: 'Extras allowed', save: 'Save', cancel: 'Cancel',
-      noPkg: 'Not enough invites left in the package', cantSave: m => 'Couldn’t save: ' + m, saved: 'Saved',
-      reqKick: 'The door is asking', people: enPeople, reqExtra: 'Extra people on this invite', reqNotOn: 'Not on the list', letIn: 'Let in', turnDown: 'Turn down', fromDoor: 'from the door',
-      reqT: n => n === 1 ? 'Someone is waiting at the door' : `${n} requests from the door`, reqP: 'Let them in or turn them down. The door sees your answer straight away.',
-      approved: 'Approved. The door can see it now', turnedDown: 'Turned down',
-      act: { guest_reply: 'Guest replied', link_reply: 'Reply via shared link', host_set_reply: 'Reply changed by host', host_set_extras: 'Extras changed', set_rules: 'RSVP rules changed',
-        check_in: 'Checked in at the door', request_exception: 'Door asked the host', decide_exception: 'Host decided a door request', door_open_list: 'Door opened the list' }, actOther: 'Update',
-      logSt: { yes: 'Coming', no: 'Can’t make it', pending: 'No reply yet', approved: 'Approved', rejected: 'Turned down' }, logErr: 'Couldn’t load the activity.', logGuest: 'Guest', logNothing: 'Nothing yet.', rulesSaved: 'Rules saved',
-      notHere: 'Not here yet', arrivedAt: tm => `Arrived ${tm}`, invN: n => `${n} ${n > 1 ? 'invites' : 'invite'}`, didntReply: 'Didn’t reply', attNone: 'No one here yet.',
-      cardAlt: 'Invite card', chipsL: 'Colours from the card:', mainCol: 'Main colour', bgCol: 'Background colour', rmCard: 'Remove card',
-      uploading: 'Uploading your card…', cardOk: 'Card added, colours matched', cardErr: m => 'Couldn’t upload the card: ' + (m || 'try a JPG photo'),
-      lineEach: 'Put a name and a number on each line', fileNone: 'No names and numbers found in that file', fileErr: 'Couldn’t read that file',
-      found: n => `Found <b>${n}</b> guests:`, addMine: 'Add to my list', addErr: m => 'Couldn’t add them: ' + m,
-      addedN: (a, skip) => `Added ${a} guests` + (skip ? ` (skipped ${skip} already on the list)` : ''), rmErr: 'Couldn’t remove that guest', removed: n => 'Removed ' + n,
-      typeName: 'Type the guest’s name', short: 'That WhatsApp number looks too short', dupNum: 'That number is already on the list', addOneErr: 'Couldn’t add that guest', added: n => 'Added ' + n,
-      // home
-      nextK: 'Next step', addT: 'Add your first guests', addP: 'Paste a list, upload Excel, or add people one by one.', addB: 'Add guests',
-      sendT: n => n === 1 ? 'One invite hasn’t gone out yet' : `${n} invites haven’t gone out yet`, sendP: 'We’ll go through them one by one on WhatsApp.', sendB: 'Send them now',
-      tonightT: 'Tonight’s the night', tonightP: n => `${enPeople(n)} expected. Follow arrivals live.`, tonightB: 'Open arrivals',
-      pendT: n => n === 1 ? 'One guest hasn’t replied yet' : `${n} guests haven’t replied yet`, pendP: 'A gentle reminder on WhatsApp usually does it.', pendB: 'Send reminders',
-      doneT: 'Everyone has replied', doneP: n => `${enPeople(n)} ${n === 1 ? 'is' : 'are'} coming. Enjoy the countdown.`, doneB: 'See the guest list',
-      pastT: 'The night is over', pastP: n => `${enPeople(n)} came. We hope it was lovely.`, pastB: 'See arrivals',
-      mComing: n => n === 1 ? 'person coming' : 'people coming', chipP: (l, n) => `${l}: ${enPeople(n)}`, mFrom: (inv, left) => `from ${inv} invited` + (left != null ? ` · ${left} invites left in your package` : ''),
-      latestH: 'Latest replies', seeAll: 'See all', justNow: 'just now', mins: n => `${n} min ago`, hrs: n => `${n}h ago`, days: n => n === 1 ? 'yesterday' : `${n} days ago`,
-      setupK: 'Getting ready', setupT: 'Three steps and you’re set', stepsN: d => `${d} of 3 done`,
-      s1: 'Check your invite', s1p: 'Make sure the date, place and message look right.', s2: 'Add your guests', s2p: 'Start with the people you love most.',
-      s3: 'Send the invites', s3p: 'One by one on WhatsApp, or share one link.', stepDone: 'Done',
-      newN: n => `${n} new`, upFirst: (s, m) => `Up first: ${s}` + (m ? ` and ${m} more` : ''), comma: ', ', msFirst: 'Your first yes is in', msHalf: 'Half your guests are in', msAll: n => `Everyone has replied. ${enPeople(n)} ${n === 1 ? 'is' : 'are'} coming.`, msArr: 'Your first guest has arrived',
-      jYes: (nm, n) => `${nm} just said yes · ${enPeople(n)}`, jNo: nm => `${nm} can’t make it`, jIn: nm => `${nm} just arrived`, live: 'Live',
-      // guests
-      toSend: n => n === 1 ? '1 invite to send' : `${n} invites to send`, toSendP: 'Send them one by one on WhatsApp', start: 'Start',
-      emptyG: 'Start with the people you love most.', wPaste: 'Paste a list', wPasteP: 'Names and numbers, one per line', wXls: 'Upload Excel', wXlsP: 'Or a Word or CSV file', wOne: 'Add one guest', wOneP: 'Name and WhatsApp number',
-      results: n => n === 1 ? '1 match' : `${n} matches`,
-      remindTpl: { en: 'Hello {name}, a gentle reminder about {event} on {date}. Please let us know if you can make it:\n{link}', ar: 'هلا {الاسم}، حبينا نذكركم بـ{المناسبة} يوم {التاريخ}. ياليت تردون علينا من هالرابط:\n{الرابط}' },
-      // send queue
-      sqH: 'Send invites', sqOf: (i, n) => `Guest ${i} of ${n}`, openWa: 'Open WhatsApp', skip: 'Skip', doneForNow: 'Done for now', sentTo: nm => `Sent to ${nm}`,
-      allSent: n => n === 1 ? 'Your invite is on its way' : `All ${n} invites sent`, sentSkipped: (s, k) => `${s} sent · ${k} skipped`, sqNone: 'Everyone on this list has their invite.', sqEndP: 'Replies will show up on Home as they come in.',
-      // invite
       grp1: 'The occasion', grp2: 'When & where', grp3: 'WhatsApp message', grp4: 'Card & colours', instant: 'Changes here save straight away.',
-      unsaved: 'Unsaved changes', leaveQ: 'You have unsaved changes on the invite. Leave them?', allSaved: 'All changes saved', discard: 'Discard', noDate: 'No date yet', noCard: 'No card yet', cardOn: 'Card added',
+      tplHelp: 'Tap to add a detail. It fills in for each guest:', prevH: nm => `What ${nm} will read:`, sampleName: 'Dana',
+      tok: { name: 'Guest name', date: 'Date', time: 'Time', venue: 'Venue', event: 'Event name', link: 'Their reply link', invites: 'Number of people' },
+      needLink: 'The message needs the guest’s reply link. Without it they can’t reply.', putLink: 'Put the link back',
+      cardHelp: 'Upload your invite card (photo or PDF). It shows at the top of the invite page.', uploadCard: 'Upload card', cardAlt: 'Invite card', chipsL: 'Colours from the card:',
+      mainCol: 'Main colour', bgCol: 'Background colour', rmCard: 'Remove card', uploading: 'Uploading your card…', cardOk: 'Card added, colours matched', cardErr: k => k === 'net' ? 'Couldn’t upload the card: no connection. Try again.' : 'Couldn’t upload the card. Try a JPG photo.',
+      rulesH: 'Reply rules', replyBy: 'Reply by (optional)', time: 'Time', canChange: 'Guests can change their reply', linkOpen: 'The group link accepts new replies',
       rulesPv: (d, c) => (d ? `Replies close ${d}` : 'No reply deadline') + (c ? '' : ' · replies locked'),
-      tok: { name: 'Guest name', date: 'Date', time: 'Time', venue: 'Venue', event: 'Event', link: 'Their link', invites: 'Invites' },
-      pkgK: 'Your package', pkgLeft: (left, lim) => `${left} of ${lim} invites left`, pkgUsed: n => `${n} used`, pkgMore: 'Need more? Message us',
+      unsaved: 'Unsaved changes', leaveQ: 'You have unsaved changes on the invite. Leave them?', allSaved: 'All changes saved', discard: 'Discard changes', saveChanges: 'Save changes',
+      noDate: 'No date yet', noCard: 'No card yet', cardOn: 'Card added',
+      pubH: 'Group link (optional)', pubSum: 'For WhatsApp groups. Anyone with it can reply.', pubP: 'One link to post in a WhatsApp group. Anyone who has it can reply under any name, so personal invitations are better.',
+      copy: 'Copy link', copiedB: 'Copied', shareWa: 'Share in a group', copied: 'Link copied', copyPrompt: 'Copy your link:', seeMsg: 'See the message',
+      pkgK: 'Your package', pkgLeft: (l, lim) => `${l} of ${E(lim)} left`, pkgUsed: n => `${E(n)} invited`, pkgMore: 'Need more? Message us',
+      chgH: 'Tell your guests?', chgP: n => `${n === 1 ? '1 guest already has' : E(n, 'guest') + ' already have'} the invitation with the old details. Tell them about the change, one by one on WhatsApp?`,
+      chgGo: n => `Tell them (${n})`, chgLater: 'Don’t tell them',
+      activity: 'Activity', activityP: 'Replies, check-ins and changes',
+      act: { guest_reply: 'Guest replied', link_reply: 'Reply via the group link', host_set_reply: 'Reply changed by you', host_set_extras: 'Number of people changed', set_rules: 'Reply rules changed',
+        check_in: 'Checked in at the door', undo_check_in: 'Door undid a check-in', request_exception: 'The door asked you', decide_exception: 'You answered the door', door_open_list: 'Door opened the list' }, actOther: 'Update',
+      logSt: { yes: 'Coming', no: 'Can’t come', pending: 'No reply', approved: 'Let in', rejected: 'Turned down' }, logErr: 'Couldn’t load the activity.', logGuest: 'Guest', logNothing: 'Nothing yet.',
       // arrivals
-      ofHere: n => `of ${n} here`, lastArr: (nm, tm) => `Last arrival ${tm} · ${nm}`, noOneYet: 'No one has arrived yet',
-      attK: { all: 'Everyone', in: 'Here', out: 'Still coming', pend: 'Didn’t reply' }, partHere: (c, s) => `${c} of ${s} here`, expectedN: n => `${enPeople(n)} expected`,
-      attNote: d => `Arrivals open on ${d}. You’ll see people arrive here live.` },
-    ar: { title: 'صفحة المضيفة', other: 'English', door: 'الباب', admin: 'الإدارة', out: 'تسجيل خروج', home: 'الرئيسية', colours: 'الألوان',
-      tHome: 'الرئيسية', tGuests: 'الضيوف', tInvite: 'الدعوة', tArr: 'الحضور', doorScreen: 'شاشة الباب',
-      editH: 'تعديل الدعوة', evName: 'اسم المناسبة', line: 'عبارة الدعوة', linePh: 'نتشرف بدعوتكم لحضور ليلة غلا', note: 'ملاحظة بصفحة الدعوة (اختياري)',
+      hereHero: (h, e) => e ? `<b class="t-num">${h}</b> <span class="hero-w">of ${E(e)} here</span>` : `<b class="t-num">${h}</b> <span class="hero-w">${h === 1 ? 'person' : 'people'} here</span>`,
+      lastArr: (nm, tm) => `Last arrival ${tm} · ${nm}`, noOneYet: 'No one has arrived yet', noOneExp: 'No one has said yes yet, so no one is expected.',
+      attK: { all: 'All', in: 'Here', out: 'Expected', pend: 'No reply' }, attBy: 'Show', partHere: (c, s) => `${c} of ${E(s)} here`, expectedN: n => `${E(n)} expected`, attNone: 'No one here yet.',
+      attNote: d => `Arrivals open on ${d}. You’ll see people arrive here live.`,
+      reqH: 'The door is asking', reqP: 'The door sees your answer as soon as you reply.',
+      reqAsk: (n, extra) => extra ? `Asking to let in ${n} more ${n === 1 ? 'person' : 'people'}` : `Asking to let in ${E(n)}`, notOnList: 'Not on the list',
+      ctxAllowed: n => `Allowed ${E(n)}`, ctxYes: n => `said yes for ${E(n)}`, ctxPend: 'no reply yet', ctxNo: 'said they can’t come', ctxIn: n => n ? `${E(n)} already in` : 'no one in yet', asked: a => `Asked ${a}`, ctxSep: ' · ',
+      letIn: 'Let them in', turnDown: 'Turn them down', approved: 'Approved. The door can see it now', turnedDown: nm => `Turned down: ${nm}`, doorTold: 'The door can see your answer now',
+      loadErrEv: 'Couldn’t load your events', loadErrG: 'Couldn’t load the guest list', doorH: 'Door check-in', doorP: 'Your account is set up for checking guests in at the door.', doorBtn: 'Open the door screen',
+      noEvH: 'We’re preparing your event', noEvP: 'There’s no event linked to this email yet. Message us on WhatsApp and we’ll add it.',
+      help: [['How do I send the invitations?', 'On Home or Guests, tap Send the invitations. WhatsApp opens for one guest at a time. Send the message there, come back here and tap Yes, it’s sent.'],
+        ['Why do you ask “Did you send it?”', 'Opening WhatsApp doesn’t mean the message went. We only mark a guest as invited when you say so, so no one is missed.'],
+        ['What’s the difference between guests and people?', 'A guest is one invitation, like a family. People are everyone who can come on that invitation. A guest with 3 people means up to 3 can come, the guest included.'],
+        ['The door is asking me something', 'When someone at the door needs your OK, a red bar shows on Home. Tap it, then choose Let them in or Turn them down. You have a few seconds to undo a Turn them down.'],
+        ['I changed the date, time or place', 'After you save, we offer to tell the guests who already got the invitation, one by one on WhatsApp.']] },
+    ar: { title: HW('ar', 'page'), other: 'English', out: 'تسجيل خروج', home: 'الرئيسية', close: 'إغلاق', admin: 'الإدارة', door: 'الباب',
+      tHome: 'الرئيسية', tGuests: 'الضيوف', tInvite: 'الدعوة', tArr: 'الحضور', doorScreen: 'افتحوا شاشة الباب',
+      hero: n => n === 0 ? '<span class="hero-w">ما أحد أكد حضوره للحين</span>' : n === 1 ? '<b class="hero-b">شخص واحد</b> <span class="hero-w">بيحضر</span>' : n === 2 ? '<b class="hero-b">شخصين</b> <span class="hero-w">بيحضرون</span>'
+        : `<b class="t-num">${n}</b> <span class="hero-w">${n % 100 >= 3 && n % 100 <= 10 ? 'أشخاص' : 'شخص'} بيحضرون</span>`,
+      heroOf: (p, g) => `من أصل ${A(p)} (${A(g, 'guest')})`,
+      K: { all: 'الكل', yes: 'بيحضرون', pending: 'ما ردوا', no: 'اعتذروا' }, notSent: 'ما انرسلت',
+      andMore: n => ` و${A(n, 'guest')} غيرهم`, comma: '، ',
+      reqBar: n => `${arN(n, 'طلب واحد', 'طلبين', 'طلبات', 'طلب')} من الباب`, reqGo: 'ردوا عليهم',
+      nextK: 'الخطوة الجاية', nAddP: 'ما ضفتوا أي ضيف للحين، ضيفوا اللي بتعزمونهم.', nAddB: 'إضافة ضيوف',
+      nSendP: (n, nm) => `${n === 1 ? 'ضيف واحد ما وصلته' : A(n, 'guest') + ' ما وصلتهم'} الدعوة للحين: ${nm}`,
+      nSendB: n => n === 1 ? 'أرسلوا الدعوة (1)' : `أرسلوا الدعوات (${n})`,
+      nRemP: (n, nm) => `${n === 1 ? 'ضيف واحد ما رد' : A(n, 'guest') + ' ما ردوا'} للحين: ${nm}`,
+      nRemB: n => `ذكّروا اللي ما ردوا (${n})`,
+      nWaitP: 'ذكّرتوا اليوم كل اللي ما ردوا، وردودهم بتطلع لكم هني.', nWaitB: 'شوفوا اللي ما ردوا',
+      nTonightP: n => `الليلة ليلتكم! ننتظر ${A(n)}، تابعوا وصولهم أول بأول.`, nTonightB: 'افتحوا الحضور',
+      nPastP: n => `انتهت المناسبة، وحضر ${A(n)}. عساها كانت ليلة حلوة.`, nPastB: 'شوفوا الحضور',
+      nDoneP: n => `كل الضيوف ردوا، وبيحضر ${A(n)}.`, nDoneB: 'شوفوا الضيوف',
+      latestH: 'آخر الردود', seeAll: 'شوفوا كل الردود', justNow: 'الحين', mins: n => `قبل ${arN(n, 'دقيقة', 'دقيقتين', 'دقايق', 'دقيقة')}`, hrs: n => `قبل ${arN(n, 'ساعة', 'ساعتين', 'ساعات', 'ساعة')}`, days: n => n === 1 ? 'أمس' : `قبل ${arN(n, 'يوم', 'يومين', 'أيام', 'يوم')}`,
+      newN: n => arN(n, 'رد جديد', 'ردين جداد', 'ردود جديدة', 'رد جديد'), msFirst: 'أول ضيف أكد حضوره', msHalf: 'نص ضيوفكم أكدوا', msAll: n => `كل الضيوف ردوا، وبيحضر ${A(n)}.`, msArr: 'وصل أول ضيف',
+      jYes: (nm, n) => `${nm} أكدوا الحضور، ${A(n)}`, jNo: nm => `${nm} اعتذروا`, jIn: nm => `${nm} وصلوا`, live: 'مباشر',
+      cd: n => n < 0 ? 'انتهت المناسبة' : n === 0 ? 'الليلة' : n === 1 ? 'باجر' : `باقي ${arN(n, 'يوم', 'يومين', 'أيام', 'يوم')}`,
+      gSum: (g, p) => `${A(g, 'guest')} · ${A(p)}`, addGuestBtn: 'إضافة ضيف', searchPh: 'ابحثوا بالاسم أو الرقم', search: 'بحث', filterBy: 'فلترة حسب الرد',
+      sideBtn: 'عرض الضيوف من طرف', sideAll: 'الكل', sideOn: s => `ضيوف من طرف: ${s}`, showAll: 'عرض الكل', yourList: s => `ضيوفكم من طرف: ${s}`,
+      toSendT: n => n === 1 ? 'ضيف واحد ما وصلته الدعوة' : `${A(n, 'guest')} ما وصلتهم الدعوة`, toSendP: 'الواتساب يفتح لكل ضيف بروحه.',
+      results: n => arN(n, 'نتيجة وحدة', 'نتيجتين', 'نتايج', 'نتيجة'), noMatch: 'ما لقينا أحد بهالاسم أو الرقم.', noneHere: 'ما في أحد هني.',
+      send: 'أرسلوا الدعوة', remind: 'ذكّروهم', arrived: 'وصلوا', viaLink: 'ردوا من الرابط العام', atDoor: 'دخلوا من الباب',
+      people: A, ofPeople: (c, s) => c === s ? A(s) : s === 2 ? 'شخص واحد من شخصين' : `${c} من ${A(s)}`,
+      remAgo: d => d === 0 ? 'ذكّرتوهم اليوم' : d === 1 ? 'ذكّرتوهم أمس' : `ذكّرتوهم قبل ${arN(d, 'يوم', 'يومين', 'أيام', 'يوم')}`,
+      emptyG: 'ابدوا بأقرب الناس لكم.', wPaste: 'الصقوا قائمة', wPasteP: 'الاسم والرقم، كل ضيف بسطر', wXls: 'ارفعوا ملف إكسل', wXlsP: 'أو ملف وورد أو CSV', wOne: 'ضيف واحد', wOneP: 'الاسم ورقم الواتساب',
+      replyNow: s => `ردهم: ${s}`, changeReply: 'تغيير الرد', reply: 'الرد', partyL: 'عدد الأشخاص بالدعوة', comingL: 'كم شخص بيحضر', less: 'أقل', more: 'أكثر',
+      save: 'حفظ التعديلات', cancel: 'إلغاء', resend: 'إرسال الدعوة مرة ثانية', remove: 'حذف الضيف', tapRemove: 'اضغطوا مرة ثانية للحذف',
+      replyChanged: (a, b) => `تغيّر الرد من «${a}» إلى «${b}»`, saved: 'انحفظ', noPkg: 'الأشخاص الباقين بالباقة ما يكفون', cantSave: k => ({ net: 'ما قدرنا نحفظ، ما في اتصال. جربوا مرة ثانية.', perm: `ما قدرنا نحفظ، هالشي بس ${HW('ar', 'to')}.`, own: `هالطلب طالع من حسابكم، لازم أحد ثاني من ${HW('ar')} يرد عليه.`, other: 'ما قدرنا نحفظ، جربوا مرة ثانية.' })[k],
+      bulkH: 'إضافة ضيوف', addOne: 'ضيف واحد', addList: 'قائمة أو إكسل', name: 'الاسم', waNum: 'رقم الواتساب', partyHelp: 'احسبوا الضيف نفسه، 1 يعني الضيف بروحه.',
+      sideL: 'من طرف (اختياري)', sidePh: 'مثلاً: أم العروس', addSave: 'حفظ الضيف', addSaveSend: 'حفظ وإرسال بالواتساب',
+      bulkHelp: 'اكتبوا أو الصقوا الأسماء، كل ضيف بسطر مع رقمه. أو ارفعوا ملف إكسل.', bulkPh: 'دانة العنجري 55771754\nهدى الصالح 99619992', checkNames: 'مراجعة الأسماء', uploadXls: 'رفع ملف إكسل',
+      badLinesH: n => n === 1 ? 'هالسطر ما قدرنا نقرا منه اسم ورقم. صلحوه وراجعوا الأسماء مرة ثانية:' : 'هالأسطر ما قدرنا نقرا منها اسم ورقم. صلحوها وراجعوا الأسماء مرة ثانية:',
+      needName: 'اكتبوا اسم المناسبة. الاسم المحفوظ يبقى لين تكتبون غيره.', needDate: 'اختاروا التاريخ. التاريخ المحفوظ يبقى لين تختارون غيره.', needTime: 'اختاروا الوقت. الوقت المحفوظ يبقى لين تختارون غيره.',
+      needVenue: 'اكتبوا المكان. المكان المحفوظ يبقى لين تكتبون غيره.',
+      lineEach: 'كل سطر لازم يكون فيه اسم ورقم', fileNone: 'ما لقينا أسماء وأرقام بالملف', fileErr: 'ما قدرنا نقرا الملف',
+      found: n => `لقينا ${A(n, 'guest')}:`, addMine: 'ضيفوهم', addErr: k => k === 'net' ? 'ما قدرنا نضيفهم، ما في اتصال. جربوا مرة ثانية.' : 'ما قدرنا نضيفهم، جربوا مرة ثانية.',
+      addedN: (a, skip) => `ضفنا ${A(a, 'guest')}` + (skip ? `، و${A(skip, 'guest')} ${skip === 1 ? 'كان موجود' : 'كانوا موجودين'} من قبل` : ''), rmErr: 'ما قدرنا نحذف الضيف', removed: n => 'حذفنا ' + n,
+      typeName: 'اكتبوا اسم الضيف', short: 'رقم الواتساب ناقص', dupNum: 'هالرقم موجود عندكم من قبل', addOneErr: 'ما قدرنا نضيف الضيف', added: n => 'ضفنا ' + n,
+      sqH: { send: 'إرسال الدعوات', remind: 'إرسال التذكير', update: 'تبليغ الضيوف بالتغيير' },
+      sqOf: (i, n) => `الضيف ${i} من ${n}`, openWa: 'افتحوا الواتساب', skip: 'تخطّوا هالضيف', doneForNow: 'وقّفوا الإرسال',
+      askSent: nm => `أرسلتوها إلى ${nm}؟`, askHelp: 'ما نحسبها انرسلت إلا إذا قلتوا إي.', yesSent: 'إي، انرسلت', notYet: 'للحين لا', openAgain: 'افتحوا الواتساب مرة ثانية',
+      doneTo: { send: nm => `انرسلت الدعوة إلى ${nm}`, remind: nm => `انرسل التذكير إلى ${nm}`, update: nm => `انرسل التبليغ إلى ${nm}` },
+      endT: (s, k) => (s ? `انرسلت إلى ${A(s, 'guest')}` : 'ما انرسل شي هالمرة') + (k ? `، وتخطيتوا ${A(k, 'guest')}` : ''),
+      sqNone: { send: 'كل هالضيوف وصلتهم الدعوة.', remind: 'ما في أحد تذكرونه الحين.', update: 'ما في أحد تبلغونه.' }, sqEndP: 'الردود بتطلع لكم بالرئيسية أول بأول.',
+      remindTpl: 'هلا {الاسم}، حبينا نذكركم بـ{المناسبة} يوم {التاريخ} الساعة {الوقت}. ياليت تردون علينا من هالرابط:\n{الرابط}',
+      updTpl: v => 'هلا {الاسم}، حبينا نبلغكم بتغيير بسيط: {المناسبة} صارت يوم {التاريخ} الساعة {الوقت}' + (v ? '، في {المكان}' : '') + '.\n\nكل التفاصيل برابط دعوتكم:\n{الرابط}',
+      persH: 'الدعوات الشخصية', persP: 'كل ضيف توصله رسالة باسمه ورابط رد خاص فيه. هذي أفضل طريقة للدعوة.',
+      persAll: 'كل ضيوفكم وصلتهم الدعوة.', persNone: 'ضيفوا ضيوفكم أول، وبعدين أرسلوا دعواتهم من هني.', addGuestsB: 'إضافة ضيوف',
+      seeGuest: 'شوفوا صفحة الضيف', editH: 'تفاصيل الدعوة', evName: 'اسم المناسبة', line: 'عبارة الدعوة', linePh: 'نتشرف بدعوتكم لحضور ليلة غلا', note: 'ملاحظة بصفحة الدعوة (اختياري)',
       notePh: 'ليلة سمرة، لا تنسون الثوب\nوبيكون عندنا فرقة سمرة رجالية.', noteHelp: 'السطر الأول يطلع بارز، والباقي اكتبوه بالأسطر اللي بعده.',
       head: 'العنوان إذا ما في كرت', date: 'التاريخ', from: 'من', to: 'إلى', venue: 'المكان', map: 'لوكيشن قوقل ماب', invLang: 'لغة الدعوة', waMsg: 'رسالة الواتساب',
-      tplHelp: 'اضغطوا على المعلومة وتتعبى لكل ضيف بروحها:', card: 'كرت الدعوة', cardHelp: 'ارفعوا الكرت (صورة أو PDF)، ويطلع فوق بصفحة الدعوة.',
-      uploadCard: 'رفع الكرت', saveChanges: 'حفظ التعديلات', seeGuest: 'شكلها عند الضيف', rulesH: 'إعدادات الرد', replyBy: 'آخر موعد للرد (اختياري)', time: 'الوقت',
-      canChange: 'الضيوف يقدرون يغيرون ردهم', linkOpen: 'رابط الدعوة يقبل ردود جديدة', bulkH: 'إضافة ضيوف',
-      bulkHelp: 'اكتبوا أو الصقوا الأسماء، كل ضيف بسطر مع رقمه. أو ارفعوا ملف إكسل.', bulkPh: 'دانة العنجري 55771754\nهدى الصالح 99619992', checkNames: 'مراجعة الأسماء',
-      uploadXls: 'رفع ملف إكسل', filterBy: 'فلترة حسب الرد', searchPh: 'الاسم أو الرقم', search: 'بحث', close: 'إغلاق', name: 'الاسم',
-      waNum: 'رقم الواتساب', extrasQ: 'كم مرافق يجيبون معاهم', none: 'بدون', list: 'القائمة', sidePh: 'مثلاً: أم العروس', addOpenWa: 'إضافة وفتح الواتساب', activity: 'السجل', activityP: 'الردود والوصول وأي تعديل',
-      addBtn: 'إضافة', addOne: 'ضيف واحد', addList: 'قائمة أو إكسل',
-      loadErrEv: 'ما قدرنا نحمّل مناسباتكم', doorH: 'تسجيل وصول الضيوف', doorP: 'حسابكم مخصص للباب، تسجلون فيه الضيوف أول ما يوصلون.', doorBtn: 'افتحوا شاشة الباب',
-      noEvH: 'قاعدين نجهّز مناسبتكم', noEvP: 'هذا الإيميل مو مربوط بأي مناسبة للحين. راسلونا على الواتساب ونضيفها لكم.',
-      linkKick: 'رابط الدعوة', linkHelp: 'أرسلوا هالرابط للكل. الضيف يكتب اسمه ويرد، وتشوفون رده هني على طول.', copy: 'نسخ', copiedB: 'منسوخ',
-      shareWa: 'إرسال بالواتساب', copied: 'نسخنا الرابط', copyPrompt: 'انسخوا الرابط:', seeMsg: 'شوفوا الرسالة', loadErrG: 'ما قدرنا نحمّل قائمة الضيوف', allLists: 'كل القوائم',
-      yourList: s => `قائمتكم: ${s}`, yourInvite: 'دعوتكم',
-      K: { all: 'الكل', yes: 'بيحضرون', pending: 'ما ردوا', no: 'معتذرين' }, st: { yes: 'بيحضر', no: 'معتذر', pending: 'ما رد' },
-      arrived: 'وصل', viaLink: 'رد من الرابط', ofN: (c, s) => `${c} من ${s}`, extras: n => `${arPlus(n)} ${n === 2 ? 'مرافقين' : arUnit(n, 'مرافق', 'مرافقين')}`, plus: arPlus, notSent: 'ما انرسلت',
-      resend: 'إعادة الإرسال', send: 'إرسال', remind: 'تذكير', remove: 'حذف الضيف', tapRemove: 'اضغطوا مرة ثانية للحذف', noMatch: 'ما لقينا أحد بهالاسم أو الرقم.',
-      noneYet: 'ما في أحد للحين. أرسلوا رابط الدعوة وبتطلع الردود هني.', reply: 'الرد', peopleComing: 'كم شخص بيحضر', extrasAllowed: 'كم مرافق مسموح', save: 'حفظ', cancel: 'إلغاء',
-      noPkg: 'الدعوات الباقية بالباقة ما تكفي', cantSave: m => 'ما قدرنا نحفظ: ' + m, saved: 'انحفظ',
-      reqKick: 'بانتظار موافقتكم', people: arPeople, reqExtra: 'معاهم زيادة عن المسموح', reqNotOn: 'مو بالقائمة', letIn: 'خلوهم يدخلون', turnDown: 'نعتذر', fromDoor: '',
-      reqT: n => n === 1 ? 'فيه أحد عند الباب' : `فيه ${arN(n, 'طلب واحد', 'طلبين', 'طلبات', 'طلب')} من الباب`, reqP: 'اللي على الباب يوصله ردكم على طول.',
-      approved: 'وصلت موافقتكم للباب', turnedDown: 'وصل اعتذاركم للباب',
-      act: { guest_reply: 'رد الضيف', link_reply: 'رد من رابط الدعوة', host_set_reply: 'المضيفة عدّلت الرد', host_set_extras: 'تعديل عدد المرافقين', set_rules: 'تعديل إعدادات الرد',
-        check_in: 'وصول عند الباب', request_exception: 'طلب من الباب', decide_exception: 'رد المضيفة على طلب الباب', door_open_list: 'فتح القائمة من الباب' }, actOther: 'تحديث',
-      logSt: { yes: 'بيحضر', no: 'معتذر', pending: 'ما رد', approved: 'موافقة', rejected: 'اعتذار' }, logErr: 'ما قدرنا نحمّل السجل.', logGuest: 'ضيف', logNothing: 'ما في شي للحين.', rulesSaved: 'انحفظت الإعدادات',
-      notHere: 'ما وصل', arrivedAt: tm => `وصل ${tm}`, invN: arInvites, didntReply: 'ما رد', attNone: 'ما في أحد للحين.',
-      cardAlt: 'كرت الدعوة', chipsL: 'ألوان الكرت:', mainCol: 'اللون الأساسي', bgCol: 'لون الخلفية', rmCard: 'حذف الكرت',
-      uploading: 'قاعدين نرفع الكرت…', cardOk: 'انضاف الكرت، وأخذنا ألوانه', cardErr: m => 'ما قدرنا نرفع الكرت: ' + (m || 'جربوا صورة JPG'),
-      lineEach: 'كل سطر لازم يكون فيه اسم ورقم', fileNone: 'ما لقينا أسماء وأرقام بالملف', fileErr: 'ما قدرنا نقرا الملف',
-      found: n => `لقينا <b>${arGuests(n)}</b>:`, addMine: 'إضافة لقائمتي', addErr: m => 'ما قدرنا نضيفهم: ' + m,
-      addedN: (a, skip) => `ضفنا ${arGuests(a)}` + (skip === 1 ? '، وواحد كان موجود من قبل' : skip ? `، و${skip} كانوا موجودين من قبل` : ''), rmErr: 'ما قدرنا نحذف الضيف', removed: n => 'حذفنا ' + n,
-      typeName: 'اكتبوا اسم الضيف', short: 'رقم الواتساب ناقص', dupNum: 'هالرقم موجود بالقائمة من قبل', addOneErr: 'ما قدرنا نضيف الضيف', added: n => 'ضفنا ' + n,
-      nextK: 'الخطوة الجاية', addT: 'حطوا قائمة ضيوفكم', addP: 'الصقوا قائمة، أو ارفعوا ملف إكسل، أو ضيفوهم واحد واحد.', addB: 'إضافة ضيوف',
-      sendT: n => n === 1 ? 'فيه دعوة وحدة ما انرسلت' : `فيه ${arInvites(n)} ما انرسلت`, sendP: 'نرسلها وحدة وحدة على الواتساب.', sendB: 'أرسلوها الحين',
-      tonightT: 'الليلة ليلتكم', tonightP: n => `ننتظر ${arPeople(n)}، تابعوا وصولهم أول بأول.`, tonightB: 'افتحوا الحضور',
-      pendT: n => n === 1 ? 'فيه ضيف واحد ما رد' : `فيه ${arGuests(n)} ما ردوا`, pendP: 'رسالة تذكير على الواتساب عادةً تكفي.', pendB: 'أرسلوا تذكير',
-      doneT: 'كل الضيوف ردوا', doneP: n => `بيحضر ${arPeople(n)}، الله يتمم على خير.`, doneB: 'شوفوا قائمة الضيوف',
-      pastT: 'انتهت المناسبة', pastP: n => `حضر ${arPeople(n)}، وعساها كانت ليلة حلوة.`, pastB: 'شوفوا الحضور',
-      mComing: n => n === 1 ? 'شخص بيحضر' : n >= 3 && n <= 10 ? 'أشخاص بيحضرون' : n > 10 ? 'شخص بيحضرون' : 'بيحضرون', chipP: (l, n) => `${l}: ${arPeople(n)}`, mFrom: (inv, left) => `من أصل ${inv} مدعو` + (left != null ? `، وباقي ${arInvites(left)} بالباقة` : ''),
-      latestH: 'آخر الردود', seeAll: 'شوفوا الكل', justNow: 'الحين', mins: n => `قبل ${arN(n, 'دقيقة', 'دقيقتين', 'دقايق', 'دقيقة')}`, hrs: n => `قبل ${arN(n, 'ساعة', 'ساعتين', 'ساعات', 'ساعة')}`, days: n => n === 1 ? 'أمس' : `قبل ${arN(n, 'يوم', 'يومين', 'أيام', 'يوم')}`,
-      setupK: 'البداية', setupT: 'ثلاث خطوات وتكونون جاهزين', stepsN: d => `خلصتوا ${d} من 3`,
-      s1: 'راجعوا الدعوة', s1p: 'تأكدوا من التاريخ والمكان والرسالة.', s2: 'حطوا قائمة الضيوف', s2p: 'ابدوا بأقرب الناس لكم.',
-      s3: 'أرسلوا الدعوات', s3p: 'وحدة وحدة على الواتساب، أو أرسلوا رابط الدعوة للكل.', stepDone: 'تم',
-      newN: n => arN(n, 'رد جديد', 'ردين جداد', 'ردود جديدة', 'رد جديد'), upFirst: (s, m) => `أولهم: ${s}` + (m === 1 ? ' وواحد غيرهم' : m === 2 ? ' واثنين غيرهم' : m ? ` و${m} غيرهم` : ''), comma: '، ', msFirst: 'أول ضيف أكد حضوره', msHalf: 'نص ضيوفكم أكدوا', msAll: n => `كل الضيوف ردوا، وبيحضر ${arPeople(n)}.`, msArr: 'وصل أول ضيف',
-      jYes: (nm, n) => `${nm} أكدوا الحضور، ${arPeople(n)}`, jNo: nm => `${nm} اعتذروا`, jIn: nm => `${nm} وصلوا`, live: 'مباشر',
-      toSend: n => n === 1 ? 'باقي دعوة وحدة ترسلونها' : `باقي ${arInvites(n)} ترسلونها`, toSendP: 'وحدة وحدة على الواتساب', start: 'ابدوا',
-      emptyG: 'ابدوا بأقرب الناس لكم.', wPaste: 'الصقوا قائمة', wPasteP: 'الاسم والرقم، كل ضيف بسطر', wXls: 'ارفعوا ملف إكسل', wXlsP: 'أو ملف وورد أو CSV', wOne: 'ضيف واحد', wOneP: 'الاسم ورقم الواتساب',
-      results: n => arN(n, 'نتيجة وحدة', 'نتيجتين', 'نتايج', 'نتيجة'),
-      remindTpl: null,
-      sqH: 'إرسال الدعوات', sqOf: (i, n) => `الضيف ${i} من ${n}`, openWa: 'افتحوا الواتساب', skip: 'اللي بعده', doneForNow: 'نكمل بعدين', sentTo: nm => `انرسلت إلى ${nm}`,
-      allSent: n => n === 1 ? 'انرسلت الدعوة' : n === 2 ? 'انرسلت الدعوتين' : `انرسلت الدعوات كلها (${n})`, sentSkipped: (s, k) => `انرسلت ${s}، وتخطيتوا ${k}`, sqNone: 'كل الضيوف بهالقائمة وصلتهم الدعوة.', sqEndP: 'الردود بتطلع لكم بالرئيسية أول بأول.',
       grp1: 'المناسبة', grp2: 'الموعد والمكان', grp3: 'رسالة الواتساب', grp4: 'الكرت والألوان', instant: 'التعديلات هني تنحفظ على طول.',
-      unsaved: 'فيه تعديلات ما انحفظت', leaveQ: 'فيه تعديلات على الدعوة ما انحفظت. تطلعون بدون حفظ؟', allSaved: 'انحفظت التعديلات', discard: 'تراجع', noDate: 'ما في تاريخ للحين', noCard: 'ما في كرت للحين', cardOn: 'الكرت موجود',
+      tplHelp: 'اضغطوا على المعلومة وتنضاف للرسالة، وتتعبى لكل ضيف بروحها:', prevH: nm => `الرسالة اللي بتوصل ${nm}:`, sampleName: 'دانة',
+      tok: { name: 'اسم الضيف', date: 'التاريخ', time: 'الوقت', venue: 'المكان', event: 'اسم المناسبة', link: 'رابط الرد', invites: 'عدد الأشخاص' },
+      needLink: 'الرسالة لازم يكون فيها رابط الرد، بدونه الضيف ما يقدر يرد.', putLink: 'رجّعوا الرابط',
+      cardHelp: 'ارفعوا الكرت (صورة أو PDF)، ويطلع فوق بصفحة الدعوة.', uploadCard: 'رفع الكرت', cardAlt: 'كرت الدعوة', chipsL: 'ألوان الكرت:',
+      mainCol: 'اللون الأساسي', bgCol: 'لون الخلفية', rmCard: 'حذف الكرت', uploading: 'قاعدين نرفع الكرت…', cardOk: 'انضاف الكرت، وأخذنا ألوانه', cardErr: k => k === 'net' ? 'ما قدرنا نرفع الكرت، ما في اتصال. جربوا مرة ثانية.' : 'ما قدرنا نرفع الكرت، جربوا صورة JPG.',
+      rulesH: 'إعدادات الرد', replyBy: 'آخر موعد للرد (اختياري)', time: 'الوقت', canChange: 'الضيوف يقدرون يغيرون ردهم', linkOpen: 'الرابط العام يقبل ردود جديدة',
       rulesPv: (d, c) => (d ? `آخر موعد للرد ${d}` : 'ما في آخر موعد للرد') + (c ? '' : '، والرد ما يتغير'),
-      tok: { name: 'اسم الضيف', date: 'التاريخ', time: 'الوقت', venue: 'المكان', event: 'المناسبة', link: 'رابط الضيف', invites: 'عدد الدعوات' },
-      pkgK: 'باقتكم', pkgLeft: (left, lim) => `باقي ${left} من ${lim} دعوة`, pkgUsed: n => `استخدمتوا ${n}`, pkgMore: 'تبون زيادة؟ راسلونا',
-      ofHere: n => `من ${n} وصلوا`, lastArr: (nm, tm) => `آخر من وصل: ${nm}، الساعة ${tm}`, noOneYet: 'ما وصل أحد للحين',
-      attK: { all: 'الكل', in: 'وصلوا', out: 'باقي ما وصلوا', pend: 'ما ردوا' }, partHere: (c, s) => `وصل ${c} من ${s}`, expectedN: n => `ننتظر ${arPeople(n)}`,
-      attNote: d => `تسجيل الوصول يبدأ ${d}، وبتشوفون اللي يوصلون هني أول بأول.` }
+      unsaved: 'فيه تعديلات ما انحفظت', leaveQ: 'فيه تعديلات على الدعوة ما انحفظت. تطلعون بدون حفظ؟', allSaved: 'انحفظت التعديلات', discard: 'إلغاء التعديلات', saveChanges: 'حفظ التعديلات',
+      noDate: 'ما في تاريخ للحين', noCard: 'ما في كرت للحين', cardOn: 'الكرت موجود',
+      pubH: 'رابط عام للمجموعات (اختياري)', pubSum: 'لقروبات الواتساب، وأي أحد عنده الرابط يقدر يرد.', pubP: 'رابط واحد تحطونه بقروب واتساب. أي أحد عنده الرابط يقدر يرد بأي اسم، عشان جذي الدعوات الشخصية أفضل.',
+      copy: 'نسخ الرابط', copiedB: 'منسوخ', shareWa: 'مشاركة بقروب', copied: 'نسخنا الرابط', copyPrompt: 'انسخوا الرابط:', seeMsg: 'شوفوا الرسالة',
+      pkgK: 'باقتكم', pkgLeft: (l, lim) => `باقي ${l} من ${A(lim)}`, pkgUsed: n => `عزمتوا ${A(n)}`, pkgMore: 'تبون زيادة؟ راسلونا',
+      chgH: 'تبلغون ضيوفكم؟', chgP: n => `${n === 1 ? 'ضيف واحد وصلته' : A(n, 'guest') + ' وصلتهم'} الدعوة بالتفاصيل القديمة. تبون تبلغونهم بالتغيير واحد واحد على الواتساب؟`,
+      chgGo: n => `بلغوهم (${n})`, chgLater: 'لا تبلغونهم',
+      activity: 'السجل', activityP: 'الردود والوصول وأي تعديل',
+      act: { guest_reply: 'رد الضيف', link_reply: 'رد من الرابط العام', host_set_reply: 'عدّلتوا الرد', host_set_extras: 'تعديل عدد الأشخاص', set_rules: 'تعديل إعدادات الرد',
+        check_in: 'وصول عند الباب', undo_check_in: 'الباب تراجع عن تسجيل الوصول', request_exception: 'طلب من الباب', decide_exception: 'ردكم على طلب الباب', door_open_list: 'الباب فتح الأسماء' }, actOther: 'تحديث',
+      logSt: { yes: 'بيحضرون', no: 'اعتذروا', pending: 'ما ردوا', approved: 'دخلوا', rejected: 'ما دخلوا' }, logErr: 'ما قدرنا نحمّل السجل.', logGuest: 'ضيف', logNothing: 'ما في شي للحين.',
+      hereHero: (h, e) => e ? `<b class="t-num">${h}</b> <span class="hero-w">من ${A(e)} وصلوا</span>` : `<span class="hero-w">${h ? 'وصل ' + A(h) : 'ما وصل أحد للحين'}</span>`,
+      lastArr: (nm, tm) => `آخر من وصل: ${nm}، الساعة ${tm}`, noOneYet: 'ما وصل أحد للحين', noOneExp: 'ما أحد أكد حضوره للحين، عشان جذي ما ننتظر أحد.',
+      attK: { all: 'الكل', in: 'وصلوا', out: 'ما وصلوا', pend: 'ما ردوا' }, attBy: 'عرض', partHere: (c, s) => `وصل ${c} من ${A(s)}`, expectedN: n => `ننتظر ${A(n)}`, attNone: 'ما في أحد للحين.',
+      attNote: d => `تسجيل الوصول يبدأ ${d}، وبتشوفون اللي يوصلون هني أول بأول.`,
+      reqH: 'الباب يسألكم', reqP: 'اللي على الباب يشوف ردكم أول ما تردون.',
+      reqAsk: (n, extra) => `يبون يدخلون ${A(n)}${extra ? ' زيادة' : ''}`, notOnList: 'اسمهم مو مسجّل',
+      ctxAllowed: n => `مسموح ${A(n)}`, ctxYes: n => `أكدوا ${A(n)}`, ctxPend: 'ما ردوا', ctxNo: 'اعتذروا', ctxIn: n => n ? `وصل ${A(n)}` : 'ما وصل أحد للحين', asked: a => `طلبوا ${a}`, ctxSep: '، ',
+      letIn: 'إي، خلوهم يدخلون', turnDown: 'لا، ما يدخلون', approved: 'وصلت موافقتكم للباب', turnedDown: nm => `رفضتوا دخول ${nm}`, doorTold: 'وصل ردكم للباب',
+      loadErrEv: 'ما قدرنا نحمّل مناسباتكم', loadErrG: 'ما قدرنا نحمّل قائمة الضيوف', doorH: 'تسجيل وصول الضيوف', doorP: 'حسابكم مخصص للباب، تسجلون فيه الضيوف أول ما يوصلون.', doorBtn: 'افتحوا شاشة الباب',
+      noEvH: 'قاعدين نجهّز مناسبتكم', noEvP: 'هذا الإيميل مو مربوط بأي مناسبة للحين. راسلونا على الواتساب ونضيفها لكم.',
+      help: [['كيف نرسل الدعوات؟', 'من الرئيسية أو الضيوف اضغطوا «أرسلوا الدعوات». الواتساب يفتح لكل ضيف بروحه، أرسلوا الرسالة هناك وارجعوا هني واضغطوا «إي، انرسلت».'],
+        ['ليش نسألكم إذا انرسلت؟', 'فتح الواتساب ما يعني إن الرسالة راحت. ما نحسب الضيف وصلته الدعوة إلا إذا قلتوا إي، عشان ما يفوتكم أحد.'],
+        ['وش الفرق بين الضيف والشخص؟', 'الضيف يعني دعوة وحدة، مثل عائلة. والأشخاص هم كل اللي يقدرون يجون على هالدعوة. ضيف بـ3 أشخاص يعني يقدرون يجون 3 أشخاص بالكثير، والضيف منهم.'],
+        ['الباب يسألكم عن ضيف', 'إذا اللي على الباب يحتاج موافقتكم، يطلع لكم شريط أحمر بالرئيسية. اضغطوه واختاروا «إي، خلوهم يدخلون» أو «لا، ما يدخلون». وعندكم كم ثانية تتراجعون فيها عن الرفض.'],
+        ['غيّرتوا الموعد أو المكان؟', 'بعد الحفظ نسألكم إذا تبون تبلغون الضيوف اللي وصلتهم الدعوة، واحد واحد على الواتساب.']] }
   };
-  T.ar.remindTpl = T.en.remindTpl;
+  // the Arabic default message carries the time too (the shared default only has the date)
+  const AR_DEFAULT = 'حياكم الله {الاسم}\n\nنتشرف بدعوتكم لحضور {المناسبة} يوم {التاريخ} الساعة {الوقت}.\n\nعدد الأشخاص: {العدد}\nلتأكيد الحضور أو الاعتذار:\n{الرابط}';
+  const defTpl = l => l === 'en' ? App.DEFAULT_TEMPLATE_EN : AR_DEFAULT;
+  const isDefTpl = s => [App.DEFAULT_TEMPLATE_EN, AR_DEFAULT, App.DEFAULT_TEMPLATE].includes(String(s || '').replace(/\s+$/, ''));
+  const tplFor = e => e.message_template || defTpl(e.lang);
+  const evLang = () => ev && ev.lang === 'en' ? 'en' : 'ar';
   let lang = 'en'; try { lang = localStorage.getItem('host-lang') === 'ar' ? 'ar' : 'en'; } catch (e) {}
   let t = T[lang], noEv = null, shownChips;
+  const cw = (n, k) => lang === 'ar' ? A(n, k) : E(n, k);
   const ls = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
+  // a failed save in plain words, in the page's language (the raw error only goes to the console)
+  function why(err) {
+    const m = String((err && err.message) || ''), c = String((err && err.code) || '');
+    try { console.warn('host: save failed', c, m); } catch (e) {}
+    if (!c && (/fetch|network|load failed|abort|timed? ?out|offline/i.test(m) || navigator.onLine === false)) return 'net';
+    if (/own request/i.test(m)) return 'own';
+    if (c === '42501' || /not allowed|only the host|permission|denied|row-level/i.test(m)) return 'perm';
+    return 'other';
+  }
   const ss = { get: k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { sessionStorage.setItem(k, v); } catch (e) {} } };
+  App.setHelp(l => T[l].help);
+
+  // a toast that also shows above an open sheet (sheets sit in the top layer)
+  function toast(msg) {
+    App.toast(msg);
+    const el = $('#toast'); if (!el) return;
+    const open = [...document.querySelectorAll('dialog[open]')].pop();
+    if (open && el.parentNode !== open) open.appendChild(el); else if (!open && el.parentNode !== document.body) document.body.appendChild(el);
+  }
+  const hideToast = () => { const el = $('#toast'); if (el) el.classList.remove('on'); };
 
   function applyLang() {
-    t = T[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; document.title = t.title;
-    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t[el.dataset.i18n]; });
+    t = T[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; document.title = App.brandTitle(t.title, lang);
+    document.querySelectorAll('[data-i18n]').forEach(el => { const v = t[el.dataset.i18n]; if (typeof v === 'string') el.textContent = v; });
     document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t[el.dataset.i18nPh]; });
     document.querySelectorAll('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', t[el.dataset.i18nAria]));
     $('#lang').setAttribute('lang', lang === 'ar' ? 'en' : 'ar');
-    $('#sqX').setAttribute('aria-label', t.close); $('#sqH').textContent = t.sqH;
-    document.querySelectorAll('#nSeats option').forEach(o => { if (+o.value > 1) o.textContent = t.plus(o.value - 1); });
-    renderToks(); renderMenu();
+    $('#nStepWrap').innerHTML = stepper('nStep', +$('#nSeats').value || 1, 1, MAXP, t.partyL); bindAddStep();
+    renderToks();
     if (noEv) showNoEvents();
-    if (ev) { showMeta(); renderPub(); render(); renderBulk(); renderEditTheme(shownChips); previews(); dirtyCheck(); if ($('#logBox').open) loadLog(); if ($('#sendq').open) drawQueue(); }
+    if (ev) { showMeta(); renderPub(); drawTpl(); render(); renderBulk(); renderEditTheme(shownChips); previews(); dirtyCheck(); if ($('#logBox').open) loadLog(); if ($('#sendq').open) drawQueue(); }
   }
   $('#lang').onclick = () => { lang = lang === 'ar' ? 'en' : 'ar'; ls.set('host-lang', lang); applyLang(); };
   function showNoEvents() {
-    $('#auth').innerHTML = `<div class="login-wrap">` + (noEv === 'door' ? `<div class="login box"><p class="kicker">${t.door}</p><h2>${t.doorH}</h2><p class="sub">${t.doorP}</p><a class="btn" href="door.html">${t.doorBtn}</a></div>`
+    $('#auth').innerHTML = `<div class="login-wrap">` + (noEv === 'door' ? `<div class="login box"><h2>${t.doorH}</h2><p class="sub">${t.doorP}</p><a class="btn primary" href="door.html">${t.doorBtn}</a></div>`
       : `<div class="login box"><h2>${t.noEvH}</h2><p class="sub">${t.noEvP}</p></div>`) + `</div>`;
   }
   const kwDay = d => new Date(new Date(d).getTime() + 3 * 3600e3).toISOString().slice(0, 10);
   const daysTo = iso => iso ? Math.round((new Date(kwDay(iso)) - new Date(kwDay(new Date()))) / 864e5) : null;
   const uiLoc = () => lang === 'ar' ? 'ar-KW-u-nu-latn' : 'en-GB';
-  const shortDate = iso => new Date(iso).toLocaleDateString(uiLoc(), { timeZone: 'Asia/Kuwait', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  const shortDate = iso => new Date(iso).toLocaleDateString(uiLoc(), { timeZone: 'Asia/Kuwait', weekday: 'short', day: 'numeric', month: 'short' });
   const dayMonth = iso => new Date(iso).toLocaleDateString(uiLoc(), { timeZone: 'Asia/Kuwait', weekday: 'long', day: 'numeric', month: 'long' });
   const inviteUrl = () => `${(CONFIG.SITE_URL || location.origin).replace(/\/$/, '')}/invite.html?e=${ev.public_code}`;
+  // the Arabic headline in the Arabic UI when there is one, else the event name
+  const evName = () => !ev ? '' : lang === 'ar' && ev.headline && isAr(ev.headline) ? ev.headline : ev.title;
   function showMeta() {
-    $('#mastK').textContent = ev.starts_at ? `${shortDate(ev.starts_at)} · ${fmtTime(ev.starts_at, lang)}` : '';
-    $('#title').innerHTML = App.ampTitle(ev.title); $('#title').classList.toggle('lat', !isAr(ev.title));
-    $('#tbTitle').textContent = ev.title;
-    $('#mastV').innerHTML = ev.venue ? `<i class="i i-arch sm"></i>${bdi(ev.venue)}` : '';
-    $('#mastV').hidden = !ev.venue;
-    const cd = App.countdown(ev.starts_at, lang); $('#cd').textContent = cd; $('#cd').hidden = !cd;
-    $('#live').textContent = t.live; $('#live').hidden = !live;
+    const nm = evName();
+    $('#title').innerHTML = App.ampTitle(nm); $('#title').classList.toggle('lat', !isAr(nm));
+    $('#tbTitle').textContent = nm;
+    // "5 days to go" / «باقي 5 أيام», with the right number agreement
+    const dn = daysTo(ev.starts_at), cd = dn == null ? '' : t.cd(dn);
+    const bits = [ev.starts_at ? `${esc(shortDate(ev.starts_at))} · ${esc(nb(fmtTime(ev.starts_at, lang)))}` : '', cd ? esc(cd) : ''].filter(Boolean);
+    $('#mastK').innerHTML = bits.join(' · ') + (live ? ` <span class="live">${t.live}</span>` : '');
     renderInvTop();
   }
 
@@ -327,13 +422,11 @@ document.addEventListener('DOMContentLoaded', function () {
   const TABS = ['home', 'guests', 'invite', 'arrivals'];
   function go(p, keepScroll) {
     if (!TABS.includes(p)) p = 'home';
-    tab = p;
+    tab = p; hideToast();
     TABS.forEach(k => { $('#pg-' + k).hidden = k !== p; const b = $('#tab-' + k); b.setAttribute('aria-selected', k === p); b.tabIndex = k === p ? 0 : -1; });
     if (ev) ss.set('host-tab-' + ev.id, p);
-    if (p === 'invite' && ev) { ls.set('host-inv-' + ev.id, '1'); if (!snap || !isDirty()) fillEdit(); renderHome(); }
-    // the big masthead is Home's hero; the working tabs keep the event name in the top bar instead
-    $('#mast').hidden = p === 'guests' || p === 'invite'; $('#mast').classList.toggle('compact', p === 'arrivals');
-    tbSync(); renderMenu();
+    if (p === 'invite' && ev) { if (!snap || !isDirty()) fillEdit(); }
+    tbSync();
     if (!keepScroll) window.scrollTo(0, 0);
   }
   $('#tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) go(b.dataset.tab); });
@@ -342,15 +435,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const dir = (e.key === 'ArrowRight') === (lang !== 'ar') ? 1 : -1;
     const i = (TABS.indexOf(tab) + dir + TABS.length) % TABS.length; go(TABS[i]); $('#tab-' + TABS[i]).focus();
   });
-  function renderMenu() {
-    const nav = $('#menuNav'); if (!ev) { nav.innerHTML = ''; return; }
-    const IC = { home: 'i-home', guests: 'i-list', invite: 'i-env', arrivals: 'i-people' }, L = { home: t.tHome, guests: t.tGuests, invite: t.tInvite, arrivals: t.tArr };
-    nav.innerHTML = TABS.map(k => `<button type="button" data-go="${k}" ${k === tab ? 'aria-current="page"' : ''}><i class="i ${IC[k]}"></i>${L[k]}</button>`).join('')
-      + `<a href="door.html"><i class="i i-door"></i>${t.doorScreen}</a>` + (admin ? `<a href="admin.html"><i class="i i-pen"></i>${t.admin}</a>` : '');
-    nav.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { $('#menu').close(); go(b.dataset.go); });
-  }
-  // the event's short title appears in the top bar once the masthead scrolls away
-  // (on the working tabs the masthead is hidden or compact, so the title shows straight away)
+  // the event's name sits in the top bar on every tab except Home (where the one-line title is on the page)
   let mastIn = true;
   function tbSync() { $('#tbTitle').classList.toggle('on', !$('#dash').hidden && (tab !== 'home' || !mastIn)); }
   if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => { mastIn = e.isIntersecting; tbSync(); }, { rootMargin: '-62px 0px 0px 0px' }).observe($('#mast'));
@@ -367,14 +452,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const mine = members.filter(m => m.email.toLowerCase() === myEmail);
     const doorOnly = new Set(mine.filter(m => m.role === 'door').map(m => m.event_id));
     events = (evs || []).filter(e => admin || !doorOnly.has(e.id));
-    if (!events.length) { noEv = doorOnly.size ? 'door' : 'none'; showNoEvents(); renderMenu(); return; }
+    if (!events.length) { noEv = doorOnly.size ? 'door' : 'none'; showNoEvents(); return; }
     const saved = new URLSearchParams(location.search).get('event');
     pick(events.find(e => e.id === saved) || events[0]);
   });
 
   async function pick(e) {
     if (ev && ev.id !== e.id && isDirty() && !confirm(t.leaveQ)) return;
-    ev = e; guests = []; reqs = []; $('#dash').hidden = false; $('#tabs').hidden = false; side = 'all'; filter = 'all'; attFilter = 'all'; prev = null; fresh = new Map(); lastNextKey = ''; snap = null;
+    flushRejects();
+    ev = e; guests = []; reqs = []; $('#dash').hidden = false; $('#tabs').hidden = false; side = 'all'; filter = 'all'; attFilter = 'all'; prev = null; fresh = new Map(); snap = null;
     const m = members.find(x => x.event_id === ev.id && x.email.toLowerCase() === myEmail && x.role === 'host');
     mySide = !admin && m && m.side ? m.side : null;
     $('#evlist').innerHTML = events.length > 1 ? events.map(x => `<button data-id="${x.id}" aria-current="${x.id === ev.id}">${bdi(x.title)}</button>`).join('') : '';
@@ -382,6 +468,7 @@ document.addEventListener('DOMContentLoaded', function () {
     showMeta(); renderPub(); editing = null;
     $('#rulesBox').hidden = !v2 || !!mySide;
     $('#logBox').hidden = !v2 || !!mySide; $('#logBox').open = false;
+    $('#invLinks').innerHTML = admin ? `<a class="btn quiet" href="admin.html"><i class="i i-pen"></i>${t.admin}</a>` : '';
     document.querySelectorAll('#editForm details').forEach(d => d.open = false);
     fillEdit();
     go(ss.get('host-tab-' + ev.id) || 'home');
@@ -389,47 +476,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (channel) sb.removeChannel(channel);
     live = false;
     channel = sb.channel('guests-' + ev.id).on('postgres_changes', { event: '*', schema: 'public', table: 'guests', filter: `event_id=eq.${ev.id}` }, loadGuests)
-      .subscribe(s => { live = s === 'SUBSCRIBED'; $('#live').hidden = !live; });
+      .subscribe(s => { live = s === 'SUBSCRIBED'; showMeta(); });
     clearInterval(poll); poll = setInterval(() => { loadGuests(); loadReqs(); }, 20000);
-  }
-
-  // ---------- share link (Invite tab) ----------
-  function shareMsg(link) {
-    return ev.lang === 'en' ? `You’re invited to ${ev.invite_line ? ev.invite_line.replace(/^Join us for /i, '') : (ev.headline || ev.title)}${ev.starts_at ? ' on ' + App.fmtDate(ev.starts_at, 'en') + ' at ' + App.fmtTime(ev.starts_at, 'en') : ''}.\n\nPlease tap the link, type your name and let us know if you can make it:\n${link}` : `حياكم الله\n\nنتشرف بدعوتكم لحضور ${ev.headline || ev.title}\n\nلتأكيد الحضور أو الاعتذار:\n${link}`;
-  }
-  function renderPub() {
-    const b = $('#pubBox');
-    if (!ev.public_code) { b.hidden = true; return; }
-    const link = inviteUrl(), msg = shareMsg(link);
-    const shortLink = link.replace(/^https?:\/\//, '');
-    b.hidden = false;
-    b.innerHTML = `<p class="kicker">${t.linkKick}</p><p class="next-p">${t.linkHelp}</p>
-      <div class="linkpill"><i class="i i-link sm"></i><span dir="ltr">${esc(shortLink)}</span><button class="btn small ghost" id="copyLink"><i class="i i-copy sm"></i><span>${t.copy}</span></button></div>
-      <a class="btn block" id="shareWa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(msg)}"><i class="i i-whatsapp"></i>${t.shareWa}</a>
-      <details><summary><span>${t.seeMsg}</span><i class="i i-chev sm"></i></summary><div class="paper" dir="auto">${esc(msg)}</div></details>`;
-    const shared = () => { ls.set('host-shared-' + ev.id, '1'); setTimeout(renderHome, 400); };
-    $('#shareWa').onclick = shared;
-    $('#copyLink').onclick = async () => {
-      const btn = $('#copyLink');
-      try { await navigator.clipboard.writeText(link); } catch (e) { prompt(t.copyPrompt, link); return; }
-      btn.classList.add('copied'); btn.innerHTML = `<i class="i i-check sm"></i><span>${t.copiedB}</span>`; vibe(15);
-      toastQuiet(t.copied); shared();
-      setTimeout(() => { if (btn.isConnected) { btn.classList.remove('copied'); btn.innerHTML = `<i class="i i-copy sm"></i><span>${t.copy}</span>`; } }, 1600);
-    };
-  }
-  // screen-reader announcement without the visual toast (the button already says "Copied")
-  function toastQuiet(msg) { let r = $('#srLive'); if (!r) { r = document.createElement('div'); r.id = 'srLive'; r.className = 'sr'; r.setAttribute('role', 'status'); document.body.appendChild(r); } r.textContent = ''; setTimeout(() => { r.textContent = msg; }, 30); }
-
-  function renderInvTop() {
-    if (!ev) return;
-    const v = App.themeVars(ev.theme_accent || '#5B0F1D', ev.theme_paper || '#EDE5DA');
-    $('#invFrame').innerHTML = ev.card_image_url ? `<img src="${esc(ev.card_image_url)}" alt="${esc(t.cardAlt)}">`
-      : `<div class="inv-mini" style="background:${v['--t-paper']};color:${v['--t-accent']}"><small>${ev.starts_at ? esc(shortDate(ev.starts_at)) : ''}</small><b dir="auto">${App.ampTitle(ev.headline || ev.title)}</b></div>`;
-    const line = ev.invite_line || ev.headline || ev.title; $('#invT').innerHTML = App.ampTitle(line); $('#invT').classList.toggle('lat', !isAr(line));
-    $('#invW').textContent = ev.starts_at ? `${fmtDate(ev.starts_at, lang)} · ${fmtTime(ev.starts_at, lang)}` : t.noDate;
-    $('#invV').innerHTML = ev.venue ? bdi(ev.venue) : ''; $('#invV').hidden = !ev.venue;
-    $('#ePreview').href = ev.public_code ? inviteUrl() : '#';
-    $('#ePreview').hidden = !ev.public_code;
   }
 
   // ---------- guests: load + what changed since last time ----------
@@ -437,9 +485,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const { data, error } = await sb.from('guests').select('*').eq('event_id', ev.id).order('created_at');
     if (error) { toast(t.loadErrG); return; }
     guests = data || [];
-    if (!prev) { const k = 'host-seen-' + ev.id, last = +ls.get(k) || 0; newSince = last ? guests.filter(g => g.responded_at && g.status !== 'pending' && new Date(g.responded_at) > last).length : 0; ls.set(k, String(Date.now())); }
+    if (!prev) { const k = 'host-seen-' + ev.id, last = +ls.get(k) || 0; newSince = last ? guests.filter(g => g.responded_at && g.status !== 'pending' && !atDoor(g) && new Date(g.responded_at) > last).length : 0; ls.set(k, String(Date.now())); }
     diff();
-    if (editing && $('#rows .ed')) { renderHome(); renderAtt(); badges(); return; }   // don't wipe a change the host is in the middle of
+    if (editing && $('#rows .ed')) { renderHome(); renderAtt(); renderInvite(); return; }   // don't wipe a change the host is in the middle of
     render();
   }
   function diff() {
@@ -449,6 +497,8 @@ document.addEventListener('DOMContentLoaded', function () {
       guests.forEach(g => {
         if (selfIds.has(g.id)) return;
         const p = prev.get(g.id), n = now.get(g.id);
+        // the row the door makes for someone this phone just let in: the 'approved' toast already said it
+        if (!p && atDoor(g) && doorOk.has(g.name) && Date.now() - doorOk.get(g.name) < 60000) { doorOk.delete(g.name); return; }
         if (n.a && (!p || !p.a || n.c > p.c)) { fresh.set(g.id, Date.now()); msg = msg || t.jIn(g.name); return; }
         if ((!p && n.s !== 'pending') || (p && p.s !== n.s)) {
           if (n.s === 'yes') { fresh.set(g.id, Date.now()); msg = t.jYes(g.name, App.peopleComing(g)); }
@@ -462,140 +512,78 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   const isFresh = id => { const ts = fresh.get(id); if (!ts) return false; if (Date.now() - ts > 2600) { fresh.delete(id); return false; } return true; };
 
-  const sidesOf = () => [...new Set([...guests.map(g => g.side), ...members.filter(m => m.event_id === ev.id).map(m => m.side)].filter(Boolean))];
+  // ---------- one definition of every count, used on Home, Guests and Arrivals ----------
+  // guest = one invitation (a row); person = one head (seats / confirmed_count)
+  // someone let in at the door who wasn't on the list: the door makes a row with no number, source 'door' and the reserved side 'Door'
+  const atDoor = g => g.source === 'door' || (!g.phone && g.side === 'Door');
+  const sideOf = g => atDoor(g) && g.side === 'Door' ? null : g.side;
+  const sidesOf = () => [...new Set([...guests.map(sideOf), ...members.filter(m => m.event_id === ev.id).map(m => m.side)].filter(Boolean))];
   const seats = list => list.reduce((a, g) => a + (g.seats || 1), 0);
   const people = list => list.reduce((a, g) => a + App.peopleComing(g), 0);
   const pool = () => guests.filter(g => side === 'all' || g.side === side);
-  const unsentOf = list => list.filter(g => g.phone && !g.sent_at && g.status === 'pending');
-  // an isolated ه is a tiny mark in Amiri; a zero-width joiner gives the clear initial form
-  const initial = s => { const c = [...String(s || '').trim()][0] || '?'; return esc(c === 'ه' ? c + '\u200D' : c.toUpperCase()); };
-  const mono = (g, cls) => `<span class="mono ${cls}${isAr(g.name) ? ' ar' : ''}" aria-hidden="true">${initial(g.name)}</span>`;
-  const sep = '<span class="sep">·</span>';
-
-  function renderSide() {
-    const sides = sidesOf();
-    $('#sidesList').innerHTML = sides.map(s => `<option value="${esc(s)}">`).join('');
-    if (mySide) { $('#sideWrap').innerHTML = `<p class="side-me"><i class="i i-list sm"></i>${esc(t.yourList(mySide))}</p>`; $('#nSideWrap').hidden = true; return; }
-    $('#nSideWrap').hidden = false;
-    if (side !== 'all' && !sides.includes(side)) side = 'all';
-    if (sides.length < 2) { $('#sideWrap').innerHTML = ''; return; }
-    const n = s => guests.filter(g => s === 'all' || g.side === s).length;
-    $('#sideWrap').innerHTML = `<div class="fchips scroll sides" role="group" aria-label="${esc(t.list)}"><button class="fchip" data-side="all" aria-pressed="${side === 'all'}">${t.allLists} <b>${n('all')}</b></button>${sides.map(s => `<button class="fchip" data-side="${esc(s)}" aria-pressed="${s === side}">${bdi(s)} <b>${n(s)}</b></button>`).join('')}</div>`;
-    $('#sideWrap').querySelectorAll('[data-side]').forEach(b => b.onclick = () => { side = b.dataset.side; if (side !== 'all') $('#nSide').value = side; render(); });
+  const isUnsent = g => !!g.phone && !g.sent_at && g.status === 'pending';
+  const unsentOf = list => list.filter(isUnsent);
+  function stats(list) {
+    const yes = list.filter(g => g.status === 'yes'), no = list.filter(g => g.status === 'no'), pend = list.filter(g => g.status === 'pending');
+    return { yes, no, pend, unsent: unsentOf(list), toRemind: pend.filter(g => g.phone && g.sent_at), people: people(yes), invited: seats(list) };
   }
+  const MAXP = 1 + App.MAX_EXTRAS;
+  const TONE = { yes: 'tone-ok', pending: 'tone-wait', no: 'tone-no' };
+  const sep = '<span class="sep">·</span>';
+  const clip = (s, n = 22) => { s = String(s || '').trim(); return s.length > n ? s.slice(0, n - 1).trim() + '…' : s; };
+  const nameList = (list, max = 3) => list.slice(0, max).map(g => bdi(clip(g.name))).join(t.comma) + (list.length > max ? t.andMore(list.length - max) : '');
+
+  // reminders are remembered on this phone (no database change): host-rem-<event> = { guestId: time }
+  const remMap = () => { try { return JSON.parse(ls.get('host-rem-' + ev.id) || '{}') || {}; } catch (e) { return {}; } };
+  function setReminded(id) { const m = remMap(); m[id] = Date.now(); ls.set('host-rem-' + ev.id, JSON.stringify(m)); }
+  function remDays(id) { const ts = remMap()[id]; if (!ts) return null; return Math.max(0, Math.round((new Date(kwDay(new Date())) - new Date(kwDay(ts))) / 864e5)); }
+  // who to remind now: no reply, invitation sent, not already reminded today (longest-waiting first)
+  const remindList = list => list.filter(g => g.status === 'pending' && g.phone && g.sent_at && !g.checked_in_at && remDays(g.id) !== 0)
+    .sort((a, b) => (remMap()[a.id] || 0) - (remMap()[b.id] || 0));
 
   function render() {
-    renderSide();
-    const used = seats(guests);
-    if (ev.invite_limit != null) $('#addGuest').disabled = ev.invite_limit - used <= 0; else $('#addGuest').disabled = false;
-    renderHome(); renderReqAtt(); renderGuests(); renderAtt(); renderPkg(); badges(); milestones();
-  }
-  function badges() {
-    const open = reqs.filter(r => r.status === 'pending').length, uns = unsentOf(pool()).length;
-    const set = (k, n) => { const b = $(`#tab-${k} .badge`); b.hidden = !n; b.textContent = n; };
-    set('arrivals', open); set('guests', uns);
+    renderSideUI();
+    renderHome(); renderReqs(); renderGuests(); renderAtt(); renderInvite(); renderPkg(); milestones();
   }
 
   // ---------- HOME ----------
-  function reqRows(open) {
-    return open.map(r => {
-      const unl = !r.guest_id && (!r.name || /^unlisted guest$/i.test(r.name));
-      return `<div class="rq"><div class="rq-top"><b>${unl ? t.reqNotOn : bdi(r.name)}</b><span class="pill pending">${t.people(r.people)}</span></div>
-        <p class="rq-sub">${[r.guest_id ? t.reqExtra : unl ? '' : t.reqNotOn, r.requested_by ? t.fromDoor : ''].filter(Boolean).join(' · ')}</p>${r.note ? `<p class="rq-note">${bdi(r.note)}</p>` : ''}
-        <div class="rq-act"><button class="btn small" data-ok="${r.id}"><i class="i i-check sm"></i>${t.letIn}</button><button class="btn small ghost" data-no="${r.id}">${t.turnDown}</button></div></div>`;
-    }).join('');
-  }
-  function bindReqs(box) {
-    const decide = async (id, yes, b) => {
-      b.setAttribute('aria-busy', 'true');
-      const { error: e } = await sb.rpc('decide_exception_v2', { p_id: id, p_approve: yes });
-      if (e) { b.removeAttribute('aria-busy'); toast(t.cantSave(e.message)); return; }
-      const r = reqs.find(x => x.id === id); if (r && r.guest_id) selfIds.add(r.guest_id);
-      toast(yes ? t.approved : t.turnedDown); vibe(15); loadReqs(); loadGuests();
-    };
-    box.querySelectorAll('[data-ok]').forEach(b => b.onclick = () => decide(b.dataset.ok, true, b));
-    box.querySelectorAll('[data-no]').forEach(b => b.onclick = () => decide(b.dataset.no, false, b));
-  }
-  function nextStep() {
-    const open = reqs.filter(r => r.status === 'pending'), p = pool(), d = daysTo(ev.starts_at);
-    if (open.length) return { k: 'req' + open.map(r => r.id).join(), kick: t.reqKick, h: t.reqT(open.length), p: t.reqP, rows: open };
-    if (!guests.length) return { k: 'add', h: t.addT, p: t.addP, b: t.addB, icon: 'i-plus', go: () => { go('guests'); openAdd(true); } };
-    const uns = unsentOf(p).length;
-    if (uns && (d == null || d > 0)) return { k: 'send' + uns, h: t.sendT(uns), p: t.sendP, b: t.sendB, icon: 'i-whatsapp', go: () => { go('guests'); startQueue(); } };
-    const yesP = people(p.filter(g => g.status === 'yes'));
-    if (d === 0) return { k: 'tonight', h: t.tonightT, p: t.tonightP(yesP), b: t.tonightB, icon: 'i-people', go: () => go('arrivals') };
-    if (d != null && d < 0) { const came = p.reduce((a, g) => a + (g.checked_in_at ? (g.checked_in_count || g.seats || 1) : 0), 0); return { k: 'past', h: t.pastT, p: t.pastP(came), b: t.pastB, icon: 'i-people', go: () => go('arrivals') }; }
-    const pend = p.filter(g => g.status === 'pending').length;
-    if (pend) return { k: 'pend' + pend, h: t.pendT(pend), p: t.pendP, b: t.pendB, icon: 'i-bell', go: () => { filter = 'pending'; go('guests'); render(); } };
-    return { k: 'done', h: t.doneT, p: t.doneP(yesP), b: t.doneB, icon: 'i-list', go: () => { filter = 'all'; go('guests'); render(); } };
-  }
+  const openReqs = () => reqs.filter(r => r.status === 'pending' && !rejecting.has(r.id) && !committing.has(r.id));
   function renderHome() {
     if (!ev) return;
+    const open = openReqs();
+    $('#homeAlert').innerHTML = open.length ? `<a class="alertbar" href="#reqAtt" id="alertGo"><i class="i i-door"></i><span class="ab-t">${t.reqBar(open.length)}</span><span class="ab-go">${t.reqGo}</span></a>` : '';
+    if (open.length) $('#alertGo').onclick = e => { e.preventDefault(); go('arrivals'); const b = $('#reqAtt .rq [data-ok]'); if (b) b.focus({ preventScroll: true }); };
+    renderSum(); renderNext(); renderLatest();
+  }
+  function renderSum() {
+    const box = $('#sum'), s = stats(guests);
+    box.hidden = !guests.length; if (!guests.length) { box.innerHTML = ''; return; }
+    // the no-reply names: invitations that went out first, then the ones not sent yet
+    const rank = g => g.checked_in_at ? 2 : isUnsent(g) ? 1 : 0;
+    const waiting = s.pend.slice().sort((a, b) => rank(a) - rank(b));
+    const row = (k, n, extra) => `<button type="button" class="sum-row row-link" data-f="${k}" aria-label="${esc(t.K[k] + ': ' + cw(n, 'guest'))}"><span class="dot ${TONE[k]}"></span><span class="sr-main"><span class="sr-l">${t.K[k]}</span>${extra ? `<span class="sr-names">${extra}</span>` : ''}</span><span class="sr-v">${cw(n, 'guest')}</span><i class="i i-chev sm"></i></button>`;
+    box.innerHTML = `<p class="bign" id="heroComing">${t.hero(s.people)}</p><p class="hero-s">${t.heroOf(s.invited, guests.length)}</p>
+      <div class="sum-rows">${row('yes', s.yes.length)}${row('pending', s.pend.length, s.pend.length ? nameList(waiting, 2) : '')}${row('no', s.no.length)}</div>`;
+    box.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filter = b.dataset.f; query = ''; $('#q').value = ''; side = 'all'; go('guests'); render(); });
+  }
+  function nextStep() {
+    const d = daysTo(ev.starts_at), s = stats(guests), rem = remindList(guests);
+    if (!guests.length) return { k: 'add', p: t.nAddP, b: t.nAddB, icon: 'i-plus', go: () => { go('guests'); openAdd(true); } };
+    if (s.unsent.length && (d == null || d > 0)) return { k: 'send', p: t.nSendP(s.unsent.length, nameList(s.unsent, rem.length ? 2 : 3)), b: t.nSendB(s.unsent.length), icon: 'i-whatsapp', go: () => startQueue('send', s.unsent.map(g => g.id)),
+      alt: rem.length ? { b: t.nRemB(rem.length), icon: 'i-bell', go: () => startQueue('remind', rem.map(g => g.id)) } : null };
+    if (d === 0) return { k: 'tonight', p: t.nTonightP(s.people), b: t.nTonightB, icon: 'i-door', go: () => go('arrivals') };
+    if (d != null && d < 0) { const came = guests.reduce((a, g) => a + (g.checked_in_at ? (g.checked_in_count || g.seats || 1) : 0), 0); return { k: 'past', p: t.nPastP(came), b: t.nPastB, icon: 'i-door', go: () => go('arrivals') }; }
+    if (rem.length) return { k: 'remind', p: t.nRemP(rem.length, nameList(rem)), b: t.nRemB(rem.length), icon: 'i-bell', go: () => startQueue('remind', rem.map(g => g.id)) };
+    if (s.pend.some(g => !g.checked_in_at)) return { k: 'wait', p: t.nWaitP, b: t.nWaitB, icon: 'i-list', quiet: true, go: () => { filter = 'pending'; side = 'all'; go('guests'); render(); } };
+    return { k: 'done', p: t.nDoneP(s.people), b: t.nDoneB, icon: 'i-list', quiet: true, go: () => { filter = 'all'; side = 'all'; go('guests'); render(); } };
+  }
+  function renderNext() {
     const n = nextStep(), box = $('#next');
-    // while the first-run checklist is up, it carries the "add" / "send" step itself (no second card asking the same)
-    const merged = renderSetup(n);
-    box.hidden = merged;
-    if (merged) box.innerHTML = '';
-    else {
-      box.classList.toggle('door', !!n.rows);
-      box.innerHTML = `<p class="kicker">${n.kick || t.nextK}</p><h2 class="next-t">${n.h}</h2><p class="next-p">${n.p}</p>${/^send/.test(n.k) ? upFirst(unsentOf(pool())) : ''}`
-        + (n.rows ? reqRows(n.rows) : `<button class="btn block" id="nextGo"><i class="i ${n.icon}"></i>${n.b}</button>`);
-      if (n.rows) bindReqs(box); else $('#nextGo').onclick = n.go;
-    }
-    const key = merged ? '' : n.k.replace(/\d+$/, '');
-    if (lastNextKey && key && key !== lastNextKey) { box.classList.remove('reveal'); void box.offsetWidth; box.classList.add('reveal'); }
-    lastNextKey = key || lastNextKey;
-    renderMeter(); renderLatest();
-  }
-  // "Up first: Dana, Huda and 3 more" with their arch monograms
-  function upFirst(list) {
-    const top = list.slice(0, 3), more = list.length - top.length;
-    return `<span class="who"><span class="who-m" aria-hidden="true">${top.map(g => mono(g, 'pending')).join('')}</span><span class="who-t">${t.upFirst(top.map(g => bdi(g.name)).join(t.comma), more)}</span></span>`;
-  }
-  function renderSetup(n) {
-    const s1 = !!ls.get('host-inv-' + ev.id) || !!ev.card_image_url, s2 = guests.length > 0, s3 = guests.some(g => g.sent_at) || !!ls.get('host-shared-' + ev.id);
-    const box = $('#setup'), all = s1 && s2 && s3, replied = guests.some(g => g.status !== 'pending');
-    box.hidden = all || replied; if (box.hidden) return false;
-    // the step the next-step card would have asked for opens up here, with its button
-    const lead = n.k === 'add' && !s2 ? 'add' : /^send/.test(n.k) && !s3 ? 'send' : '';
-    const steps = [[s1, t.s1, t.s1p, 'invite'], [s2, t.s2, t.s2p, 'add'], [s3, t.s3, t.s3p, 'send']], d = steps.filter(s => s[0]).length;
-    box.innerHTML = `<p class="kicker">${t.setupK}</p><h3>${t.setupT}</h3><p class="sub">${t.stepsN(d)}</p><div class="setup-line" aria-hidden="true">${steps.map(s => `<i class="${s[0] ? 'on' : ''}"></i>`).join('')}</div>`
-      + steps.map(([done, h, p, k], i) => k === lead
-        ? `<div class="step cur"><span class="step-c">${i + 1}</span><span class="step-tx"><b>${h}</b><small>${k === 'send' ? n.h : n.p}</small>${k === 'send' ? upFirst(unsentOf(pool())) : ''}<button type="button" class="btn block" id="nextGo"><i class="i ${n.icon}"></i>${n.b}</button></span></div>`
-        : `<button type="button" class="step${done ? ' done' : ''}" data-step="${k}"><span class="step-c">${done ? '<i class="i i-check sm"></i>' : i + 1}</span><span class="step-tx"><b>${h}</b><small>${done ? t.stepDone : p}</small></span><i class="i i-chev"></i></button>`).join('');
-    if (lead) $('#nextGo').onclick = n.go;
-    box.querySelectorAll('[data-step]').forEach(b => b.onclick = () => {
-      const k = b.dataset.step;
-      if (k === 'invite') go('invite'); else if (k === 'add') { go('guests'); openAdd(true); } else if (unsentOf(pool()).length) { go('guests'); startQueue(); } else go('invite');
-    });
-    return !!lead;
-  }
-  function meterSkel(box) {
-    if (box.firstChild) return false;
-    box.innerHTML = `<div class="meter-top"><b class="meter-n" data-n="0">0</b><div class="meter-tx"><div class="meter-l"></div><p class="meter-s"></p></div></div>
-      <div class="meter-bar" aria-hidden="true"><i class="y zero"></i><i class="w zero"></i><i class="n zero"></i><i class="e zero"></i></div><div class="fchips"></div>`;
-    return true;
-  }
-  function setBar(box, vals, first) {
-    const set = () => ['y', 'w', 'n', 'e'].forEach(k => { const el = box.querySelector('.meter-bar .' + k), v = vals[k] || 0; el.classList.toggle('zero', !v); el.style.flexGrow = v; });
-    if (first && !App.reducedMotion()) { ['y', 'w', 'n', 'e'].forEach(k => { const el = box.querySelector('.meter-bar .' + k); el.classList.toggle('zero', !vals[k]); el.style.flexGrow = 0; }); box.querySelector('.meter-bar .e').classList.remove('zero'); box.querySelector('.meter-bar .e').style.flexGrow = 1; requestAnimationFrame(() => requestAnimationFrame(set)); }
-    else set();
-  }
-  function renderMeter() {
-    const box = $('#rMeter'), p = pool();
-    box.hidden = !guests.length; if (!guests.length) return;
-    const first = meterSkel(box);
-    const of = st => p.filter(g => st === 'all' || g.status === st);
-    const yesP = people(of('yes')), inv = seats(p);
-    App.countUp(box.querySelector('.meter-n'), yesP);
-    box.querySelector('.meter-l').textContent = t.mComing(yesP);
-    const left = ev.invite_limit != null ? Math.max(0, ev.invite_limit - seats(guests)) : null;
-    box.querySelector('.meter-s').textContent = t.mFrom(inv, left);
-    setBar(box, { y: yesP, w: seats(of('pending')), n: seats(of('no')), e: Math.max(0, seats(of('yes')) - yesP) }, first);
-    const D = { all: '', yes: 'y', pending: 'w', no: 'n' }, P = { all: inv, yes: yesP, pending: seats(of('pending')), no: seats(of('no')) };
-    // counted in people, the same unit as the big number and the bar
-    box.querySelector('.fchips').innerHTML = ['all', 'yes', 'pending', 'no'].map(k => `<button class="fchip" data-f="${k}" aria-label="${esc(t.chipP(t.K[k], P[k]))}">${D[k] ? `<span class="d ${D[k]}"></span>` : ''}${t.K[k]} <b>${P[k]}</b></button>`).join('');
-    box.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filter = b.dataset.f; go('guests'); render(); });
+    box.dataset.k = n.k;
+    box.innerHTML = `<h2 class="next-h">${t.nextK}</h2><p class="next-p">${n.p}</p>
+      <button type="button" class="btn big block ${n.quiet ? 'secondary' : 'primary'}" id="nextGo"><i class="i ${n.icon}"></i>${n.b}</button>`
+      + (n.alt ? `<button type="button" class="btn block secondary" id="nextAlt"><i class="i ${n.alt.icon}"></i>${n.alt.b}</button>` : '');
+    $('#nextGo').onclick = n.go; if (n.alt) $('#nextAlt').onclick = n.alt.go;
   }
   function ago(iso) {
     const m = Math.round((Date.now() - new Date(iso)) / 6e4);
@@ -604,12 +592,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const d = Math.round(h / 24); return d < 7 ? t.days(d) : shortDate(iso);
   }
   function renderLatest() {
-    const list = pool().filter(g => g.responded_at && g.status !== 'pending').sort((a, b) => new Date(b.responded_at) - new Date(a.responded_at)).slice(0, 5);
+    const list = guests.filter(g => g.responded_at && g.status !== 'pending' && !atDoor(g)).sort((a, b) => new Date(b.responded_at) - new Date(a.responded_at)).slice(0, 5);
     $('#latestBox').hidden = !list.length;
     $('#newN').hidden = !newSince; $('#newN').textContent = newSince ? t.newN(newSince) : '';
-    $('#latest').innerHTML = list.map(g => `<div class="lr${isFresh(g.id) ? ' fresh' : ''}">${mono(g, g.status)}<div class="gr-txt"><b class="gr-n">${bdi(g.name)}</b><span class="gr-m"><span class="st ${g.status}">${t.st[g.status]}</span>${g.status === 'yes' ? sep + t.people(App.peopleComing(g)) : ''}</span></div><time datetime="${esc(g.responded_at)}">${ago(g.responded_at)}</time></div>`).join('');
+    $('#latest').innerHTML = list.map(g => `<div class="lr${isFresh(g.id) ? ' fresh' : ''}"><div class="gr-txt"><b class="gr-n">${bdi(g.name)}</b><span class="gr-m"><span class="tag ${TONE[g.status]}">${t.K[g.status]}</span>${g.status === 'yes' ? sep + t.people(App.peopleComing(g)) : ''}</span></div><time datetime="${esc(g.responded_at)}">${ago(g.responded_at)}</time></div>`).join('');
   }
-  $('#seeAll').onclick = () => { filter = 'all'; go('guests'); render(); };
+  $('#seeAll').onclick = () => { filter = 'all'; side = 'all'; go('guests'); render(); };
 
   // one-time celebrations per event (remembered on this phone)
   function milestones() {
@@ -631,108 +619,201 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // ---------- GUESTS ----------
+  // sides ("from whose side") live behind one filter button, not a second row of chips
+  function renderSideUI() {
+    const sides = sidesOf();
+    $('#sidesList').innerHTML = sides.map(s => `<option value="${esc(s)}">`).join('');
+    $('#nSideWrap').hidden = !!mySide;
+    if (mySide) { $('#sideBtn').hidden = true; $('#sideWrap').innerHTML = `<p class="side-me"><i class="i i-list sm"></i>${esc(t.yourList(mySide))}</p>`; return; }
+    if (side !== 'all' && !sides.includes(side)) side = 'all';
+    $('#sideBtn').hidden = sides.length < 2; $('#sideDot').hidden = side === 'all';
+    $('#sideWrap').innerHTML = side !== 'all' ? `<p class="side-on"><span>${bdi(t.sideOn(side))}</span><button type="button" class="btn small quiet" id="sideClear">${t.showAll}</button></p>` : '';
+    if (side !== 'all') $('#sideClear').onclick = () => { side = 'all'; render(); };
+  }
+  $('#sideBtn').onclick = () => {
+    const sides = sidesOf(), n = s => guests.filter(g => s === 'all' || g.side === s).length;
+    $('#sideList').innerHTML = [['all', t.sideAll], ...sides.map(s => [s, s])].map(([k, l]) => `<button type="button" class="row" data-side="${esc(k)}" aria-pressed="${k === side}"><span class="row-main t-name">${bdi(l)}</span><span class="row-end t-small">${cw(n(k), 'guest')}</span></button>`).join('');
+    $('#sideList').querySelectorAll('[data-side]').forEach(b => b.onclick = () => { side = b.dataset.side; App.closeSheet($('#sideSheet')); render(); });
+    App.openSheet($('#sideSheet'));
+  };
+
   function renderGuests() {
-    const p = pool();
-    // the "to send" strip
-    const uns = unsentOf(p).length;
-    $('#sendStrip').innerHTML = uns ? `<div class="strip"><i class="i i-env lg"></i><div class="strip-t"><b>${t.toSend(uns)}</b><small>${t.toSendP}</small></div><button class="btn small" id="sqStart">${t.start}</button></div>` : '';
-    if (uns) $('#sqStart').onclick = startQueue;
-    const of = st => p.filter(g => st === 'all' || g.status === st);
-    const D = { all: '', yes: 'y', pending: 'w', no: 'n' };
+    const p = pool(), s = stats(p);
+    $('#gSum').textContent = guests.length ? t.gSum(p.length, s.invited) : '';
+    // filled plum only for one action: "Add guest" when nothing is waiting to be sent
+    $('#toggleAdd').className = `btn small ${s.unsent.length || editing ? 'secondary' : 'primary'}`;
+    const N = { all: p.length, yes: s.yes.length, pending: s.pend.length, no: s.no.length };
     $('#stChips').hidden = !guests.length;
-    $('#stChips').innerHTML = ['all', 'yes', 'pending', 'no'].map(k => `<button class="fchip" data-f="${k}" aria-pressed="${filter === k}">${D[k] ? `<span class="d ${D[k]}"></span>` : ''}${t.K[k]} <b>${of(k).length}</b></button>`).join('');
-    $('#stChips').querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filter = filter === b.dataset.f && b.dataset.f !== 'all' ? 'all' : b.dataset.f; render(); });
-    const q = query.trim(), qd = App.asciiDigits(q).replace(/\D/g, ''), qn = App.normName(q);
-    const match = g => !q || App.normName(g.name).includes(qn) || (qd && (g.phone || '').includes(qd));
-    const order = { pending: 0, yes: 1, no: 2 };
-    const list = of(filter).filter(match).sort((a, b) => filter === 'all' ? order[a.status] - order[b.status] : 0);
-    $('#listHead').hidden = !q; $('#listHead').textContent = q ? t.results(list.length) : '';
+    $('#stChips').innerHTML = ['all', 'yes', 'pending', 'no'].map(k => `<button type="button" data-f="${k}" aria-pressed="${(query.trim() ? 'all' : filter) === k}" aria-label="${esc(t.K[k] + ': ' + cw(N[k], 'guest'))}"><b>${N[k]}</b><span>${t.K[k]}</span></button>`).join('');
+    $('#stChips').querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filter = b.dataset.f; query = ''; $('#q').value = ''; render(); });
     if (!guests.length) {
       $('#rows').className = 'ways';
       $('#rows').innerHTML = `<div class="empty-g"><p>${t.emptyG}</p></div>
-        <button type="button" class="way" data-way="paste"><i class="i i-list lg"></i><span>${t.wPaste}<small>${t.wPasteP}</small></span></button>
-        <button type="button" class="way" data-way="xls"><i class="i i-upload lg"></i><span>${t.wXls}<small>${t.wXlsP}</small></span></button>
-        <button type="button" class="way" data-way="one"><i class="i i-person lg"></i><span>${t.wOne}<small>${t.wOneP}</small></span></button>`;
+        <button type="button" class="way row-link" data-way="paste"><i class="i i-list lg"></i><span>${t.wPaste}<small>${t.wPasteP}</small></span></button>
+        <button type="button" class="way row-link" data-way="xls"><i class="i i-upload lg"></i><span>${t.wXls}<small>${t.wXlsP}</small></span></button>
+        <button type="button" class="way row-link" data-way="one"><i class="i i-person lg"></i><span>${t.wOne}<small>${t.wOneP}</small></span></button>`;
       $('#rows').querySelectorAll('[data-way]').forEach(b => b.onclick = () => { const w = b.dataset.way; openAdd(w !== 'one'); if (w === 'paste') $('#bPaste').focus(); if (w === 'xls') $('#bFile').click(); });
+      $('#listHead').hidden = true;
       return;
     }
+    // search: forgiving name match (spellings, Arabic/Latin) plus any 3+ digits of the number, across the whole list
+    const q = query.trim(), qd = App.asciiDigits(q).replace(/\D/g, '');
+    let list;
+    if (q) {
+      const byName = App.searchNames(p, q).map(x => x.item);
+      const byPhone = qd.length >= 3 ? p.filter(g => (g.phone || '').includes(qd) && !byName.includes(g)) : [];
+      list = byName.concat(byPhone);
+    } else {
+      const order = g => isUnsent(g) ? 0 : g.status === 'pending' ? 1 : g.status === 'yes' ? 2 : 3;
+      list = (filter === 'all' ? p : p.filter(g => g.status === filter)).slice().sort((a, b) => order(a) - order(b));
+    }
+    $('#listHead').hidden = !q; $('#listHead').textContent = q ? t.results(list.length) : '';
     $('#rows').className = 'glist gl';
-    $('#rows').innerHTML = list.length ? list.map(rowHtml).join('') : `<p class="empty">${q ? t.noMatch : t.noneYet}</p>`;
+    // the "not sent yet" banner is the first row of the list
+    const banner = s.unsent.length && !q && (filter === 'all' || filter === 'pending')
+      ? `<div class="gr-banner"><div class="gb-t"><b>${t.toSendT(s.unsent.length)}</b><span>${t.toSendP}</span></div><button type="button" class="btn small ${editing ? 'secondary' : 'primary'}" id="sqStart"><i class="i i-whatsapp"></i>${t.nSendB(s.unsent.length)}</button></div>` : '';
+    $('#rows').innerHTML = banner + (list.length ? list.map(rowHtml).join('') : `<p class="empty">${q ? t.noMatch : t.noneHere}</p>`);
+    if (banner) $('#sqStart').onclick = () => startQueue('send', unsentOf(pool()).map(g => g.id));
     $('#rows').querySelectorAll('[data-open]').forEach(b => b.onclick = () => {
       const id = b.dataset.open; editing = editing === id ? null : id; render();
-      const nb = $(`#rows [data-open="${id}"]`); if (nb) nb.focus({ preventScroll: true });
+      const nb2 = $(`#rows [data-open="${id}"]`); if (nb2) nb2.focus({ preventScroll: true });
     });
-    $('#rows').querySelectorAll('[data-sent]').forEach(a => a.onclick = () => markSent(a.dataset.sent));
+    $('#rows').querySelectorAll('[data-send]').forEach(b => b.onclick = () => startQueue('send', [b.dataset.send]));
+    $('#rows').querySelectorAll('[data-remind]').forEach(b => b.onclick = () => startQueue('remind', [b.dataset.remind]));
+    $('#rows').querySelectorAll('[data-resend]').forEach(b => b.onclick = () => startQueue('send', [b.dataset.resend]));
     $('#rows').querySelectorAll('[data-del]').forEach(b => b.onclick = () => del(b));
     bindEditor();
   }
   function rowHtml(g) {
-    const open = editing === g.id, unsent = g.phone && !g.sent_at && g.status === 'pending';
-    const stCls = unsent ? 'unsent' : g.status, stTxt = unsent ? t.notSent : t.st[g.status];
-    const bits = [`<span class="st ${stCls}">${stTxt}</span>`];
-    if (g.checked_in_at) bits.push(`<span class="st yes">${t.arrived}</span>`);
-    if (g.status === 'yes' && g.seats > 1 && g.confirmed_count) bits.push(t.ofN(g.confirmed_count, g.seats)); else if (g.seats > 1) bits.push(t.extras(g.seats - 1));
-    if (!g.phone) bits.push(t.viaLink);
-    if (g.side && side === 'all' && !mySide) bits.push(bdi(g.side));
+    const open = editing === g.id, unsent = isUnsent(g);
+    const bits = [unsent ? `<span class="tag tone-mute">${t.notSent}</span>` : `<span class="tag ${TONE[g.status]}">${t.K[g.status]}</span>`];
+    if (g.checked_in_at) bits.push(`<span class="tag tone-ok">${t.arrived}</span>`);
+    if (g.status === 'yes') bits.push(t.ofPeople(App.peopleComing(g), g.seats || 1));
+    else if (g.status === 'pending') bits.push(t.people(g.seats || 1));
+    else if (g.decline_reason) bits.push(`<bdi>“${esc(g.decline_reason)}”</bdi>`);
+    const rd = g.status === 'pending' && g.sent_at && !g.checked_in_at ? remDays(g.id) : null;
+    if (rd != null) bits.push(`<span class="rem">${t.remAgo(rd)}</span>`);
+    if (!g.phone) bits.push(atDoor(g) ? t.atDoor : t.viaLink);
+    if (sideOf(g) && side === 'all' && !mySide) bits.push(bdi(sideOf(g)));
     let act = '';
-    if (unsent) act = `<a class="btn small gr-act" href="${waLink(g.phone, fillTemplate(App.templateFor(ev), ev, g))}" target="_blank" rel="noopener" data-sent="${g.id}"><i class="i i-whatsapp"></i>${t.send}</a>`;
-    else if (g.phone && g.status === 'pending') act = `<a class="btn small ghost gr-act" href="${waLink(g.phone, fillTemplate(t.remindTpl[ev.lang === 'en' ? 'en' : 'ar'], ev, g))}" target="_blank" rel="noopener" data-remind="${g.id}"><i class="i i-bell"></i>${t.remind}</a>`;
-    return `<div class="gr${open ? ' open' : ''}${isFresh(g.id) ? ' fresh' : ''}" data-g="${g.id}">
-      <button type="button" class="gr-main${act ? '' : ' full'}" data-open="${g.id}" aria-expanded="${open}" aria-controls="ed-${g.id}">${mono(g, g.status)}<span class="gr-txt"><b class="gr-n">${bdi(g.name)}</b><span class="gr-m">${bits.join(sep)}</span></span>${act ? '' : '<i class="i i-chev"></i>'}</button>${act}
+    if (unsent) act = `<button type="button" class="btn small secondary gr-act" data-send="${g.id}"><i class="i i-whatsapp"></i>${t.send}</button>`;
+    else if (g.phone && g.status === 'pending' && !g.checked_in_at) act = `<button type="button" class="btn small quiet gr-act" data-remind="${g.id}"><i class="i i-bell"></i>${t.remind}</button>`;
+    return `<div class="gr${open ? ' open' : ''}${isFresh(g.id) ? ' fresh' : ''}${act ? ' has-act' : ''}" data-g="${g.id}">
+      <button type="button" class="gr-main row-link full" data-open="${g.id}" aria-expanded="${open}" aria-controls="ed-${g.id}"><span class="gr-txt"><b class="gr-n">${bdi(g.name)}</b><span class="gr-m">${bits.join(sep)}</span></span><i class="i i-chev"></i></button>${act}
       ${open ? `<div class="gr-ed" id="ed-${g.id}">${editorHtml(g)}</div>` : ''}</div>`;
   }
 
-  // ---------- one guest, expanded: details + change by hand (v2) + remove ----------
+  // ---------- −/+ steppers for "how many people" ----------
+  function stepper(id, val, min, max, label) {
+    return `<div class="stepper" id="${id}" role="group" aria-label="${esc(label)}"><button type="button" data-d="-1" aria-label="${esc(t.less)}" ${val <= min ? 'disabled' : ''}>−</button><output aria-live="polite">${val}</output><button type="button" data-d="1" aria-label="${esc(t.more)}" ${val >= max ? 'disabled' : ''}>+</button></div>`;
+  }
+  function bindStep(el, min, max, on) {
+    const get = () => +el.querySelector('output').textContent;
+    const set = v => { v = Math.max(min(), Math.min(max(), v)); el.querySelector('output').textContent = v; el.querySelector('[data-d="-1"]').disabled = v <= min(); el.querySelector('[data-d="1"]').disabled = v >= max(); if (on) on(v); };
+    el.querySelectorAll('[data-d]').forEach(b => b.onclick = () => set(get() + +b.dataset.d));
+    return { get, set };
+  }
+  let addStep = null;
+  function bindAddStep() { addStep = bindStep($('#nStep'), () => 1, () => MAXP, v => { $('#nSeats').value = v; }); }
+
+  // ---------- one guest, opened: details, change by hand (v2), send again, remove ----------
   function editorHtml(g) {
-    const opt = (v, l, cur) => `<option value="${v}" ${String(v) === String(cur) ? 'selected' : ''}>${l}</option>`;
-    const cnt = g.confirmed_count || g.seats;
-    const info = `<div class="ed-info">${g.phone ? `<span><i class="i i-whatsapp sm"></i><span dir="ltr">${esc(showPhone(g.phone))}</span></span>` : `<span><i class="i i-link sm"></i>${t.viaLink}</span>`}<span><i class="i i-person sm"></i>${t.invN(g.seats)}</span>${g.side ? `<span><i class="i i-list sm"></i>${bdi(g.side)}</span>` : ''}</div>`
+    const cnt = g.status === 'yes' ? App.peopleComing(g) : (g.seats || 1);
+    const info = `<div class="ed-info">${g.phone ? `<span><i class="i i-whatsapp sm"></i><span dir="ltr">${esc(showPhone(g.phone))}</span></span>` : atDoor(g) ? `<span><i class="i i-door sm"></i>${t.atDoor}</span>` : `<span><i class="i i-link sm"></i>${t.viaLink}</span>`}${sideOf(g) ? `<span><i class="i i-list sm"></i>${bdi(sideOf(g))}</span>` : ''}</div>`
       + (g.status === 'no' && g.decline_reason ? `<p class="ed-why"><bdi>“${esc(g.decline_reason)}”</bdi></p>` : '');
-    const edit = v2 ? `<label class="f">${t.reply}</label><div class="seg fill" id="edS" role="group" aria-label="${esc(t.reply)}">${['yes', 'pending', 'no'].map(s => `<button type="button" data-st="${s}" aria-pressed="${g.status === s}">${t.st[s]}</button>`).join('')}</div>
-      <div class="grid2"><div id="edCw" ${g.status === 'yes' ? '' : 'hidden'}><label class="f" for="edC">${t.peopleComing}</label><select id="edC">${Array.from({ length: g.seats }, (_, i) => opt(i + 1, i + 1, cnt)).join('')}</select></div>
-      <div><label class="f" for="edX">${t.extrasAllowed}</label><select id="edX">${[0, 1, 2, 3, 4, 5].map(n => opt(n, n ? t.plus(n) : t.none, g.seats - 1)).join('')}</select></div></div>
-      <div class="ed-save"><button type="button" class="btn small" id="edSave">${t.save}</button><button type="button" class="btn small ghost" id="edCancel">${t.cancel}</button></div>` : '';
-    const foot = `<div class="ed-foot">${g.phone ? `<a class="btn quiet" href="${waLink(g.phone, fillTemplate(App.templateFor(ev), ev, g))}" target="_blank" rel="noopener" data-sent="${g.id}"><i class="i i-env sm"></i>${t.resend}</a>` : ''}<button type="button" class="btn danger" data-del="${g.id}"><i class="i i-trash sm"></i><span>${t.remove}</span></button></div>`;
+    const edit = v2 ? `<div class="ed-reply"><span>${t.replyNow(`<b>${t.K[g.status]}</b>`)}</span><button type="button" class="btn small quiet" id="edChg">${t.changeReply}</button></div>
+      <div class="seg fill" id="edS" role="group" aria-label="${esc(t.reply)}" hidden>${['yes', 'pending', 'no'].map(s => `<button type="button" data-st="${s}" aria-pressed="${g.status === s}">${t.K[s]}</button>`).join('')}</div>
+      <div class="ed-field"><span class="f">${t.partyL}</span>${stepper('edX', g.seats || 1, 1, MAXP, t.partyL)}</div>
+      <div class="ed-field" id="edCw" ${g.status === 'yes' ? '' : 'hidden'}><span class="f">${t.comingL}</span>${stepper('edC', cnt, 1, g.seats || 1, t.comingL)}</div>
+      <div class="ed-save"><button type="button" class="btn small primary" id="edSave">${t.save}</button><button type="button" class="btn small quiet" id="edCancel">${t.cancel}</button></div>` : '';
+    const foot = `<div class="ed-foot">${g.phone && g.sent_at ? `<button type="button" class="btn quiet" data-resend="${g.id}"><i class="i i-env sm"></i>${t.resend}</button>` : ''}<button type="button" class="btn danger" data-del="${g.id}"><i class="i i-trash sm"></i><span>${t.remove}</span></button></div>`;
     return `<div class="ed" data-g="${g.id}">${info}${edit}${foot}</div>`;
   }
   function bindEditor() {
     const box = $('#rows .ed'); if (!box || !v2) return;
     const g = guests.find(x => x.id === box.dataset.g); if (!g) return;
     let st = g.status;
+    $('#edChg').onclick = () => { $('#edS').hidden = false; $('#edChg').hidden = true; const b = $('#edS [aria-pressed="true"]'); if (b) b.focus(); };
     box.querySelectorAll('#edS button').forEach(b => b.onclick = () => { st = b.dataset.st; box.querySelectorAll('#edS button').forEach(x => x.setAttribute('aria-pressed', x === b)); $('#edCw').hidden = st !== 'yes'; });
-    $('#edX').onchange = () => { const n = 1 + (+$('#edX').value), c = Math.min(+$('#edC').value, n); $('#edC').innerHTML = Array.from({ length: n }, (_, i) => `<option value="${i + 1}" ${i + 1 === c ? 'selected' : ''}>${i + 1}</option>`).join(''); };
+    const cStep = bindStep($('#edC'), () => 1, () => xStep.get());
+    const xStep = bindStep($('#edX'), () => 1, () => MAXP, v => { if (cStep.get() > v) cStep.set(v); else cStep.set(cStep.get()); });
     $('#edCancel').onclick = () => { editing = null; render(); };
     $('#edSave').onclick = async () => {
       const btn = $('#edSave'); btn.setAttribute('aria-busy', 'true');
-      const extras = +$('#edX').value, cnt = +$('#edC').value;
+      const extras = xStep.get() - 1, cnt = cStep.get(), was = g.status;
       selfIds.add(g.id);
-      if (extras !== g.seats - 1) {
+      if (extras !== (g.seats || 1) - 1) {
         const r = await sb.rpc('host_set_extras_v2', { p_guest: g.id, p_extras: extras });
-        if (r.error) { btn.removeAttribute('aria-busy'); toast(/limit/i.test(r.error.message) ? t.noPkg : t.cantSave(r.error.message)); return; }
+        if (r.error) { btn.removeAttribute('aria-busy'); toast(/limit/i.test(r.error.message) ? t.noPkg : t.cantSave(why(r.error))); return; }
       }
       // a 'yes' with no stored head count (replied before the upgrade) always gets the count saved
-      if (st !== g.status || (st === 'yes' && (g.confirmed_count == null || extras !== g.seats - 1 || cnt !== g.confirmed_count))) {
+      if (st !== g.status || (st === 'yes' && (g.confirmed_count == null || extras !== (g.seats || 1) - 1 || cnt !== g.confirmed_count))) {
         const r = await sb.rpc('host_set_reply_v2', { p_guest: g.id, p_status: st, p_count: st === 'yes' ? cnt : null });
-        if (r.error) { btn.removeAttribute('aria-busy'); toast(t.cantSave(r.error.message)); return; }
+        if (r.error) { btn.removeAttribute('aria-busy'); toast(t.cantSave(why(r.error))); return; }
       }
-      selfIds.add(g.id); editing = null; toast(t.saved); loadGuests();
+      selfIds.add(g.id); editing = null; toast(st !== was ? t.replyChanged(t.K[was], t.K[st]) : t.saved); loadGuests();
     };
   }
 
-  // ---------- door requests waiting for the host ----------
+  // ---------- door requests: "Let them in" now; "Turn down" waits a few seconds so it can be undone ----------
   async function loadReqs() {
-    if (!v2 || !ev) { reqs = []; renderReqAtt(); return; }
+    if (!v2 || !ev) { reqs = []; renderReqs(); renderHome(); return; }
     const { data, error } = await sb.rpc('list_exceptions_v2', { p_event: ev.id });
     if (error) return;
     reqs = data || [];
-    renderHome(); renderReqAtt(); badges();
+    renderHome(); renderReqs();
   }
-  function renderReqAtt() {
-    const open = reqs.filter(r => r.status === 'pending'), box = $('#reqAtt');
+  const rejecting = new Map(), committing = new Set(), doorOk = new Map();
+  function reqName(r) { return !r.guest_id && (!r.name || /^unlisted guest$/i.test(r.name)) ? '' : (r.name || (guests.find(g => g.id === r.guest_id) || {}).name || ''); }
+  // one filled plum per screen: only the first request's "Let them in" is filled, the rest are outlined
+  function reqCard(r, i) {
+    const g = r.guest_id ? guests.find(x => x.id === r.guest_id) : null, nm = reqName(r), sub = [];
+    if (!r.guest_id) { if (nm) sub.push(t.notOnList); }
+    else if (g) sub.push(t.ctxAllowed(g.seats || 1), g.status === 'yes' ? t.ctxYes(App.peopleComing(g)) : g.status === 'no' ? t.ctxNo : t.ctxPend, t.ctxIn(g.checked_in_count || 0));
+    return `<div class="rq" data-rq="${r.id}"><p class="rq-n">${nm ? bdi(nm) : t.notOnList}</p><p class="rq-ask">${t.reqAsk(r.people, !!r.guest_id)}</p>
+      ${sub.length ? `<p class="rq-sub">${sub.join(t.ctxSep)}</p>` : ''}${r.note ? `<p class="rq-note"><bdi>“${esc(r.note)}”</bdi></p>` : ''}<p class="rq-sub">${t.asked(ago(r.created_at))}</p>
+      <div class="rq-act"><button type="button" class="btn big block ${i ? 'secondary' : 'primary'}" data-ok="${r.id}"><i class="i i-check"></i>${t.letIn}</button><button type="button" class="btn danger" data-no="${r.id}">${t.turnDown}</button></div></div>`;
+  }
+  function renderReqs() {
+    const open = openReqs(), box = $('#reqAtt');
     box.hidden = !open.length; if (!open.length) { box.innerHTML = ''; return; }
-    box.innerHTML = `<p class="kicker">${t.reqKick}</p><h2 class="next-t">${t.reqT(open.length)}</h2><p class="next-p">${t.reqP}</p>${reqRows(open)}`;
-    bindReqs(box);
+    box.innerHTML = `<h2 class="next-h">${t.reqH}</h2><p class="next-p">${t.reqP}</p>${open.map(reqCard).join('')}`;
+    box.querySelectorAll('[data-ok]').forEach(b => b.onclick = () => approve(b.dataset.ok, b));
+    box.querySelectorAll('[data-no]').forEach(b => b.onclick = () => turnDown(b.dataset.no));
   }
+  async function approve(id, b) {
+    b.setAttribute('aria-busy', 'true');
+    const { error } = await sb.rpc('decide_exception_v2', { p_id: id, p_approve: true });
+    if (error) { b.removeAttribute('aria-busy'); toast(t.cantSave(why(error))); return; }
+    const r = reqs.find(x => x.id === id); if (r) { r.status = 'approved'; if (r.guest_id) selfIds.add(r.guest_id); else doorOk.set(r.name, Date.now()); }
+    toast(t.approved); vibe(15); renderReqs(); renderHome(); loadReqs(); loadGuests();
+  }
+  // decide_exception_v2 is final, so a "Turn down" stays on this phone for 6 seconds first (Undo), then goes to the server;
+  // leaving or hiding the page sends it straight away so nothing is lost
+  function turnDown(id) {
+    [...rejecting.keys()].forEach(commitReject);   // one undo at a time: an earlier one goes now
+    const r = reqs.find(x => x.id === id); if (!r) return;
+    const timer = setTimeout(() => commitReject(id), 6000);
+    const band = App.undoBand({ text: t.turnedDown(reqName(r) || t.notOnList), ms: 6000, tone: 'no', onUndo: () => {
+      const x = rejecting.get(id); if (!x) return; clearTimeout(x.timer); rejecting.delete(id); renderReqs(); renderHome();
+    } });
+    rejecting.set(id, { timer, band });
+    vibe(15); renderReqs(); renderHome();
+  }
+  async function commitReject(id) {
+    const x = rejecting.get(id); if (!x) return;
+    clearTimeout(x.timer); rejecting.delete(id); x.band.close(); committing.add(id);
+    const { error } = await sb.rpc('decide_exception_v2', { p_id: id, p_approve: false });
+    committing.delete(id);
+    if (error) { toast(t.cantSave(why(error))); } else { const r = reqs.find(q => q.id === id); if (r) r.status = 'rejected'; }
+    renderReqs(); renderHome(); loadReqs();
+  }
+  function flushRejects() { [...rejecting.keys()].forEach(commitReject); }
+  window.addEventListener('pagehide', flushRejects);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { flushRejects(); return; }
+    if (sq && sq.asking) { const h = $('#sqAskH'); if (h) h.focus({ preventScroll: true }); }   // back from WhatsApp: the question is waiting
+  });
 
   // ---------- activity log ----------
   $('#logBox').ontoggle = () => { if ($('#logBox').open) loadLog(); };
@@ -742,97 +823,153 @@ document.addEventListener('DOMContentLoaded', function () {
     const ACT = t.act;
     const name = id => { const g = guests.find(x => x.id === id); return g ? g.name : ''; };
     const rows = (data || []).filter(a => a.action !== 'door_open_list').slice(0, 100);
-    $('#logRows').innerHTML = rows.length ? rows.map(a => { const d = a.details || {}; return `<div class="gi"><div class="gi-main"><div class="gi-top"><b>${esc(ACT[a.action] || t.actOther)}</b>${d.guest ? bdi(name(d.guest)) : ''}${d.people ? `<span class="pill yes">${t.people(d.people)}</span>` : ''}${d.status ? `<span class="pill ${esc(d.status)}">${esc(t.logSt[d.status] || d.status)}</span>` : ''}</div>
-      <div class="gi-sub"><span>${esc(fmtDate(a.created_at, lang))} ${esc(fmtTime(a.created_at, lang))}</span>${a.actor ? `<span dir="ltr">${esc(a.actor)}</span>` : `<span>${t.logGuest}</span>`}</div></div></div>`; }).join('') : `<p class="empty">${t.logNothing}</p>`;
+    const tone = s => ({ yes: 'tone-ok', approved: 'tone-ok', no: 'tone-no', rejected: 'tone-no', pending: 'tone-wait' })[s] || 'tone-mute';
+    // people let in are green; people taken off at the door (an undone check-in) are amber, never green;
+    // a door request's count is only green once it's let in
+    const pTone = a => a.action === 'undo_check_in' ? 'tone-wait' : a.action === 'request_exception' || (a.details || {}).approved === false ? 'tone-mute' : 'tone-ok';
+    // the door's request answered: Let in / Turned down
+    const st = d => d.status || (d.approved === true ? 'approved' : d.approved === false ? 'rejected' : '');
+    // the door's requests are logged by id only: name them (and their count) from the requests list
+    let rq = reqs;
+    if (rows.some(a => (a.details || {}).request && !rq.some(r => r.id === a.details.request))) {
+      const res = await sb.rpc('list_exceptions_v2', { p_event: ev.id }); if (!res.error && res.data) rq = res.data;
+    }
+    const who = d => { if (d.guest) return name(d.guest); const r = d.request && rq.find(x => x.id === d.request); return r ? (reqName(r) || t.notOnList) : ''; };
+    const many = d => d.people || (d.request && (rq.find(x => x.id === d.request) || {}).people) || 0;
+    $('#logRows').innerHTML = rows.length ? rows.map(a => { const d = a.details || {}, nm = who(d), n = many(d); return `<div class="gi"><div class="gi-main"><div class="gi-top"><b>${esc(ACT[a.action] || t.actOther)}</b>${nm ? bdi(nm) : ''}${n ? `<span class="tag ${pTone(a)}">${t.people(n)}</span>` : ''}${st(d) ? `<span class="tag ${tone(st(d))}">${esc(t.logSt[st(d)] || st(d))}</span>` : ''}</div>
+      <div class="gi-sub"><span>${esc(fmtDate(a.created_at, lang))} ${esc(nb(fmtTime(a.created_at, lang)))}</span>${a.actor ? `<span dir="ltr">${esc(a.actor)}</span>` : `<span>${t.logGuest}</span>`}</div></div></div>`; }).join('') : `<p class="empty">${t.logNothing}</p>`;
   }
 
   // ---------- ARRIVALS ----------
   function renderAtt() {
     if (!ev) return;
-    const p = pool(), box = $('#aMeter');
+    const p = guests, box = $('#aMeter');
     const came = p.filter(g => g.checked_in_at), out = p.filter(g => !g.checked_in_at && g.status === 'yes'), pend = p.filter(g => !g.checked_in_at && g.status === 'pending');
     const ppl = l => l.reduce((a, g) => a + (g.checked_in_count || g.seats || 1), 0);
     const here = ppl(came), exp = people(p.filter(g => g.status === 'yes'));
-    const first = meterSkel(box);
-    const n = box.querySelector('.meter-n'); n.classList.add('arr'); App.countUp(n, here);
-    box.querySelector('.meter-l').textContent = t.ofHere(Math.max(exp, here));
     const last = came.slice().sort((a, b) => new Date(b.checked_in_at) - new Date(a.checked_in_at))[0];
-    box.querySelector('.meter-s').innerHTML = last ? t.lastArr(bdi(last.name), esc(fmtTime(last.checked_in_at, lang))) : t.noOneYet;
-    setBar(box, { y: here, e: Math.max(0, exp - here) || (here ? 0 : 1) }, first);
-    const K = { all: came.concat(out, pend), in: came, out, pend }, D = { all: '', in: 'y', out: '', pend: 'w' };
-    // chips count people, like "3 of 9 here" above them
-    // "still coming" includes the rest of a party that's partly in
-    const P = { in: here, out: Math.max(0, exp - here), pend: seats(pend) }; P.all = P.in + P.out + P.pend;
-    box.querySelector('.fchips').innerHTML = ['all', 'in', 'out', 'pend'].map(k => `<button class="fchip" data-a="${k}" aria-pressed="${attFilter === k}" aria-label="${esc(t.chipP(t.attK[k], P[k]))}">${D[k] ? `<span class="d ${D[k]}"></span>` : ''}${t.attK[k]} <b>${P[k]}</b></button>`).join('');
-    box.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { attFilter = attFilter === b.dataset.a && b.dataset.a !== 'all' ? 'all' : b.dataset.a; renderAtt(); });
+    const tot = Math.max(exp, here);
+    // "3 of 13 people here": 13 is the same "people coming" number as on Home
+    // nobody here and nobody expected: say that once, not "no one has arrived" twice
+    const none = !here && !tot;
+    box.innerHTML = `<p class="bign" id="hereHero">${none ? `<span class="hero-w">${t.noOneYet}</span>` : t.hereHero(here, tot)}</p><p class="hero-s">${last ? t.lastArr(bdi(last.name), esc(nb(fmtTime(last.checked_in_at, lang)))) : none ? t.noOneExp : t.noOneYet}</p>
+      <div class="abar" aria-hidden="true"><i style="width:${tot ? Math.min(100, Math.round(here / tot * 100)) : 0}%"></i></div>`;
+    const K = { all: came.slice().sort((a, b) => new Date(b.checked_in_at) - new Date(a.checked_in_at)).concat(out, pend), in: came, out, pend };
+    $('#aSeg').setAttribute('aria-label', t.attBy);
+    $('#aSeg').innerHTML = ['all', 'in', 'out', 'pend'].map(k => `<button type="button" data-a="${k}" aria-pressed="${attFilter === k}">${t.attK[k]}</button>`).join('');
+    $('#aSeg').querySelectorAll('[data-a]').forEach(b => b.onclick = () => { attFilter = b.dataset.a; renderAtt(); });
     const d = daysTo(ev.starts_at);
     $('#attNote').hidden = !(d > 0 && !came.length); if (d > 0 && !came.length) $('#attNote').innerHTML = `<i class="i i-calendar sm"></i><span>${esc(t.attNote(dayMonth(ev.starts_at)))}</span>`;
-    const q = aquery.trim(), qd = App.asciiDigits(q).replace(/\D/g, ''), qn = App.normName(q);
-    const match = g => !q || App.normName(g.name).includes(qn) || (qd && (g.phone || '').includes(qd));
-    const list = (attFilter === 'all' ? came.slice().sort((a, b) => new Date(b.checked_in_at) - new Date(a.checked_in_at)).concat(out, pend) : K[attFilter]).filter(match);
+    const q = aquery.trim(), qd = App.asciiDigits(q).replace(/\D/g, '');
+    let list = K[attFilter];
+    if (q) { const byName = App.searchNames(list, q).map(x => x.item); list = byName.concat(qd.length >= 3 ? list.filter(g => (g.phone || '').includes(qd) && !byName.includes(g)) : []); }
     $('#attRows').innerHTML = list.length ? list.map(g => {
-      const exp1 = g.status === 'yes' ? App.peopleComing(g) : g.seats;
       let meta, end = '';
       if (g.checked_in_at) {
         const c = g.checked_in_count || g.seats || 1, s = g.status === 'yes' ? App.peopleComing(g) : g.seats;
-        meta = c < s ? `<span class="st pending">${t.partHere(c, s)}</span>` : t.people(c);
-        end = `<span class="ar-time">${esc(fmtTime(g.checked_in_at, lang))}</span>`;
-      } else meta = g.status === 'pending' ? `<span class="st pending">${t.didntReply}</span>` : t.expectedN(exp1);
-      return `<div class="ar-row${isFresh(g.id) ? ' fresh' : ''}">${mono(g, g.checked_in_at ? 'yes' : g.status === 'pending' ? 'pending' : 'dim')}<div class="gr-txt"><b class="gr-n">${bdi(g.name)}</b><span class="gr-m">${meta}</span></div>${end}</div>`;
+        meta = c < s ? `<span class="tag tone-wait">${t.partHere(c, s)}</span>` : `<span class="tag tone-ok">${t.attK.in}</span>${sep}${t.people(c)}`;
+        end = `<span class="ar-time">${esc(nb(fmtTime(g.checked_in_at, lang)))}</span>`;
+      } else meta = g.status === 'pending' ? `<span class="tag tone-wait">${t.K.pending}</span>${sep}${t.people(g.seats || 1)}` : t.expectedN(App.peopleComing(g));
+      return `<div class="ar-row${isFresh(g.id) ? ' fresh' : ''}"><div class="gr-txt"><b class="gr-n">${bdi(g.name)}</b><span class="gr-m">${meta}</span></div>${end}</div>`;
     }).join('') : `<p class="empty">${t.attNone}</p>`;
   }
   $('#aq').oninput = e => { aquery = e.target.value; renderAtt(); };
 
-  // ---------- send invites one by one ----------
-  let sq = null, sqBack = null;
-  const dropBack = () => { if (sqBack) document.removeEventListener('visibilitychange', sqBack); sqBack = null; };
-  function startQueue() {
-    const list = unsentOf(pool());
-    sq = { ids: list.map(g => g.id), i: 0, sent: new Set(), skipped: new Set(), busy: false };
+  // ---------- send one by one, with "Did you send it?" when she comes back from WhatsApp ----------
+  // A guest is marked as sent (or reminded) only when the host says Yes. Opening WhatsApp alone changes nothing.
+  let sq = null;
+  function startQueue(mode, ids) {
+    sq = { mode, ids: ids.filter(id => guests.some(g => g.id === id)), i: 0, done: new Set(), skipped: new Set(), asking: false };
     drawQueue();
-    const d = $('#sendq'); if (!d.open) { if (d.showModal) d.showModal(); else d.setAttribute('open', ''); }
+    App.openSheet($('#sendq'));
+  }
+  function msgFor(mode, g) {
+    if (mode === 'remind') return fillTemplate(T[evLang()].remindTpl, ev, g);
+    if (mode === 'update') return fillTemplate(T[evLang()].updTpl(!!ev.venue), ev, g);
+    // an older saved message without the reply link still sends the link, on its own line at the end
+    let tpl = tplFor(ev); if (!hasLink(tpl)) tpl = tpl.replace(/\s+$/, '') + (evLang() === 'en' ? '\n{link}' : '\n{الرابط}');
+    return fillTemplate(tpl, ev, g);
   }
   function drawQueue() {
     const body = $('#sqBody'); if (!sq) return;
+    $('#sqH').textContent = t.sqH[sq.mode];
+    $('#sqX').hidden = askOpen();   // the question has two answers; the sheet doesn't close around it
     const n = sq.ids.length;
     if (!n || sq.i >= n) {
-      const s = sq.sent.size, k = sq.skipped.size;
-      body.innerHTML = `<div class="sq-end"><svg class="sq-env" viewBox="0 0 56 40" width="72" height="52" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="1.5" width="53" height="37" rx="4"/><path class="flap" d="M2.5 3.5L28 22 53.5 3.5"/></svg>
-        <h3>${!n ? t.sqNone : k ? t.sentSkipped(s, k) : t.allSent(s)}</h3><p class="sub">${t.sqEndP}</p><button class="btn block" id="sqClose">${t.close}</button></div>`;
-      $('#sqClose').onclick = () => $('#sendq').close();
+      body.innerHTML = `<div class="sq-end"><span class="sq-endmark" aria-hidden="true"><i class="i i-check lg"></i></span>
+        <h3>${!n ? t.sqNone[sq.mode] : t.endT(sq.done.size, sq.skipped.size)}</h3><p class="sub">${t.sqEndP}</p><button class="btn big block primary" id="sqClose">${t.close}</button></div>`;
+      $('#sqClose').onclick = () => App.closeSheet($('#sendq'));
       return;
     }
     const g = guests.find(x => x.id === sq.ids[sq.i]);
-    if (!g) { sq.i++; drawQueue(); return; }
-    const msg = fillTemplate(App.templateFor(ev), ev, g);
-    body.innerHTML = `<div class="sq-card"><p class="kicker">${t.sqOf(sq.i + 1, n)}</p>
-      <div class="sq-dots" aria-hidden="true">${sq.ids.map((id, i) => `<i class="${sq.sent.has(id) ? 'on' : sq.skipped.has(id) ? 'skip' : ''}${i === sq.i ? ' cur' : ''}"></i>`).join('')}</div>
-      <p class="sq-name${isAr(g.name) ? '' : ' lat'}">${bdi(g.name)}</p><p class="sq-meta"><span dir="ltr">${esc(showPhone(g.phone))}</span>${g.seats > 1 ? ' · ' + t.extras(g.seats - 1) : ''}</p>
-      <div class="paper" dir="auto">${esc(msg)}</div>
-      <button class="btn block" id="sqGo"><i class="i i-whatsapp"></i>${t.openWa}</button>
-      <div class="sq-foot"><button class="btn quiet" id="sqSkip">${t.skip}</button><button class="btn quiet" id="sqStop">${t.doneForNow}</button></div></div>`;
-    $('#sqGo').onclick = () => {
-      if (sq.busy) return; sq.busy = true;
+    if (!g) { sq.asking = false; sq.answered = false; sq.i++; drawQueue(); return; }
+    const msg = msgFor(sq.mode, g), rd = remDays(g.id);
+    const meta = [`<span dir="ltr">${esc(showPhone(g.phone))}</span>`, t.people(g.seats || 1)].concat(rd != null && sq.mode === 'remind' ? [t.remAgo(rd)] : []).join(sep);
+    const prog = n > 1 ? `<p class="sq-of">${t.sqOf(sq.i + 1, n)}</p><div class="sq-bar" aria-hidden="true"><i style="width:${Math.round(sq.i / n * 100)}%"></i></div>` : '';
+    const name = `<p class="sq-name${isAr(g.name) ? '' : ' lat'}">${bdi(g.name)}</p><p class="sq-meta">${meta}</p>`;
+    if (sq.asking) {
+      body.innerHTML = `<div class="sq-card">${prog}${name}
+        <div class="panel tone-wait sq-ask"><h3 class="sq-ask-h" id="sqAskH" tabindex="-1">${t.askSent(bdi(g.name))}</h3><p class="t-small">${t.askHelp}</p>
+          <div class="sq-yn"><button type="button" class="btn big primary" id="sqYes"><i class="i i-check"></i>${t.yesSent}</button><button type="button" class="btn big secondary" id="sqNo">${t.notYet}</button></div></div>
+        <button type="button" class="btn quiet block" id="sqAgain"><i class="i i-whatsapp"></i>${t.openAgain}</button></div>`;
       const cur = sq;
-      window.open(waLink(g.phone, msg), '_blank', 'noopener');
-      sq.sent.add(g.id); markSent(g.id);
-      const card = $('#sqBody .sq-card');
-      card.insertAdjacentHTML('beforeend', `<div class="sq-tick" role="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" opacity=".35"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>${esc(t.sentTo(g.name))}</div>`);
-      vibe(20);
-      const next = () => { if (sq !== cur) return; sq.busy = false; sq.i++; drawQueue(); };
-      setTimeout(() => {
+      $('#sqYes').onclick = async () => {
+        const b = $('#sqYes'); b.setAttribute('aria-busy', 'true');
+        if (cur.mode === 'send' && !(await markSent(g.id))) { if (b.isConnected) b.removeAttribute('aria-busy'); return; }
+        if (cur.mode === 'remind') setReminded(g.id);
         if (sq !== cur) return;
-        if (!document.hidden) { next(); return; }
-        sqBack = () => { if (!document.hidden) { dropBack(); setTimeout(next, 500); } };
-        document.addEventListener('visibilitychange', sqBack);
-      }, 900);
+        cur.answered = true; $('#sqX').hidden = false;
+        cur.done.add(g.id); vibe(20);
+        const card = $('#sqBody .sq-card');
+        if (card) card.insertAdjacentHTML('beforeend', `<div class="sq-tick" role="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" opacity=".35"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>${esc(t.doneTo[cur.mode](g.name))}</div>`);
+        setTimeout(() => {
+          if (sq !== cur) return;
+          cur.asking = false; cur.answered = false; cur.i++;
+          // a single guest: close and say so; a list: straight on to the next guest
+          if (cur.ids.length === 1) { App.closeSheet($('#sendq')); toast(t.doneTo[cur.mode](g.name)); return; }
+          drawQueue();
+        }, 650);
+      };
+      $('#sqNo').onclick = () => { cur.asking = false; drawQueue(); };
+      $('#sqAgain').onclick = () => window.open(waLink(g.phone, msg), '_blank', 'noopener');
+      return;
+    }
+    body.innerHTML = `<div class="sq-card">${prog}${name}
+      <div class="paper" dir="auto">${esc(msg)}</div>
+      <button type="button" class="btn big block primary" id="sqGo"><i class="i i-whatsapp"></i>${t.openWa}</button>
+      <div class="sq-foot">${n > 1 ? `<button type="button" class="btn secondary" id="sqSkip">${t.skip}</button>` : ''}<button type="button" class="btn quiet" id="sqStop">${t.doneForNow}</button></div></div>`;
+    $('#sqGo').onclick = () => {
+      window.open(waLink(g.phone, msg), '_blank', 'noopener');
+      sq.asking = true; drawQueue();
     };
-    $('#sqSkip').onclick = () => { sq.skipped.add(g.id); sq.i++; drawQueue(); };
-    $('#sqStop').onclick = () => $('#sendq').close();
+    if (n > 1) $('#sqSkip').onclick = () => { sq.skipped.add(g.id); sq.i++; drawQueue(); };
+    $('#sqStop').onclick = () => App.closeSheet($('#sendq'));
   }
-  $('#sqX').onclick = () => $('#sendq').close();
-  $('#sendq').addEventListener('click', e => { if (e.target === $('#sendq')) $('#sendq').close(); });
-  $('#sendq').addEventListener('close', () => { sq = null; dropBack(); render(); });
+  // "Did you send it?" must be answered: a tap outside the sheet, Escape or a closing sheet brings the question back instead
+  // (otherwise the guest stays "not sent" and is likely to get the invitation twice)
+  const askOpen = () => !!(sq && sq.asking && !sq.answered);
+  function nudgeAsk() {
+    const p = $('#sqBody .sq-ask'); if (p) { p.classList.remove('nudge'); void p.offsetWidth; p.classList.add('nudge'); }
+    const h = $('#sqAskH'); if (h) h.focus({ preventScroll: true }); vibe(10);
+  }
+  document.addEventListener('click', e => {
+    if (!askOpen()) return;
+    const d = $('#sendq');
+    if (e.target === d || (e.target.closest && e.target.closest('#sqX'))) { e.preventDefault(); e.stopPropagation(); nudgeAsk(); }
+  }, true);
+  $('#sendq').addEventListener('cancel', e => { if (askOpen()) { e.preventDefault(); nudgeAsk(); } });
+  $('#sendq').addEventListener('close', () => {
+    if (askOpen()) { App.openSheet($('#sendq')); nudgeAsk(); return; }
+    sq = null; $('#sqX').hidden = false; render();
+  });
+
+  async function markSent(id) {
+    const now = new Date().toISOString(), g = guests.find(x => x.id === id);
+    const { error } = await sb.from('guests').update({ sent_at: now }).eq('id', id);
+    if (error) { toast(t.cantSave(why(error))); return false; }
+    if (g) g.sent_at = now;
+    return true;
+  }
 
   // ---------- RSVP rules (saved with the rest of the invite) ----------
   function fillRules() {
@@ -841,26 +978,58 @@ document.addEventListener('DOMContentLoaded', function () {
     $('#rChange').checked = ev.allow_changes !== false; $('#rLink').checked = ev.public_link_enabled !== false;
   }
 
-  // ---------- shared helpers (same as admin) ----------
+  // ---------- shared helpers (the same reader as admin's guest step: a count after the phone, +44 numbers, and the lines it couldn't read) ----------
   const isPhone = v => { const p = normPhone(v); return p.length >= 10 && p.length <= 15 && !/[a-zA-Zء-ي]/.test(String(v)); };
   function fromRows(rows) {
-    rows = rows.filter(r => r.some(c => String(c).trim())); if (!rows.length) return [];
+    rows = rows.filter(r => r.some(c => String(c).trim())); if (!rows.length) return { rows: [], bad: [] };
     const cols = Math.max(...rows.map(r => r.length)); let pc = -1, best = 0;
     for (let c = 0; c < cols; c++) { const n = rows.filter(r => isPhone(r[c])).length; if (n > best) { best = n; pc = c; } }
-    if (pc < 0) return [];
+    if (pc < 0) return { rows: [], bad: [] };
     const head = rows[0].map(String); const sc = head.findIndex(h => /عدد|seats|count|كم/i.test(h)); let nc = -1;
     for (let c = 0; c < cols; c++) { if (c === pc || c === sc) continue; if (rows.filter(r => /[ء-يa-zA-Z]/.test(String(r[c]))).length >= rows.length / 2) { nc = c; break; } }
-    if (nc < 0) return [];
-    return rows.filter(r => isPhone(r[pc])).map(r => ({ name: String(r[nc]).trim(), phone: normPhone(r[pc]), seats: App.clampSeats(sc >= 0 ? r[sc] : 1) })).filter(g => g.name);
+    if (nc < 0) return { rows: [], bad: [] };
+    const out = [], bad = [];
+    rows.forEach((r, i) => {
+      const name = String(r[nc] ?? '').trim();
+      if (isPhone(r[pc]) && name) out.push({ name, phone: normPhone(r[pc]), seats: App.clampSeats(sc >= 0 ? r[sc] : 1) });
+      else if (i > 0) bad.push(r.map(c => String(c).trim()).filter(Boolean).join(' · '));
+    });
+    return { rows: out, bad };
+  }
+  // where the phone is in a line: +965 / 00965 / 965 first, then an international number, then 8 digits, then any long number
+  const PHONE_RES = [/(?<![\d+])(?:\+|00)?965[\s-]?\d{4}[\s-]?\d{4}(?!\d)/, /(?<![\d+])(?:\+|00)[1-9][\d\s-]{6,}\d(?!\d)/, /(?<![\d+])\d{4}[\s-]?\d{4}(?!\d)/, /(?<![\d+])\+?\d[\d\s-]{6,}\d/];
+  function findPhone(l) {
+    const L = App.asciiDigits(l);   // same length: Arabic digits become Western ones in place
+    for (const re of PHONE_RES) {
+      const m = L.match(re); if (!m) continue;
+      let at = m.index, len = m[0].length;
+      // "Noura 2 447700900123": a short number before a space ends the name, it isn't the start of the phone
+      const head = m[0].match(/^(\d{1,3})[\s-]+/);
+      if (head && isPhone(m[0].slice(head[0].length))) { at += head[0].length; len -= head[0].length; }
+      const tail = L.slice(at, at + len).match(/\s([1-6])$/);
+      if (tail && isPhone(L.slice(at, at + len - tail[0].length))) len -= tail[0].length;   // "+44 7700 900123 3": the 3 is the people count
+      if (isPhone(L.slice(at, at + len))) return { i: at, len };
+    }
+    return null;
   }
   function fromLines(lines) {
-    const out = []; let pending = null;
+    const out = [], bad = []; let pending = null;
     lines.map(l => l.trim()).filter(Boolean).forEach(l => {
-      const m = l.match(/(\+?[\d٠-٩][\d٠-٩\s-]{6,}[\d٠-٩])/);
-      if (m && isPhone(m[1])) { const rest = l.replace(m[1], '').replace(/[-–:,|]/g, ' ').trim(); const name = /[ء-يa-zA-Z]/.test(rest) ? rest : pending; if (name) out.push({ name, phone: normPhone(m[1]), seats: 1 }); pending = null; }
-      else if (/[ء-يa-zA-Z]/.test(l) && !/^(الاسم|name|الرقم|phone)/i.test(l)) pending = l;
+      const ph = findPhone(l);
+      if (ph) {
+        let after = l.slice(ph.i + ph.len), seats = 1;
+        const sm = App.asciiDigits(after).match(/^[\s,;|:–-]*([1-6])\s*$/);
+        if (sm) { seats = +sm[1]; after = ''; }
+        const rest = (l.slice(0, ph.i) + ' ' + after).replace(/[-–:,|]/g, ' ').replace(/\s+/g, ' ').trim();
+        const own = /[ء-يa-zA-Z]/.test(rest), name = own ? rest : pending;
+        if (own && pending) bad.push(pending);   // a name on its own line, then a line with its own name: the first one had no number
+        if (name) out.push({ name, phone: normPhone(l.slice(ph.i, ph.i + ph.len)), seats: App.clampSeats(seats) }); else bad.push(l); pending = null;
+      }
+      else if (/[ء-يa-zA-Z]/.test(l) && !/^(الاسم|name|الرقم|phone)/i.test(l)) { if (pending) bad.push(pending); pending = l; }
+      else if (/[\d٠-٩]/.test(l)) bad.push(l);
     });
-    return out;
+    if (pending) bad.push(pending);
+    return { rows: out, bad };
   }
   function palette(img) {
     const W = 90, H = Math.max(1, Math.round(img.naturalHeight * W / img.naturalWidth));
@@ -893,8 +1062,120 @@ document.addEventListener('DOMContentLoaded', function () {
     const blob = await new Promise(res => cv.toBlob(res, 'image/jpeg', .85));
     return { img, blob };
   }
+  const { kwToIso, isoToKw, rgb2hex, lum } = App;
 
-  const { kwToIso, isoToKw, rgb2hex, lum, themeVars } = App;
+  // ---------- INVITE ----------
+  function renderInvite() {
+    if (!ev) return;
+    const s = stats(guests), n = s.unsent.length, box = $('#invSend');
+    box.innerHTML = `<h2 class="next-h">${t.persH}</h2><p class="next-p">${t.persP}</p>`
+      + (n ? `<button type="button" class="btn big block ${isDirty() ? 'secondary' : 'primary'}" id="invGo"><i class="i i-whatsapp"></i>${t.nSendB(n)}</button>`
+        : `<p class="t-small">${guests.length ? t.persAll : t.persNone}</p><button type="button" class="btn block secondary" id="invAdd"><i class="i i-plus"></i>${t.addGuestsB}</button>`);
+    if (n) $('#invGo').onclick = () => startQueue('send', s.unsent.map(g => g.id)); else $('#invAdd').onclick = () => { go('guests'); openAdd(false); };
+    previews();
+  }
+  function renderInvTop() {
+    if (!ev) return;
+    const v = App.themeVars(ev.theme_accent || '#5B0F1D', ev.theme_paper || '#EDE5DA');
+    $('#invFrame').innerHTML = ev.card_image_url ? `<img src="${esc(ev.card_image_url)}" alt="${esc(t.cardAlt)}">`
+      : `<div class="inv-mini" style="background:${v['--t-paper']};color:${v['--t-accent']}"><b dir="auto">${App.ampTitle(ev.headline || ev.title)}</b></div>`;
+    const line = ev.invite_line || ev.headline || ev.title; $('#invT').innerHTML = App.ampTitle(line); $('#invT').classList.toggle('lat', !isAr(line));
+    $('#invW').textContent = ev.starts_at ? `${fmtDate(ev.starts_at, lang)} · ${nb(fmtTime(ev.starts_at, lang))}` : t.noDate;
+    $('#invV').innerHTML = ev.venue ? bdi(ev.venue) : ''; $('#invV').hidden = !ev.venue;
+    $('#ePreview').href = ev.public_code ? inviteUrl() : '#';
+    $('#ePreview').hidden = !ev.public_code;
+  }
+  // the open group link: secondary, clearly labelled, folded away under the form
+  function shareMsg(link) {
+    return ev.lang === 'en' ? `You’re invited to ${ev.invite_line ? ev.invite_line.replace(/^Join us for /i, '') : (ev.headline || ev.title)}${ev.starts_at ? ' on ' + fmtDate(ev.starts_at, 'en') + ' at ' + fmtTime(ev.starts_at, 'en') : ''}.\n\nPlease tap the link, type your name and let us know if you can make it:\n${link}`
+      : `حياكم الله\n\nنتشرف بدعوتكم لحضور ${ev.headline || ev.title}${ev.starts_at ? ' يوم ' + fmtDate(ev.starts_at, 'ar') + ' الساعة ' + fmtTime(ev.starts_at, 'ar') : ''}\n\nلتأكيد الحضور أو الاعتذار:\n${link}`;
+  }
+  function renderPub() {
+    const b = $('#pubBox');
+    if (!ev.public_code) { b.hidden = true; return; }
+    const link = inviteUrl(), msg = shareMsg(link), wasOpen = b.open;
+    b.hidden = false;
+    b.innerHTML = `<summary><span class="grp-t"><b>${t.pubH}</b><small>${t.pubSum}</small></span><i class="i i-chev"></i></summary><div class="grp-b">
+      <p class="t-small pub-p">${t.pubP}</p>
+      <div class="linkpill"><i class="i i-link sm"></i><span dir="ltr">${esc(link.replace(/^https?:\/\//, ''))}</span><button type="button" class="btn small secondary" id="copyLink"><i class="i i-copy sm"></i><span>${t.copy}</span></button></div>
+      <a class="btn block secondary" id="shareWa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(msg)}"><i class="i i-whatsapp"></i>${t.shareWa}</a>
+      <details class="msgfold"><summary><span>${t.seeMsg}</span><i class="i i-chev sm"></i></summary><div class="paper" dir="auto">${esc(msg)}</div></details></div>`;
+    b.open = wasOpen;
+    $('#copyLink').onclick = async () => {
+      const btn = $('#copyLink');
+      try { await navigator.clipboard.writeText(link); } catch (e) { prompt(t.copyPrompt, link); return; }
+      btn.classList.add('copied'); btn.innerHTML = `<i class="i i-check sm"></i><span>${t.copiedB}</span>`; vibe(15);
+      toastQuiet(t.copied);
+      setTimeout(() => { if (btn.isConnected) { btn.classList.remove('copied'); btn.innerHTML = `<i class="i i-copy sm"></i><span>${t.copy}</span>`; } }, 1600);
+    };
+  }
+  // screen-reader announcement without the visual toast (the button already says "Copied")
+  function toastQuiet(msg) { let r = $('#srLive'); if (!r) { r = document.createElement('div'); r.id = 'srLive'; r.className = 'sr'; r.setAttribute('role', 'status'); document.body.appendChild(r); } r.textContent = ''; setTimeout(() => { r.textContent = msg; }, 30); }
+
+  // ---------- the WhatsApp message: words in pills, no {codes}; a live preview; the reply link is required ----------
+  const TOKS = { name: 'الاسم', date: 'التاريخ', time: 'الوقت', venue: 'المكان', event: 'المناسبة', link: 'الرابط', invites: 'العدد' };
+  const TOK_RE = /\{(name|date|time|venue|event|link|invites|الاسم|التاريخ|الوقت|المكان|المناسبة|الرابط|العدد)\}/g;
+  const tokKey = w => TOKS[w] ? w : Object.keys(TOKS).find(k => TOKS[k] === w);
+  const hasLink = s => /\{(link|الرابط)\}/.test(s || '');
+  const ed = $('#tplEd');
+  const chipHtml = raw => { const k = tokKey(raw.slice(1, -1)); return `<span class="tokchip${k === 'link' ? ' is-link' : ''}" contenteditable="false" data-tok="${k}" data-raw="${esc(raw)}">${esc(t.tok[k])}</span>`; };
+  function tplToHtml(s) { let out = '', i = 0; String(s || '').replace(TOK_RE, (m, w, off) => { out += esc(s.slice(i, off)); out += chipHtml(m); i = off + m.length; return m; }); return out + esc(String(s || '').slice(i)); }
+  function ser(node) {
+    let out = '';
+    node.childNodes.forEach(n => {
+      if (n.nodeType === 3) out += n.nodeValue.replace(/ /g, ' ');
+      else if (n.nodeType === 1) {
+        if (n.dataset && n.dataset.tok) out += n.dataset.raw;
+        else if (n.tagName === 'BR') out += '\n';
+        else { const inner = ser(n); if (/^(DIV|P)$/.test(n.tagName)) { if (out && !out.endsWith('\n')) out += '\n'; out += inner; } else out += inner; }
+      }
+    });
+    return out;
+  }
+  function drawTpl() { ed.innerHTML = tplToHtml($('#eTpl').value); linkCheck(); }
+  function syncTpl() { $('#eTpl').value = ser(ed).replace(/\s+$/, ''); linkCheck(); previews(); dirtyCheck(); }
+  function linkCheck() { $('#tplWarn').hidden = hasLink($('#eTpl').value); }
+  ed.addEventListener('input', syncTpl);
+  ed.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); if (!document.execCommand('insertLineBreak')) document.execCommand('insertText', false, '\n'); } });
+  ed.addEventListener('paste', e => { e.preventDefault(); const s = (e.clipboardData || window.clipboardData).getData('text/plain'); document.execCommand('insertText', false, s); });
+  ed.addEventListener('drop', e => e.preventDefault());
+  let lastRange = null;
+  document.addEventListener('selectionchange', () => { const s = getSelection(); if (s.rangeCount && ed.contains(s.anchorNode)) lastRange = s.getRangeAt(0).cloneRange(); });
+  function textAround(r) {
+    const pre = document.createRange(); pre.selectNodeContents(ed); pre.setEnd(r.startContainer, r.startOffset);
+    const post = document.createRange(); post.selectNodeContents(ed); post.setStart(r.endContainer, r.endOffset);
+    return [ser(pre.cloneContents()), ser(post.cloneContents())];
+  }
+  // tap a pill: it goes in at the caret with a space either side (so words never run together)
+  function insertTok(k) {
+    const raw = `{${$('#eLang').value === 'en' ? k : TOKS[k]}}`;
+    let r = lastRange && ed.contains(lastRange.startContainer) ? lastRange : null;
+    if (!r) { r = document.createRange(); r.selectNodeContents(ed); r.collapse(false); }
+    r.deleteContents();
+    const [before, after] = textAround(r);
+    const frag = document.createDocumentFragment();
+    if (before && !/[\sـ]$/.test(before)) frag.appendChild(document.createTextNode(' '));
+    const tp = document.createElement('template'); tp.innerHTML = chipHtml(raw); frag.appendChild(tp.content.firstChild);
+    const sp = document.createTextNode(after && /^[\s.,،!؟?:]/.test(after) ? '' : ' '); frag.appendChild(sp);
+    r.insertNode(frag);
+    ed.focus({ preventScroll: true });
+    const nr = document.createRange(); nr.setStartAfter(sp); nr.collapse(true); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(nr); lastRange = nr.cloneRange();
+    syncTpl();
+  }
+  function renderToks() {
+    $('#toks').innerHTML = Object.keys(TOKS).map(k => `<button type="button" class="tok${k === 'link' ? ' is-link' : ''}" data-k="${k}">${t.tok[k]}</button>`).join('');
+    $('#toks').querySelectorAll('.tok').forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = () => insertTok(b.dataset.k); });
+  }
+  $('#putLink').onclick = () => {
+    $('#eTpl').value = $('#eTpl').value.replace(/\s+$/, '') + `\n{${$('#eLang').value === 'en' ? 'link' : 'الرابط'}}`;
+    drawTpl(); previews(); dirtyCheck();
+  };
+  // the message as a real guest will read it, with the details as they are in the form right now
+  function previewEv() {
+    const d = val('eDate');
+    return { ...ev, title: val('eTitle'), headline: val('eHead'), venue: val('eVenue'), lang: val('eLang'), starts_at: d ? kwToIso(d, val('eTime') || '20:00') : ev.starts_at };
+  }
+  function sampleGuest() { const g = guests.find(x => x.phone && x.status === 'pending') || guests.find(x => x.phone) || guests[0]; return g || { name: t.sampleName, seats: 2, token: 'preview' }; }
 
   // ---------- INVITE: edit form with one save bar ----------
   const EF = ['eTitle', 'eLine', 'eNote', 'eHead', 'eDate', 'eTime', 'eEnd', 'eVenue', 'eMap', 'eLang', 'eTpl'], RF = ['rDate', 'rTime', 'rChange', 'rLink'];
@@ -905,10 +1186,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const s = isoToKw(ev.starts_at), en = isoToKw(ev.ends_at);
     $('#eTitle').value = ev.title || ''; $('#eLine').value = ev.invite_line || ''; $('#eNote').value = ev.note || ''; $('#eHead').value = ev.headline || '';
     $('#eDate').value = s.date; $('#eTime').value = s.time; $('#eEnd').value = en.time; $('#eVenue').value = ev.venue || ''; $('#eMap').value = ev.map_url || '';
-    $('#eLang').value = ev.lang || 'en'; $('#eTpl').value = App.templateFor(ev);
+    $('#eLang').value = ev.lang || 'en'; $('#eTpl').value = tplFor(ev); drawTpl();
     if (rulesOn()) fillRules();
     renderEditTheme(); renderInvTop();
-    snap = { e: vals(EF), r: vals(RF) };
+    snap = { e: vals(EF), r: vals(RF), v: Object.fromEntries(EF.map(id => [id, val(id)])) };
+    clearErrs();
     previews(); dirtyCheck();
   }
   const isDirty = () => !!snap && (vals(EF) !== snap.e || (rulesOn() && vals(RF) !== snap.r));
@@ -916,6 +1198,8 @@ document.addEventListener('DOMContentLoaded', function () {
   function dirtyCheck(justSaved) {
     const bar = $('#saveBar'), d = isDirty();
     clearTimeout(cleanTimer);
+    // while the save bar shows, "Save changes" is the one filled button on the Invite tab
+    const g = $('#invGo'); if (g) { g.classList.toggle('primary', !d); g.classList.toggle('secondary', d); }
     if (d) { bar.hidden = false; bar.classList.remove('clean'); $('#sbL').textContent = t.unsaved; $('#eDiscard').hidden = false; $('#eSave').hidden = false; return; }
     if (justSaved) { bar.hidden = false; bar.classList.add('clean'); $('#sbL').textContent = t.allSaved; $('#eDiscard').hidden = true; $('#eSave').hidden = true; cleanTimer = setTimeout(() => { bar.hidden = true; }, 1800); return; }
     bar.hidden = true;
@@ -925,33 +1209,28 @@ document.addEventListener('DOMContentLoaded', function () {
     const cut = s => String(s || '').replace(/\s+/g, ' ').trim();
     $('#pv1').innerHTML = bdi(cut(val('eTitle')));
     const date = val('eDate') ? new Date(kwToIso(val('eDate'), val('eTime') || '20:00')) : null;
-    $('#pv2').innerHTML = [esc(date ? `${shortDate(date)}${val('eTime') ? ' · ' + fmtTime(date, lang) : ''}` : t.noDate), val('eVenue') ? bdi(cut(val('eVenue'))) : ''].filter(Boolean).join(' · ');
-    $('#pv3').textContent = cut(val('eTpl'));
+    $('#pv2').innerHTML = [esc(date ? `${shortDate(date)}${val('eTime') ? ' · ' + nb(fmtTime(date, lang)) : ''}` : t.noDate), val('eVenue') ? bdi(cut(val('eVenue'))) : ''].filter(Boolean).join(' · ');
+    const g = sampleGuest(), msg = fillTemplate(val('eTpl'), previewEv(), g);
+    $('#pv3').textContent = cut(msg);
+    $('#prevH').innerHTML = t.prevH(bdi(g.name)); $('#tplPrev').textContent = msg;
     $('#pv4').textContent = ev.card_image_url ? t.cardOn : t.noCard;
     if (rulesOn()) { const d = val('rDate') ? new Date(kwToIso(val('rDate'), val('rTime') || '23:59')) : null; $('#pv5').textContent = t.rulesPv(d ? shortDate(d) : '', val('rChange')); }
   }
-  $('#editForm').addEventListener('input', e => { if (e.target.closest('#eTheme') || e.target.id === 'eCard') return; previews(); dirtyCheck(); });
+  // a new invite language brings the default message in that language (a message the host wrote stays as it is)
+  $('#eLang').addEventListener('change', () => { if (isDefTpl($('#eTpl').value)) { $('#eTpl').value = defTpl($('#eLang').value); drawTpl(); } });
+  // a field marked as missing clears as soon as it's touched
+  $('#editForm').addEventListener('input', e => { const id = e.target.id; if (id === 'eTime') clearErr('eDate'); else if (/^e(Title|Date|Venue)$/.test(id)) clearErr(id); });
+  $('#editForm').addEventListener('input', e => { if (e.target.closest('#eTheme') || e.target.id === 'eCard' || e.target === ed) return; previews(); dirtyCheck(); });
   $('#editForm').addEventListener('change', e => { if (e.target.closest('#eTheme') || e.target.id === 'eCard') return; previews(); dirtyCheck(); });
   $('#eDiscard').onclick = () => fillEdit();
   window.addEventListener('beforeunload', e => { if (isDirty()) { e.preventDefault(); e.returnValue = ''; } });
-  // tap-to-insert words that fill in for each guest
-  const TOK = [['name', 'الاسم'], ['date', 'التاريخ'], ['time', 'الوقت'], ['venue', 'المكان'], ['event', 'المناسبة'], ['link', 'الرابط'], ['invites', 'العدد']];
-  function renderToks() {
-    $('#toks').innerHTML = TOK.map(([en, ar]) => `<button type="button" class="tok" data-en="${en}" data-ar="${ar}">${t.tok[en]}</button>`).join('');
-    $('#toks').querySelectorAll('.tok').forEach(b => b.onclick = () => {
-      const ta = $('#eTpl'), w = `{${$('#eLang').value === 'en' ? b.dataset.en : b.dataset.ar}}`;
-      const s = ta.selectionStart ?? ta.value.length, e = ta.selectionEnd ?? ta.value.length;
-      ta.value = ta.value.slice(0, s) + w + ta.value.slice(e); ta.focus(); ta.setSelectionRange(s + w.length, s + w.length);
-      ta.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-  }
   function renderEditTheme(chips) {
     if (!ev) return;
     shownChips = chips;
     $('#eTheme').innerHTML = `<div class="row" style="align-items:flex-start;margin-top:14px">
       ${ev.card_image_url ? `<img class="thumb" src="${esc(ev.card_image_url)}" alt="${esc(t.cardAlt)}">` : ''}
       <div style="flex:1;min-width:180px">
-        ${chips && chips.length ? `<p class="help" style="margin:0">${t.chipsL}</p><div class="chips">${chips.map(c => `<button type="button" class="chip" style="background:${c}" data-chip="${c}" aria-label="${c}"></button>`).join('')}</div>` : ''}
+        ${chips && chips.length ? `<p class="help" style="margin:0">${t.chipsL}</p><div class="chips">${chips.map((c, i) => `<button type="button" class="chip" style="background:${c}" data-chip="${c}" aria-label="${esc(t.chipsL)} ${i + 1}"></button>`).join('')}</div>` : ''}
         <label class="pick"><input type="color" id="etA" value="${esc(ev.theme_accent)}"> ${t.mainCol}</label>
         <label class="pick"><input type="color" id="etP" value="${esc(ev.theme_paper)}"> ${t.bgCol}</label>
         ${ev.card_image_url ? `<button type="button" class="btn danger small" id="eRemoveCard"><i class="i i-trash sm"></i>${t.rmCard}</button>` : ''}
@@ -963,30 +1242,89 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   async function saveEvent(patch, quiet) {
     const { data, error } = await sb.rpc('host_update_event', { p_event: ev.id, p: patch });
-    if (error) { toast(t.cantSave(error.message)); return false; }
+    if (error) { toast(t.cantSave(why(error))); return false; }
     ev = { ...ev, ...data }; const i = events.findIndex(x => x.id === ev.id); if (i >= 0) events[i] = ev;
     showMeta(); renderPub(); renderEditTheme(); previews(); if (!quiet) toast(t.saved); return true;
   }
+  // only the fields that changed are sent (so a save here can't undo an edit made from admin), and never a blank over a saved essential
+  function buildPatch() {
+    const v = Object.fromEntries(EF.map(id => [id, val(id)])), was = snap.v, ch = id => v[id] !== was[id], patch = {}, held = [];
+    if (ch('eTitle')) { if (v.eTitle.trim()) patch.title = v.eTitle.trim(); else held.push('eTitle'); }
+    if (ch('eLine')) patch.invite_line = v.eLine;
+    if (ch('eNote')) patch.note = v.eNote;
+    if (ch('eHead')) patch.headline = v.eHead;
+    if (ch('eMap')) patch.map_url = v.eMap;
+    if (ch('eLang')) patch.lang = v.eLang;
+    if (ch('eVenue')) { if (v.eVenue.trim() || !was.eVenue.trim()) patch.venue = v.eVenue; else held.push('eVenue'); }
+    if (ch('eDate') || ch('eTime') || ch('eEnd')) {
+      if (!v.eDate && was.eDate) held.push('eDate');
+      else if (v.eDate && !v.eTime && was.eTime) held.push('eTime');
+      else if (v.eDate) {
+        const st = kwToIso(v.eDate, v.eTime); let en = v.eEnd ? kwToIso(v.eDate, v.eEnd) : null;
+        if (en && en < st) en = new Date(new Date(en).getTime() + 864e5).toISOString();
+        patch.starts_at = st; patch.ends_at = en;
+      }
+    }
+    // the message is saved only when it's the host's own; an untouched default stays empty, so it follows the invite language
+    if (ch('eTpl') && (ev.message_template || v.eTpl !== defTpl(v.eLang))) patch.message_template = v.eTpl;
+    const order = ['eTitle', 'eDate', 'eTime', 'eVenue'];   // in the order they sit on the form
+    return { patch, held: held.sort((a, b) => order.indexOf(a) - order.indexOf(b)) };
+  }
+  function fieldErr(id, msg) {
+    const el = $('#' + id), p = $('#err-' + id);
+    el.classList.add('bad'); el.setAttribute('aria-invalid', 'true');
+    if (p) { p.textContent = msg; p.hidden = false; el.setAttribute('aria-describedby', p.id); }
+  }
+  function clearErr(id) {
+    const el = $('#' + id), p = $('#err-' + id); if (!el) return;
+    el.classList.remove('bad'); el.removeAttribute('aria-invalid'); el.removeAttribute('aria-describedby'); if (p) p.hidden = true;
+    if (id === 'eDate') { const tm = $('#eTime'); tm.classList.remove('bad'); tm.removeAttribute('aria-invalid'); tm.removeAttribute('aria-describedby'); }
+  }
+  function clearErrs() { ['eTitle', 'eDate', 'eVenue'].forEach(clearErr); }
+  function showHeld(held) {
+    const msg = { eTitle: t.needName, eDate: t.needDate, eTime: t.needTime, eVenue: t.needVenue };
+    clearErrs();
+    held.forEach(id => {
+      if (id === 'eTime') { const p = $('#err-eDate'), tm = $('#eTime'); p.textContent = msg.eTime; p.hidden = false; tm.classList.add('bad'); tm.setAttribute('aria-invalid', 'true'); tm.setAttribute('aria-describedby', p.id); }
+      else fieldErr(id, msg[id]);
+    });
+    const first = $('#' + held[0]); first.closest('details').open = true;
+    first.scrollIntoView({ behavior: App.reducedMotion() ? 'auto' : 'smooth', block: 'center' }); setTimeout(() => first.focus({ preventScroll: true }), 250);
+    toast(msg[held[0]]);
+  }
   $('#eSave').onclick = async () => {
+    // no reply link = guests can't reply: never save a message without it
+    if (!hasLink($('#eTpl').value)) { $('#grp3').open = true; linkCheck(); $('#tplWarn').scrollIntoView({ block: 'center' }); toast(t.needLink); return; }
     const btn = $('#eSave'); btn.setAttribute('aria-busy', 'true');
     const done = () => btn.removeAttribute('aria-busy');
+    // compared to the minute (the form has no seconds), so an untouched time never counts as a change
+    const minute = iso => iso ? Math.floor(+new Date(iso) / 6e4) : null;
+    const before = { s: minute(ev.starts_at), v: (ev.venue || '').trim() };
     if (vals(EF) !== snap.e) {
-      const date = $('#eDate').value;
-      let ends = date && $('#eEnd').value ? kwToIso(date, $('#eEnd').value) : '';
-      const starts = kwToIso(date, $('#eTime').value) || '';
-      if (ends && starts && ends < starts) ends = new Date(new Date(ends).getTime() + 864e5).toISOString();
-      const ok = await saveEvent({ title: $('#eTitle').value, invite_line: $('#eLine').value, note: $('#eNote').value, headline: $('#eHead').value,
-        starts_at: starts, ends_at: ends, venue: $('#eVenue').value, map_url: $('#eMap').value, lang: $('#eLang').value, message_template: $('#eTpl').value }, true);
-      if (!ok) { done(); return; }
+      const { patch, held } = buildPatch();
+      // a blank never goes over a saved name, date, time or venue: say what's missing and save nothing
+      if (held.length) { done(); showHeld(held); return; }
+      if (Object.keys(patch).length) { const ok = await saveEvent(patch, true); if (!ok) { done(); return; } }
     }
     if (rulesOn() && vals(RF) !== snap.r) {
       const date = $('#rDate').value, deadline = date ? App.kwToIso(date, $('#rTime').value || '23:59') : null;
       const { data, error } = await sb.rpc('host_set_rules_v2', { p_event: ev.id, p_deadline: deadline, p_allow_changes: $('#rChange').checked, p_link_enabled: $('#rLink').checked });
-      if (error) { done(); toast(t.cantSave(error.message)); return; }
+      if (error) { done(); toast(t.cantSave(why(error))); return; }
       ev = { ...ev, ...data }; const i = events.findIndex(x => x.id === ev.id); if (i >= 0) events[i] = ev;
     }
     done(); fillEdit(); toast(t.saved); dirtyCheck(true); render();
+    // the date, time or place changed: offer to tell the guests who already have the invitation (nothing is sent on its own)
+    const after = { s: minute(ev.starts_at), v: (ev.venue || '').trim() };
+    if (before.s !== after.s || before.v !== after.v) offerTell();
   };
+  function offerTell() {
+    const list = guests.filter(g => g.phone && g.sent_at);
+    if (!list.length) return;
+    $('#chgBody').innerHTML = `<p class="t-body chg-p">${t.chgP(list.length)}</p><div class="chg-act"><button type="button" class="btn big block primary" id="chgGo"><i class="i i-whatsapp"></i>${t.chgGo(list.length)}</button><button type="button" class="btn block quiet" id="chgLater">${t.chgLater}</button></div>`;
+    $('#chgGo').onclick = () => { App.closeSheet($('#chgSheet')); startQueue('update', list.map(g => g.id)); };
+    $('#chgLater').onclick = () => App.closeSheet($('#chgSheet'));
+    App.openSheet($('#chgSheet'));
+  }
   $('#eCard').onchange = async e => {
     const f = e.target.files[0]; e.target.value = ''; if (!f) return;
     toast(t.uploading);
@@ -998,7 +1336,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (up.error) throw up.error;
       const url = sb.storage.from('cards').getPublicUrl(path).data.publicUrl;
       if (await saveEvent({ card_image_url: url, theme_accent: pal.accent, theme_paper: pal.paper }, true)) { renderEditTheme(pal.chips); toast(t.cardOk); }
-    } catch (err) { toast(t.cardErr(err.message)); }
+    } catch (err) { toast(t.cardErr(why(err))); }
   };
   function renderPkg() {
     const box = $('#pkgBox');
@@ -1006,57 +1344,61 @@ document.addEventListener('DOMContentLoaded', function () {
     const used = seats(guests), lim = ev.invite_limit, left = Math.max(0, lim - used), low = left < 10;
     const wa = (CONFIG.SUPPORT_WHATSAPP || '').replace(/\D/g, '');
     box.hidden = false; box.classList.toggle('low', low);
-    box.innerHTML = `<p class="kicker">${t.pkgK}</p><div class="pkg-top"><b>${t.pkgLeft(left, lim)}</b><span>${t.pkgUsed(used)}</span></div><div class="pkg-bar"><i style="width:${lim ? Math.min(100, used / lim * 100) : 100}%"></i></div>`
+    box.innerHTML = `<p class="pkg-k">${t.pkgK}</p><div class="pkg-top"><b>${t.pkgLeft(left, lim)}</b><span>${t.pkgUsed(used)}</span></div><div class="pkg-bar"><i style="width:${lim ? Math.min(100, used / lim * 100) : 100}%"></i></div>`
       + (low && wa.length >= 8 ? `<a href="https://wa.me/${wa}" target="_blank" rel="noopener"><i class="i i-whatsapp sm"></i>${t.pkgMore}</a>` : '');
   }
 
-  // ---------- add guests ----------
-  let parsed = [];
+  // ---------- add guests (a sheet) ----------
+  let parsed = [], badLines = [];
   function openAdd(many) {
-    const w = $('#addWrap'); w.hidden = false; $('#toggleAdd').setAttribute('aria-expanded', 'true');
-    $('#addBox').hidden = !!many; $('#bulkBox').hidden = !many;
+    $('#addBox').hidden = !!many; $('#bulkBox').hidden = !many; $('#addErr').hidden = true;
     $('#addOneTab').setAttribute('aria-pressed', !many); $('#toggleBulk').setAttribute('aria-pressed', !!many);
-    if (!many) { if (side !== 'all' && !$('#nSide').value) $('#nSide').value = side; setTimeout(() => $('#nName').focus(), 50); }
+    // adding while a side is shown: that side is filled in for you (and taken out again once the filter is off)
+    const ns = $('#nSide');
+    if (!many && !mySide) { if (side !== 'all' && (!ns.value || ns.dataset.auto)) { ns.value = side; ns.dataset.auto = '1'; } else if (side === 'all' && ns.dataset.auto) { ns.value = ''; delete ns.dataset.auto; } }
+    App.openSheet($('#addSheet'));
+    if (!many) setTimeout(() => $('#nName').focus(), 60);
   }
-  $('#toggleAdd').onclick = () => { if ($('#addWrap').hidden) openAdd(false); else { $('#addWrap').hidden = true; $('#toggleAdd').setAttribute('aria-expanded', 'false'); } };
+  $('#toggleAdd').onclick = () => openAdd(false);
   $('#addOneTab').onclick = () => openAdd(false);
   $('#toggleBulk').onclick = () => openAdd(true);
   const dedupe = list => { const seen = new Set(); return list.filter(g => !seen.has(g.phone) && seen.add(g.phone)); };
-  $('#bRead').onclick = () => { parsed = dedupe(fromLines($('#bPaste').value.split(/\n/))); if (!parsed.length) toast(t.lineEach); renderBulk(); };
+  $('#bRead').onclick = () => { const r = fromLines($('#bPaste').value.split(/\n/)); parsed = dedupe(r.rows); badLines = r.bad; if (!parsed.length) toast(t.lineEach); renderBulk(); };
   $('#bFile').onchange = async e => {
     const f = e.target.files[0]; e.target.value = ''; if (!f) return;
     try {
       if (/\.docx$/i.test(f.name)) await App.need('mammoth'); else await App.need('xlsx');
-      if (/\.docx$/i.test(f.name)) parsed = fromLines((await mammoth.extractRawText({ arrayBuffer: await f.arrayBuffer() })).value.split(/\n/));
-      else { const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' }); parsed = fromRows(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' })); }
-      parsed = dedupe(parsed); if (!parsed.length) toast(t.fileNone);
-    } catch (err) { toast(err && /helper/.test(err.message) ? err.message : t.fileErr); }
+      let r;
+      if (/\.docx$/i.test(f.name)) r = fromLines((await mammoth.extractRawText({ arrayBuffer: await f.arrayBuffer() })).value.split(/\n/));
+      else { const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' }); r = fromRows(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' })); }
+      parsed = dedupe(r.rows); badLines = r.bad; if (!parsed.length) toast(t.fileNone);
+    } catch (err) { parsed = []; badLines = []; toast(err && /helper/.test(err.message) ? err.message : t.fileErr); }
     renderBulk();
   };
   function renderBulk() {
-    const p = $('#bPreview'); if (!parsed.length) { p.innerHTML = ''; return; }
-    p.innerHTML = `<p style="margin:14px 0 8px">${t.found(parsed.length)}</p>
-      <div class="glist">${parsed.map(g => `<div class="gi"><div class="gi-main"><b>${bdi(g.name)}</b><div class="gi-sub"><span dir="ltr">${esc(showPhone(g.phone))}</span>${g.seats > 1 ? `<span>${t.plus(g.seats - 1)}</span>` : ''}</div></div></div>`).join('')}</div>
-      <div class="row" style="margin-top:10px"><button class="btn small" id="bAdd">${t.addMine}</button><button class="btn small ghost" id="bCancel">${t.cancel}</button></div>`;
-    $('#bCancel').onclick = () => { parsed = []; renderBulk(); };
+    const p = $('#bPreview');
+    $('#bRead').classList.toggle('primary', !parsed.length); $('#bRead').classList.toggle('secondary', !!parsed.length);
+    // lines the reader couldn't use are listed, never dropped without a word
+    const bad = badLines.length ? `<div class="panel flat tone-wait badl" role="status"><p class="t-tone">${t.badLinesH(badLines.length)}</p><ul>${badLines.slice(0, 40).map(l => `<li><bdi>${esc(l)}</bdi></li>`).join('')}</ul></div>` : '';
+    if (!parsed.length) { p.innerHTML = bad; return; }
+    p.innerHTML = `<p class="t-body" style="margin:14px 0 8px">${t.found(parsed.length)}</p>
+      <div class="glist">${parsed.map(g => `<div class="gi"><div class="gi-main"><b>${bdi(g.name)}</b><div class="gi-sub"><span dir="ltr">${esc(showPhone(g.phone))}</span><span>${t.people(g.seats)}</span></div></div></div>`).join('')}</div>
+      ${bad}<div class="row" style="margin-top:10px"><button type="button" class="btn small primary" id="bAdd">${t.addMine}</button><button type="button" class="btn small quiet" id="bCancel">${t.cancel}</button></div>`;
+    $('#bCancel').onclick = () => { parsed = []; badLines = []; renderBulk(); };
     $('#bAdd').onclick = async () => {
       const rows = parsed.map(g => ({ ...g, event_id: ev.id, side: mySide || (side !== 'all' ? side : null) }));
       const { data, error } = await sb.from('guests').upsert(rows, { onConflict: 'event_id,phone', ignoreDuplicates: true }).select('id');
-      if (error) { toast(/limit/.test(error.message || '') ? t.noPkg : t.addErr(error.message)); return; }
-      const added = (data || []).length; (data || []).forEach(r => selfIds.add(r.id)); toast(t.addedN(added, parsed.length - added));
-      parsed = []; $('#bPaste').value = ''; renderBulk(); $('#addWrap').hidden = true; $('#toggleAdd').setAttribute('aria-expanded', 'false'); loadGuests();
+      if (error) { toast(/limit/.test(error.message || '') ? t.noPkg : t.addErr(why(error))); return; }
+      const added = (data || []).length; (data || []).forEach(r => { selfIds.add(r.id); fresh.set(r.id, Date.now()); });
+      parsed = []; badLines = []; $('#bPaste').value = ''; renderBulk(); App.closeSheet($('#addSheet'));
+      filter = 'all'; query = ''; $('#q').value = '';
+      toast(t.addedN(added, rows.length - added)); loadGuests();
     };
-  }
-
-  async function markSent(id) {
-    const now = new Date().toISOString(), g = guests.find(x => x.id === id);
-    if (g && !g.sent_at) { g.sent_at = now; setTimeout(render, 300); }
-    await sb.from('guests').update({ sent_at: now }).eq('id', id);
   }
 
   async function del(b) {
     const lbl = b.querySelector('span');
-    if (!b.dataset.armed) { b.dataset.armed = '1'; lbl.textContent = t.tapRemove; toast(t.tapRemove); setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; lbl.textContent = t.remove; } }, 3000); return; }
+    if (!b.dataset.armed) { b.dataset.armed = '1'; lbl.textContent = t.tapRemove; setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; lbl.textContent = t.remove; } }, 3000); return; }
     const g = guests.find(x => x.id === b.dataset.del);
     const { error } = await sb.from('guests').delete().eq('id', g.id);
     if (error) { toast(t.rmErr); return; }
@@ -1064,19 +1406,31 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   $('#q').oninput = e => { query = e.target.value; renderGuests(); };
-  $('#addGuest').onclick = async () => {
+  $('#nSide').addEventListener('input', () => { delete $('#nSide').dataset.auto; });
+  function addErr(msg) { const p = $('#addErr'); p.textContent = msg; p.hidden = false; toast(msg); }
+  // Save adds the guest only; "Save and send" then opens the same one-by-one send (with its "Did you send it?")
+  async function addOne(andSend) {
     const name = $('#nName').value.trim(), phone = normPhone($('#nPhone').value), seatsN = App.clampSeats($('#nSeats').value);
     const gSide = mySide || $('#nSide').value.trim() || null;
-    if (!name) { toast(t.typeName); return; }
-    if (phone.length < 10) { toast(t.short); return; }
-    if (ev.invite_limit != null && guests.reduce((a, g) => a + g.seats, 0) + seatsN > ev.invite_limit) { toast(t.noPkg); return; }
-    const { data, error } = await sb.from('guests').insert({ event_id: ev.id, name, phone, seats: seatsN, side: gSide, sent_at: new Date().toISOString() }).select().single();
-    if (error) { toast(error.code === '23505' ? t.dupNum : /limit/.test(error.message || '') ? t.noPkg : t.addOneErr); return; }
-    selfIds.add(data.id);
-    $('#nName').value = ''; $('#nPhone').value = ''; $('#nSeats').value = '1';
-    window.open(waLink(data.phone, fillTemplate(App.templateFor(ev), ev, data)), '_blank', 'noopener');
-    toast(t.added(name)); loadGuests();
-  };
+    $('#addErr').hidden = true;
+    if (!name) { addErr(t.typeName); $('#nName').focus(); return; }
+    if (phone.length < 10) { addErr(t.short); $('#nPhone').focus(); return; }
+    if (ev.invite_limit != null && seats(guests) + seatsN > ev.invite_limit) { addErr(t.noPkg); return; }
+    const btn = andSend ? $('#addSend') : $('#addGuest'); btn.setAttribute('aria-busy', 'true');
+    const { data, error } = await sb.from('guests').insert({ event_id: ev.id, name, phone, seats: seatsN, side: gSide }).select().single();
+    btn.removeAttribute('aria-busy');
+    if (error) { addErr(error.code === '23505' ? t.dupNum : /limit/.test(error.message || '') ? t.noPkg : t.addOneErr); return; }
+    selfIds.add(data.id); fresh.set(data.id, Date.now());
+    $('#nName').value = ''; $('#nPhone').value = ''; $('#nSide').value = ''; delete $('#nSide').dataset.auto; addStep.set(1);
+    App.closeSheet($('#addSheet'));
+    filter = 'all'; query = ''; $('#q').value = ''; editing = null;
+    await loadGuests();
+    if (tab !== 'guests') go('guests');
+    const row = $(`#rows [data-g="${data.id}"]`); if (row) row.scrollIntoView({ block: 'center' });
+    if (andSend) startQueue('send', [data.id]); else toast(t.added(name));
+  }
+  $('#addGuest').onclick = () => addOne(false);
+  $('#addSend').onclick = () => addOne(true);
   applyLang();
 });
 </script>

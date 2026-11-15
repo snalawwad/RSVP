@@ -230,15 +230,49 @@ label.check input{width:20px;height:20px;accent-color:var(--plum)}
    Palette: oxblood #5B0F1D · sage #9BA38F · blush #E7B6B6 · powder blue #C7D5E4 · ivory #EDE5DA
    Modes: cream (default) · light · dark, via html[data-theme]; "auto" follows the phone.
    Text/token pairs meet WCAG AA (4.5:1 text, 3:1 marks and field borders).
+
+   RULES FOR EVERY BACK-OFFICE SCREEN (Nov 2026 UX pass)
+   Text: five sizes only, through these tokens / classes:
+     --fs-s 14px  .t-small  meta lines, help, labels, pills (never smaller)
+     --fs-b 16px  .t-body   body text, buttons, inputs
+     --fs-name 18px .t-name guest names, row titles, the menu rows
+     --fs-h 22px  .t-title  screen and card titles, event name (one line)
+     --fs-num 36px .t-num   the one big number on a screen
+     (tab labels are 15px, --fs-tab). No all-caps, no letter-spacing, no italics: enforced below.
+   Colour meaning (the same on every page):
+     filled plum  = the ONE main action on a screen: .btn.primary. Everything else .btn.secondary
+                    (outline), .btn.quiet (text) or .btn.danger (red text). Bare .btn is legacy = primary.
+     green  .tone-ok   = coming / in            amber .tone-wait = waiting / needs attention
+     red    .tone-no   = can't come / refused   .alertbar (filled red) = the door needs the host
+     Selected filter chips (.fchip[aria-pressed=true], .seg) = dark outline, never plum.
+   Tone classes set --tone, --tone-bg, --tone-bar, --tone-mark and work on:
+     .tag (status label)   .dot (12px status dot)   .panel (card; with a tone it gets a 2px tone border)
+     e.g. <span class="tag tone-ok">Coming</span> · <div class="panel tone-wait">Already in · 2 people · 9:33 PM</div>
+   Building blocks:
+     .panel                      a card (surface + border + radius); .panel.flat = no shadow
+     .alertbar                   full-width red bar link/button: <a class="alertbar" href="#">
+                                 <span class="ab-n">2</span><span class="ab-t">The door is asking about guests</span><span class="ab-go">Reply</span></a>
+     .undoband                   App.undoBand({ text, onUndo }) makes one (green, fixed above the tab bar);
+                                 or markup <div class="undoband tone-ok"><span class="ub-t">…</span><button class="ub-undo">Undo</button></div>
+     .stepper                    − value +: <div class="stepper"><button>−</button><output>2</output><button>+</button></div>
+     .rowlist / .rowlist > .row  plain list rows (min 64px) with .row-main, .row-end
+     .tabs                       bottom tabs: icon + 15px label, no count badges (.badge is hidden)
+   Menu (core.js mountMenu): Language · Colours · Help, then Log out set apart. No page links in it.
    ===================================================================== */
 body.app{
   --ox:#5B0F1D; --sage:#9BA38F; --blush:#E7B6B6; --powder:#C7D5E4; --ivory:#EDE5DA;
   --bg:#EDE5DA; --surface:#E4DACB; --card:#F8F3EC; --ink:#26181A; --muted:#625350; --line:#D9CCBB; --field-line:#80705F;
   --plum:#5B0F1D; --plum-ink:#FBF4EC; --gold:#75583F; --focus:#5B0F1D; --accent-soft:#F1DEDB;
-  --ok:#47533B; --ok-bg:#DCE1D2; --ok-bar:#9BA38F; --ok-mark:#6E785F;
-  --wait:#38506B; --wait-bg:#D6E1EC; --wait-bar:#C7D5E4; --wait-mark:#5F7894;
-  --no:#7A1C2A; --no-bg:#F3D9D7; --no-bar:#E7B6B6; --no-mark:#A35F67;
-  --radius:18px; --shadow:0 1px 0 rgba(91,15,29,.04),0 10px 30px rgba(60,30,20,.07); --shadow-lg:0 18px 50px rgba(60,30,20,.16);
+  --ok:#2C5E3B; --ok-bg:#DCEADF; --ok-bar:#8DB59A; --ok-mark:#3E8152; --ok-strong:#1F6B3A; --ok-strong-ink:#FFFFFF;
+  --wait:#74490C; --wait-bg:#F6E5C3; --wait-bar:#E0B45C; --wait-mark:#A26E17; --wait-strong:#F2CF85; --wait-strong-ink:#3A2606;
+  --no:#8A1D28; --no-bg:#F6DADA; --no-bar:#E2A3A6; --no-mark:#B3383F; --no-strong:#B3261E; --no-strong-ink:#FFFFFF;
+  --alert:#B3261E; --alert-ink:#FFFFFF;
+  --fs-s:14px; --fs-tab:15px; --fs-b:16px; --fs-name:18px; --fs-h:22px; --fs-num:36px;
+  /* one radius scale: --r-s small marks (tags, notes) · --r-m controls and bars (fields, alert/undo bars, toast) · --r-l cards and sheets · --r-pill buttons, chips, segments */
+  --r-s:8px; --r-m:12px; --r-l:18px; --r-pill:999px; --radius:var(--r-l);
+  /* motion: hover in / out, press, panel; one ease-out curve */
+  --m-in:150ms; --m-out:120ms; --m-press:90ms; --m-panel:200ms; --ease:cubic-bezier(.2,.8,.2,1);
+  --shadow:0 1px 0 rgba(91,15,29,.04),0 10px 30px rgba(60,30,20,.07); --shadow-lg:0 18px 50px rgba(60,30,20,.16);
   --display:"Fraunces","Noto Naskh Arabic",Georgia,serif; --body:"DM Sans","Noto Kufi Arabic",system-ui,-apple-system,sans-serif;
   --tb:61px;
   color-scheme:light;
@@ -252,9 +286,10 @@ html[data-theme="light"] body.app{
 html[data-theme="dark"] body.app{
   --bg:#141514; --surface:#1A1B19; --card:#1E1F1C; --ink:#EDE5DA; --muted:#AAA296; --line:#2E2F2A; --field-line:#74756B;
   --plum:#E7B6B6; --plum-ink:#2A0910; --gold:#C9B59C; --focus:#C7D5E4; --accent-soft:#3A2226;
-  --ok:#C3CBB5; --ok-bg:#262B21; --ok-bar:#9BA38F; --ok-mark:#9BA38F;
-  --wait:#C7D5E4; --wait-bg:#1F2733; --wait-bar:#8DA3BC; --wait-mark:#8DA3BC;
-  --no:#EDBDBD; --no-bg:#3A1C21; --no-bar:#B9757B; --no-mark:#B9757B;
+  --ok:#A9D9B6; --ok-bg:#1B2E21; --ok-bar:#4F8A60; --ok-mark:#6FB283; --ok-strong:#1F6B3A; --ok-strong-ink:#FFFFFF;
+  --wait:#EDC77E; --wait-bg:#2F2514; --wait-bar:#A9843A; --wait-mark:#C99A45; --wait-strong:#E2B65C; --wait-strong-ink:#2A1B04;
+  --no:#F2AEB2; --no-bg:#3A1C21; --no-bar:#B9575F; --no-mark:#D2646C; --no-strong:#C2362D; --no-strong-ink:#FFFFFF;
+  --alert:#C2362D; --alert-ink:#FFFFFF;
   --shadow:inset 0 1px 0 rgba(237,229,218,.04),0 10px 30px rgba(0,0,0,.35); --shadow-lg:0 18px 50px rgba(0,0,0,.55);
   color-scheme:dark; background-image:none;
 }
@@ -262,36 +297,33 @@ html[data-theme="dark"] body.app{
   html:not([data-theme="light"]):not([data-theme="cream"]) body.app{
     --bg:#141514; --surface:#1A1B19; --card:#1E1F1C; --ink:#EDE5DA; --muted:#AAA296; --line:#2E2F2A; --field-line:#74756B;
     --plum:#E7B6B6; --plum-ink:#2A0910; --gold:#C9B59C; --focus:#C7D5E4; --accent-soft:#3A2226;
-    --ok:#C3CBB5; --ok-bg:#262B21; --ok-bar:#9BA38F; --ok-mark:#9BA38F;
-    --wait:#C7D5E4; --wait-bg:#1F2733; --wait-bar:#8DA3BC; --wait-mark:#8DA3BC;
-    --no:#EDBDBD; --no-bg:#3A1C21; --no-bar:#B9757B; --no-mark:#B9757B;
+    --ok:#A9D9B6; --ok-bg:#1B2E21; --ok-bar:#4F8A60; --ok-mark:#6FB283; --ok-strong:#1F6B3A; --ok-strong-ink:#FFFFFF;
+    --wait:#EDC77E; --wait-bg:#2F2514; --wait-bar:#A9843A; --wait-mark:#C99A45; --wait-strong:#E2B65C; --wait-strong-ink:#2A1B04;
+    --no:#F2AEB2; --no-bg:#3A1C21; --no-bar:#B9575F; --no-mark:#D2646C; --no-strong:#C2362D; --no-strong-ink:#FFFFFF;
+    --alert:#C2362D; --alert-ink:#FFFFFF;
     --shadow:inset 0 1px 0 rgba(237,229,218,.04),0 10px 30px rgba(0,0,0,.35); --shadow-lg:0 18px 50px rgba(0,0,0,.55);
     color-scheme:dark; background-image:none;
   }
 }
 body.app{background-color:var(--bg);color:var(--ink);line-height:1.55}
-body.app :focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+body.app :focus-visible{outline:2px solid var(--focus);outline-offset:2px;transition:none}
 body.app main{max-width:760px;padding:18px 16px 96px}
 body.app ::selection{background:var(--accent-soft)}
 
 /* ---------- type ---------- */
 body.app h1,body.app h2{font-family:var(--display);font-weight:600;color:var(--ink);letter-spacing:-.02em;font-variation-settings:"opsz" 96}
-body.app h2{font-size:32px;line-height:1.08}
-body.app h3{font-family:var(--display);color:var(--ink);font-size:22px;font-weight:600;letter-spacing:-.01em;margin:38px 0 12px;font-variation-settings:"opsz" 48}
+body.app h1,body.app h2{font-size:var(--fs-h);line-height:1.2}
+body.app h3{font-family:var(--display);color:var(--ink);font-size:var(--fs-name);font-weight:600;margin:28px 0 10px;font-variation-settings:"opsz" 48}
 body.app .sub{color:var(--muted)}
-body.app .kicker,body.app .eyebrow{display:flex;align-items:center;gap:10px;justify-content:flex-start;font-family:var(--body);font-style:normal;font-size:11.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--plum);margin:0 0 8px;text-align:start}
-body.app .kicker::before,body.app .eyebrow::before{content:"";width:22px;height:1px;background:currentColor;flex:none}
-body.app .login .kicker{justify-content:center}
-body.app .login .kicker::after{content:"";width:22px;height:1px;background:currentColor;flex:none}
-.folio{font-family:var(--display);font-style:italic;font-weight:400;font-size:15px;color:var(--muted);margin-inline-end:8px}
+/* kicker/eyebrow = a plain small label: no dash, no capitals, no tracking */
+body.app .kicker,body.app .eyebrow{display:block;font-family:var(--body);font-size:var(--fs-s);font-weight:600;color:var(--muted);margin:0 0 6px;text-align:start}
+body.app .login .kicker{text-align:center}
+.folio{font-family:var(--body);font-weight:600;font-size:var(--fs-s);color:var(--muted);margin-inline-end:8px}
 /* Arabic: Amiri for big display, Plex for UI; no tracking; roomier lines */
 html[lang="ar"] body.app{line-height:1.75}
 html[lang="ar"] body.app h1,html[lang="ar"] body.app h2{font-family:var(--display);font-weight:700;letter-spacing:0;line-height:1.35}
-html[lang="ar"] body.app h3{font-family:var(--body);font-weight:600;font-size:20px;letter-spacing:0;line-height:1.5}
-html[lang="ar"] body.app .kicker,html[lang="ar"] body.app .eyebrow{letter-spacing:0;text-transform:none;font-size:13px}
-html[lang="ar"] body.app label.f{font-size:14px;letter-spacing:0}
-html[lang="ar"] body.app .gi-sub{font-size:14px}
-html[lang="ar"] body.app .pill{font-size:13.5px;padding:2px 12px 4px}
+html[lang="ar"] body.app h3{font-family:var(--body);font-weight:600;font-size:var(--fs-name);line-height:1.5}
+html[lang="ar"] body.app .pill{padding:2px 12px 4px}
 html[lang="ar"] body.app .btn{letter-spacing:0}
 .num{font-variant-numeric:tabular-nums lining-nums}
 
@@ -326,41 +358,56 @@ html[lang="ar"] body.app .btn{letter-spacing:0}
 
 /* ---------- top bar: arch mark · page title · menu ---------- */
 body.app .topbar{border-bottom:1px solid var(--line);padding:10px 16px;gap:12px;background:color-mix(in srgb,var(--bg) 92%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);position:sticky;top:0;z-index:30;min-height:var(--tb)}
-body.app .topbar .brand{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;margin-inline-end:0;color:var(--plum);flex:none;border-radius:12px}
+body.app .topbar .brand{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;margin-inline-end:0;color:var(--plum);flex:none;border-radius:var(--r-m)}
 body.app .topbar .brand::before{content:"";width:22px;height:28px;background:currentColor;
   -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 28' fill='none' stroke='black' stroke-width='1.6'%3E%3Cpath d='M2 27V11a9 9 0 0 1 18 0v16z'/%3E%3Cpath d='M6 27V12a5 5 0 0 1 10 0v15'/%3E%3C/svg%3E") center/contain no-repeat;
   mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 28' fill='none' stroke='black' stroke-width='1.6'%3E%3Cpath d='M2 27V11a9 9 0 0 1 18 0v16z'/%3E%3Cpath d='M6 27V12a5 5 0 0 1 10 0v15'/%3E%3C/svg%3E") center/contain no-repeat}
-body.app .tb-title{flex:1;min-width:0;font-family:var(--display);font-weight:600;font-size:16px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transform:translateY(4px);transition:opacity .2s,transform .2s}
-body.app .tb-title.on{opacity:1;transform:none}
+body.app .tb-title{flex:1;min-width:0;font-family:var(--display);font-weight:600;font-size:16px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity var(--m-out) linear}
+body.app .tb-title.on{opacity:1}
 html[lang="ar"] body.app .tb-title{font-family:var(--body)}
-.menu-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:600;font-size:14px;margin-inline-start:auto;white-space:nowrap}
+.menu-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:600;font-size:var(--fs-b);margin-inline-start:auto;white-space:nowrap}
 .menu-btn:hover{border-color:var(--plum);color:var(--plum)}
 
 /* ---------- bottom sheet (native <dialog>) ---------- */
-dialog.sheet{position:fixed;inset:auto 0 0 0;margin:0 auto;width:100%;max-width:560px;max-height:88vh;border:0;padding:8px 18px calc(18px + env(safe-area-inset-bottom));border-radius:26px 26px 0 0;background:var(--card);color:var(--ink);box-shadow:var(--shadow-lg);overflow:auto}
-dialog.sheet[open]{animation:sheetUp .24s cubic-bezier(.2,.8,.2,1)}
+dialog.sheet{position:fixed;inset:auto 0 0 0;margin:0 auto;width:100%;max-width:560px;max-height:88vh;border:0;padding:8px 18px calc(18px + env(safe-area-inset-bottom));border-radius:var(--r-l) var(--r-l) 0 0;background:var(--card);color:var(--ink);box-shadow:var(--shadow-lg);overflow:auto}
+dialog.sheet[open]{animation:sheetUp var(--m-panel) var(--ease)}
 dialog.sheet::backdrop{background:rgba(20,21,20,.45)}
 @keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
 .sheet-grab{width:40px;height:4px;border-radius:9px;background:var(--line);margin:4px auto 10px}
 .sheet-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.sheet-h{font-family:var(--display);font-weight:600;font-size:24px;margin:0;flex:1}
+.sheet-h{font-family:var(--display);font-weight:600;font-size:var(--fs-h);margin:0;flex:1}
+.sheet-h:focus{outline:none}
 html[lang="ar"] .sheet-h{font-family:var(--display);font-weight:700}
-.sheet-x{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;justify-content:center}
+.sheet-x{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;justify-content:center}
 .menu-nav{display:flex;flex-direction:column;margin:4px 0 12px}
-.menu-nav a,.menu-nav button{display:flex;align-items:center;gap:14px;min-height:56px;padding:0 6px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);text-decoration:none;font-family:var(--display);font-size:21px;font-weight:500;text-align:start;width:100%}
-html[lang="ar"] .menu-nav a,html[lang="ar"] .menu-nav button{font-family:var(--body);font-size:18px}
+.menu-nav a,.menu-nav button{display:flex;align-items:center;gap:14px;min-height:56px;padding:0 6px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);text-decoration:none;font-family:var(--body);font-size:var(--fs-name);font-weight:500;text-align:start;width:100%}
 .menu-nav a[aria-current="page"]{color:var(--plum)}
 .menu-nav .i{color:var(--plum)}
-.menu-nav .menu-sub{margin-inline-start:auto;font-family:var(--body);font-size:13px;color:var(--muted)}
-.menu-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;border-bottom:1px solid var(--line)}
-.menu-row>span{font-size:14px;color:var(--muted);font-weight:600}
+.menu-nav .menu-sub{margin-inline-start:auto;font-family:var(--body);font-size:var(--fs-s);color:var(--muted)}
+.menu-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:64px;border-bottom:1px solid var(--line)}
+.menu-row>span:first-child,.menu-k{font-size:var(--fs-name);color:var(--ink);font-weight:500}
+/* Menu = Language · Colours · Help, then Log out on its own (built by core.js mountMenu) */
+.menu-std{margin:4px 0 0}
+.langsw .langsw-cur,.langsw .langsw-alt{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border:0;border-radius:var(--r-pill);font-size:var(--fs-s);font-weight:600;white-space:nowrap}
+.langsw .langsw-cur{background:var(--card);color:var(--ink);box-shadow:0 0 0 1.5px var(--ink)}
+.langsw .langsw-alt{background:transparent;color:var(--muted)}
+.langsw .langsw-alt:hover{color:var(--ink)}
+.menu-help{width:100%;border:0;background:none;color:var(--ink);padding:0;text-align:start;font:inherit}
+.menu-help .i{color:var(--muted)}
+.menu-out{margin-top:28px;padding-top:14px;border-top:1px solid var(--line)}
+.menu-logout{display:inline-flex;align-items:center;min-height:48px;padding:0 4px;border:0;background:none;color:var(--no);font-size:var(--fs-b);font-weight:600;text-decoration:underline;text-underline-offset:4px}
+.menu-logout[hidden]{display:none}
+.help-item{padding:12px 0;border-bottom:1px solid var(--line)}
+.help-item:last-child{border-bottom:0}
+body.app .help-item h3{margin:0 0 4px;font-family:var(--body);font-size:var(--fs-name);font-weight:600}
+.help-item p{margin:0;color:var(--muted)}
 .menu-foot{display:flex;gap:10px;margin-top:14px}
 .menu-foot .btn{flex:1}
 
 /* segmented control (also the colour switch) */
-.seg,.themesw{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
-.seg button,.themesw button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:0 13px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-size:14px;font-weight:600;white-space:nowrap}
-.seg button[aria-pressed="true"],.seg button[aria-selected="true"],.themesw button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.seg,.themesw{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:var(--r-pill);background:var(--surface)}
+.seg button,.themesw button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:0 14px;border:0;border-radius:var(--r-pill);background:transparent;color:var(--muted);font-size:14px;font-weight:600;white-space:nowrap}
+.seg button[aria-pressed="true"],.seg button[aria-selected="true"],.themesw button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 0 0 1.5px var(--ink)}
 .seg.fill{display:flex}.seg.fill button{flex:1}
 .sw{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.25)}
 .sw-cream{background:#EDE5DA}.sw-light{background:#FFFFFF}.sw-dark{background:#141514;border-color:rgba(255,255,255,.35)}
@@ -377,30 +424,28 @@ body.app .login.sent .login-env .flap{animation:flapShut .45s ease both}
 @keyframes flapShut{from{transform:scaleY(1)}to{transform:scaleY(-.15) translateY(-2px)}}
 
 /* ---------- buttons ---------- */
-body.app .btn{border-width:1px;font-weight:600;letter-spacing:.01em;min-height:48px;gap:8px}
+body.app .btn{border-width:1px;border-radius:var(--r-pill);font-weight:600;letter-spacing:.01em;min-height:48px;gap:8px}
 body.app .btn.small{min-height:44px;padding:8px 16px}
-body.app .btn.ghost{border-color:var(--field-line);color:var(--ink);background:var(--card)}
-body.app .btn.ghost:hover{border-color:var(--plum);color:var(--plum)}
-body.app .btn.soft{background:var(--accent-soft);border-color:transparent;color:var(--plum)}
+/* .ghost and .soft are old names for .secondary: one primary, one secondary, nothing else filled */
+body.app .btn.ghost,body.app .btn.soft{background:var(--card);border-color:var(--field-line);color:var(--ink)}
 body.app .btn.quiet{background:transparent;border-color:transparent;color:var(--plum)}
-body.app .btn:not(.ghost):not(.soft):not(.quiet):hover{filter:brightness(1.1)}
 body.app .btn.block{width:100%}
 body.app .btn.danger{background:transparent;border-color:transparent;color:var(--no)}
 body.app .btn[aria-busy="true"]{pointer-events:none;opacity:.85}
 body.app .btn[aria-busy="true"]::before{content:"";width:16px;height:16px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 body.app .link{color:var(--muted)}
-body.app .icon{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;min-width:44px;background:var(--card);border-color:var(--line);color:var(--ink);padding:6px 14px}
+body.app .icon{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;min-width:44px;background:var(--card);border-color:var(--line);border-radius:var(--r-pill);color:var(--ink);padding:6px 14px}
 body.app .icon:hover{border-color:var(--plum);color:var(--plum)}
 body.app .iconbtn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--plum);position:relative;flex:none}
 body.app .iconbtn .dot{position:absolute;top:7px;inset-inline-end:7px;width:8px;height:8px;border-radius:50%;background:var(--wait-mark);box-shadow:0 0 0 2px var(--card)}
 
 /* ---------- fields ---------- */
 body.app input[type=text],body.app input[type=email],body.app input[type=tel],body.app input[type=number],body.app input[type=date],
-body.app input[type=time],body.app input[type=url],body.app input[type=search],body.app select,body.app textarea{background:var(--card);border:1px solid var(--field-line);border-radius:12px;color:var(--ink);min-height:48px}
-body.app input:focus,body.app select:focus,body.app textarea:focus{border-color:var(--plum);box-shadow:0 0 0 3px color-mix(in srgb,var(--plum) 25%,transparent);outline:none}
-body.app label.f{color:var(--muted);font-weight:600;font-size:12.5px;letter-spacing:.02em}
-body.app .help{font-size:13px;color:var(--muted);margin:6px 0 0}
+body.app input[type=time],body.app input[type=url],body.app input[type=search],body.app select,body.app textarea{background:var(--card);border:1px solid var(--field-line);border-radius:var(--r-m);color:var(--ink);min-height:48px}
+body.app input:focus,body.app select:focus,body.app textarea:focus,body.app [contenteditable="true"]:focus{border-color:var(--plum);box-shadow:0 0 0 3px color-mix(in srgb,var(--plum) 25%,transparent);outline:none;transition:border-color 140ms var(--ease),box-shadow 140ms var(--ease)}
+body.app label.f{color:var(--muted);font-weight:600;font-size:var(--fs-s)}
+body.app .help{font-size:var(--fs-s);color:var(--muted);margin:6px 0 0}
 body.app input[type=search]{padding-inline-start:44px;background-image:none}
 .searchbox{position:relative}
 .searchbox>.i{position:absolute;inset-inline-start:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
@@ -411,44 +456,40 @@ body.app legend{padding:0;margin-bottom:12px}
 body.app .box,body.app .glist,.card2{border:1px solid var(--line);border-radius:var(--radius);background:var(--card);box-shadow:var(--shadow)}
 body.app .box .glist,body.app .box .box{border:0;box-shadow:none;border-radius:0;background:transparent}
 body.app .gi{border-bottom-color:var(--line);min-height:64px}
-body.app .gi-why{background:var(--no-bg);color:var(--ink);font-style:normal;border-inline-start:3px solid var(--no-mark);border-radius:8px}
+body.app .gi-why{background:var(--no-bg);color:var(--ink);font-style:normal;border-inline-start:3px solid var(--no-mark);border-radius:var(--r-s)}
 body.app .empty{color:var(--muted)}
 body.app .drop{border:1.5px dashed var(--field-line);background:var(--surface);border-radius:var(--radius)}
 body.app .drop:focus-within,body.app .drop.over{outline:2px solid var(--focus);outline-offset:3px;border-color:var(--plum)}
 body.app .drop.over{background:color-mix(in srgb,var(--blush) 25%,var(--surface))}
-body.app .toast{background:var(--ink);color:var(--bg);border-radius:14px;box-shadow:var(--shadow-lg);display:inline-flex;align-items:center;gap:8px}
-body.app .sendrow,body.app .editor{background:var(--surface);border-color:var(--line)}
+body.app .toast{background:var(--ink);color:var(--bg);border-radius:var(--r-m);box-shadow:var(--shadow-lg);display:inline-flex;align-items:center;gap:8px}
+body.app .sendrow,body.app .editor{background:var(--surface);border-color:var(--line);border-radius:var(--r-m)}
+body.app .msg,body.app .msgbox{border-radius:var(--r-m)}
 body.app table.t th{background:var(--surface)}
 body.app details>summary{color:var(--muted);cursor:pointer;min-height:44px;display:flex;align-items:center}
 
 /* ---------- masthead: the event's name, set like a magazine cover ---------- */
-.mast{margin:6px 0 22px;padding-bottom:18px;border-bottom:1px solid var(--line)}
-.mast-k{margin:0 0 8px;font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--plum)}
-.mast-t{font-family:var(--display);font-weight:600;font-size:clamp(38px,10.5vw,54px);line-height:.98;letter-spacing:-.03em;margin:0 0 10px;color:var(--ink);font-variation-settings:"opsz" 144}
-.mast-t .amp{font-style:italic;font-weight:400;color:var(--plum)}
-.mast-v{margin:0;color:var(--muted);font-size:15px;display:flex;align-items:center;gap:8px}
-.mast-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
-html[lang="ar"] .mast-k{letter-spacing:0;text-transform:none;font-size:13.5px}
-html[lang="ar"] .mast-t{font-family:var(--display);font-weight:700;line-height:1.3;letter-spacing:0}
-.countdown{display:inline-flex;align-items:center;gap:8px;min-height:32px;padding:0 12px;border:1px solid var(--line);border-radius:999px;font-size:13px;font-weight:600;color:var(--ink);background:var(--card)}
+.mast{margin:2px 0 16px}
+.mast-k{margin:0 0 4px;font-size:var(--fs-s);font-weight:600;color:var(--muted)}
+.mast-t{font-family:var(--display);font-weight:600;font-size:var(--fs-h);line-height:1.25;margin:0 0 2px;color:var(--ink)}
+.mast-t .amp{font-weight:600;color:inherit}
+.mast-v{margin:0;color:var(--muted);font-size:var(--fs-s);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mast-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+html[lang="ar"] .mast-t{font-family:var(--display);font-weight:700;line-height:1.5}
+.countdown{display:inline-flex;align-items:center;gap:8px;min-height:32px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r-pill);font-size:var(--fs-s);font-weight:600;color:var(--ink);background:var(--card)}
 .countdown::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok-mark)}
 
 /* ---------- next step: an envelope card ---------- */
-.next{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:50px 20px 20px;overflow:hidden;margin-bottom:18px}
-.next::before{content:"";position:absolute;inset:0 0 auto 0;height:36px;background:var(--surface);clip-path:polygon(0 0,100% 0,50% 100%)}
-.next::after{content:"";position:absolute;inset:0 0 auto 0;height:36px;background:linear-gradient(to bottom right,transparent calc(50% - .7px),var(--line) 50%,transparent calc(50% + .7px)) left/50% 100% no-repeat,linear-gradient(to bottom left,transparent calc(50% - .7px),var(--line) 50%,transparent calc(50% + .7px)) right/50% 100% no-repeat}
-.next>*{position:relative}
-.next-t{font-family:var(--display);font-weight:600;font-size:26px;line-height:1.15;letter-spacing:-.015em;margin:0 0 6px}
-html[lang="ar"] .next-t{font-family:var(--display);font-weight:700;line-height:1.4;letter-spacing:0}
+.next{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 18px 18px;margin-bottom:14px}
+.next-t{font-family:var(--display);font-weight:600;font-size:var(--fs-h);line-height:1.25;margin:0 0 6px}
+html[lang="ar"] .next-t{font-family:var(--display);font-weight:700;line-height:1.5}
 .next-p{margin:0 0 16px;color:var(--muted)}
 
 /* ---------- meter: the big number first, then the split ---------- */
 .meter{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 20px 16px;margin-bottom:18px}
 .meter-top{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
-.meter-n{font-family:var(--display);font-weight:600;font-size:72px;line-height:.9;letter-spacing:-.03em;color:var(--ok);font-variant-numeric:lining-nums tabular-nums;font-variation-settings:"opsz" 144}
-.meter-l{font-family:var(--display);font-size:20px;font-weight:500;color:var(--ink);line-height:1.2}
-.meter-s{font-size:13.5px;color:var(--muted);margin:2px 0 0}
-html[lang="ar"] .meter-l{font-family:var(--body);font-size:18px;font-weight:600}
+.meter-n{font-family:var(--display);font-weight:600;font-size:var(--fs-num);line-height:1;color:var(--ink);font-variant-numeric:lining-nums tabular-nums}
+.meter-l{font-family:var(--body);font-size:var(--fs-name);font-weight:600;color:var(--ink);line-height:1.3}
+.meter-s{font-size:var(--fs-s);color:var(--muted);margin:2px 0 0}
 .meter-bar{display:flex;gap:3px;height:10px;margin:16px 0 14px}
 .meter-bar i{display:block;height:100%;border-radius:999px;min-width:0;transition:flex-grow .7s cubic-bezier(.2,.8,.2,1),width .7s cubic-bezier(.2,.8,.2,1)}
 .meter-bar .y{background:var(--ok-mark)}.meter-bar .w{background:var(--wait-mark)}.meter-bar .n{background:var(--no-mark)}.meter-bar .e{background:var(--surface)}
@@ -456,12 +497,11 @@ html[lang="ar"] .meter-l{font-family:var(--body);font-size:18px;font-weight:600}
 .fchips{display:flex;gap:8px;flex-wrap:wrap}
 .fchips.scroll{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding-bottom:2px;margin-inline:-16px;padding-inline:16px}
 .fchips.scroll::-webkit-scrollbar{display:none}
-.fchip{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:14px;font-weight:600;white-space:nowrap;scroll-snap-align:start}
+.fchip{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:var(--fs-s);font-weight:600;white-space:nowrap;scroll-snap-align:start}
 .fchip b{font-weight:700;font-variant-numeric:tabular-nums}
 .fchip .d{width:8px;height:8px;border-radius:50%;background:var(--muted)}
 .fchip .d.y{background:var(--ok-mark)}.fchip .d.w{background:var(--wait-mark)}.fchip .d.n{background:var(--no-mark)}
-.fchip[aria-pressed="true"]{background:var(--plum);border-color:var(--plum);color:var(--plum-ink)}
-.fchip[aria-pressed="true"] .d{box-shadow:0 0 0 2px var(--plum-ink)}
+.fchip[aria-pressed="true"]{background:var(--card);border-color:var(--ink);color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
 
 /* ---------- monogram: the first letter in a small arch ---------- */
 .mono{width:36px;height:42px;flex:none;border-radius:18px 18px 7px 7px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:600;font-size:17px;background:var(--surface);color:var(--ink)}
@@ -469,25 +509,27 @@ html[lang="ar"] .mono,.mono.ar{font-family:var(--display);font-weight:700}
 .mono.yes{background:var(--ok-bg);color:var(--ok)}.mono.pending{background:var(--wait-bg);color:var(--wait)}.mono.no{background:var(--no-bg);color:var(--no)}
 
 /* ---------- status pills ---------- */
-body.app .pill{font-weight:600;font-size:12.5px;padding:3px 11px;border:1px solid transparent}
+body.app .pill{font-weight:600;font-size:var(--fs-s);padding:2px 11px;border:1px solid transparent}
 body.app .pill.yes{background:var(--ok-bg);color:var(--ok);border-color:color-mix(in srgb,var(--ok-bar) 55%,transparent)}
 body.app .pill.pending{background:var(--wait-bg);color:var(--wait);border-color:color-mix(in srgb,var(--wait-bar) 70%,transparent)}
 body.app .pill.no{background:var(--no-bg);color:var(--no);border-color:color-mix(in srgb,var(--no-bar) 70%,transparent)}
 body.app .evlist button{min-height:44px;background:var(--card);border-color:var(--line);color:var(--ink);font-weight:500}
-body.app .evlist button[aria-current="true"]{background:var(--plum);color:var(--plum-ink);border-color:var(--plum)}
+body.app .evlist button[aria-current="true"]{background:var(--card);color:var(--ink);border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
 
 /* ---------- bottom tab bar (host) ---------- */
 .tabs{position:fixed;inset:auto 0 0 0;z-index:25;display:flex;justify-content:space-around;background:color-mix(in srgb,var(--card) 94%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
-.tabs button{flex:1;max-width:120px;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:52px;border:0;background:none;color:var(--muted);font-size:12px;font-weight:600;border-radius:14px;position:relative}
+.tabs button{flex:1;max-width:120px;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:56px;border:0;background:none;color:var(--muted);font-size:var(--fs-tab);font-weight:500;border-radius:var(--r-m);position:relative}
 .tabs button[aria-selected="true"]{color:var(--plum)}
 .tabs button[aria-selected="true"]::before{content:"";position:absolute;top:-7px;width:28px;height:3px;border-radius:0 0 3px 3px;background:var(--plum)}
-.tabs .badge{position:absolute;top:4px;inset-inline-start:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--plum);color:var(--plum-ink);font-size:11px;line-height:18px;text-align:center}
+.tabs button[aria-selected="true"]{font-weight:600}
+/* no count badges on tabs: counts live on the screen, door requests in the red .alertbar */
+.tabs .badge{display:none!important}
 
 /* ---------- stepper (door counts) ---------- */
-.stepper{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--field-line);border-radius:999px;padding:3px;background:var(--card)}
-.stepper button{width:48px;height:48px;border-radius:50%;border:0;background:var(--surface);font-size:24px;line-height:1;color:var(--ink)}
+.stepper{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--field-line);border-radius:var(--r-pill);padding:3px;background:var(--card)}
+.stepper button{width:48px;height:48px;border-radius:50%;border:0;background:var(--surface);font-size:var(--fs-h);line-height:1;color:var(--ink)}
 .stepper button:disabled{opacity:.35}
-.stepper output{min-width:40px;text-align:center;font-family:var(--display);font-weight:600;font-size:24px;font-variant-numeric:tabular-nums}
+.stepper output{min-width:40px;text-align:center;font-family:var(--body);font-weight:600;font-size:var(--fs-h);font-variant-numeric:tabular-nums}
 
 /* ---------- sticky save bar for long forms ---------- */
 .savebar{position:sticky;bottom:0;z-index:20;display:flex;align-items:center;gap:12px;margin:18px -16px 0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--bg) 92%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--line)}
@@ -496,9 +538,9 @@ body.app .evlist button[aria-current="true"]{background:var(--plum);color:var(--
 .savebar.clean .sb-l::before{background:var(--ok-mark)}
 
 /* ---------- live dot, highlights, celebrations ---------- */
-.live{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--muted)}
-.live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok-mark);box-shadow:0 0 0 0 color-mix(in srgb,var(--ok-mark) 60%,transparent);animation:pulse 2s infinite}
-.live.off::before{background:var(--no-mark);animation:none}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-s);font-weight:600;color:var(--muted)}
+.live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok-mark)}
+.live.off::before{background:var(--no-mark)}
 @keyframes pulse{70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
 .fresh{animation:fresh 2.6s ease-out}
 @keyframes fresh{from{background:color-mix(in srgb,var(--ok-bar) 35%,var(--card))}to{background:var(--card)}}
@@ -508,7 +550,7 @@ body.app mark{background:var(--wait-bg);color:inherit;border-radius:4px;padding:
 .arrive .tick{width:44px;height:44px;margin:0 auto 6px;display:block}
 .arrive .tick path{stroke-dasharray:30;stroke-dashoffset:30;animation:draw .35s .1s ease forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
-.arrive b{display:block;font-family:var(--display);font-size:26px;font-weight:600;color:var(--ink)}
+.arrive b{display:block;font-family:var(--display);font-size:var(--fs-h);font-weight:600;color:var(--ink)}
 html[lang="ar"] .arrive b{font-family:var(--display);font-weight:700}
 
 /* ---------- tap targets and motion ---------- */
@@ -518,12 +560,149 @@ body.app .gi-act{gap:8px}
 
 /* ---- Arabic, designed for Arabic (not mirrored English) ---- */
 html[lang="ar"] body.app .kicker::before,html[lang="ar"] body.app .eyebrow::before{display:none}
-html[lang="ar"] body.app .kicker,html[lang="ar"] body.app .eyebrow,html[lang="ar"] .mast-k{font-weight:500;font-size:13.5px;color:var(--gold)}
+html[lang="ar"] body.app .kicker,html[lang="ar"] body.app .eyebrow,html[lang="ar"] .mast-k{font-weight:500}
 html[lang="ar"] body.app h1,html[lang="ar"] body.app h2,html[lang="ar"] .mast-t,html[lang="ar"] .next-t,html[lang="ar"] .sheet-h{font-weight:600;line-height:1.55}
-html[lang="ar"] body.app h3{font-weight:600;font-size:18px}
-html[lang="ar"] .folio{font-family:var(--body);font-style:normal;font-size:13px;color:var(--gold)}
-/* no single-letter initials in Arabic: the status text already carries the colour */
-html[lang="ar"] body.app .mono{display:none}
+html[lang="ar"] body.app h3{font-weight:600;font-size:var(--fs-name)}
+/* no single-letter initials (decoration; the status word already carries the colour) */
+body.app .mono{display:none}
 html[lang="ar"] body.app .btn,html[lang="ar"] body.app .pill,html[lang="ar"] body.app .chip,html[lang="ar"] body.app .fchip{font-weight:500}
 /* Latin event names in the Arabic top bar: truncate at their own end, not their start */
 html[dir="rtl"] body.app .tb-title{unicode-bidi:plaintext;text-align:right}
+
+/* =====================================================================
+   UX RULES + UTILITIES (Nov 2026). See the rules at the top of this section.
+   ===================================================================== */
+/* no all-caps, no letter-spacing, no italics anywhere in the back office */
+body.app,body.app *,body.app *::before,body.app *::after{font-style:normal!important;text-transform:none!important;letter-spacing:normal!important}
+body.app{font-size:var(--fs-b)}
+body.app small{font-size:var(--fs-s)}
+/* raise the old small text to the 14px floor */
+body.app .gi-sub,body.app .gi-why,body.app .icon,body.app .stat small,body.app .stat span,body.app table.t,body.app .msg,body.app .msgbox{font-size:var(--fs-s)}
+body.app .stat b{font-size:var(--fs-num);font-family:var(--display)}
+body.app .toast{font-size:var(--fs-b)}
+body.app .btn{font-size:var(--fs-b)}
+body.app .btn.small{font-size:var(--fs-b);font-weight:600}
+body.app .seg button,body.app .themesw button{font-size:var(--fs-s)}
+
+/* text utilities */
+body.app .t-small{font-size:var(--fs-s);line-height:1.45;color:var(--muted)}
+body.app .t-body{font-size:var(--fs-b);line-height:1.55}
+body.app .t-name{font-size:var(--fs-name);font-weight:600;line-height:1.35;color:var(--ink)}
+body.app .t-title{font-family:var(--display);font-size:var(--fs-h);font-weight:600;line-height:1.25;color:var(--ink);margin:0}
+html[lang="ar"] body.app .t-title{font-weight:700;line-height:1.5}
+body.app .t-num{font-family:var(--display);font-size:var(--fs-num);font-weight:600;line-height:1;font-variant-numeric:lining-nums tabular-nums}
+body.app .t-muted{color:var(--muted)}
+body.app .t-ink{color:var(--ink)}
+
+/* buttons: one filled plum (.primary) per screen; the rest outline/text */
+body.app .btn.primary{background:var(--plum);border-color:var(--plum);color:var(--plum-ink)}
+body.app .btn.secondary{background:var(--card);border-color:var(--field-line);color:var(--ink)}
+body.app .btn.secondary:hover{border-color:var(--ink)}
+body.app .btn.big{min-height:56px;font-size:var(--fs-name)}
+body.app .btn.refuse{background:transparent;border-color:var(--no-mark);color:var(--no)}
+
+/* tones: green = coming / in, amber = waiting / attention, red = can't come / refused */
+body.app .tone-ok{--tone:var(--ok);--tone-bg:var(--ok-bg);--tone-bar:var(--ok-bar);--tone-mark:var(--ok-mark);--tone-strong:var(--ok-strong);--tone-strong-ink:var(--ok-strong-ink)}
+body.app .tone-wait{--tone:var(--wait);--tone-bg:var(--wait-bg);--tone-bar:var(--wait-bar);--tone-mark:var(--wait-mark);--tone-strong:var(--wait-strong);--tone-strong-ink:var(--wait-strong-ink)}
+body.app .tone-no{--tone:var(--no);--tone-bg:var(--no-bg);--tone-bar:var(--no-bar);--tone-mark:var(--no-mark);--tone-strong:var(--no-strong);--tone-strong-ink:var(--no-strong-ink)}
+body.app .tone-mute{--tone:var(--muted);--tone-bg:var(--surface);--tone-bar:var(--line);--tone-mark:var(--muted);--tone-strong:var(--muted);--tone-strong-ink:var(--card)}
+body.app .tag{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-s);font-weight:600;line-height:1.5;border-radius:var(--r-s);padding:1px 9px;background:var(--tone-bg,var(--surface));color:var(--tone,var(--muted));white-space:nowrap}
+body.app .dot{display:inline-block;width:12px;height:12px;border-radius:50%;flex:none;background:var(--tone-mark,var(--muted))}
+body.app .t-tone{color:var(--tone)}
+body.app .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r-l);padding:16px;box-shadow:var(--shadow)}
+body.app .panel.flat{box-shadow:none}
+body.app .panel:is(.tone-ok,.tone-wait,.tone-no){background:var(--tone-bg);border:2px solid var(--tone-mark)}
+body.app .panel:is(.tone-ok,.tone-wait,.tone-no) .t-tone{color:var(--tone)}
+
+/* the red door-alert bar (host): one tap goes to the requests */
+body.app .alertbar{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:10px 16px;margin:0 0 14px;border:0;border-radius:var(--r-m);background:var(--alert);color:var(--alert-ink);font:inherit;font-size:var(--fs-b);font-weight:600;text-align:start;text-decoration:none;cursor:pointer}
+body.app .alertbar .ab-n{display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 6px;border-radius:999px;background:var(--alert-ink);color:var(--alert);font-size:var(--fs-tab);font-weight:700;flex:none}
+body.app .alertbar .ab-t{flex:1;min-width:0}
+body.app .alertbar .ab-go{white-space:nowrap;font-size:var(--fs-tab)}
+body.app .alertbar .ab-go::after{content:" ›"}
+html[dir="rtl"] body.app .alertbar .ab-go::after{content:" ‹"}
+body.app .alertbar:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+
+/* the undo band: green after a check-in, stays readable above the keyboard and tab bar */
+body.app .undoband{display:flex;align-items:center;gap:12px;min-height:60px;padding:10px 12px 10px 16px;border-radius:var(--r-m);background:var(--tone-strong,var(--ok-strong));color:var(--tone-strong-ink,var(--ok-strong-ink));font-size:var(--fs-b);font-weight:600;box-shadow:var(--shadow-lg)}
+html[dir="rtl"] body.app .undoband{padding:10px 16px 10px 12px}
+body.app .undoband:not([class*="tone-"]){--tone-strong:var(--ok-strong);--tone-strong-ink:var(--ok-strong-ink)}
+body.app .undoband .ub-t{flex:1;min-width:0}
+body.app .undoband .ub-t b{font-size:var(--fs-name)}
+body.app .undoband .ub-undo{flex:none;min-height:44px;padding:0 18px;border-radius:var(--r-pill);border:1.5px solid currentColor;background:transparent;color:inherit;font:inherit;font-weight:700}
+body.app .undoband.floating{position:fixed;z-index:45;inset-inline:16px;bottom:calc(var(--tabs-h,0px) + 12px + env(safe-area-inset-bottom));max-width:528px;margin:0 auto;animation:arriveIn .25s cubic-bezier(.2,.8,.2,1)}
+body.app:has(.tabs) .undoband.floating{--tabs-h:72px}
+
+/* plain list rows */
+body.app .rowlist{background:var(--card);border:1px solid var(--line);border-radius:var(--r-l);overflow:hidden}
+body.app .rowlist>.row{display:flex;align-items:center;gap:12px;flex-wrap:nowrap;min-height:64px;padding:12px 16px;border-top:1px solid var(--line)}
+body.app .rowlist>.row:first-child{border-top:0}
+body.app .row-main{flex:1;min-width:0}
+body.app .row-end{margin-inline-start:auto;flex:none;display:flex;align-items:center;gap:8px}
+
+/* =====================================================================
+   ONE SYSTEM: radius, buttons, focus, tap targets, quiet motion (Nov 2026 taste pass)
+   Radius:  var(--r-s) 8 tags/notes · var(--r-m) 12 fields, bars, toast · var(--r-l) 18 cards, panels, sheets
+            · var(--r-pill) buttons, chips, segments. Page CSS uses these tokens, never its own numbers.
+   Buttons: .btn.primary (filled plum, one per screen) and .btn.secondary (outline). .quiet = a text button,
+            .danger = red text, .refuse = red outline. .ghost/.soft are old names that now look like .secondary.
+            Page CSS never sets a .btn's transform or transition (the hover/press below owns them).
+   Rows:    a tappable row answers the pointer: give it .row-link (or use button.row / a.row in a .rowlist).
+   Targets: every control outside running text is 44px tall or more, 8px from the next one
+            (segments, tabs and list rows of 44px+ may touch).
+   Motion:  hover steps (150ms in, 120ms out), press sinks (90ms). No entrance or scroll animations; a sheet
+            slides up once (200ms). Everything rests under prefers-reduced-motion.
+   ===================================================================== */
+/* buttons: hover steps up 1px and the fill steps toward the ink; press sinks 1px below rest */
+body.app .btn{transition:transform var(--m-out) var(--ease),background-color var(--m-out) var(--ease),border-color var(--m-out) var(--ease),color var(--m-out) var(--ease),box-shadow var(--m-out) var(--ease)}
+@media (hover:hover) and (pointer:fine){
+  body.app .btn:not(:disabled):not([aria-busy="true"]):hover{transform:translateY(-1px);transition-duration:var(--m-in)}
+  body.app .btn:not(.secondary):not(.ghost):not(.soft):not(.quiet):not(.danger):not(.refuse):not(:disabled):hover{background:color-mix(in srgb,var(--plum) 86%,var(--ink));border-color:color-mix(in srgb,var(--plum) 86%,var(--ink))}
+  body.app .btn:is(.secondary,.ghost,.soft):not(:disabled):hover{background:color-mix(in srgb,var(--ink) 5%,var(--card));border-color:var(--ink);color:var(--ink)}
+  body.app .btn:is(.quiet,.danger):not(:disabled):hover{background:color-mix(in srgb,currentColor 8%,transparent)}
+  body.app .btn.refuse:not(:disabled):hover{background:var(--no-bg)}
+}
+body.app .btn:not(:disabled):not([aria-busy="true"]):active{transform:translateY(1px) scale(.985);transition-duration:var(--m-press)}
+body.app .btn:disabled{transform:none}
+
+/* tappable rows and cards answer the pointer: a background step, a deeper one on press */
+body.app :is(.row-link,.rowlist>button.row,.rowlist>a.row,button.row,a.row,.menu-help,.menu-nav a,.stat,.evrow,.ck-row){transition:background-color var(--m-out) var(--ease)}
+@media (hover:hover) and (pointer:fine){
+  body.app :is(.row-link,.rowlist>button.row,.rowlist>a.row,button.row,a.row,.menu-help,.menu-nav a,.stat,.evrow,.ck-row):hover{background-color:color-mix(in srgb,var(--ink) 4%,var(--card));transition-duration:var(--m-in)}
+}
+body.app :is(.row-link,.rowlist>button.row,.rowlist>a.row,button.row,a.row,.menu-help,.menu-nav a,.stat,.evrow,.ck-row):active{background-color:color-mix(in srgb,var(--ink) 8%,var(--card));transition-duration:var(--m-press)}
+body.app .alertbar{transition:transform var(--m-out) var(--ease),background-color var(--m-out) var(--ease)}
+@media (hover:hover) and (pointer:fine){body.app .alertbar:hover{background:color-mix(in srgb,var(--alert) 88%,var(--ink));transition-duration:var(--m-in)}}
+body.app .alertbar:active{transform:translateY(1px) scale(.985);transition-duration:var(--m-press)}
+
+/* chips, segments, menu and tab buttons: the border/ink steps on hover, a small press */
+body.app :is(.fchip,.tok,.seg button,.themesw button,.langsw-alt,.menu-btn,.sheet-x,.iconbtn,.icon,.tabs button,.stepper button,.ub-undo){transition:transform var(--m-out) var(--ease),background-color var(--m-out) var(--ease),border-color var(--m-out) var(--ease),color var(--m-out) var(--ease)}
+@media (hover:hover) and (pointer:fine){
+  body.app :is(.fchip,.tok,.menu-btn,.sheet-x,.iconbtn,.icon):not(:disabled):hover{border-color:var(--ink);color:var(--ink);transition-duration:var(--m-in)}
+  body.app :is(.seg button,.themesw button,.langsw-alt,.tabs button):not([aria-pressed="true"]):not([aria-selected="true"]):not(:disabled):hover{color:var(--ink);transition-duration:var(--m-in)}
+  body.app .stepper button:not(:disabled):hover{background:color-mix(in srgb,var(--ink) 8%,var(--surface))}
+  body.app .ub-undo:hover{background:color-mix(in srgb,currentColor 14%,transparent)}
+}
+body.app :is(.fchip,.tok,.seg button,.themesw button,.langsw-alt,.menu-btn,.sheet-x,.iconbtn,.icon,.stepper button,.ub-undo):not(:disabled):active{transform:scale(.97);transition-duration:var(--m-press)}
+
+/* focus: the same 2px ring everywhere; on a filled colour band it takes the band's text colour */
+body.app :is(.undoband,.alertbar,.toast) :focus-visible,body.app .alertbar:focus-visible{outline-color:currentColor}
+body.app .alertbar:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+body.app .evrow:focus-visible{outline-offset:-2px}
+
+/* tap targets: 44px at least */
+body.app input[type=color]{min-height:44px;min-width:44px;border-radius:var(--r-m)}
+body.app label.check{min-height:44px;margin:4px 0 0}
+body.app label.check input{flex:none}
+body.app details>summary{min-height:44px}
+
+/* reduced motion: nothing moves, colours still change at once */
+@media (prefers-reduced-motion:reduce){
+  body.app .btn,body.app .btn:hover,body.app .btn:active,body.app .alertbar:active,
+  body.app :is(.fchip,.tok,.seg button,.themesw button,.langsw-alt,.menu-btn,.sheet-x,.iconbtn,.icon,.stepper button,.ub-undo):active{transform:none!important}
+  body.app dialog.sheet[open],body.app .undoband.floating,body.app .arrive{animation:none!important}
+}
+
+
+/* The business name on the login card: type only, no logo */
+body.app .login .brandmark{font-family:var(--display);font-size:var(--fs-h,22px);font-weight:600;color:var(--plum,var(--accent));margin:0 0 6px;letter-spacing:0}
