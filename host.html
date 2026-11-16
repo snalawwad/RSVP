@@ -31,6 +31,7 @@
       <div id="homeAlert"></div>
       <section class="panel sum" id="sum" hidden></section>
       <section class="panel next" id="next" aria-live="polite"></section>
+      <section class="panel passes" id="passCard" hidden aria-labelledby="psH"></section>
       <section id="latestBox" hidden>
         <div class="sec-h"><h3 data-i18n="latestH">Latest replies</h3><span class="new-n" id="newN" hidden></span><button class="btn quiet" id="seeAll" data-i18n="seeAll">See all</button></div>
         <div class="glist" id="latest"></div>
@@ -244,8 +245,19 @@ document.addEventListener('DOMContentLoaded', function () {
       chgGo: n => `Tell them (${n})`, chgLater: 'Don’t tell them',
       activity: 'Activity', activityP: 'Replies, check-ins and changes',
       act: { guest_reply: 'Guest replied', link_reply: 'Reply via the group link', host_set_reply: 'Reply changed by you', host_set_extras: 'Number of people changed', set_rules: 'Reply rules changed',
-        check_in: 'Checked in at the door', undo_check_in: 'Door undid a check-in', request_exception: 'The door asked you', decide_exception: 'You answered the door', door_open_list: 'Door opened the list' }, actOther: 'Update',
+        check_in: 'Checked in at the door', undo_check_in: 'Door undid a check-in', request_exception: 'The door asked you', decide_exception: 'You answered the door', door_open_list: 'Door opened the list',
+        pass_sent: 'Door pass sent on WhatsApp', pass_send_failed: 'Door pass couldn’t be sent on WhatsApp', pass_manual: 'Door pass sent by hand', pass_settings: 'Door pass settings changed' }, actOther: 'Update',
       logSt: { yes: 'Coming', no: 'Can’t come', pending: 'No reply', approved: 'Let in', rejected: 'Turned down' }, logErr: 'Couldn’t load the activity.', logGuest: 'Guest', logNothing: 'Nothing yet.',
+      // door passes (supabase/migrations/0006)
+      psH: 'Door passes', psAt: (d, tm) => `${d} at ${tm}`, psBefore: w => `Passes go out ${w}.`,
+      psBeforeAuto: 'Each guest who’s coming gets theirs on WhatsApp, and on their invite link.',
+      psBeforeHand: 'They show on each guest’s invite link. You’ll send them from here, one tap each.',
+      psSent: (x, y) => `Sent to ${x} of ${E(y, 'guest')}`, psDeliv: (d, r) => `Delivered to ${d}` + (r ? ` · Read by ${r}` : ''),
+      psDue: n => `${E(n, 'guest')} still to get theirs on WhatsApp`, psNoPhone: n => n === 1 ? '1 guest has no number. Their pass is on their invite link.' : `${n} guests have no number. Their passes are on their invite links.`,
+      psTodoH: 'Send by hand', psWhy: { failed: 'WhatsApp couldn’t deliver these. Send them from your WhatsApp.', no_auto: 'Send each pass from your WhatsApp.', not_sent_yet: 'WhatsApp is running late with these. Send them from your WhatsApp so they have them in time.' },
+      psTag: { failed: 'Not delivered', not_sent_yet: 'Not sent' }, psSendB: 'Send pass', psSendL: nm => `Send the door pass to ${nm}`, psMarked: nm => `Pass sent to ${nm}`,
+      psAllDone: 'Everyone coming with a number has their pass.', psNone: 'No one has said yes yet.',
+      passTpl: 'Hi {name}, your door pass for {event} is ready. It’s on {date} at {time}. Show it at the door:\n{link}',
       // arrivals
       hereHero: (h, e) => e ? `<b class="t-num">${h}</b> <span class="hero-w">of ${E(e)} here</span>` : `<b class="t-num">${h}</b> <span class="hero-w">${h === 1 ? 'person' : 'people'} here</span>`,
       lastArr: (nm, tm) => `Last arrival ${tm} · ${nm}`, noOneYet: 'No one has arrived yet', noOneExp: 'No one has said yes yet, so no one is expected.',
@@ -335,8 +347,18 @@ document.addEventListener('DOMContentLoaded', function () {
       chgGo: n => `بلغوهم (${n})`, chgLater: 'لا تبلغونهم',
       activity: 'السجل', activityP: 'الردود والوصول وأي تعديل',
       act: { guest_reply: 'رد الضيف', link_reply: 'رد من الرابط العام', host_set_reply: 'عدّلتوا الرد', host_set_extras: 'تعديل عدد الأشخاص', set_rules: 'تعديل إعدادات الرد',
-        check_in: 'وصول عند الباب', undo_check_in: 'الباب تراجع عن تسجيل الوصول', request_exception: 'طلب من الباب', decide_exception: 'ردكم على طلب الباب', door_open_list: 'الباب فتح الأسماء' }, actOther: 'تحديث',
+        check_in: 'وصول عند الباب', undo_check_in: 'الباب تراجع عن تسجيل الوصول', request_exception: 'طلب من الباب', decide_exception: 'ردكم على طلب الباب', door_open_list: 'الباب فتح الأسماء',
+        pass_sent: 'انرسلت بطاقة الحضور بالواتساب', pass_send_failed: 'بطاقة الحضور ما وصلت بالواتساب', pass_manual: 'أرسلتوا بطاقة الحضور بنفسكم', pass_settings: 'تعديل إعدادات بطاقات الحضور' }, actOther: 'تحديث',
       logSt: { yes: 'بيحضرون', no: 'اعتذروا', pending: 'ما ردوا', approved: 'دخلوا', rejected: 'ما دخلوا' }, logErr: 'ما قدرنا نحمّل السجل.', logGuest: 'ضيف', logNothing: 'ما في شي للحين.',
+      psH: 'بطاقات الحضور', psAt: (d, tm) => `${d} الساعة ${tm}`, psBefore: w => `البطاقات تنرسل يوم ${w}.`,
+      psBeforeAuto: 'كل ضيف بيحضر توصله بطاقته على الواتساب، وتطلع له برابط دعوته.',
+      psBeforeHand: 'بتطلع برابط دعوة كل ضيف، وأنتم ترسلونها من هني بضغطة وحدة لكل ضيف.',
+      psSent: (x, y) => `انرسلت لـ${x} من ${A(y, 'guest')}`, psDeliv: (d, r) => `وصلت لـ${A(d, 'guest')}` + (r ? `، وشافها ${A(r, 'guest')}` : ''),
+      psDue: n => n === 1 ? 'باقي ضيف واحد بتنرسل له على الواتساب' : `باقي ${A(n, 'guest')} بتنرسل لهم على الواتساب`, psNoPhone: n => n === 1 ? 'ضيف واحد ما عنده رقم، وبطاقته برابط دعوته.' : `${A(n, 'guest')} ما عندهم رقم، وبطاقاتهم بروابط دعواتهم.`,
+      psTodoH: 'أرسلوها بنفسكم', psWhy: { failed: 'الواتساب ما قدر يوصلها لهم، أرسلوها من واتسابكم.', no_auto: 'أرسلوا كل بطاقة من واتسابكم.', not_sent_yet: 'الواتساب متأخر بهذول، أرسلوها من واتسابكم عشان توصلهم بوقتها.' },
+      psTag: { failed: 'ما وصلت', not_sent_yet: 'ما انرسلت' }, psSendB: 'أرسلوا البطاقة', psSendL: nm => `أرسلوا بطاقة الحضور لـ${nm}`, psMarked: nm => `انرسلت البطاقة لـ${nm}`,
+      psAllDone: 'كل اللي بيحضرون وعندهم رقم وصلتهم بطاقاتهم.', psNone: 'ما أحد أكد حضوره للحين.',
+      passTpl: 'هلا {الاسم}، بطاقة حضوركم لـ{المناسبة} جاهزة. الموعد {التاريخ} الساعة {الوقت}. وروها عند الباب:\n{الرابط}',
       hereHero: (h, e) => e ? `<b class="t-num">${h}</b> <span class="hero-w">من ${A(e)} وصلوا</span>` : `<span class="hero-w">${h ? 'وصل ' + A(h) : 'ما وصل أحد للحين'}</span>`,
       lastArr: (nm, tm) => `آخر من وصل: ${nm}، الساعة ${tm}`, noOneYet: 'ما وصل أحد للحين', noOneExp: 'ما أحد أكد حضوره للحين، عشان جذي ما ننتظر أحد.',
       attK: { all: 'الكل', in: 'وصلوا', out: 'ما وصلوا', pend: 'ما ردوا' }, attBy: 'عرض', partHere: (c, s) => `وصل ${c} من ${A(s)}`, expectedN: n => `ننتظر ${A(n)}`, attNone: 'ما في أحد للحين.',
@@ -476,12 +498,13 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('#editForm details').forEach(d => d.open = false);
     fillEdit();
     go(ss.get('host-tab-' + ev.id) || 'home');
-    await loadGuests(); loadReqs();
+    flushPass(); passSt = null; passHold.clear();
+    await loadGuests(); loadReqs(); loadPass();
     if (channel) sb.removeChannel(channel);
     live = false;
     channel = sb.channel('guests-' + ev.id).on('postgres_changes', { event: '*', schema: 'public', table: 'guests', filter: `event_id=eq.${ev.id}` }, loadGuests)
       .subscribe(s => { live = s === 'SUBSCRIBED'; showMeta(); });
-    clearInterval(poll); poll = setInterval(() => { loadGuests(); loadReqs(); }, 20000);
+    clearInterval(poll); poll = setInterval(() => { loadGuests(); loadReqs(); loadPass(); }, 20000);
   }
 
   // ---------- guests: load + what changed since last time ----------
@@ -557,7 +580,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const open = openReqs();
     $('#homeAlert').innerHTML = open.length ? `<a class="alertbar" href="#reqAtt" id="alertGo"><i class="i i-door"></i><span class="ab-t">${t.reqBar(open.length)}</span><span class="ab-go">${t.reqGo}</span></a>` : '';
     if (open.length) $('#alertGo').onclick = e => { e.preventDefault(); go('arrivals'); const b = $('#reqAtt .rq [data-ok]'); if (b) b.focus({ preventScroll: true }); };
-    renderSum(); renderNext(); renderLatest();
+    renderSum(); renderNext(); renderPass(); renderLatest();
   }
   function renderSum() {
     const box = $('#sum'), s = stats(guests);
@@ -818,6 +841,92 @@ document.addEventListener('DOMContentLoaded', function () {
     if (document.hidden) { flushRejects(); return; }
     if (sq && sq.asking) { const h = $('#sqAskH'); if (h) h.focus({ preventScroll: true }); }   // back from WhatsApp: the question is waiting
   });
+
+  // ---------- door passes (supabase/migrations/0006): from 3 days before the event (or from the release time, if that's
+  // earlier) until a day after it starts ----------
+  // pass_send_status_v2 says when the passes go out, how many went (WhatsApp or by hand) and who still needs one sent by hand.
+  // A pass sent by hand: WhatsApp opens with the guest's message, and the guest is marked "sent by hand" a few seconds
+  // after the host is back on this page (Undo until then). Without 0006 (no column, no function) the card never shows.
+  let passSt = null, passOff = false;
+  const passHold = new Map();   // guest id → { timer, band }: marked on this phone, not yet on the server
+  // release time: the admin's pass_release_at, or the day before the event at 4 PM Kuwait (UTC+3 all year), as in SQL _v2_pass_release
+  const passRelAt = e => e.pass_release_at ? +new Date(e.pass_release_at)
+    : e.starts_at ? +new Date(new Date(+new Date(e.starts_at) + 3 * 3600e3 - 864e5).toISOString().slice(0, 10) + 'T16:00:00+03:00') : null;
+  const passWindow = () => {
+    if (!(ev && v2 && 'pass_auto_send' in ev && !passOff)) return false;
+    const st = ev.starts_at ? +new Date(ev.starts_at) : null, rel = (passSt && passSt.release_at) ? +new Date(passSt.release_at) : passRelAt(ev);
+    if (st == null && rel == null) return false;
+    const from = Math.min(st == null ? Infinity : st - 3 * 864e5, rel == null ? Infinity : rel), now = Date.now();
+    return now >= from && (st == null || now < st + 864e5);
+  };
+  async function loadPass() {
+    if (!passWindow()) { if (passSt) { passSt = null; renderPass(); } return; }
+    const id = ev.id;
+    const { data, error } = await sb.rpc('pass_send_status_v2', { p_event: id });
+    if (!ev || ev.id !== id) return;
+    if (error) { if (App.missingFn(error)) { passOff = true; passSt = null; renderPass(); } return; }
+    passSt = data || null; renderPass();
+  }
+  const passAt = iso => t.psAt(shortDate(iso), nb(fmtTime(iso, lang)));
+  function renderPass() {
+    const box = $('#passCard'); if (!box) return;
+    const s = passSt;
+    if (!s || !s.release_at || !passWindow()) { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    const c = s.counts || {}, held = [...passHold.keys()];
+    const todo = (s.todo || []).filter(r => !passHold.has(r.guest_id));
+    const head = `<h2 class="next-h" id="psH">${t.psH}</h2>`;
+    if (new Date(s.release_at) > Date.now()) {
+      box.innerHTML = `${head}<p class="next-p">${esc(t.psBefore(passAt(s.release_at)))}</p><p class="ps-sub">${s.auto && CONFIG.WHATSAPP_AUTO ? t.psBeforeAuto : t.psBeforeHand}</p>`;
+      return;
+    }
+    const done = (c.sent || 0) + (c.delivered || 0) + (c.read || 0) + (c.manual || 0) + held.filter(id => (s.todo || []).some(r => r.guest_id === id)).length;
+    // guests with no number have their own line, so the bar counts only those a pass can be sent to
+    const total = ['due', 'sent', 'delivered', 'read', 'failed', 'manual'].reduce((a, k) => a + (c[k] || 0), 0);
+    if (!total && !c.no_phone) { box.innerHTML = `${head}<p class="next-p">${t.psNone}</p>`; return; }
+    const lines = [];
+    if (s.auto && (c.delivered || c.read)) lines.push(esc(t.psDeliv((c.delivered || 0) + (c.read || 0), c.read || 0)));
+    // "still to get theirs on WhatsApp" only while WhatsApp is on time: once some are late they're on the hand list instead
+    if (s.auto && c.due && !todo.some(r => r.reason === 'not_sent_yet')) lines.push(esc(t.psDue(c.due)));
+    if (c.no_phone) lines.push(esc(t.psNoPhone(c.no_phone)));
+    const reasons = [...new Set(todo.map(r => r.reason))];
+    const whyT = reasons.length === 1 ? t.psWhy[reasons[0]] : reasons.includes('failed') ? t.psWhy.failed : t.psWhy.not_sent_yet;
+    const row = r => {
+      const g = guests.find(x => x.id === r.guest_id), tag = t.psTag[r.reason];
+      return `<div class="ps-row"><div class="gr-txt"><b class="gr-n">${bdi(r.name)}</b><span class="gr-m">${tag ? `<span class="tag ${r.reason === 'failed' ? 'tone-no' : 'tone-wait'}">${tag}</span>${sep}` : ''}${t.people(r.people || 1)}</span></div>`
+        + (g && g.token && r.phone ? `<button type="button" class="btn small secondary" data-ps="${esc(r.guest_id)}" aria-label="${esc(t.psSendL(r.name))}"><i class="i i-whatsapp sm"></i>${t.psSendB}</button>` : '') + `</div>`;
+    };
+    box.innerHTML = `${head}${total ? `<p class="next-p ps-big">${esc(t.psSent(Math.min(done, total), total))}</p>
+      <div class="abar" aria-hidden="true"><i style="width:${Math.round(Math.min(done, total) / total * 100)}%"></i></div>` : ''}
+      ${lines.map(l => `<p class="ps-sub">${l}</p>`).join('')}
+      ${todo.length ? `<h3 class="ps-th">${t.psTodoH}</h3><p class="ps-sub">${esc(whyT)}</p><div class="ps-list">${todo.map(row).join('')}</div>` : !c.due && done ? `<p class="ps-sub ps-ok"><i class="i i-check sm"></i>${t.psAllDone}</p>` : ''}`;
+    box.querySelectorAll('[data-ps]').forEach(b => b.onclick = () => sendPass(b.dataset.ps));
+  }
+  function passMsg(g) { return fillTemplate(T[evLang()].passTpl, ev, g); }
+  function sendPass(id) {
+    const r = ((passSt && passSt.todo) || []).find(x => x.guest_id === id), g = guests.find(x => x.id === id);
+    if (!r || !g || !g.token) return;
+    window.open(waLink(normPhone(r.phone), passMsg(g)), '_blank', 'noopener');
+    [...passHold.keys()].forEach(commitPass);   // one undo at a time: an earlier one goes now
+    const band = App.undoBand({ text: t.psMarked(r.name), ms: 0, tone: 'ok', onUndo: () => {
+      const x = passHold.get(id); if (!x) return; clearTimeout(x.timer); passHold.delete(id); renderPass();
+    } });
+    passHold.set(id, { band, timer: document.hidden ? null : setTimeout(() => commitPass(id), 6000) });
+    vibe(15); renderPass();
+  }
+  async function commitPass(id) {
+    const x = passHold.get(id); if (!x) return;
+    clearTimeout(x.timer); passHold.delete(id); x.band.close();
+    const { error } = await sb.rpc('pass_mark_manual_v2', { p_guest: id });
+    if (error) toast(t.cantSave(why(error)));
+    await loadPass();
+  }
+  function flushPass() { [...passHold.keys()].forEach(commitPass); }
+  // WhatsApp hides this page: the Undo time starts again once the host is back
+  document.addEventListener('visibilitychange', () => {
+    passHold.forEach((x, id) => { clearTimeout(x.timer); x.timer = document.hidden ? null : setTimeout(() => commitPass(id), 6000); });
+  });
+  window.addEventListener('pagehide', flushPass);
 
   // ---------- activity log ----------
   $('#logBox').ontoggle = () => { if ($('#logBox').open) loadLog(); };

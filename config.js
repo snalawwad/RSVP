@@ -9,5 +9,6 @@ window.CONFIG = {
   BRAND: 'سنة',                                 // business name in Arabic (Sina, as Kuwaitis say "year")
   BRAND_EN: 'Sina',
   SUPPORT_WHATSAPP: '965XXXXXXXX',              // your business WhatsApp, digits only (placeholder = hidden)
-  SUPPORT_EMAIL: ''                             // support email for privacy/support pages (empty = hidden)
+  SUPPORT_EMAIL: '',                            // support email for privacy/support pages (empty = hidden)
+  WHATSAPP_AUTO: false                          // true once door passes go out on WhatsApp automatically (supabase/WHATSAPP_SETUP.md)
 };

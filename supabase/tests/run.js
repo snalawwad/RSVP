@@ -69,6 +69,8 @@ async function as(role, claims, sql, params) {
   r = await as('authenticated', claims('admin'), `select count(*)::int n from public.account_deletions`); ok(r.rows[0].n === 1, 'admins can read the deletion log');
   // ---------- door pass (0005) ----------
   if (fs.existsSync(repo + '/supabase/migrations/0005_door_pass.sql')) await doorPass();
+  // ---------- door passes on WhatsApp (0006) ----------
+  if (fs.existsSync(repo + '/supabase/migrations/0006_pass_sending.sql')) await require('./pass_sending.js')({ c, ok, as, repo });
   await c.end();
 })().catch(e => { console.error('ERROR', e.message); process.exit(1); });
 
@@ -88,6 +90,8 @@ async function doorPass() {
   // new guests get a pass, whatever the insert says
   const ev = async t => (await q(`insert into public.events(title) values ($1) returning id, public_code`, [t]))[0];
   const P = await ev('Pass party'), O = await ev('Other party');
+  // 0006 shows a pass only once it is released (these events have no date): release them now
+  if (fs.existsSync(repo + '/supabase/migrations/0006_pass_sending.sql')) await q(`update public.events set pass_release_at = now() - interval '1 minute' where id in ($1, $2)`, [P.id, O.id]);
   await c.query(`insert into public.event_members(event_id,email,role,side,expires_at) values
     ($1,'host3@test.local','host',null,null), ($1,'mum3@test.local','host','Mum',null), ($1,'door3@test.local','door',null,null),
     ($1,'olddoor@test.local','door',null, now() - interval '1 hour'), ($2,'door4@test.local','door',null,null)`, [P.id, O.id]);

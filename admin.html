@@ -172,6 +172,25 @@
             <p class="cap" id="howSee"></p>
             <div class="chat"><div class="wabubble" id="bubble" dir="auto"></div></div>
           </div>
+          <!-- door passes go out by themselves (supabase/migrations/0006); hidden until that file is run -->
+          <div class="passbox" id="passBox" hidden>
+            <h2 class="sect" data-i18n="passH">Door passes</h2>
+            <div class="pass-when"><p class="t-name" id="passWhenT"></p><p class="t-small" id="passWhenP"></p></div>
+            <label class="swrow" for="passAuto"><span class="sw-t"><span class="t-name" data-i18n="passAuto">Send door passes on WhatsApp automatically</span><span class="t-small" id="passAutoP"></span></span><input type="checkbox" role="switch" class="switch" id="passAuto"></label>
+            <p class="warnstrip passoff" id="passOff" hidden></p>
+            <details class="more" id="passTime">
+              <summary><span class="more-t"><span class="t-name" data-i18n="passChange">Change the time</span><span class="t-small" id="passTimeP"></span></span><i class="i i-chev" aria-hidden="true"></i></summary>
+              <div class="more-body">
+                <div class="pair">
+                  <div class="fld"><label class="f" for="passDate" data-i18n="date">Date</label><input type="date" id="passDate"></div>
+                  <div class="fld"><label class="f" for="passHour" data-i18n="time">Time</label><input type="time" id="passHour"></div>
+                </div>
+                <p class="ferr" id="passErr" hidden></p>
+                <button type="button" class="btn quiet small" id="passReset" hidden data-i18n="passReset">Use the day before, 4:00 PM</button>
+              </div>
+            </details>
+            <button type="button" class="btn secondary block" id="passNow"><i class="i i-check sm"></i><span data-i18n="passNow">Show passes now</span></button>
+          </div>
         </section>
 
         <div class="stepnext" id="stepNext"><button type="button" class="btn primary block" id="nextBtn"></button></div>
@@ -286,6 +305,13 @@ document.addEventListener('DOMContentLoaded', function () {
       howSee: n => `What ${n} will read`, sampleName: 'Dana',
       gateNoLink: 'Sending waits: the message needs the link, or guests can’t reply.', noLinkOne: 'This message has lost its invite link. Put it back so they can reply.',
       // sending
+      // door passes (supabase/migrations/0006)
+      passH: 'Door passes', passAuto: 'Send door passes on WhatsApp automatically', passAutoP: 'Each guest who’s coming gets theirs on WhatsApp at that time.',
+      passOffNote: 'WhatsApp isn’t connected yet. Passes still show on invite links at that time. Send them by hand from the ' + App.hostWord('en', 'page') + '.',
+      passDefault: 'The day before, 4:00 PM', passOut: 'Passes are out', passNoDateP: 'Once the event has a date.',
+      passFromP: 'Confirmed guests see their pass on their invite link from then.', passSinceP: d => `Since ${d}. Confirmed guests see their pass on their invite link.`,
+      passChange: 'Change the time', passTimeNow: d => `Set for ${d}`, passReset: 'Use the day before, 4:00 PM', passAfter: 'That’s after the event starts. Guests would get their pass too late.',
+      passNow: 'Show passes now', passNowQ: a => 'Show every confirmed guest their door pass now?' + (a ? ' WhatsApp sends them within 10 minutes.' : ''), passSaveErr: 'Couldn’t save the door pass settings. Try again.',
       sentMeterK: 'Invitations sent', ofGuests: n => `of ${countWord(n, 'guest', 'en')}`, leftToSend: n => n ? `${countWord(n, 'guest', 'en')} still to send` : 'all sent', nextUp: 'Next up',
       afterThem: (names, more) => `After them: ${names}` + (more ? ` and ${more} more` : ''),
       editMsg: 'Edit for this guest only', doneEdit: 'Done editing', editAll: 'Change the message for everyone', skip: 'Skip for now', sentTo: n => `Sent to ${n}`, undo: 'Undo', markErr: 'Couldn’t mark it as sent',
@@ -372,6 +398,12 @@ document.addEventListener('DOMContentLoaded', function () {
       gluedLink: 'الرابط لاصق بكلام ثاني، فما بينفتح. ما تنحفظ لين ينصلح.', fixLink: 'صلّحوا الرابط', emptyMsg: 'الرسالة فاضية. الرسالة المحفوظة تبقى لين تكتبون غيرها.',
       howSee: n => `كذا بتوصل ${n}`, sampleName: 'دانة',
       gateNoLink: 'الإرسال واقف: الرسالة لازم فيها الرابط، وإلا الضيوف ما بيقدرون يردون.', noLinkOne: 'هالرسالة انمسح منها الرابط. رجّعوه عشان يقدرون يردون.',
+      passH: 'بطاقات الحضور', passAuto: 'إرسال بطاقات الحضور على الواتساب تلقائياً', passAutoP: 'كل ضيف بيحضر توصله بطاقته على الواتساب بوقتها.',
+      passOffNote: 'الواتساب مو مربوط للحين. البطاقات بتطلع بروابط الدعوة بوقتها، وأرسلوها بنفسكم من ' + App.hostWord('ar', 'page') + '.',
+      passDefault: 'قبل المناسبة بيوم، الساعة 4:00 م', passOut: 'البطاقات طلعت', passNoDateP: 'أول ما يصير للمناسبة تاريخ.',
+      passFromP: 'الضيوف اللي أكدوا يشوفون بطاقتهم برابط دعوتهم من وقتها.', passSinceP: d => `من ${d}. الضيوف اللي أكدوا يشوفون بطاقتهم برابط دعوتهم.`,
+      passChange: 'غيّروا الوقت', passTimeNow: d => `الموعد المحدد: ${d}`, passReset: 'رجّعوها قبل المناسبة بيوم', passAfter: 'هالوقت بعد بداية المناسبة، والبطاقة بتوصل الضيوف متأخر.',
+      passNow: 'طلّعوا البطاقات الحين', passNowQ: a => 'تبون تطلع بطاقة الحضور لكل اللي أكدوا الحين؟' + (a ? ' والواتساب بيرسلها لهم خلال 10 دقايق.' : ''), passSaveErr: 'ما قدرنا نحفظ إعدادات بطاقات الحضور، جربوا مرة ثانية.',
       sentMeterK: 'الدعوات المرسلة', ofGuests: n => n <= 2 ? `من ${n}` : 'من ' + countWord(n, 'guest', 'ar'), leftToSend: n => n ? `باقي ${countWord(n, 'guest', 'ar')}` : 'انرسلت كلها', nextUp: 'الدور على',
       afterThem: (names, more) => `وبعدهم: ${names}` + (more ? ` و${more} غيرهم` : ''),
       editMsg: 'تعديل لهالضيف بس', doneEdit: 'خلصت التعديل', editAll: 'تعديل الرسالة لكل الضيوف', skip: 'بعدين', sentTo: n => `انرسلت لـ${n}`, undo: 'تراجع', markErr: 'ما قدرنا نسجلها مرسلة',
@@ -547,7 +579,7 @@ document.addEventListener('DOMContentLoaded', function () {
     step = k; asking = null; rowAsk = null;
     if (push && ev) history.pushState({}, '', url(ev.id, k));
     showView('step'); renderStepHead();
-    if (k === 'send') { renderComposer(); renderQueue(); }
+    if (k === 'send') { renderComposer(); renderQueue(); renderPass(); }
     if (k === 'design') renderTheme();
     if (k === 'guests') { renderGuestsStep(); renderPreview(); }
     if (k === 'team') { renderTeamForm(); renderMembers(); }
@@ -660,7 +692,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
   function renderEvent() {
-    renderOverview(); renderStepHead(); renderGuestsRead(); renderCodeHint(); renderTeamForm(); renderMembers(); renderTheme(); renderGuestsStep(); renderPreview(); renderComposer(); renderQueue(); renderSavebar(); syncTb();
+    renderOverview(); renderStepHead(); renderGuestsRead(); renderCodeHint(); renderTeamForm(); renderMembers(); renderTheme(); renderGuestsStep(); renderPreview(); renderComposer(); renderQueue(); renderPass(); renderSavebar(); syncTb();
   }
   function renderAll() {
     renderHome(); syncTb(); drawLangSeg();
@@ -735,6 +767,54 @@ const bigLine = n => !n ? `<span class="pg-w">${esc(t.coming(0))}</span>` : lang
     $('#openHost').href = `host.html?event=${ev.id}`; $('#openDoor').href = `door.html?event=${ev.id}`;
     const first = guests.find(g => g.token); $('#testInv').hidden = !first; if (first) $('#testInv').href = inviteLink(first.token);
   }
+
+  // ---------------------------------------------------------------- door passes (supabase/migrations/0006)
+  // pass_release_at empty = the day before the event at 4 PM Kuwait time; pass_auto_send = WhatsApp sends them then.
+  // Both save straight away (like the colours). The switch waits for CONFIG.WHATSAPP_AUTO (set at go-live).
+  const passReady = () => !!ev && 'pass_auto_send' in ev;
+  function passDefault(e) {
+    if (!e || !e.starts_at) return null;
+    const d = new Date(new Date(e.starts_at).getTime() + 3 * 3600e3 - 864e5).toISOString().slice(0, 10);
+    return kwToIso(d, '16:00');
+  }
+  const passRel = e => e.pass_release_at || passDefault(e);
+  const passWhen = iso => new Date(iso).toLocaleDateString(loc(), { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short' }) + t.sep + App.fmtTime(iso, lang);
+  function renderPass() {
+    const box = $('#passBox'); if (!box) return;
+    box.hidden = !passReady(); if (box.hidden) return;
+    const rel = passRel(ev), out = !!rel && new Date(rel) <= Date.now(), custom = !!ev.pass_release_at;
+    $('#passWhenT').textContent = out ? t.passOut : custom ? passWhen(rel) : t.passDefault;
+    $('#passWhenP').textContent = out ? t.passSinceP(passWhen(rel)) : !rel ? t.passNoDateP : custom ? t.passFromP : passWhen(rel) + '. ' + t.passFromP;
+    const live = !!CONFIG.WHATSAPP_AUTO, sw = $('#passAuto');
+    sw.checked = !!ev.pass_auto_send; sw.disabled = !live && !ev.pass_auto_send;
+    $('#passAutoP').textContent = t.passAutoP;
+    $('#passOff').hidden = live; $('#passOff').textContent = live ? '' : t.passOffNote;
+    $('#passTimeP').textContent = rel ? t.passTimeNow(passWhen(rel)) : '';
+    if (document.activeElement !== $('#passDate') && document.activeElement !== $('#passHour')) {
+      const k = isoToKw(rel); $('#passDate').value = k.date; $('#passHour').value = rel ? k.time : '';
+    }
+    $('#passReset').hidden = !custom || !ev.starts_at;
+    const late = !!rel && !!ev.starts_at && new Date(rel) >= new Date(ev.starts_at);
+    $('#passErr').hidden = !late; $('#passErr').textContent = late ? t.passAfter : '';
+    $('#passNow').hidden = out;
+  }
+  let passBusy = false;
+  async function savePass(patch) {
+    if (!ev || passBusy) return false;
+    const id = ev.id; passBusy = true; setSaveState('saving');
+    const { data, error } = await sb.from('events').update(patch).eq('id', id).select().single();
+    passBusy = false;
+    if (!error && data) { const i = events.findIndex(x => x.id === id); if (i >= 0) events[i] = data; }
+    if (!ev || ev.id !== id) return false;
+    if (error) { setSaveState(''); toast(t.passSaveErr); renderPass(); return false; }
+    ev = data; syncStats(); setSaveState('saved'); renderPass(); return true;
+  }
+  $('#passAuto').onchange = e => savePass({ pass_auto_send: e.target.checked });
+  const passTyped = () => { const d = $('#passDate').value; if (d) savePass({ pass_release_at: kwToIso(d, $('#passHour').value || '16:00') }); };
+  $('#passDate').onchange = passTyped; $('#passHour').onchange = passTyped;
+  $('#passReset').onclick = () => savePass({ pass_release_at: null });
+  // a minute early, so the database clock (which decides) is past it too
+  $('#passNow').onclick = () => { if (confirm(t.passNowQ(!!ev.pass_auto_send && !!CONFIG.WHATSAPP_AUTO))) savePass({ pass_release_at: new Date(Date.now() - 60e3).toISOString() }); };
 
   // ---------------------------------------------------------------- step screens: header, continue, save state
   function renderStepHead() {

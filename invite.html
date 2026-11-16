@@ -37,14 +37,18 @@ document.addEventListener('DOMContentLoaded', function () {
       card: 'بطاقة الدعوة', nameLbl: 'الاسم الكامل', namePh: 'اكتبوا اسمكم الكامل', nameReq: 'اكتبوا اسمكم الكامل أول', reply: 'تأكيد الحضور أو الاعتذار', saveErr: 'ما قدرنا نحفظ الرد، حاولوا مرة ثانية', help: 'تحتاجون مساعدة؟', helpLink: 'راسلونا على الواتساب', dear: '', rYes: 'بكل سرور، سأحضر', rNo: 'أعتذر عن الحضور', howMany: 'كم شخص بيحضر؟', howManySub: 'بما فيهم أنتم', people: n => n === 1 ? 'شخص واحد' : n === 2 ? 'شخصين' : n + ' أشخاص', comingN: n => 'الحضور: ' + (n === 1 ? 'شخص واحد' : n === 2 ? 'شخصين' : n + ' أشخاص'),
       closed: 'انتهى وقت تأكيد الحضور', closedSub: 'للاستفسار تواصلوا مع صاحبة الدعوة', locked: 'ما يمكن تغيير الرد لهذه المناسبة', linkClosed: 'رابط الدعوة مغلق حالياً',
       passH: 'بطاقة الحضور', passLead: 'بطاقة حضوركم جاهزة تحت.', passCap: 'وروا هالبطاقة عند الباب. وإذا ما في نت، صورة الشاشة تكفي.',
-      passQr: 'كود بطاقة الحضور', passCodeL: 'رقم البطاقة' },
+      passQr: 'كود بطاقة الحضور', passCodeL: 'رقم البطاقة',
+      soonDayBefore: 'بنرسل لكم بطاقة الحضور على الواتساب قبل المناسبة بيوم.', soonSameDay: 'بنرسل لكم بطاقة الحضور على الواتساب يوم المناسبة.', soonBefore: 'بنرسل لكم بطاقة الحضور على الواتساب قبل المناسبة.',
+      soonHere: (d, tm) => `وتقدرون تشوفونها بهالصفحة من يوم ${d} الساعة ${tm}.` },
     en: { hi: 'You\u2019re invited', date: 'Date', time: 'Time', venue: 'Venue', seats: 'Invitations', yes: 'Confirm attendance', no: 'Decline', map: 'Location', cal: 'Add to calendar',
       confirmed: 'Attendance confirmed', ics: 'Download calendar file (iPhone)', change: 'Change my reply', declined: 'Your reply has been saved', miss: 'We\u2019ll miss you',
       why: 'We understand. Would you like to tell us why?', reasonPh: 'Type your reason here', reasonLbl: 'Reason for declining', send: 'Send reply', back: 'Back', showCard: 'View invitation card', hideCard: 'Hide invitation card',
       card: 'Invitation card', nameLbl: 'Your full name', namePh: 'Your full name', nameReq: 'Please type your full name first', reply: 'Will you be joining us?', saveErr: 'Your reply wasn\u2019t saved. Please try again.', help: 'Need help?', helpLink: 'Message us on WhatsApp', dear: 'Dear', rYes: 'Joyfully accept', rNo: 'Regretfully decline', howMany: 'How many of you are coming?', howManySub: 'Including you', people: n => n === 1 ? '1 person' : n + ' people', comingN: n => (n === 1 ? '1 person' : n + ' people') + ' coming',
       closed: 'RSVPs are now closed', closedSub: 'Please contact the host if you have a question.', locked: 'Replies for this event can\u2019t be changed', linkClosed: 'This invitation link is closed',
       passH: 'Door pass', passLead: 'Your door pass is ready below.', passCap: 'Show this at the door. A screenshot works if there\u2019s no signal.',
-      passQr: 'Door pass QR code', passCodeL: 'Pass code' }
+      passQr: 'Door pass QR code', passCodeL: 'Pass code',
+      soonDayBefore: 'We\u2019ll send your door pass on WhatsApp the day before.', soonSameDay: 'We\u2019ll send your door pass on WhatsApp on the day.', soonBefore: 'We\u2019ll send your door pass on WhatsApp before the event.',
+      soonHere: (d, tm) => `You can also see it on this page from ${d} at ${tm}.` }
   };
   let t = L.ar;
   const I = {
@@ -129,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (inv.status === 'yes' && mode !== 'decline') {
       body = `<div class="state reveal"><div class="mark">✓</div><p class="serif" style="font-size:24px;margin:6px 0 0">${t.confirmed}</p>
         ${inv.seats > 1 && inv.confirmed_count ? `<p class="coming-n">${t.comingN(inv.confirmed_count)}</p>` : ''}${hasPass() ? `<p class="pass-lead">${t.passLead}</p>` : ''}</div>
-        ${hasPass() ? passHtml(e, lang) : ''}${links}${e.starts_at ? `<p style="margin:10px 0 0"><a class="link" id="ics" download="invite.ics" href="#">${t.ics}</a></p>` : ''}
+        ${hasPass() ? passHtml(e, lang) : passSoon() ? soonHtml(e, lang) : ''}${links}${e.starts_at ? `<p style="margin:10px 0 0"><a class="link" id="ics" download="invite.ics" href="#">${t.ics}</a></p>` : ''}
         ${isOpen() && canChange() ? `<button class="link" data-act="reset" style="margin-top:12px">${t.change}</button>` : ''}`;
     } else if (inv.status === 'no' && mode !== 'decline') {
       body = `<div class="state reveal"><div class="mark">✕</div><p class="serif" style="font-size:24px;margin:6px 0 0">${t.declined}</p><p class="lead">${t.miss}</p></div>
@@ -171,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
       ${eventCode || (cardMode && inv.seats <= 1) ? '' : `<div class="seats"><span>${t.seats}</span><b>${inv.seats}</b></div>`}${body}${orig}`;
 
     const ics = $('#ics'); if (ics) ics.href = icsBlobUrl(e);
-    drawPass();
+    drawPass(); watchRelease();
 
     bindActs();
   }
@@ -179,6 +183,31 @@ document.addEventListener('DOMContentLoaded', function () {
   // ---------- door pass (supabase/migrations/0005): shown as soon as the reply is yes ----------
   // The database sends "pass" only for a yes. Before 0005 is run there is no "pass", and nothing shows.
   const hasPass = () => inv.status === 'yes' && !!(inv.pass && inv.pass.key && inv.pass.code);
+  // supabase/migrations/0006: the pass is held back until its release time (by default the day before at 4 PM Kuwait).
+  // Until then a yes guest gets "pass_at" (the release time, or null while the event has no date) and no "pass".
+  // Without 0006 there is no "pass_at", and nothing here shows.
+  const passSoon = () => inv.status === 'yes' && !hasPass() && 'pass_at' in inv;
+  const kwDay = iso => new Date(new Date(iso).getTime() + 3 * 3600e3).toISOString().slice(0, 10);
+  function soonHtml(e, lang) {
+    const at = inv.pass_at, gap = at && e.starts_at ? Math.round((new Date(kwDay(e.starts_at)) - new Date(kwDay(at))) / 864e5) : null;
+    const lead = gap === 1 ? t.soonDayBefore : gap === 0 ? t.soonSameDay : t.soonBefore;
+    const day = at ? new Date(at).toLocaleDateString(lang === 'en' ? 'en-GB' : 'ar-KW', { timeZone: 'Asia/Kuwait', weekday: 'long', day: 'numeric', month: 'long' }) : '';
+    return `<div class="dpass-soon" id="passSoon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5V10a2 2 0 0 0 0 4v2.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 16.5V14a2 2 0 0 0 0-4z"/><path d="M14 6.5v11" stroke-dasharray="1.6 1.8"/></svg>
+      <div><p class="dps-t">${lead}</p>${at ? `<p class="dps-s">${esc(t.soonHere(day, fmtTime(at, lang)))}</p>` : ''}</div></div>`;
+  }
+  // the page is still open when the pass comes out (within the next day): fetch it then
+  let relTimer = null, relTries = 0;
+  function watchRelease() {
+    clearTimeout(relTimer);
+    if (!passSoon() || !inv.pass_at || !inv.token || relTries >= 5) return;
+    const ms = new Date(inv.pass_at) - Date.now();
+    if (ms > 864e5) return;
+    relTimer = setTimeout(async () => {
+      relTries++;
+      const r = await App.rpc2('get_invite_v2', { p_token: inv.token }, 'get_invite', { p_token: inv.token });
+      if (!r.error && r.data && !mode) { inv = r.data; render(); }
+    }, Math.max(relTries ? 60000 : 1000, ms + 3000));
+  }
   function passHtml(e, lang) {
     const day = e.starts_at ? new Date(e.starts_at).toLocaleDateString(lang === 'en' ? 'en-GB' : 'ar-KW', { timeZone: 'Asia/Kuwait', weekday: 'short', day: 'numeric', month: 'short' }) : '';
     const when = [day && (day + (lang === 'en' ? ', ' : '، ') + fmtTime(e.starts_at, lang)), e.venue].filter(Boolean).join(' · ');

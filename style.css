@@ -217,6 +217,11 @@ body.has-card main{padding-left:8px;padding-right:8px}
 .dpass-code{flex:none;font-family:"DM Sans",system-ui,sans-serif;font-size:14px;font-weight:400;color:#625350;letter-spacing:.04em;font-variant-numeric:tabular-nums lining-nums;white-space:nowrap}
 .dpass-cap{margin:12px 2px 0;font-size:13.5px;line-height:1.45;color:var(--t-muted)}
 .card.plain .dpass-cap{font-family:"DM Sans","IBM Plex Sans Arabic",system-ui,sans-serif}
+/* before the pass is out (supabase/migrations/0006): where it will come from, and when it shows here */
+.dpass-soon{display:flex;gap:12px;align-items:flex-start;margin:20px 0 6px;padding:14px 16px;border:1px dashed var(--t-line);border-radius:12px;text-align:start;color:var(--t-accent)}
+.dpass-soon svg{flex:none;margin-top:1px}
+.dps-t{margin:0;font-size:16px;line-height:1.45;font-weight:500;color:var(--t-ink)}
+.dps-s{margin:3px 0 0;font-size:14px;line-height:1.45;color:var(--t-muted)}
 
 /* admin: one message per guest */
 .sendlist{display:flex;flex-direction:column;gap:12px}

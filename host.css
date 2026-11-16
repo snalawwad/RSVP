@@ -51,6 +51,25 @@ html[lang="ar"] .next-h{line-height:1.6}
 .next-p{margin:0 0 14px;color:var(--ink);font-size:var(--fs-b);overflow-wrap:anywhere}
 .next .btn+.btn{margin-top:10px}
 .next-p bdi,.sr-names bdi{font-weight:600}
+/* ---------- Home: door passes (supabase/migrations/0006) ---------- */
+body.host .passes{padding:16px}
+.passes .next-p{margin:0 0 6px}
+.passes .ps-big{font-weight:600}
+.passes .abar{margin:6px 0 10px}
+.ps-sub{margin:4px 0 0;font-size:var(--fs-s);line-height:1.45;color:var(--muted);overflow-wrap:anywhere}
+.ps-ok{display:flex;gap:6px;align-items:center;color:var(--ok)}
+.ps-ok .i{flex:none}
+.ps-th{font-family:var(--body)!important;font-size:var(--fs-b)!important;font-weight:600;margin:16px 0 0;line-height:1.4;color:var(--ink)}
+html[lang="ar"] .ps-th{line-height:1.6}
+.ps-list{margin-top:8px;border-top:1px solid var(--line)}
+.ps-row{display:flex;align-items:center;gap:12px;min-height:60px;padding:8px 0;border-bottom:1px solid var(--line)}
+.ps-row:last-child{border-bottom:0;padding-bottom:0}
+.ps-row .btn{flex:none;white-space:nowrap}
+/* on the hand-send list the host must see the whole name and the people count: wrap instead of cutting,
+   whole words first; a name too long to sit beside the button puts the button on its own line */
+.ps-row{flex-wrap:wrap;row-gap:8px}
+.ps-row .gr-txt{flex:1 1 auto}
+.ps-row .gr-n,.ps-row .gr-m{white-space:normal;overflow-wrap:break-word}
 
 /* latest replies */
 .sec-h{display:flex;align-items:baseline;gap:10px;margin:22px 0 10px}
