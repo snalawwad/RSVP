@@ -93,6 +93,27 @@
     return URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
   }
 
+  // Apple Calendar: an .ics event. On iPhone/iPad, Safari opens a text/calendar data: link straight in
+  // the Calendar "Add event" sheet; elsewhere the same file downloads and opens in the phone's calendar.
+  function icsText(ev) {
+    if (!ev || !ev.starts_at) return '';
+    const f = d => new Date(d).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const end = ev.ends_at || new Date(new Date(ev.starts_at).getTime() + 4 * 3600e3).toISOString();
+    const clean = s => String(s || '').replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/([,;])/g, '\\$1');
+    const uid = 'sina-' + String(ev.public_code || ev.id || '').replace(/[^\w-]/g, '') + '-' + f(ev.starts_at);
+    return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Sina//Invite//AR', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
+      `UID:${uid}@sina`, `DTSTAMP:${f(new Date())}`, `DTSTART:${f(ev.starts_at)}`, `DTEND:${f(end)}`,
+      `SUMMARY:${clean(ev.headline || ev.title)}`, ev.venue ? `LOCATION:${clean(ev.venue)}` : '', ev.map_url ? `URL:${String(ev.map_url).replace(/[\r\n]/g, '')}` : '',
+      'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${clean(ev.headline || ev.title)}`, 'TRIGGER:-PT3H', 'END:VALARM',
+      'END:VEVENT', 'END:VCALENDAR'].filter(Boolean).join('\r\n');
+  }
+  const isAppleTouch = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  function appleCalUrl(ev) {
+    const t = icsText(ev); if (!t) return '#';
+    if (isAppleTouch()) return 'data:text/calendar;charset=utf-8,' + encodeURIComponent(t);
+    return URL.createObjectURL(new Blob([t], { type: 'text/calendar;charset=utf-8' }));
+  }
+
   // Login with a 6-digit code (or the magic link) sent to the user's email. Arabic and English.
   const LT = {
     en: { kick: 'Welcome back', h: 'Log in', sub: 'Type your email and we’ll send you a login link.', email: 'Email', send: 'Send my login link',
@@ -534,7 +555,7 @@
   const hostWord = (lang, form = 'plain') => { const t = HOSTS[(lang || uiLang()) === 'ar' ? 'ar' : 'en']; return t[form] || t.plain; };
 
   window.App = { asciiDigits, bdi, ampTitle, countdown, vibrate, reducedMotion, countUp, uiLang, drawThemeSwitch, sb, $, esc, toast, normPhone, showPhone, fmtDate, fmtTime, kwToIso, isoToKw, inviteLink, waLink, fillTemplate, DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_EN, templateFor,
-    mix, lum, rgb2hex, themeVars, applyTheme, calLink, icsBlobUrl, requireLogin, signOut, configured, BRAND, brandTitle,
+    mix, lum, rgb2hex, themeVars, applyTheme, calLink, icsBlobUrl, icsText, appleCalUrl, isAppleTouch, requireLogin, signOut, configured, BRAND, brandTitle,
     need, v2Ready, rpc2, missingFn, normName, MAX_EXTRAS, clampSeats, peopleComing,
     nameKey, nameScore, searchNames, openSheet, closeSheet, setHelp, openHelp, countWord, arN, undoBand, hostWord, HOSTS };
 })();
