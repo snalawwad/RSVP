@@ -52,6 +52,7 @@ try {
         </div>
         <button class="kb" id="kb" type="button" aria-pressed="false">123</button>
       </div>
+      <button class="btn secondary block dscan" id="scanBtn" type="button" hidden><i class="i i-qr" aria-hidden="true"></i><span></span></button>
       <div class="undo-slot" id="undoSlot"></div>
     </div>
     <div id="answers"></div>
@@ -64,6 +65,12 @@ try {
   </section>
 </main>
 <dialog class="sheet" id="ask" aria-labelledby="askH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="askH"></h2><button class="sheet-x" data-close type="button"><i class="i i-x"></i></button></div><div id="askBody"></div></dialog>
+<dialog class="scan" id="scan" aria-labelledby="scanH">
+  <video id="scanV" muted playsinline autoplay aria-hidden="true"></video>
+  <div class="scan-frame" aria-hidden="true"></div>
+  <div class="scan-top"><h2 class="scan-h" id="scanH"></h2><button class="scan-x" id="scanX" type="button"><i class="i i-x"></i></button></div>
+  <div class="scan-foot"><p class="scan-msg" id="scanMsg" role="status"></p><button class="btn secondary block" id="scanSearch" type="button"><i class="i i-search" aria-hidden="true"></i><span></span></button></div>
+</dialog>
 <dialog class="sheet" id="evSheet" aria-labelledby="evH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="evH"></h2><button class="sheet-x" data-close type="button"><i class="i i-x"></i></button></div><div class="rowlist evpick" id="evList"></div></dialog>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -107,6 +114,13 @@ document.addEventListener('DOMContentLoaded', function () {
       err: 'Couldn’t do that. Check your connection and try again.', noEvents: 'This email isn’t linked to any event right now.', noEventsH: 'No events', reason: 'Reason',
       digitsHint: 'Type at least 4 digits of the number', bigN: '7 or more', moreAns: n => `Show ${n} more ${n === 1 ? 'answer' : 'answers'}`,
       when: d => d === 0 ? '' : d < 0 ? 'This event has passed' : d === 1 ? 'The event is tomorrow' : `The event is in ${d} days`,
+      scan: 'Scan pass', scanH: 'Scan a door pass', scanHint: 'Point the camera at the QR code on the guest’s phone.', scanChecking: 'Checking the pass…',
+      passWrong: 'This pass isn’t for this event', passWrongSub: 'Ask for their name and search for it.', notPass: 'That QR code isn’t a door pass',
+      camDenied: 'The camera is blocked. Allow it in your browser settings, or search by name.', noCamera: 'Couldn’t open the camera. Search by name instead.',
+      searchInstead: 'Search by name', closeScan: 'Close the camera', passTag: c => `Pass ${c}`, codeHint: 'Type the 4 digits after SN-',
+      passNoDb: 'This door can’t read passes yet. Search by name.',
+      scanRefused: 'This phone can’t check guests in for this event any more', scanRefusedSub: 'Ask the hosts to add you again.',
+      helpPass: ' With a door pass, tap “Scan pass” and point the camera at the QR code on their phone, or type the 4 digits after SN-.',
       help: [
         ['Checking someone in', 'Type part of their name, or at least 4 digits of their phone number. Tap the big button: it says how many people go in.'],
         ['Two guests with the same name', 'When two or more guests have similar names, in Arabic or English letters, a line above the cards says so. Check the phone number before you tap. Someone who is already in shows first, in amber, with the time they came.'],
@@ -147,6 +161,13 @@ document.addEventListener('DOMContentLoaded', function () {
       err: 'ما مشى. شيكوا على النت وحاولوا مرة ثانية.', noEvents: 'هالإيميل مو مربوط بأي مناسبة.', noEventsH: 'ما في مناسبات', reason: 'السبب',
       digitsHint: 'اكتبوا 4 أرقام أو أكثر', bigN: '7 أو أكثر', moreAns: n => `شوفوا باقي الردود (${n})`,
       when: d => d === 0 ? '' : d < 0 ? 'هالمناسبة خلصت' : d === 1 ? 'المناسبة باجر' : d === 2 ? 'المناسبة بعد يومين' : d <= 10 ? `المناسبة بعد ${d} أيام` : `المناسبة بعد ${d} يوم`,
+      scan: 'امسحوا بطاقة الحضور', scanH: 'امسحوا بطاقة الحضور', scanHint: 'وجّهوا الكاميرا على الكود اللي بتلفون الضيف.', scanChecking: 'لحظة، نشيّك على البطاقة…',
+      passWrong: 'هالبطاقة مو لهالمناسبة', passWrongSub: 'اسألوهم عن اسمهم ودوّروا عليه.', notPass: 'هذا الكود مو بطاقة حضور',
+      camDenied: 'الكاميرا مقفولة. اسمحوا لها من إعدادات المتصفح، أو دوّروا بالاسم.', noCamera: 'ما قدرنا نفتح الكاميرا. دوّروا بالاسم.',
+      searchInstead: 'دوّروا بالاسم', closeScan: 'سكّروا الكاميرا', passTag: c => `بطاقة ${c}`, codeHint: 'اكتبوا الأرقام الأربعة اللي على البطاقة',
+      passNoDb: 'هالشاشة للحين ما تقرا بطاقات الحضور. دوّروا بالاسم.',
+      scanRefused: 'هالجهاز ما يقدر يسجّل وصول ضيوف هالمناسبة بعد الحين', scanRefusedSub: 'اطلبوا من أهل المناسبة يضيفونكم مرة ثانية.',
+      helpPass: ' وإذا معاهم بطاقة الحضور، اضغطوا «امسحوا بطاقة الحضور» ووجّهوا الكاميرا على الكود اللي بتلفونهم، أو اكتبوا الأرقام الأربعة اللي على البطاقة.',
       help: [
         ['تسجيل وصول ضيف', 'اكتبوا جزء من اسمه، أو 4 أرقام أو أكثر من رقم تلفونه. بعدين اضغطوا الزر الكبير، ومكتوب عليه كم شخص بتسجلون وصوله.'],
         ['ضيفين بنفس الاسم', 'إذا فيه ضيفين أو أكثر بأسماء متشابهة، بالعربي أو بالإنجليزي، يطلع لكم سطر فوق الأسماء ينبهكم. تأكدوا من رقم التلفون قبل لا تضغطون. واللي وصل من قبل يطلع أول، باللون الأصفر ومعاه وقت وصوله.'],
@@ -167,9 +188,12 @@ document.addEventListener('DOMContentLoaded', function () {
   let recent = [], prevPct = null;
   let canHost = false;               // the host dashboard link only for people who can use it
   let undoOk = null;                 // null = not known yet, false = the database has no undo yet (003 not run)
+  let passOk = null;                 // null = not known yet, false = no door passes yet (supabase/migrations/0005 not run)
+  let scanStream = null, scanTimer = null, scanDet = null, scanBusy = false, scanLast = { s: '', at: 0, final: false }, scanCanvas = null, scanMsgT = null, scanGen = 0;
   let band = null, bandInfo = null, numMode = false;
   const announced = new Set(); let showAllAns = false;
   const MAX_ASK = 20, ANS_SHOWN = 2, BAND_MS = 120000, UNDO_MS = 600000, ZERO = '00000000-0000-0000-0000-000000000000';
+  takeHashKey();               // door.html#p=<key>: keep the pass for after login, and take it out of the address bar
 
   // ---------- small helpers ----------
   const allowed = g => g.status === 'yes' ? (g.confirmed_count || g.seats) : g.status === 'pending' ? g.seats : 0;
@@ -179,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const ss = { get(k) { try { return JSON.parse(sessionStorage.getItem(k) || 'null'); } catch (e) { return null; } }, set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
 
   // the upgraded functions went missing (e.g. undone): carry on the old way
-  function dropV2() { v2 = false; undoOk = false; $('#unlisted').hidden = true; exPrefill = null; renderForm(); reqs = []; drawReqs(); drawMeter(); drawBand(); }
+  function dropV2() { v2 = false; undoOk = false; passOk = false; drawScanBtn(); $('#unlisted').hidden = true; exPrefill = null; renderForm(); reqs = []; drawReqs(); drawMeter(); drawBand(); }
 
   // ---------- language ----------
   function applyLang() {
@@ -191,11 +215,14 @@ document.addEventListener('DOMContentLoaded', function () {
     $('#unlisted span').textContent = t.unlisted;
     $('#ask .sheet-x').setAttribute('aria-label', t.close); $('#askH').textContent = t.askH;
     $('#evSheet .sheet-x').setAttribute('aria-label', t.close); $('#evH').textContent = t.events;
+    $('#scanBtn span').textContent = t.scan; $('#scanH').textContent = t.scanH; $('#scanX').setAttribute('aria-label', t.closeScan);
+    $('#scanSearch span').textContent = t.searchInstead; if (!$('#scan').open) scanMsg(t.scanHint);
     drawKb(); drawLinks(); $('#annLive').textContent = '';
     if (ev) { drawMast(); setLive(online && Date.now() - lastOk < 30000); renderList(); drawReqs(); drawAnswers(); drawBand(); if (exPrefill) { keepForm(); renderForm(); } }
   }
   $('#lang').onclick = () => { lang = lang === 'ar' ? 'en' : 'ar'; try { localStorage.setItem('door-lang', lang); } catch (e) {} applyLang(); };
-  App.setHelp(l => T[l].help);
+  // with door passes, the first Help item also says how to scan one
+  App.setHelp(l => passOk ? T[l].help.map((h, i) => i ? h : [h[0], h[1] + T[l].helpPass]) : T[l].help);
 
   // links that used to sit in the menu now live on the page: the event switch, and the host dashboard (hosts only)
   function drawLinks() {
@@ -250,12 +277,13 @@ document.addEventListener('DOMContentLoaded', function () {
     events = data || [];
     drawLinks();
     if (!events.length) { $('#auth').innerHTML = `<div class="login-wrap"><div class="login box"><h2>${t.noEventsH}</h2><p class="sub">${t.noEvents}</p></div></div>`; return; }
-    probeUndo();
+    probeUndo(); const passProbe = probePass();
     let keep = null; try { keep = localStorage.getItem('door-ev'); } catch (e) {}
     const today = new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10);
     const kwDay = iso => new Date(new Date(iso).getTime() + 3 * 3600e3).toISOString().slice(0, 10);
-    pick(events.find(x => x.id === keep) || events.find(x => x.starts_at && kwDay(x.starts_at) >= today) || events[events.length - 1]);
+    const first = pick(events.find(x => x.id === keep) || events.find(x => x.starts_at && kwDay(x.starts_at) >= today) || events[events.length - 1]);
     keepAwake();
+    Promise.all([passProbe, first]).then(usePending);     // door.html#p=<key>: opened from a pass scanned with the phone's own camera
   });
 
   // Is Undo installed (migrations/003)? A call for a guest that can't exist changes nothing.
@@ -267,13 +295,25 @@ document.addEventListener('DOMContentLoaded', function () {
     drawBand(); if (ev && !$('#q').value.trim()) renderList();
   }
 
+  // Are door passes installed (supabase/migrations/0005)? Asking about an event that can't exist is refused
+  // ("Not allowed", or no such event) and writes nothing; a missing function means no passes yet.
+  async function probePass() {
+    if (!v2) { passOk = false; drawScanBtn(); return; }
+    let r; try { r = await sb.rpc('door_pass_lookup_v2', { p_event: ZERO, p_key: '' }); } catch (e) { return; }
+    if (r.error && App.missingFn(r.error)) passOk = false;
+    else if (r.error && !r.error.code) return;        // no answer (venue Wi-Fi): ask again on the next refresh
+    else passOk = true;
+    drawScanBtn();
+  }
+  function drawScanBtn() { $('#scanBtn').hidden = !(v2 && passOk === true && ev); }
+
   async function pick(e) {
     ev = e; try { localStorage.setItem('door-ev', e.id); } catch (x) {}
     $('#door').hidden = false; $('#result').innerHTML = ''; exPrefill = null; renderForm();
     list = []; reqs = []; seenReq.clear(); reqsLoaded = false; answers = []; announced.clear(); showAllAns = false; prevPct = null; failedId = null;
     if (band) { band.close(); band = null; bandInfo = null; }
     recent = ss.get('door-recent-' + ev.id) || [];
-    $('#unlisted').hidden = !v2;
+    $('#unlisted').hidden = !v2; drawScanBtn();
     drawMast(); drawLinks(); drawAnswers(); drawReqs();
     await loadList(); await loadReqs(); schedule();
   }
@@ -291,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const fast = reqs.some(r => r.status === 'pending');
     pollT = setTimeout(async () => { await refresh(); schedule(); }, fast ? 5000 : 15000);
   }
-  const refresh = async () => { if (!ev) return; await loadList(); await loadReqs(); };
+  const refresh = async () => { if (!ev) return; if (v2 && passOk === null) probePass(); await loadList(); await loadReqs(); };
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { refresh().then(schedule); keepAwake(); } });
   window.addEventListener('online', () => { online = true; refresh().then(schedule); });
   window.addEventListener('offline', () => { online = false; setLive(false); });
@@ -396,9 +436,19 @@ document.addEventListener('DOMContentLoaded', function () {
     out.push(esc(s.slice(at))); return out.join('');
   }
   const isDigits = q => !/[^\d\s+\-()٠-٩۰-۹]/.test(q);
+  // a door pass code: 4 digits, or "SN-4821" as printed on the pass (any dash or space, Arabic digits too)
+  const codeQ = q => { const m = App.asciiDigits(q).trim().match(/^(sn[\s\-‐–]*)?(\d{4})$/i); return m ? { code: m[2], sn: !!m[1] } : null; };
+  const codePart = q => /^sn([\s\-‐–]+\d{0,3}|\d{1,3})$/i.test(App.asciiDigits(q).trim());
   // score bands from App.nameScore: 5 same name · 4 starts with · 3 word starts · 2 inside · 1 other spelling/script · 0 close
   const tierOf = s => s >= 100 ? 5 : s >= 80 ? 4 : s >= 60 ? 3 : s >= 45 ? 2 : s >= 30 ? 1 : 0;
   function search(q) {
+    const cq = codeQ(q);
+    if (cq) {
+      // the pass code first; 4 bare digits may also be part of a phone number
+      const byCode = list.filter(g => g.pass_code === cq.code).map(g => ({ g, score: 120, tier: 6, code: true, phone: '' }));
+      if (cq.sn) return byCode;
+      return byCode.concat(list.filter(g => g.pass_code !== cq.code && (g.phone || '').includes(cq.code)).map(g => ({ g, score: 100, tier: 5, phone: cq.code })));
+    }
     if (isDigits(q)) {
       const qd = App.asciiDigits(q).replace(/\D/g, '');
       return qd.length >= 4 ? list.filter(g => (g.phone || '').includes(qd)).map(g => ({ g, score: 100, tier: 5, phone: qd })) : [];
@@ -431,7 +481,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const g = h.g, st = stateOf(g), done = g.checked_in_count || 0, left = leftOf(g), al = allowed(g);
     const phone = g.phone ? `<span class="d-ph num" dir="ltr">${h.phone ? markUp(showPhone(g.phone), (() => { const s = showPhone(g.phone), i = s.indexOf(h.phone); return i < 0 ? [] : [[i, i + h.phone.length]]; })()) : esc(showPhone(g.phone))}</span>` : '';
     const side = g.side ? `<bdi class="d-side">${esc(g.side)}</bdi>` : '';
-    const top = `<div class="d-top"><b class="d-name"><bdi>${markUp(g.name, h.ranges)}</bdi></b>${phone}</div>`;
+    const top = `<div class="d-top"><b class="d-name"><bdi>${markUp(g.name, h.ranges)}</bdi></b>${phone}</div>`
+      + (h.code && g.pass_code ? `<p class="d-pass"><i class="i i-qr sm" aria-hidden="true"></i><span>${t.passTag(`<bdi dir="ltr" class="num">${esc(App.passCode(g.pass_code))}</bdi>`)}</span></p>` : '');
     const rq = v2 && lastReq(g), rqLine = rq ? `<p class="d-req t-tone tone-${rq.status === 'approved' ? 'ok' : rq.status === 'rejected' ? 'no' : 'wait'}">${esc(t.reqLine[rq.status](rq.people))}</p>` : '';
     // already in: an amber card that says when, never a check-in button
     if (st === 'all') {
@@ -478,9 +529,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!q) { for (const k of Object.keys(typed)) delete typed[k]; L.innerHTML = idleHtml(); return; }
     // a phone number needs 4 digits: fewer is a quiet hint, not "not on the list"
     if (isDigits(q) && App.asciiDigits(q).replace(/\D/g, '').length < 4) { L.innerHTML = `<div class="didle dhint"><p>${t.digitsHint}</p></div>`; return; }
+    if (codePart(q)) { L.innerHTML = `<div class="didle dhint"><p>${esc(t.codeHint)}</p></div>`; return; }
     const hits = search(q);
     if (hits.length) {
-      const top = Math.max(...hits.map(h => h.tier)), phoneQ = isDigits(q);
+      const top = Math.max(...hits.map(h => h.tier)), phoneQ = isDigits(q) || !!codeQ(q);
       // "similar": every real match once 2+ letters are typed, in either script (مريم also finds Mariam); for a
       // phone, a whole number (8+ digits). Anyone from that set who is already inside comes first (amber, no
       // check-in button), so a similar not-yet-in name never sits on top of them. Phone numbers are unique
@@ -531,7 +583,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const wasOver = curN(g) > left;
       typed[g.id] = n; lastTouch = Date.now(); if (failedId === g.id) failedId = null;
       App.vibrate(8);
-      if (wasOver !== n > left) { row.outerHTML = rowHtml({ g, ranges: matchName(g.name, nmap($('#q').value).n.split(' ').filter(Boolean))?.ranges }); onePrimary(); return; }
+      if (wasOver !== n > left) { const cq = codeQ($('#q').value); row.outerHTML = rowHtml({ g, code: !!cq && g.pass_code === cq.code, ranges: matchName(g.name, nmap($('#q').value).n.split(' ').filter(Boolean))?.ranges }); onePrimary(); return; }
       row.querySelector('output').textContent = n;
       row.querySelector('[data-dec]').disabled = n <= 1; row.querySelector('[data-inc]').disabled = n >= left + MAX_OVER;
       const b = row.querySelector('[data-in]'); b.textContent = n > left ? t.checkInNow(left) : t.checkInN(n, left); b.classList.remove('retry');
@@ -687,6 +739,133 @@ document.addEventListener('DOMContentLoaded', function () {
     if (info.q != null && !$('#q').value) $('#q').value = info.q;
     renderList(); loadList();
   }
+
+  // ---------- door passes (supabase/migrations/0005): scan the QR on the guest's phone ----------
+  // The QR holds <site>/door.html#p=<key>. A hit opens that guest's card, the same card a search shows
+  // (already in, over the limit, Ask the hosts all work as usual). The key is never shown or kept in the page.
+  async function lookupPass(evId, key) {
+    let r; try { r = await sb.rpc('door_pass_lookup_v2', { p_event: evId, p_key: key }); } catch (e) { r = { error: { message: String(e) } }; }
+    if (r.error && App.missingFn(r.error)) { passOk = false; drawScanBtn(); }
+    return r;
+  }
+  function openPassGuest(row, tapped) {
+    const g = { ...row, checked_in_count: row.checked_in_count ?? (row.checked_in_at ? row.seats : 0) };
+    const i = list.findIndex(x => x.id === g.id);
+    if (i >= 0) list[i] = { ...list[i], ...g }; else list.push(g);       // added since the last refresh
+    clearStaticCard();
+    $('#q').value = g.pass_code ? App.passCode(g.pass_code) : g.name;    // the code finds exactly this guest
+    renderList(); if (tapped) App.vibrate(25);          // no buzz on a page that just opened (browsers block it)
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+  function scanMsg(s, tone) {
+    clearTimeout(scanMsgT);
+    const m = $('#scanMsg'); m.textContent = s || ''; m.className = 'scan-msg' + (tone ? ' tone-' + tone : '');
+    // a "not this event" message goes back to the hint after a while; the camera keeps looking meanwhile
+    if (tone === 'no' && scanStream) scanMsgT = setTimeout(() => { if (scanStream) scanMsg(t.scanHint); }, 5000);
+  }
+  function stopCam() {
+    clearTimeout(scanTimer); clearTimeout(scanMsgT);
+    if (scanStream) scanStream.getTracks().forEach(x => x.stop());
+    scanStream = null; const v = $('#scanV'); if (v) v.srcObject = null;
+  }
+  // no camera, or it was refused: say so, and offer the search
+  function scanFail(msg) { stopCam(); $('#scan').classList.add('nocam'); scanMsg(msg, 'no'); $('#scanSearch').classList.replace('secondary', 'primary'); $('#scanSearch').focus(); }
+  function closeScan() { const d = $('#scan'); if (d.open) d.close(); }
+  async function openScan() {
+    if (!ev || passOk !== true) return;
+    const d = $('#scan');
+    d.classList.remove('nocam'); $('#scanSearch').classList.replace('primary', 'secondary'); scanMsg(t.scanHint);
+    scanLast = { s: '', at: 0, final: false }; scanBusy = false;
+    if (!d.open) d.showModal();
+    const my = ++scanGen;      // a close (or a newer open) while the camera permission is still being asked makes this one stale
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { scanFail(t.noCamera); return; }
+    let s;
+    try { s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false }); }
+    catch (e) { if (my === scanGen && d.open) scanFail(/NotAllowed|Security|Permission/i.test((e && e.name) || '') ? t.camDenied : t.noCamera); return; }
+    if (!d.open || my !== scanGen) { s.getTracks().forEach(x => x.stop()); return; }
+    scanStream = s; const v = $('#scanV'); v.srcObject = s; try { await v.play(); } catch (e) {}
+    // the phone's own QR reader where there is one (Android Chrome); else the vendored jsQR (iPhone)
+    if (!scanDet && 'BarcodeDetector' in window) {
+      try { const f = window.BarcodeDetector.getSupportedFormats ? await window.BarcodeDetector.getSupportedFormats() : ['qr_code']; if (f.includes('qr_code')) scanDet = new window.BarcodeDetector({ formats: ['qr_code'] }); } catch (e) {}
+    }
+    if (!scanDet && !window.jsQR) { try { await App.loadScript('vendor/jsqr/jsQR.js'); } catch (e) { if (my === scanGen) scanFail(t.err); return; } }
+    if (my === scanGen && scanStream === s) nextFrame();
+  }
+  const SCAN_AGAIN = 2500;
+  function nextFrame() { clearTimeout(scanTimer); scanTimer = setTimeout(readFrame, 150); }
+  async function readFrame() {
+    const v = $('#scanV');
+    if (!$('#scan').open || !scanStream) return;
+    if (scanBusy || v.readyState < 2 || !v.videoWidth) { nextFrame(); return; }
+    let text = null;
+    try {
+      if (scanDet) { const c = await scanDet.detect(v); text = c && c[0] && c[0].rawValue; }
+      else {
+        const w = Math.min(720, v.videoWidth), h = Math.round(v.videoHeight * w / v.videoWidth);
+        scanCanvas = scanCanvas || document.createElement('canvas'); scanCanvas.width = w; scanCanvas.height = h;
+        const cx = scanCanvas.getContext('2d', { willReadFrequently: true }); cx.drawImage(v, 0, 0, w, h);
+        const r = window.jsQR(cx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'dontInvert' });
+        text = r && r.data;
+      }
+    } catch (e) {}
+    if (text) await onScan(text);
+    if (scanStream) nextFrame();
+  }
+  async function onScan(text) {
+    // The same code still in front of the camera: a final answer (not a pass, another event's pass) stays
+    // as it is while the code stays in view, and is only asked again once it has been away for 2.5 s;
+    // after an error (no signal) it is tried again 2.5 s later, not on every frame.
+    if (text === scanLast.s && Date.now() - scanLast.at < SCAN_AGAIN) { if (scanLast.final) scanLast.at = Date.now(); return; }
+    scanLast = { s: text, at: Date.now(), final: true };
+    const key = App.passKeyOf(text);
+    if (!key) { scanMsg(t.notPass, 'no'); App.vibrate([20, 40, 20]); return; }
+    scanBusy = true; scanMsg(t.scanChecking);
+    const r = await lookupPass(ev.id, key);
+    scanBusy = false;
+    if (!$('#scan').open) return;
+    if (r.error && App.missingFn(r.error)) { closeScan(); toast(t.passNoDb); return; }
+    if (r.error && r.error.code && /not allowed/i.test(r.error.message || '')) {     // door access ended mid-shift: retrying won't help
+      closeScan(); notice('no', t.scanRefused, '', t.scanRefusedSub, `<button class="btn secondary" type="button" data-x>${t.closeNote}</button>`); App.vibrate([20, 40, 20]); return;
+    }
+    if (r.error) { scanLast = { s: text, at: Date.now(), final: false }; scanMsg(t.err, 'no'); return; }
+    if (!r.data) { scanMsg(t.passWrong, 'no'); App.vibrate([20, 40, 20]); return; }
+    closeScan(); openPassGuest(r.data, true);
+  }
+  $('#scanBtn').onclick = openScan;
+  $('#scanX').onclick = closeScan;
+  $('#scanSearch').onclick = () => { closeScan(); $('#q').focus(); };
+  $('#scan').addEventListener('close', () => { scanGen++; stopCam(); scanBusy = false; });
+
+  // door.html#p=<key>: a pass scanned with the phone's own camera. Kept for 15 minutes (through a login)
+  // and used once the event is loaded; if it belongs to another of this phone's events, that event opens.
+  function takeHashKey() {
+    const m = location.hash.match(/[#&]p=([A-Za-z0-9_-]{22,64})/);
+    if (!m) return false;
+    try { localStorage.setItem('door-pass', JSON.stringify({ k: m[1], at: Date.now() })); } catch (e) {}
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+    return true;
+  }
+  function pendingKey() {
+    try { const p = JSON.parse(localStorage.getItem('door-pass') || 'null'); localStorage.removeItem('door-pass'); if (p && Date.now() - p.at < 15 * 60e3) return p.k; } catch (e) {}
+    return null;
+  }
+  async function usePending() {
+    if (!ev) return;
+    const key = pendingKey(); if (!key) return;
+    if (passOk === null) await probePass();
+    const close = `<button class="btn secondary" type="button" data-x>${t.closeNote}</button>`;
+    if (passOk !== true) { notice('no', t.passNoDb, '', '', close); return; }
+    let r = await lookupPass(ev.id, key);
+    if (r.error) { toast(t.err); return; }
+    if (!r.data) for (const e of events) {
+      if (e.id === ev.id) continue;
+      const x = await lookupPass(e.id, key);
+      if (!x.error && x.data) { await pick(e); r = x; break; }
+    }
+    if (!r.data) { notice('no', t.passWrong, '', t.passWrongSub, close); return; }
+    openPassGuest(r.data);
+  }
+  window.addEventListener('hashchange', () => { if (takeHashKey() && ev) usePending(); });
 
   // ---------- asking the host (unlisted guests, extra people) ----------
   $('#unlisted').onclick = () => openAsk({ guest: null, name: $('#q').value.trim(), people: 1 });

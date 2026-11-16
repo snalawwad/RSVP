@@ -533,8 +533,31 @@
   };
   const hostWord = (lang, form = 'plain') => { const t = HOSTS[(lang || uiLang()) === 'ar' ? 'ar' : 'en']; return t[form] || t.plain; };
 
+  // Door passes (supabase/migrations/0005_door_pass.sql). Each guest who said yes has a pass: a long secret key
+  // (in the QR, never shown in lists) and a 4-digit code staff can type, shown as "SN-4821" (Latin digits in
+  // both languages). The QR holds a link to the door page, so an iPhone camera scan opens the right guest:
+  //   <site>/door.html#p=<key>
+  const siteBase = () => ((C && C.SITE_URL) || (location.origin + location.pathname.replace(/[^/]*$/, ''))).replace(/\/$/, '');
+  const passLink = key => `${siteBase()}/door.html#p=${key}`;
+  // the key from a scanned text: the door link (#p= / ?p= / &p=) or a bare key; null for anything else
+  function passKeyOf(text) {
+    const s = String(text || '').trim();
+    const m = s.match(/[#?&]p=([A-Za-z0-9_-]{22,64})(?![A-Za-z0-9_-])/);
+    if (m) return m[1];
+    return /^[A-Za-z0-9_-]{22,64}$/.test(s) ? s : null;
+  }
+  const passCode = code => code ? 'SN-' + asciiDigits(code) : '';
+  // one <script> per vendored library (vendor/…), loaded only when a page needs it
+  const scripts = {};
+  const loadScript = src => scripts[src] || (scripts[src] = new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = src; s.async = true;
+    s.onload = () => res(); s.onerror = () => { delete scripts[src]; rej(new Error('load ' + src)); };
+    document.head.appendChild(s);
+  }));
+
   window.App = { asciiDigits, bdi, ampTitle, countdown, vibrate, reducedMotion, countUp, uiLang, drawThemeSwitch, sb, $, esc, toast, normPhone, showPhone, fmtDate, fmtTime, kwToIso, isoToKw, inviteLink, waLink, fillTemplate, DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_EN, templateFor,
     mix, lum, rgb2hex, themeVars, applyTheme, calLink, icsBlobUrl, requireLogin, signOut, configured, BRAND, brandTitle,
     need, v2Ready, rpc2, missingFn, normName, MAX_EXTRAS, clampSeats, peopleComing,
-    nameKey, nameScore, searchNames, openSheet, closeSheet, setHelp, openHelp, countWord, arN, undoBand, hostWord, HOSTS };
+    nameKey, nameScore, searchNames, openSheet, closeSheet, setHelp, openHelp, countWord, arN, undoBand, hostWord, HOSTS,
+    passLink, passKeyOf, passCode, loadScript };
 })();

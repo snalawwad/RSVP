@@ -35,12 +35,16 @@ document.addEventListener('DOMContentLoaded', function () {
       confirmed: 'تم تأكيد الحضور', ics: 'تحميل ملف التقويم (آيفون)', change: 'تغيير الرد', declined: 'تم تسجيل الاعتذار', miss: 'نتمنى نشوفكم بالأفراح دوم',
       why: 'نقدّر ردّكم، ممكن تخبرونا السبب؟', reasonPh: 'اكتبوا السبب هنا', reasonLbl: 'سبب الاعتذار', send: 'إرسال الاعتذار', back: 'رجوع', showCard: 'عرض بطاقة الدعوة', hideCard: 'إخفاء بطاقة الدعوة',
       card: 'بطاقة الدعوة', nameLbl: 'الاسم الكامل', namePh: 'اكتبوا اسمكم الكامل', nameReq: 'اكتبوا اسمكم الكامل أول', reply: 'تأكيد الحضور أو الاعتذار', saveErr: 'ما قدرنا نحفظ الرد، حاولوا مرة ثانية', help: 'تحتاجون مساعدة؟', helpLink: 'راسلونا على الواتساب', dear: '', rYes: 'بكل سرور، سأحضر', rNo: 'أعتذر عن الحضور', howMany: 'كم شخص بيحضر؟', howManySub: 'بما فيهم أنتم', people: n => n === 1 ? 'شخص واحد' : n === 2 ? 'شخصين' : n + ' أشخاص', comingN: n => 'الحضور: ' + (n === 1 ? 'شخص واحد' : n === 2 ? 'شخصين' : n + ' أشخاص'),
-      closed: 'انتهى وقت تأكيد الحضور', closedSub: 'للاستفسار تواصلوا مع صاحبة الدعوة', locked: 'ما يمكن تغيير الرد لهذه المناسبة', linkClosed: 'رابط الدعوة مغلق حالياً' },
+      closed: 'انتهى وقت تأكيد الحضور', closedSub: 'للاستفسار تواصلوا مع صاحبة الدعوة', locked: 'ما يمكن تغيير الرد لهذه المناسبة', linkClosed: 'رابط الدعوة مغلق حالياً',
+      passH: 'بطاقة الحضور', passLead: 'بطاقة حضوركم جاهزة تحت.', passCap: 'وروا هالبطاقة عند الباب. وإذا ما في نت، صورة الشاشة تكفي.',
+      passQr: 'كود بطاقة الحضور', passCodeL: 'رقم البطاقة' },
     en: { hi: 'You\u2019re invited', date: 'Date', time: 'Time', venue: 'Venue', seats: 'Invitations', yes: 'Confirm attendance', no: 'Decline', map: 'Location', cal: 'Add to calendar',
       confirmed: 'Attendance confirmed', ics: 'Download calendar file (iPhone)', change: 'Change my reply', declined: 'Your reply has been saved', miss: 'We\u2019ll miss you',
       why: 'We understand. Would you like to tell us why?', reasonPh: 'Type your reason here', reasonLbl: 'Reason for declining', send: 'Send reply', back: 'Back', showCard: 'View invitation card', hideCard: 'Hide invitation card',
       card: 'Invitation card', nameLbl: 'Your full name', namePh: 'Your full name', nameReq: 'Please type your full name first', reply: 'Will you be joining us?', saveErr: 'Your reply wasn\u2019t saved. Please try again.', help: 'Need help?', helpLink: 'Message us on WhatsApp', dear: 'Dear', rYes: 'Joyfully accept', rNo: 'Regretfully decline', howMany: 'How many of you are coming?', howManySub: 'Including you', people: n => n === 1 ? '1 person' : n + ' people', comingN: n => (n === 1 ? '1 person' : n + ' people') + ' coming',
-      closed: 'RSVPs are now closed', closedSub: 'Please contact the host if you have a question.', locked: 'Replies for this event can\u2019t be changed', linkClosed: 'This invitation link is closed' }
+      closed: 'RSVPs are now closed', closedSub: 'Please contact the host if you have a question.', locked: 'Replies for this event can\u2019t be changed', linkClosed: 'This invitation link is closed',
+      passH: 'Door pass', passLead: 'Your door pass is ready below.', passCap: 'Show this at the door. A screenshot works if there\u2019s no signal.',
+      passQr: 'Door pass QR code', passCodeL: 'Pass code' }
   };
   let t = L.ar;
   const I = {
@@ -124,8 +128,8 @@ document.addEventListener('DOMContentLoaded', function () {
     let body = '';
     if (inv.status === 'yes' && mode !== 'decline') {
       body = `<div class="state reveal"><div class="mark">✓</div><p class="serif" style="font-size:24px;margin:6px 0 0">${t.confirmed}</p>
-        ${inv.seats > 1 && inv.confirmed_count ? `<p class="coming-n">${t.comingN(inv.confirmed_count)}</p>` : ''}</div>
-        ${links}${e.starts_at ? `<p style="margin:10px 0 0"><a class="link" id="ics" download="invite.ics" href="#">${t.ics}</a></p>` : ''}
+        ${inv.seats > 1 && inv.confirmed_count ? `<p class="coming-n">${t.comingN(inv.confirmed_count)}</p>` : ''}${hasPass() ? `<p class="pass-lead">${t.passLead}</p>` : ''}</div>
+        ${hasPass() ? passHtml(e, lang) : ''}${links}${e.starts_at ? `<p style="margin:10px 0 0"><a class="link" id="ics" download="invite.ics" href="#">${t.ics}</a></p>` : ''}
         ${isOpen() && canChange() ? `<button class="link" data-act="reset" style="margin-top:12px">${t.change}</button>` : ''}`;
     } else if (inv.status === 'no' && mode !== 'decline') {
       body = `<div class="state reveal"><div class="mark">✕</div><p class="serif" style="font-size:24px;margin:6px 0 0">${t.declined}</p><p class="lead">${t.miss}</p></div>
@@ -167,9 +171,68 @@ document.addEventListener('DOMContentLoaded', function () {
       ${eventCode || (cardMode && inv.seats <= 1) ? '' : `<div class="seats"><span>${t.seats}</span><b>${inv.seats}</b></div>`}${body}${orig}`;
 
     const ics = $('#ics'); if (ics) ics.href = icsBlobUrl(e);
+    drawPass();
 
     bindActs();
   }
+
+  // ---------- door pass (supabase/migrations/0005): shown as soon as the reply is yes ----------
+  // The database sends "pass" only for a yes. Before 0005 is run there is no "pass", and nothing shows.
+  const hasPass = () => inv.status === 'yes' && !!(inv.pass && inv.pass.key && inv.pass.code);
+  function passHtml(e, lang) {
+    const day = e.starts_at ? new Date(e.starts_at).toLocaleDateString(lang === 'en' ? 'en-GB' : 'ar-KW', { timeZone: 'Asia/Kuwait', weekday: 'short', day: 'numeric', month: 'short' }) : '';
+    const when = [day && (day + (lang === 'en' ? ', ' : '، ') + fmtTime(e.starts_at, lang)), e.venue].filter(Boolean).join(' · ');
+    const n = inv.confirmed_count || inv.seats || 1, code = App.passCode(inv.pass.code);
+    return `<section class="dpass" aria-labelledby="passH">
+      <h2 class="dpass-h" id="passH">${t.passH}</h2>
+      <div class="dpass-card">
+        <div class="dpass-top"><p class="dpass-ev">${esc(e.headline || e.title || '')}</p>${when ? `<p class="dpass-when">${esc(when)}</p>` : ''}</div>
+        <div class="dpass-body">
+          <div class="dpass-qr" id="passQr" role="img" aria-label="${t.passQr}" data-key="${esc(inv.pass.key)}"></div>
+          <div class="dpass-holder"><div class="dpass-who"><b>${esc(inv.name || '')}</b><span>${esc(App.countWord(n, 'person', lang))}</span></div>
+            <bdi class="dpass-code" dir="ltr" aria-label="${t.passCodeL}: ${esc(code)}">${esc(code)}</bdi></div>
+        </div>
+      </div>
+      <p class="dpass-cap">${t.passCap}</p>
+    </section>`;
+  }
+  // The QR: drawn here from the vendored library (no CDN), black on white with a 4-module quiet zone,
+  // error correction M, whole pixels per module so it stays sharp for a camera at night.
+  function drawPass() {
+    const box = $('#passQr'); if (!box) return;
+    const link = App.passLink(box.dataset.key);
+    App.loadScript('vendor/qrcode-generator/qrcode.js').then(() => {
+      if (!box.isConnected) return;
+      const q = window.qrcode(0, 'M'); q.addData(link, 'Byte'); q.make();
+      const n = q.getModuleCount(), quiet = 4, N = n + quiet * 2;
+      let d = '';
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+        if (!q.isDark(r, c)) continue;
+        let w = 1; while (c + w < n && q.isDark(r, c + w)) w++;
+        d += `M${c + quiet} ${r + quiet}h${w}v1h-${w}z`; c += w - 1;
+      }
+      // as big as the pass body allows (232px at most), in whole pixels per module, and always square
+      const inner = box.parentElement ? box.parentElement.clientWidth - 32 : 0;     // .dpass-body has 16px padding each side
+      const room = Math.min(232, inner > 0 ? inner : 232);
+      const px = N * Math.max(3, Math.floor(room / N));
+      box.style.width = px + 'px'; box.style.height = '';
+      box.dataset.px = px;
+      box.innerHTML = `<svg viewBox="0 0 ${N} ${N}" width="${px}" height="${px}" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect width="${N}" height="${N}" fill="#FFFFFF"/><path d="${d}" fill="#000000"/></svg>`;
+      box.dataset.ready = '1';
+    }).catch(() => { box.classList.add('off'); });
+  }
+
+  // a phone turned sideways (or a narrower window): redraw the QR if its whole-pixel size would change
+  let passResizeT = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(passResizeT);
+    passResizeT = setTimeout(() => {
+      const box = $('#passQr'); if (!box || !box.dataset.ready || !box.parentElement) return;
+      const svg = box.querySelector('svg'), N = svg ? +String(svg.getAttribute('viewBox')).split(' ')[2] || 0 : 0;
+      const inner = box.parentElement.clientWidth - 32; if (!N || inner <= 0) return;
+      if (N * Math.max(3, Math.floor(Math.min(232, inner) / N)) !== +box.dataset.px) drawPass();
+    }, 150);
+  });
 
   function bindActs() {
     card.querySelectorAll('[data-act]').forEach(b => b.onclick = () => {
