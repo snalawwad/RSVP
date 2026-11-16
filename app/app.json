@@ -57,7 +57,15 @@
           }
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Sina uses the camera to scan guests' door passes at door check-in.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ]
     ],
     "scheme": "rsvphost",
     "backgroundColor": "#EDE5DA",

@@ -1,4 +1,4 @@
 {
-  "ios": { "CFBundleDisplayName": "Sina" },
+  "ios": { "CFBundleDisplayName": "Sina", "NSCameraUsageDescription": "Sina uses the camera to scan guests' door passes at door check-in." },
   "android": { "app_name": "Sina" }
 }

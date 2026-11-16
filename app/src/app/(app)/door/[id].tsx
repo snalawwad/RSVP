@@ -1,7 +1,10 @@
-// Door check-in (door.html, Nov 2026): find a guest by name or phone, check in the right number of people,
-// undo a slip, and ask the hosts about extra or unlisted guests. No QR codes.
+// Door check-in (door.html, Nov 2026): find a guest by name, phone or door pass, check in the right number of people,
+// undo a slip, and ask the hosts about extra or unlisted guests.
+// Door passes (supabase/migrations/0005): every guest who said yes has a pass with a QR code (<site>/door.html#p=<key>)
+// and a code (SN-4821). "Scan pass" opens the camera; a match opens that guest's card, the same as searching the code.
 // Same database functions as the web door: door_list_v2 / check_in_v2 / undo_check_in_v2 / request_exception_v2 /
-// list_exceptions_v2, with door_list / check_in_guest when the upgrade isn't installed (and no Undo without 0004).
+// list_exceptions_v2 / door_pass_lookup_v2, with door_list / check_in_guest when the upgrade isn't installed
+// (no Undo without 0004, no Scan pass without 0005).
 import { activateKeepAwakeAsync, deactivateKeepAwake, isAvailableAsync } from 'expo-keep-awake';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useReducer, useRef, type ComponentRef, type ReactNode } from 'react';
@@ -10,8 +13,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Busy, Button, EmptyState, Icon, Row, RowList, Sheet, Txt, useToast } from '../../../components';
 import { AskSheet, type AskState } from '../../../components/door/AskSheet';
 import {
-  ANS_SHOWN, BAND_MS, MAX_ASK, UNDO_MS, allowed, curN, digitsOf, isDigits, leftOf, orderHits, stateOf,
+  ANS_SHOWN, BAND_MS, MAX_ASK, UNDO_MS, allowed, codeQuery, curN, digitsOf, hasCodes, isDigits, leftOf, orderHits, parsePass, passLabel, stateOf,
 } from '../../../components/door/logic';
+import { Scanner, type ScanAnswer } from '../../../components/door/Scanner';
 import { AnswerCard, Cap, DoorBand, DoorMeter, GuestCard, LivePill, Notice, QuietLink, RecentRow, ReqTag, SearchRow, Sentence, doorWebBack, type NoticeBtn } from '../../../components/door/parts';
 import * as api from '../../../lib/api';
 import type { CheckInResult, DoorGuest, DoorRequest } from '../../../lib/api';
@@ -57,7 +61,7 @@ export default function Door() {
   // One mutable store, like door.html's module variables; redraw() paints it.
   const S = useRef({
     phase: 'loading' as 'loading' | 'ready' | 'none',
-    events: [] as Ev[], ev: null as Ev | null, canHost: false, v2: false, undoOk: null as boolean | null,
+    events: [] as Ev[], ev: null as Ev | null, canHost: false, v2: false, undoOk: null as boolean | null, passOk: null as boolean | null, scan: false,
     list: [] as DoorGuest[], view: [] as DoorGuest[], reqs: [] as DoorRequest[], reqsLoaded: false, seenReq: new Map<string, string>(),
     answers: [] as Answer[], announced: new Set<string>(), showAllAns: false, doneOpen: null as boolean | null,
     typed: {} as Record<string, number>, extraAsk: {} as Record<string, number>,
@@ -88,7 +92,7 @@ export default function Door() {
   const renderList = () => { clearTimeout(timers.render); S.view = S.list; redraw(); };
 
   // the upgraded functions went missing: carry on the old way
-  const dropV2 = () => { S.v2 = false; S.undoOk = false; S.ask = null; S.reqs = []; redraw(); };
+  const dropV2 = () => { S.v2 = false; S.undoOk = false; S.passOk = false; S.scan = false; S.ask = null; S.reqs = []; redraw(); };
 
   // ---------- loading ----------
   const loadList = async () => {
@@ -130,7 +134,12 @@ export default function Door() {
     redraw();
   };
 
-  const refresh = async () => { if (!S.ev) return; await loadList(); await loadReqs(); };
+  const refresh = async () => {
+    if (!S.ev) return;
+    // couldn't tell at the start (no connection) whether Scan pass is installed: ask again
+    if (S.v2 && S.passOk === null) api.probePass(true).then((p) => { if (S.v2 && S.passOk === null) { S.passOk = p; redraw(); } });
+    await loadList(); await loadReqs();
+  };
   // every 15 s, every 5 s while the door waits for the hosts
   const schedule = () => {
     clearTimeout(timers.poll);
@@ -167,6 +176,7 @@ export default function Door() {
         S.phase = 'none'; redraw(); return;
       }
       api.probeUndo(S.v2).then((u) => { S.undoOk = u; redraw(); });
+      api.probePass(S.v2).then((p) => { if (S.v2) S.passOk = p; redraw(); });
       pick(ev);
     })();
     return () => { off = true; clearTimeout(timers.poll); clearTimeout(timers.render); };
@@ -349,6 +359,35 @@ export default function Door() {
     await loadReqs(); schedule();
   }
 
+  // ---------- door pass ----------
+  const openScan = () => { haptics.tap(); inputRef.current?.blur(); S.notice = null; S.scan = true; redraw(); };
+  const closeScan = () => { S.scan = false; redraw(); };
+  /** the camera read a QR code: null = found (the scanner closes on their card), else what to say while it keeps scanning */
+  const scanned = async (data: string): Promise<ScanAnswer> => {
+    const ev = S.ev;
+    const key = parsePass(data);
+    if (!key || !ev) { haptics.error(); return T.scanNotPass; }
+    const r = await api.passLookup(ev.id, key);
+    if (!alive.current || S.ev?.id !== ev.id) return null;
+    if (r.missing) { S.passOk = false; S.scan = false; redraw(); toast(T.err); return null; }
+    if (r.error) { haptics.error(); if (api.netFail(r.error) && Date.now() - S.lastOk > 3000) setLive(false); return api.netFail(r.error) ? T.scanErr : T.err; }
+    setLive(true);
+    const g = r.data;
+    if (!g) { haptics.error(); return T.scanWrong; }
+    haptics.success();
+    // the freshest row from the database, then their card, exactly as if the door had typed the code (or the name)
+    const i = S.list.findIndex((x) => x.id === g.id);
+    if (i >= 0) S.list[i] = { ...S.list[i], ...g }; else S.list = [...S.list, g];
+    S.scan = false; S.notice = null; S.q = g.pass_code ? passLabel(g.pass_code) : g.name;
+    renderList();
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+    return null;
+  };
+  const scanDenied = () => {
+    S.scan = false; haptics.warn();
+    infoBand('no', T.camDenied, T.camDeniedSub, 15000);
+  };
+
   // ---------- search box ----------
   const setQ = (v: string) => {
     const wasEmpty = !S.q.trim();
@@ -388,6 +427,8 @@ export default function Door() {
   }
 
   const q = S.q.trim(), typing = !!q, v2 = S.v2;
+  const canScan = v2 && S.passOk === true;
+  const codeQ = hasCodes(S.list) ? codeQuery(q) : null;
   const m = doorMeter(S.list);
   const noneAr = lang === 'ar' && !m.arrived;
   const when = T.when(daysTo(ev.starts_at) ?? 0);
@@ -450,6 +491,8 @@ export default function Door() {
     );
   } else if (isDigits(q) && digitsOf(q).length < 4) {
     body = <View style={{ alignItems: 'center', paddingTop: 22, paddingHorizontal: 18 }} testID="door-hint"><Txt2 center muted>{T.digitsHint}</Txt2></View>;
+  } else if (codeQ != null && codeQ.length < 4) {
+    body = <View style={{ alignItems: 'center', paddingTop: 22, paddingHorizontal: 18 }} testID="door-hint"><Txt2 center muted>{T.codeHint}</Txt2></View>;
   } else {
     const { hits, top, sim, letters } = orderHits(S.view, q, v2);
     if (hits.length) {
@@ -466,7 +509,7 @@ export default function Door() {
         const hasCi = st !== 'all' && (!v2 || st !== 'no');
         const primary = hasCi && first; if (hasCi) first = false;
         rows.push(
-          <GuestCard key={g.id} g={g} v2={v2} t={T} state={st} ranges={h.ranges} phoneDigits={h.phone} n={n} left={left} allowedN={allowed(g)} time={tm(g.checked_in_at)}
+          <GuestCard key={g.id} g={g} v2={v2} t={T} state={st} ranges={h.ranges} phoneDigits={h.phone} codeHit={h.code} n={n} left={left} allowedN={allowed(g)} time={tm(g.checked_in_at)}
             primary={primary} busy={S.busyId === g.id} listBusy={!!S.busyId} failed={S.failedId === g.id}
             req={v2 ? S.reqs.find((r) => r.guest_id === g.id) : undefined} extraAsk={S.extraAsk[g.id]}
             onStep={(d) => step(g, d)} onCheckIn={() => tapCheckIn(g)}
@@ -530,6 +573,11 @@ export default function Door() {
         <DoorMeter arrived={m.arrived} label={T.meterL(m.arrived, m.expected)} a11y={noneAr ? T.meterL(0, m.expected) : `${m.arrived} ${T.meterL(m.arrived, m.expected)}`}
           hideNum={noneAr} sub={sub} waitLabel={pend ? T.waitChip(pend) : null} onWait={waitTap} pct={m.pct} typing={typing} />
         <SearchRow ref={inputRef} value={S.q} onChange={setQ} onClear={clearQ} numMode={S.numMode} onKb={toggleKb} t={T} onSubmit={() => inputRef.current?.blur()} />
+        {canScan && !typing ? (
+          <View style={{ marginTop: 10 }}>
+            <Button block kind="secondary" icon="qr" label={T.scan} accessibilityLabel={T.scanA11y} onPress={openScan} testID="door-scan" />
+          </View>
+        ) : null}
         {band ? <View style={{ marginTop: typing ? 8 : 10 }}>{band}</View> : null}
       </View>
       <ScrollView ref={scrollRef} style={{ flex: 1 }} keyboardShouldPersistTaps="handled"
@@ -562,6 +610,8 @@ export default function Door() {
           </View>
         ) : null}
       </ScrollView>
+
+      {canScan ? <Scanner visible={S.scan} t={T} onClose={closeScan} onScanned={scanned} onDenied={scanDenied} /> : null}
 
       <AskSheet ask={S.ask} onChange={(a) => { S.ask = a; redraw(); }} onClose={() => { S.ask = null; redraw(); }} onSend={sendAsk} sending={S.sending}
         allowedLine={askG ? T.allowedLine(allowed(askG), askG.checked_in_count || 0) : null} />

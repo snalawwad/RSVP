@@ -16,7 +16,7 @@ import { PressScale } from '../Press';
 import { Stepper } from '../Stepper';
 import { Tag } from '../Tag';
 import { Txt } from '../Txt';
-import { phoneRanges, pieces, type Range } from './logic';
+import { passLabel, phoneRanges, pieces, type Range } from './logic';
 
 type DoorT = ReturnType<typeof useApp>['t']['door'];
 
@@ -180,6 +180,8 @@ function ReqLine({ req, t }: { req: DoorRequest; t: DoorT }) {
 export type CardProps = {
   g: DoorGuest; v2: boolean; t: DoorT; state: 'open' | 'part' | 'wait' | 'no' | 'all';
   ranges?: Range[]; phoneDigits?: string;
+  /** found by the door pass code (typed or scanned): show SN-4821 instead of the phone number */
+  codeHit?: boolean;
   n: number; left: number; allowedN: number; time: string;
   primary: boolean; busy: boolean; listBusy: boolean; failed: boolean;
   req?: DoorRequest; extraAsk?: number;
@@ -193,10 +195,12 @@ export function GuestCard(p: CardProps) {
   const { g, t, v2 } = p;
   const done = g.checked_in_count || 0;
   const phoneShown = g.phone ? showPhone(g.phone) : '';
+  const codeShown = p.codeHit && g.pass_code ? passLabel(g.pass_code) : '';
   const top = (
     <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
       <View style={{ flex: 1, minWidth: 0 }}><Marked text={g.name} ranges={p.ranges} testID={`name-${g.id}`} /></View>
-      {phoneShown ? <View style={{ direction: 'ltr', flexShrink: 0 }}><Marked v="small" text={phoneShown} ranges={phoneRanges(phoneShown, p.phoneDigits)} color={c.muted} style={{ fontFamily: bodyFont('lat', 'medium'), fontVariant: ['tabular-nums'] }} /></View> : null}
+      {codeShown ? <View style={{ direction: 'ltr', flexShrink: 0 }} testID={`code-${g.id}`}><Marked v="small" text={codeShown} ranges={[[0, codeShown.length]]} color={c.muted} style={{ fontFamily: bodyFont('lat', 'medium'), fontVariant: ['tabular-nums'] }} /></View>
+        : phoneShown ? <View style={{ direction: 'ltr', flexShrink: 0 }}><Marked v="small" text={phoneShown} ranges={phoneRanges(phoneShown, p.phoneDigits)} color={c.muted} style={{ fontFamily: bodyFont('lat', 'medium'), fontVariant: ['tabular-nums'] }} /></View> : null}
     </View>
   );
   const side = g.side ? <Txt v="small">{g.side}</Txt> : null;

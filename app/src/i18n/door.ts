@@ -38,7 +38,13 @@ export const doorEn = { other: 'العربية', out: 'Log out', title: 'Door ch
       ago: (m: number) => m < 1 ? 'just now' : m < 60 ? `${m} min ago` : `${Math.floor(m / 60)} h ago`,
       okBanner: (nm: string, p: string) => `${HOSTS.en.cap} approved: let ${nm} in (${p})`, okBannerSub: 'Already counted. No need to check them in again.', noBanner: (nm: string) => `${HOSTS.en.cap} said no: ${nm}`, noBannerSub: 'Please let the guest know kindly.', dismiss: 'Hide this answer',
       err: 'Couldn’t do that. Check your connection and try again.', noEvents: 'This email isn’t linked to any event right now.', noEventsH: 'No events', reason: 'Reason',
-      digitsHint: 'Type at least 4 digits of the number', bigN: '7 or more', moreAns: (n: number) => `Show ${n} more ${n === 1 ? 'answer' : 'answers'}`,
+      digitsHint: 'Type at least 4 digits of the number', bigN: '7 or more',
+      codeHint: 'Type the 4 digits after SN-',
+      scan: 'Scan pass', scanA11y: 'Scan a guest’s door pass with the camera', scanTitle: 'Scan a door pass', scanHint: 'Hold the QR code on the pass inside the frame.',
+      scanLooking: 'Checking the pass…', scanNotPass: 'That QR code isn’t a door pass.', scanWrong: 'This pass isn’t for this event. Check the name on it and search for it.',
+      scanErr: 'Couldn’t check the pass. Check your connection.', scanBack: 'Back to search',
+      camOff: 'The camera isn’t available here', camOffSub: 'Search by name, or type the code on the pass, like SN-4821.',
+      camDenied: 'Camera not allowed', camDeniedSub: 'Allow the camera for Sina in Settings, or type the name or the code on the pass.', moreAns: (n: number) => `Show ${n} more ${n === 1 ? 'answer' : 'answers'}`,
       when: (d: number) => d === 0 ? '' : d < 0 ? 'This event has passed' : d === 1 ? 'The event is tomorrow' : `The event is in ${d} days`,
       help: [
         ['Checking someone in', 'Type part of their name, or at least 4 digits of their phone number. Tap the big button: it says how many people go in.'],
@@ -46,7 +52,8 @@ export const doorEn = { other: 'العربية', out: 'Log out', title: 'Door ch
         ['Undoing a check-in', 'The green band shows your latest check-in, with Undo, for 2 minutes or until the next check-in. Under “Just arrived”, each check-in made on this phone keeps its own Undo for 10 minutes. After that, tell the hosts.'],
         ['More people than allowed', 'Tap + to the real number. Check in the people allowed now, then tap “Ask the hosts about +1” for the rest. The hosts’ answer shows at the top of this screen.'],
         ['Someone not on the list', 'Try the phone number or the family name first. If they’re still not there, tap “Ask the hosts”.'],
-        ['Phone numbers', 'Tap 123 next to the search box for the number keyboard, and abc to go back to letters.']
+        ['Phone numbers', 'Tap 123 next to the search box for the number keyboard, and abc to go back to letters.'],
+        ['Door passes', 'Guests who said yes have a door pass with a QR code on their invitation. When “Scan pass” shows under the search box, tap it and hold the code in the frame. Or type the code printed under it, like SN-4821. Their card opens, ready to check in.']
       ] };
 
 export type DoorStrings = Widen<typeof doorEn>;
@@ -81,7 +88,13 @@ export const doorAr: DoorStrings = { other: 'English', out: 'تسجيل خروج
       ago: m => m < 1 ? 'توّه' : m === 1 ? 'قبل دقيقة' : m === 2 ? 'قبل دقيقتين' : m <= 10 ? `قبل ${m} دقايق` : m < 60 ? `قبل ${m} دقيقة` : `قبل ${arN(Math.floor(m / 60), 'ساعة', 'ساعتين', 'ساعات', 'ساعة')}`,
       okBanner: (nm, p) => `أهل المناسبة وافقوا: دخّلوا ${nm} (${p})`, okBannerSub: 'انحسبوا، لا تسجلون وصولهم مرة ثانية.', noBanner: nm => `أهل المناسبة ما وافقوا: ${nm}`, noBannerSub: 'بلّغوهم بلطف.', dismiss: 'إخفاء الرد',
       err: 'ما مشى. شيكوا على النت وحاولوا مرة ثانية.', noEvents: 'هالإيميل مو مربوط بأي مناسبة.', noEventsH: 'ما في مناسبات', reason: 'السبب',
-      digitsHint: 'اكتبوا 4 أرقام أو أكثر', bigN: '7 أو أكثر', moreAns: n => `شوفوا باقي الردود (${n})`,
+      digitsHint: 'اكتبوا 4 أرقام أو أكثر', bigN: '7 أو أكثر',
+      codeHint: 'اكتبوا الأرقام الأربعة اللي بعد SN-',
+      scan: 'امسحوا بطاقة الحضور', scanA11y: 'امسحوا بطاقة حضور الضيف بالكاميرا', scanTitle: 'امسحوا بطاقة الحضور', scanHint: 'خلّوا الكود اللي على البطاقة داخل المربع.',
+      scanLooking: 'لحظة، نشيّك على البطاقة…', scanNotPass: 'هذا الكود مو بطاقة حضور.', scanWrong: 'هالبطاقة مو لهالمناسبة. شوفوا الاسم اللي عليها ودوّروا عليه.',
+      scanErr: 'ما قدرنا نتأكد من البطاقة. شيكوا على النت.', scanBack: 'رجوع للبحث',
+      camOff: 'الكاميرا مو متوفرة هني', camOffSub: 'دوّروا بالاسم، أو اكتبوا الرقم اللي على البطاقة، مثل SN-4821.',
+      camDenied: 'الكاميرا مو مسموحة', camDeniedSub: 'اسمحوا لتطبيق «سنة» يستخدم الكاميرا من الإعدادات، أو اكتبوا الاسم أو الرقم اللي على البطاقة.', moreAns: n => `شوفوا باقي الردود (${n})`,
       when: d => d === 0 ? '' : d < 0 ? 'هالمناسبة خلصت' : d === 1 ? 'المناسبة باجر' : d === 2 ? 'المناسبة بعد يومين' : d <= 10 ? `المناسبة بعد ${d} أيام` : `المناسبة بعد ${d} يوم`,
       help: [
         ['تسجيل وصول ضيف', 'اكتبوا جزء من اسمه، أو 4 أرقام أو أكثر من رقم تلفونه. بعدين اضغطوا الزر الكبير، ومكتوب عليه كم شخص بتسجلون وصوله.'],
@@ -89,5 +102,6 @@ export const doorAr: DoorStrings = { other: 'English', out: 'تسجيل خروج
         ['التراجع عن تسجيل الوصول', 'الشريط الأخضر يبيّن آخر وصول سجلتوه، ومعاه زر «تراجع»، لمدة دقيقتين أو لين تسجلون الوصول اللي بعده. وتحت «وصلوا توّهم» كل وصول سجلتوه من هالتلفون يبقى له «تراجع» لمدة 10 دقايق. بعدها قولوا لأهل المناسبة.'],
         ['عددهم أكثر من المسموح', 'زيدوا العدد بزر + للعدد الصح. سجّلوا وصول المسموح لهم الحين، وبعدين اضغطوا «اسألوا أهل المناسبة عن +1» للباقين. ردّهم يطلع فوق بهالشاشة.'],
         ['ضيف مو بالقائمة', 'جرّبوا رقم التلفون أو اسم العائلة أول. وإذا بعده مو موجود، اضغطوا «اسألوا أهل المناسبة».'],
-        ['أرقام التلفون', 'اضغطوا 123 جنب البحث عشان تطلع لوحة الأرقام، و«أ ب ت» عشان ترجعون للحروف.']
+        ['أرقام التلفون', 'اضغطوا 123 جنب البحث عشان تطلع لوحة الأرقام، و«أ ب ت» عشان ترجعون للحروف.'],
+        ['بطاقة الحضور', 'الضيوف اللي ردّوا بيحضرون عندهم بطاقة حضور فيها كود QR بصفحة دعوتهم. إذا طلع زر «امسحوا بطاقة الحضور» تحت البحث، اضغطوه وخلّوا الكود داخل المربع. أو اكتبوا الرقم اللي تحت الكود، مثل SN-4821. بيطلع لكم الضيف جاهز لتسجيل الوصول.']
       ] };

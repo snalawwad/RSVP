@@ -74,15 +74,45 @@ export function pieces(s: string, ranges?: Range[]): { t: string; mark: boolean 
 // ---------- search ----------
 export const isDigits = (q: string) => !/[^\d\s+\-()٠-٩۰-۹]/.test(q);
 export const digitsOf = (q: string) => asciiDigits(q).replace(/\D/g, '');
+
+// ---------- door pass (supabase/migrations/0005) ----------
+/** "SN-4821", "sn 4821", "SN4821", "SN-" (typing), Arabic digits too: the digits typed so far, else null ("sn" alone is a name) */
+export const codeQuery = (q: string): string | null => {
+  const m = /^\s*sn\s*(?:[-–—]\s*([\d٠-٩۰-۹]{0,4})|([\d٠-٩۰-۹]{1,4}))\s*$/i.exec(String(q || ''));
+  return m ? asciiDigits(m[1] ?? m[2] ?? '') : null;
+};
+/** Does this list carry pass codes (0005 installed)? */
+export const hasCodes = (list: DoorGuest[]) => list.some((g) => !!g.pass_code);
+/** How a pass code is shown: SN- and Latin digits, in both languages */
+export const passLabel = (code: string) => 'SN-' + code;
+/**
+ * What a scanned QR carries: <site>/door.html#p=<key> (or ?p= / &p=), or the bare key.
+ * Returns the key, or null when it isn't a door pass at all (another QR code, a web page, a phone number).
+ */
+export function parsePass(data: string): string | null {
+  const s = String(data || '').trim();
+  const m = /[#?&]p=([A-Za-z0-9_-]+)/.exec(s);
+  const k = m ? m[1] : s;
+  return /^[A-Za-z0-9_-]{22,64}$/.test(k) ? k : null;
+}
 /** score bands from nameScore: 5 same name · 4 starts with · 3 word starts · 2 inside · 1 other spelling/script · 0 close */
 export const tierOf = (s: number) => (s >= 100 ? 5 : s >= 80 ? 4 : s >= 60 ? 3 : s >= 45 ? 2 : s >= 30 ? 1 : 0);
 
-export type Hit = { g: DoorGuest; score: number; tier: number; ranges?: Range[]; phone?: string };
+export type Hit = { g: DoorGuest; score: number; tier: number; ranges?: Range[]; phone?: string; code?: boolean };
 
 export function search(list: DoorGuest[], q: string): Hit[] {
+  // the pass code (SN-4821): only that guest. Four bare digits also try the code, before the phone numbers.
+  const cq = hasCodes(list) ? codeQuery(q) : null;
+  if (cq != null) return cq.length === 4 ? list.filter((g) => g.pass_code === cq).map((g) => ({ g, score: 100, tier: 5, code: true })) : [];
   if (isDigits(q)) {
     const qd = digitsOf(q);
-    return qd.length >= 4 ? list.filter((g) => (g.phone || '').includes(qd)).map((g) => ({ g, score: 100, tier: 5, phone: qd })) : [];
+    if (qd.length < 4) return [];
+    const byCode = qd.length === 4 ? list.filter((g) => g.pass_code === qd) : [];
+    const coded = new Set(byCode.map((g) => g.id));
+    return [
+      ...byCode.map((g) => ({ g, score: 101, tier: 5, code: true })),
+      ...list.filter((g) => !coded.has(g.id) && (g.phone || '').includes(qd)).map((g) => ({ g, score: 100, tier: 5, phone: qd })),
+    ];
   }
   const tokens = tokensOf(q);
   let hits: Hit[] = searchNames(list, q).map(({ item, score }) => ({ g: item, score, tier: tierOf(score), ranges: matchName(item.name, tokens)?.ranges }));
@@ -115,7 +145,7 @@ export const curN = (g: DoorGuest, typed: Record<string, number>) => {
 export function orderHits(list: DoorGuest[], q: string, v2: boolean) {
   const hits = search(list, q);
   if (!hits.length) return { hits, top: -1, sim: [] as Hit[], letters: 0 };
-  const top = Math.max(...hits.map((h) => h.tier)), phoneQ = isDigits(q);
+  const top = Math.max(...hits.map((h) => h.tier)), phoneQ = isDigits(q) || (hasCodes(list) && codeQuery(q) != null);
   const letters = phoneQ ? 0 : nmap(q).n.replace(/ /g, '').length;
   const sim = phoneQ ? ((hits[0].phone || '').length >= 8 ? hits : []) : letters >= 2 ? hits.filter((h) => h.tier >= 1) : hits.filter((h) => h.tier === top && top >= 1);
   const simSet = new Set(sim);

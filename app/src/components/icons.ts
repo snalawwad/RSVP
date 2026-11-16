@@ -27,6 +27,8 @@ export const ICONS = {
   "calendar": { fill: false, shapes: [{"t": "rect", "a": {"x": "3.5", "y": "5", "width": "17", "height": "15.5", "rx": "2.5"}}, {"t": "path", "a": {"d": "M3.5 10h17M8 3v4M16 3v4"}}] as IconShape[] },
   "sparkle": { fill: false, shapes: [{"t": "path", "a": {"d": "M12 4v4M12 16v4M4 12h4M16 12h4M7 7l2 2M15 15l2 2M17 7l-2 2M9 15l-2 2"}}] as IconShape[] },
   "moon": { fill: false, shapes: [{"t": "path", "a": {"d": "M19 14.5A8 8 0 0 1 9.5 5a8 8 0 1 0 9.5 9.5z"}}] as IconShape[] },
+  // the door pass scan (app only for now): three finder squares and a few modules
+  "qr": { fill: false, shapes: [{"t": "rect", "a": {"x": "4", "y": "4", "width": "6", "height": "6", "rx": "1"}}, {"t": "rect", "a": {"x": "14", "y": "4", "width": "6", "height": "6", "rx": "1"}}, {"t": "rect", "a": {"x": "4", "y": "14", "width": "6", "height": "6", "rx": "1"}}, {"t": "path", "a": {"d": "M14 14h2.5v2.5M20 14v.01M14 20h.01M17.5 20H20v-3"}}] as IconShape[] },
 } as const;
 
 export type IconName = keyof typeof ICONS;

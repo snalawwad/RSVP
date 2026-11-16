@@ -73,6 +73,8 @@ export type DoorGuest = {
   decline_reason: string | null;
   side: string | null;
   checked_in_at: string | null;
+  /** the 4 digits on the guest's door pass (shown as SN-4821); null before supabase/migrations/0005 */
+  pass_code?: string | null;
 };
 
 /** attendance_exceptions row: a door request waiting for the hosts. */

@@ -14,7 +14,7 @@ Expo (React Native) app for hosts, with door mode inside it. Guest pages and adm
 | Log in by email code | S1, S2 | `src/app/sign-in.tsx` |
 | Your events / no events yet | S3 | `src/app/(app)/index.tsx` |
 | Event home: counts of people, invitations used | H1 (first version) | `src/app/(app)/event/[id].tsx` |
-| Door check-in by name, no QR | D1 | `src/app/(app)/door/[id].tsx` |
+| Door check-in by name, pass code or QR door pass | D1 | `src/app/(app)/door/[id].tsx` |
 | Settings: language, help, log out | – | `src/app/(app)/settings.tsx` |
 | Delete account | – | `src/app/(app)/delete-account.tsx` |
 

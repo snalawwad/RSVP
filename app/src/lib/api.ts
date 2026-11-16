@@ -63,7 +63,7 @@ export function v2Ready(): Promise<boolean> {
   return v2Probe;
 }
 /** For tests and sign-out: forget what we learned about the database. */
-export function resetProbes() { v2Probe = null; undoProbe = null; }
+export function resetProbes() { v2Probe = null; undoProbe = null; passProbe = null; }
 
 /** Try the upgraded function first, fall back to the old one if it isn't installed. v2: true/false, or null on a dropped connection. */
 export async function rpc2<T>(name: string, args: Record<string, unknown>, oldName?: string, oldArgs?: Record<string, unknown>): Promise<Res<T> & { v2: boolean | null }> {
@@ -171,7 +171,7 @@ export async function doorList(eventId: string, v2: boolean): Promise<Res<DoorGu
   if (!r || (r.error && missingFn(r.error))) { usedV2 = false; r = await wrap<DoorGuest[]>(supabase.rpc('door_list', { p_event: eventId })); }
   const data = r.data ? r.data.map((g) => ({
     ...g, phone: g.phone ?? null, confirmed_count: g.confirmed_count ?? null, decline_reason: g.decline_reason ?? null, side: g.side ?? null,
-    checked_in_count: g.checked_in_count ?? (g.checked_in_at ? g.seats : 0),
+    checked_in_count: g.checked_in_count ?? (g.checked_in_at ? g.seats : 0), pass_code: g.pass_code ?? null,
   })) : null;
   return { data, error: r.error, v2: usedV2 };
 }
@@ -212,6 +212,37 @@ export async function undoCheckIn(guestId: string, people: number): Promise<Res<
   const r = await wrap<UndoResult>(supabase.rpc('undo_check_in_v2', { p_guest: guestId, p_people: people }));
   if (r.error && missingFn(r.error)) { undoProbe = Promise.resolve(false); return { ...r, missing: true }; }
   return { ...r, missing: false };
+}
+
+let passProbe: Promise<boolean | null> | null = null;
+/**
+ * Is the door pass scan installed (supabase/migrations/0005, door_pass_lookup_v2)? Asked for an event that can't
+ * exist: the database refuses it ("Not allowed") without reading a guest or writing the log.
+ * true = show "Scan pass" · false = hide it · null = couldn't tell (connection); hidden for now, asked again later.
+ */
+export function probePass(v2: boolean): Promise<boolean | null> {
+  if (!v2) return Promise.resolve(false);
+  if (!passProbe) passProbe = (async () => {
+    const r = await wrap<unknown>(supabase.rpc('door_pass_lookup_v2', { p_event: ZERO, p_key: '-' }));
+    if (r.error && missingFn(r.error)) return false;
+    if (!netFail(r.error)) return true;
+    passProbe = null;
+    return null;
+  })();
+  return passProbe;
+}
+/**
+ * A scanned pass: the guest's door_list_v2 row, or null when no guest of this event (on this login's list) has it.
+ * key: the pass key or the whole QR link. missing = the function went away: hide "Scan pass" from now on.
+ */
+export async function passLookup(eventId: string, key: string): Promise<Res<DoorGuest> & { missing: boolean }> {
+  const r = await wrap<DoorGuest>(supabase.rpc('door_pass_lookup_v2', { p_event: eventId, p_key: key }));
+  if (r.error && missingFn(r.error)) { passProbe = Promise.resolve(false); return { ...r, missing: true }; }
+  const g = r.data && typeof r.data === 'object' && 'id' in r.data ? r.data : null;
+  return {
+    data: g ? { ...g, phone: g.phone ?? null, confirmed_count: g.confirmed_count ?? null, decline_reason: g.decline_reason ?? null, side: g.side ?? null, checked_in_count: g.checked_in_count ?? 0, pass_code: g.pass_code ?? null } : null,
+    error: r.error, missing: false,
+  };
 }
 
 // ---------- live updates ----------

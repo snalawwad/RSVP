@@ -1,4 +1,4 @@
 {
-  "ios": { "CFBundleDisplayName": "سنة" },
+  "ios": { "CFBundleDisplayName": "سنة", "NSCameraUsageDescription": "تطبيق «سنة» يحتاج الكاميرا عشان تمسحون بطاقات حضور الضيوف على الباب." },
   "android": { "app_name": "سنة" }
 }
