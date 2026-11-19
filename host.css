@@ -536,7 +536,7 @@ body.host:not(.in-event) .tb-title{opacity:1}
 
 /* invite tab (24c) */
 .inv-card{display:flex;gap:14px;align-items:flex-start;margin:0 0 14px}
-.inv-card .mini{flex:none;width:118px;aspect-ratio:3/4;border-radius:var(--r-l);overflow:hidden;border:1px solid var(--line);display:grid;place-items:center;text-align:center;padding:10px;font-family:var(--display);font-weight:600;line-height:1.25;font-size:var(--fs-name)}
+.inv-card .mini{flex:none;width:124px;aspect-ratio:3/4;border-radius:var(--r-l);overflow:hidden;border:1px solid var(--line);display:grid;place-items:center;text-align:center;padding:8px;font-family:var(--display);font-weight:600;line-height:1.3;font-size:var(--fs-s);overflow-wrap:normal}
 .inv-card .mini img{width:100%;height:100%;object-fit:cover}
 .inv-card .ic-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;align-items:flex-start}
 .inv-card .ic-t{font-family:var(--display);font-size:var(--fs-name);font-weight:600;line-height:1.3;margin:0;overflow-wrap:anywhere}

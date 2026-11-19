@@ -1730,7 +1730,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function renderAfter() {
     const box = $('#after'); if (!box || !ev) return;
     const past = pastEvent() && guests.length;
-    box.hidden = !past; $('#sum').classList.toggle('after-hide', !!past); $('#next').classList.toggle('after-hide', !!past);
+    box.hidden = !past; $('#sum').classList.toggle('after-hide', !!past); $('#next').classList.toggle('after-hide', !!past); $('#mast').classList.toggle('after-hide', !!past);
     if (!past) { box.innerHTML = ''; return; }
     const s = stats(guests), came = guests.reduce((a, g) => a + (g.checked_in_at ? (g.checked_in_count || g.seats || 1) : 0), 0);
     const door = hasDoor(ev) || guests.some(g => g.checked_in_at);
