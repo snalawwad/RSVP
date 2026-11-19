@@ -83,7 +83,7 @@ export const appEn = {
   outP: (inv: number, rep: number) => `All ${inv} invites are out. ${rep} ${rep === 1 ? 'guest has' : 'guests have'} replied so far.`,
   someOutP: (sent: number, inv: number) => `${sent} of ${inv} invites are out.`,
   comingL: 'Coming', cantL: 'Can’t make it', noReplyYet: 'No reply yet', people: P, invites: (n: number) => `${n} ${n === 1 ? 'invite' : 'invites'}`,
-  seeGuests: 'See guests',
+  seeGuests: 'See guests', overview: 'Overview',
 };
 
 export type AppStrings = Widen<typeof appEn>;
@@ -111,7 +111,7 @@ export const appAr: AppStrings = {
   expired: 'انتهت صلاحية الرمز.', newCode: 'أرسلوا رمز جديد', otherPhone: 'استخدموا رقم ثاني', codeBox: (i) => `الرقم ${i} من 6`,
   hi: (n) => `هلا ${n}`, yourEvents: 'مناسباتكم', account: 'الحساب',
   emptyP: 'المناسبات اللي تسوونها أو معزومين عليها تطلع هني.',
-  hosting: 'مناسباتكم', atDoor: 'على الباب', invitedTo: 'معزومين عليها', comingUp: 'الجاية', past: 'اللي خلصت',
+  hosting: 'تستضيفونها', atDoor: 'على الباب', invitedTo: 'معزومين عليها', comingUp: 'الجاية', past: 'اللي خلصت',
   invitesComing: (inv, yes) => `${arN(inv, 'دعوة وحدة', 'دعوتين', 'دعوات', 'دعوة')}، ${arN(yes, 'واحد بيحضر', 'اثنين بيحضرون', 'بيحضرون', 'بيحضرون')}`,
   notSentYet: 'ما انرسلت للحين', cohostTag: 'مشاركين بالاستضافة', doorTag: 'تسجيل الحضور',
   waitingReply: 'ينتظرون ردكم', youComing: (n) => `بتحضرون، ${PA(n)}`, youCant: 'معتذرين',
@@ -156,5 +156,5 @@ export const appAr: AppStrings = {
   outP: (inv, rep) => `انرسلت كل الدعوات (${inv})، ورد ${arN(rep, 'ضيف واحد', 'ضيفين', 'ضيوف', 'ضيف')} للحين.`,
   someOutP: (sent, inv) => `انرسلت ${sent} من ${inv} دعوة.`,
   comingL: 'بيحضرون', cantL: 'اعتذروا', noReplyYet: 'ما ردوا', people: PA, invites: (n) => arN(n, 'دعوة وحدة', 'دعوتين', 'دعوات', 'دعوة'),
-  seeGuests: 'شوفوا الضيوف',
+  seeGuests: 'شوفوا الضيوف', overview: 'الملخص',
 };

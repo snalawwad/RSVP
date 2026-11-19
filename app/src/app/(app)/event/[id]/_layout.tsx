@@ -40,7 +40,7 @@ function EventTabs({ id }: { id: string }) {
   const T = t.host;
   // a co-host has no Invite tab (sending and the invite's words stay with the main host)
   const tabs: { k: Tab; icon: 'home' | 'people' | 'env' | 'door'; label: string }[] = [
-    { k: 'home', icon: 'home', label: T.tHome }, { k: 'guests', icon: 'people', label: T.tGuests },
+    { k: 'home', icon: 'home', label: t.a.overview }, { k: 'guests', icon: 'people', label: T.tGuests },
     ...(h.cohost ? [] : [{ k: 'invite' as Tab, icon: 'env' as const, label: T.tInvite }]), { k: 'arrivals', icon: 'door', label: T.tArr },
   ];
   return (
@@ -53,7 +53,7 @@ function EventTabs({ id }: { id: string }) {
           <TabBarFrame>
             {tabs.map((x) => (
               <TabTrigger key={x.k} name={x.k} href={tabHref(id, x.k)} asChild>
-                <TabButton icon={x.icon} label={x.label} testID={`tab-${x.k}`} />
+                <TabButton icon={x.icon} label={x.label} badge={x.k === 'arrivals' ? h.openReqs.length : 0} testID={`tab-${x.k}`} />
               </TabTrigger>
             ))}
           </TabBarFrame>
