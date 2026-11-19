@@ -4,6 +4,8 @@
 
 **Until every step below is done, nothing is sent.** Hosts can still send passes by hand from their own WhatsApp.
 
+The same Meta account and number also send **login codes** (part D) and **invites after payment** (part E). Do parts A and B first.
+
 **What you need:**
 - About 1 hour, plus 1 to 3 days of waiting while Meta checks the business and the name
 - The trade licence (for business verification)
@@ -129,6 +131,59 @@
 
     `WHATSAPP_MODE=mock` exists for testing on the test project. It marks guests as sent **without sending anything**, so never use it on live with a real event switched on.
 19. **For each real event**, the admin turns on **Send door passes on WhatsApp automatically** (Message and sending step → Door passes). Passes go out the day before at 16:00, Kuwait time. **Change the time** sets another time, and **Show passes now** puts them on the invite links at once (WhatsApp sends them within 10 minutes). Tell the hosts their guests will get the pass from the WhatsApp number named **Sina**.
+
+## Part D: Phone login codes on WhatsApp
+
+Hosts and guests log in with their phone number and a code sent on WhatsApp. Until every step below is done, phone login stays hidden and email login works as today.
+
+20. **Database and function.** `supabase/migrations/0007_self_serve.sql` must have run, and `auth-whatsapp-otp` must be deployed (`supabase/README.md`, "Going live", steps 1 and 3).
+21. **Login code template.** In **WhatsApp Manager → Message templates → Create template**:
+    - **Category:** Authentication
+    - **Name:** `sina_login_code`
+    - **Languages:** Arabic (and English if you like, under the same name)
+    - **Code delivery:** Copy code. Tick "Add security recommendation". Code expiry: 10 minutes.
+
+    Meta writes the text itself ("رمز التحقق الخاص بك هو …"). Submit and wait for **Active**.
+22. **Switch on phone login in Supabase.**
+    1. **Authentication → Providers → Phone** → turn it on and **Save**. You don't need an SMS provider: the hook replaces it.
+    2. **Authentication → Hooks → Add hook → Send SMS hook**. Type **HTTPS**, URL `https://<ref>.supabase.co/functions/v1/auth-whatsapp-otp`. Press **Generate secret** and copy it (it starts `v1,whsec_`). Press **Create**.
+    3. In Terminal:
+       ```
+        supabase secrets set --project-ref <ref> SEND_SMS_HOOK_SECRET='<the secret>' OTP_MODE=live
+       ```
+       (The quotes matter because the secret has a comma.) `OTP_MODE=mock` is for the test project only: it says the code was sent but sends nothing; the code is then only visible in Authentication → Users.
+23. **Test with yourselves.** On the test site, set `LOGIN_PHONE: true` in `config.js`, log in with your own number, and check the code arrives on WhatsApp from **Sina**.
+24. **Go live.** On github.com, `config.js` → `LOGIN_PHONE: true`, **Commit changes**. For the iPhone app, set `EXPO_PUBLIC_LOGIN_PHONE=true` in the next build.
+
+**To switch phone login off at once:** `supabase secrets set --project-ref <ref> OTP_MODE=off` (logins by phone then say "not switched on"), and set `LOGIN_PHONE: false` again.
+
+## Part E: Invites on WhatsApp after payment
+
+When a host picks "WhatsApp" in **How we send** and pays, every guest with a phone gets their invite from the Sina number. Hosts can always still send by hand: guests WhatsApp couldn't reach stay on their send-by-hand list.
+
+25. **Invite template.** **WhatsApp Manager → Message templates → Create template**, Category **Utility**, Name `sina_invite`, Arabic and English.
+
+    **Arabic body:**
+    ```
+    هلا {{1}}، حياكم في {{2}}.
+    الموعد: {{3}}.
+    اضغطوا الزر تحت وردّوا علينا.
+    ```
+    **English body:**
+    ```
+    Hi {{1}}, you're invited to {{2}}.
+    It's on {{3}}.
+    Tap the button below to reply.
+    ```
+    **Button:** Visit website, Dynamic, text `الدعوة` / `Open the invite`, URL `https://snalawwad.github.io/RSVP/invite.html?t={{1}}`. Samples as for the door pass template.
+26. **Deploy and schedule.** Deploy `send-invites` (README step 3). In SQL Editor, add its address once:
+    ```sql
+    select vault.create_secret('https://<ref>.supabase.co/functions/v1/send-invites', 'sina_send_invites_url');
+    ```
+    then paste and run `supabase/cron/invite_sender.sql`.
+27. **Switch on:** `supabase secrets set --project-ref <ref> INVITES_MODE=live`. To stop at once: `INVITES_MODE=off`.
+
+SMS is saved as the host's choice but nothing sends SMS yet: those guests stay on the send-by-hand list.
 
 ## If something goes wrong
 

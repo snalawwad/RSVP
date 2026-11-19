@@ -189,7 +189,7 @@ export function mapSendResponse(httpStatus: number, json: unknown): SendOutcome 
   return { ok: false, kind, error: `${PREFIX[kind]}${code ?? httpStatus} ${text}`.trim() };
 }
 
-export interface StatusNews { id: string; status: 'sent' | 'delivered' | 'read' | 'failed'; error: string | null; guest: string | null }
+export interface StatusNews { id: string; status: 'sent' | 'delivered' | 'read' | 'failed'; error: string | null; guest: string | null; kind?: 'invite' }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -212,8 +212,14 @@ export function extractStatuses(payload: unknown): StatusNews[] {
       const kind = classifyError(200, code);
       error = `${PREFIX[kind]}${code ?? ''} ${scrub(er?.title || er?.message || 'failed', 100)}`.trim();
     }
-    const g = typeof s?.biz_opaque_callback_data === 'string' && UUID_RE.test(s.biz_opaque_callback_data) ? s.biz_opaque_callback_data.toLowerCase() : null;
-    out.push({ id, status: st as StatusNews['status'], error, guest: g });
+    // door pass: '<guest id>'; invite (send-invites): 'invite:<guest id>'
+    const cb = typeof s?.biz_opaque_callback_data === 'string' ? s.biz_opaque_callback_data : '';
+    const invite = cb.startsWith('invite:');
+    const rawId = invite ? cb.slice(7) : cb;
+    const g = UUID_RE.test(rawId) ? rawId.toLowerCase() : null;
+    const item: StatusNews = { id, status: st as StatusNews['status'], error, guest: g };
+    if (invite && g) item.kind = 'invite';
+    out.push(item);
   }
   return out;
 }
@@ -283,6 +289,9 @@ export interface SenderOptions extends TemplateOptions {
   sleep?: (ms: number) => Promise<void>;
   log?: Log;
   batch?: number;        // guests per claim
+  claimFn?: string;      // database function that claims due guests (pass_send_claim)
+  resultFn?: string;     // database function that records one result (pass_send_result)
+  build?: (c: Claim, o: TemplateOptions) => { ok: true; body: Record<string, unknown> } | { ok: false; error: string };
   budgetMs?: number;     // stop claiming new batches after this long (50 s)
   hardMs?: number;       // give back what isn't sent yet after this long (110 s)
   ratePerSec?: number;   // messages per second (20)
@@ -300,6 +309,7 @@ export async function runSender(o: SenderOptions): Promise<Summary> {
   const log: Log = o.log ?? (() => {});
   const batch = o.batch ?? 25, budget = o.budgetMs ?? 50000, hard = o.hardMs ?? 110000;
   const gap = 1000 / (o.ratePerSec ?? 20), conc = Math.max(1, o.concurrency ?? 5);
+  const claimFn = o.claimFn ?? 'pass_send_claim', resultFn = o.resultFn ?? 'pass_send_result', build = o.build ?? buildPayload;
   const t0 = now();
   const sum: Summary = { mode: o.mode, claimed: 0, sent: 0, failed: 0, released: 0, batches: 0, stopped: null, error: null, ms: 0 };
   if (o.mode === 'off') { sum.ms = now() - t0; return sum; }
@@ -309,7 +319,7 @@ export async function runSender(o: SenderOptions): Promise<Summary> {
   const report = async (row: Claim, ok: boolean | null, msgId: string | null, error: string | null) => {
     for (let n = 1; ; n++) {
       let e: { message: string } | null;
-      try { e = (await o.rpc('pass_send_result', { p_guest: row.guest_id, p_ok: ok, p_msg_id: msgId, p_error: error })).error; }
+      try { e = (await o.rpc(resultFn, { p_guest: row.guest_id, p_ok: ok, p_msg_id: msgId, p_error: error })).error; }
       catch (x) { e = { message: String((x as Error)?.message ?? x) }; }
       if (!e) return;
       if (n >= 3) { log('could not record the result', { guest: row.guest_id, ok, error: scrub(e.message) }); return; }
@@ -321,7 +331,7 @@ export async function runSender(o: SenderOptions): Promise<Summary> {
   const first: { done: boolean; wait: Promise<void> | null } = { done: false, wait: null };
   let nextSlot = t0;
   while (now() - t0 < budget) {
-    const { data, error } = await o.rpc('pass_send_claim', { p_limit: batch });
+    const { data, error } = await o.rpc(claimFn, { p_limit: batch });
     if (error) { sum.stopped = 'claim_error'; log('claim failed', { error: scrub(error.message) }); break; }
     const rows = (Array.isArray(data) ? data : []) as Claim[];
     if (!rows.length) break;
@@ -334,7 +344,7 @@ export async function runSender(o: SenderOptions): Promise<Summary> {
         if (!row) return;
         if (!first.done && first.wait) await first.wait;
         if (state.stop || now() - t0 > hard) { await report(row, null, null, null); sum.released++; continue; }
-        const built = buildPayload(row, o);
+        const built = build(row, o);
         if (!built.ok) {
           await report(row, false, null, built.error); sum.failed++;
           log('not sent', { guest: row.guest_id, phone: maskPhone(row.phone), error: built.error });
@@ -433,7 +443,10 @@ export async function handleWebhookRequest(req: Request, env: Env, deps: { rpc: 
   const news = extractStatuses(payload);
   let changed = 0, failed = 0;
   for (const n of news) {
-    const { data, error } = await deps.rpc('pass_send_status_update', { p_msg_id: n.id, p_status: n.status, p_error: n.error, p_guest: n.guest });
+    const args = { p_msg_id: n.id, p_status: n.status, p_error: n.error, p_guest: n.guest };
+    let { data, error } = await deps.rpc(n.kind === 'invite' ? 'invite_send_status_update' : 'pass_send_status_update', args);
+    // news with no guest id may be about an invite (send-invites): try that table too
+    if (!error && !data && !n.kind && !n.guest) ({ data, error } = await deps.rpc('invite_send_status_update', args));
     if (error) { failed++; log('status update failed', { status: n.status, error: scrub(error.message) }); continue; }
     if (data) changed++;
   }
