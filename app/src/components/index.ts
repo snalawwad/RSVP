@@ -17,3 +17,6 @@ export { Dot, Tag } from './Tag';
 export { plainText, Txt, type TextTone, type TxtProps } from './Txt';
 export { UndoBand } from './UndoBand';
 export { useStackOptions } from './nav';
+export { BrandBar, KickerLine, PageTitle } from './Brand';
+export { CodeBoxes, type CodeBoxesRef } from './CodeBoxes';
+export { Choice } from './Choice';

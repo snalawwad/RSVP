@@ -1,5 +1,7 @@
-// Add guests (host.html #addSheet): one guest (name, WhatsApp number, people on the invitation, side),
-// or a pasted list (one guest per line). "Save and send" goes straight into the one-by-one send.
+// Add more people (Figma 24l 237:3657; host.html #addSheet): one guest (name, phone number, "Just them" or "They can
+// bring people" and how many more, the group), or a pasted list (one guest per line). "Add and send invite" goes
+// straight into the one-by-one send. Within the package only: when the list is full it says so, with no upsell and no
+// link (Apple: the app takes no payment).
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { TextInput, View } from 'react-native';
 import { addGuest, addGuests, overLimit, why } from '../../lib/api';
@@ -10,6 +12,7 @@ import { useApp } from '../../providers/AppProvider';
 import { radius, scriptOf, size, space, textStyle } from '../../theme/tokens';
 import { textStart } from '../../theme/dir';
 import { Button } from '../Button';
+import { Choice } from '../Choice';
 import { ChipRow, FilterChip, Segmented } from '../Chip';
 import { useToast } from '../Feedback';
 import { Field } from '../Field';
@@ -98,24 +101,42 @@ export function AddSheet() {
   }
 
   const sides = h.sides;
+  const lim = h.ev?.invite_limit ?? null, usedSeats = sumSeats(h.guests), left = lim == null ? null : Math.max(0, lim - usedSeats);
+  const A = t.a;
+  if (open && left === 0) {
+    return (
+      <Sheet visible onClose={h.closeAdd} title={A.addH} closeLabel={T.close} testID="add-sheet">
+        <View testID="list-full" style={{ gap: space[2], paddingVertical: space[3] }}>
+          <Txt v="title">{A.fullH}</Txt>
+          <Txt v="body" tone="muted">{A.fullP(lim ?? 0)}</Txt>
+        </View>
+        <Button block kind="secondary" label={T.close} onPress={h.closeAdd} testID="full-close" />
+      </Sheet>
+    );
+  }
   return (
-    <Sheet visible={open} onClose={h.closeAdd} title={T.bulkH} closeLabel={T.close} testID="add-sheet">
+    <Sheet visible={open} onClose={h.closeAdd} title={many ? T.bulkH : A.addH} closeLabel={T.close} testID="add-sheet">
       <Segmented fill label={T.bulkH} value={many ? 'list' : 'one'} onChange={(k) => { setMany(k === 'list'); setErr(''); }}
         options={[{ key: 'one', label: T.addOne }, { key: 'list', label: T.addList }]} />
       {!many ? (
         <View style={{ gap: 14 }}>
           <Field ref={nameRef} label={T.name} value={name} onChangeText={setName} autoComplete="off" autoCorrect={false} testID="add-name" />
           <Field label={T.waNum} value={phone} onChangeText={setPhone} ltr keyboardType="phone-pad" placeholder="9XXXXXXX" autoComplete="off" testID="add-phone" />
-          <View style={{ gap: 6 }}>
-            <Txt v="label" tone="muted">{T.partyL}</Txt>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], flexWrap: 'wrap' }}>
-              <Stepper value={seats} min={1} max={MAX_PEOPLE} onChange={setSeats} label={T.partyL} lessLabel={T.less} moreLabel={T.more} testID="add-seats" />
-              <Txt v="small" style={{ flex: 1, minWidth: 150 }}>{T.partyHelp}</Txt>
-            </View>
+          <View style={{ gap: space[2] }} accessibilityRole="radiogroup" accessibilityLabel={A.canBringQ}>
+            <Txt v="label" tone="muted">{A.canBringQ}</Txt>
+            <Choice on={seats === 1} title={A.justThem} sub={A.justThemP} onPress={() => setSeats(1)} testID="add-just" />
+            <Choice on={seats > 1} title={A.canBring} sub={A.canBringP} onPress={() => setSeats((n) => Math.max(2, n))} testID="add-bring">
+              {seats > 1 ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[3], flexWrap: 'wrap', marginTop: space[3] }}>
+                  <Txt v="body" style={{ flexShrink: 1 }}>{A.upTo}</Txt>
+                  <Stepper value={seats - 1} min={1} max={MAX_PEOPLE - 1} onChange={(v) => setSeats(v + 1)} label={A.upTo} lessLabel={T.less} moreLabel={T.more} testID="add-seats" />
+                </View>
+              ) : null}
+            </Choice>
           </View>
           {!h.mySide ? (
             <View style={{ gap: space[2] }}>
-              <Field label={T.sideL} value={side} onChangeText={(v) => { setSide(v); setSideAuto(false); }} placeholder={T.sidePh} testID="add-side" />
+              <Field label={A.group} value={side} onChangeText={(v) => { setSide(v); setSideAuto(false); }} placeholder={T.sidePh} testID="add-side" />
               {sides.length ? (
                 <ChipRow>{sides.map((s) => <FilterChip key={s} label={s} selected={side === s} onPress={() => { setSide(side === s ? '' : s); setSideAuto(false); }} />)}</ChipRow>
               ) : null}
@@ -127,8 +148,9 @@ export function AddSheet() {
             </View>
           ) : null}
           <View style={{ gap: 10, marginTop: 6 }}>
-            <Button big block kind="primary" label={T.addSave} busy={busy === 'save'} onPress={() => addOne(false)} testID="add-save" />
-            <Button block kind="secondary" icon="whatsapp" label={T.addSaveSend} busy={busy === 'send'} onPress={() => addOne(true)} testID="add-send" />
+            <Button block kind="primary" icon="whatsapp" label={A.addSend} busy={busy === 'send'} onPress={() => addOne(true)} testID="add-send" />
+            <Button block kind="secondary" label={A.addOnly} busy={busy === 'save'} onPress={() => addOne(false)} testID="add-save" />
+            {left != null ? <Txt v="small" center testID="add-left">{A.leftAfter(left)}</Txt> : null}
           </View>
         </View>
       ) : (

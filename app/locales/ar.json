@@ -1,4 +1,9 @@
 {
-  "ios": { "CFBundleDisplayName": "سنة", "NSCameraUsageDescription": "تطبيق «سنة» يحتاج الكاميرا عشان تمسحون بطاقات حضور الضيوف على الباب." },
+  "ios": {
+    "CFBundleDisplayName": "سنة",
+    "NSCameraUsageDescription": "«سنة» يستخدم الكاميرا بس عشان تمسحون بطاقات حضور الضيوف على الباب.",
+    "NSCalendarsUsageDescription": "«سنة» يضيف المناسبات اللي معزومين عليها لتقويمكم لما تطلبون.",
+    "NSCalendarsWriteOnlyAccessUsageDescription": "«سنة» يضيف المناسبات اللي معزومين عليها لتقويمكم لما تطلبون."
+  },
   "android": { "app_name": "سنة" }
 }

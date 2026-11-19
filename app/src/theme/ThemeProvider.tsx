@@ -1,4 +1,5 @@
-// Colours mode: cream (default) · light · dark · auto (follows the phone: dark, else cream). Saved on this phone.
+// Colours mode: light · dark · auto (follows the phone: dark, else light; the default). Cream stays for anyone who
+// picked it before. Saved on this phone.
 // Also tells components whether the phone asks for less motion.
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Platform, useColorScheme } from 'react-native';
@@ -46,7 +47,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const scheme = useColorScheme();
   const [pref, setPrefState] = useState<ThemePref>(savedPref);
   const reduceMotion = useReduceMotionSetting();
-  const theme: ThemeName = pref === 'auto' ? (scheme === 'dark' ? 'dark' : 'cream') : pref;
+  const theme: ThemeName = pref === 'auto' ? (scheme === 'dark' ? 'dark' : 'light') : pref;
 
   const setPref = useCallback((p: ThemePref) => { kv.set(KEYS.theme, p); setPrefState(p); }, []);
 

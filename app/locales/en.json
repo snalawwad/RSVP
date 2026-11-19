@@ -1,4 +1,9 @@
 {
-  "ios": { "CFBundleDisplayName": "Sina", "NSCameraUsageDescription": "Sina uses the camera to scan guests' door passes at door check-in." },
+  "ios": {
+    "CFBundleDisplayName": "Sina",
+    "NSCameraUsageDescription": "Sina uses the camera only to scan guests' door passes at door check-in.",
+    "NSCalendarsUsageDescription": "Sina adds the events you're invited to to your calendar when you ask it to.",
+    "NSCalendarsWriteOnlyAccessUsageDescription": "Sina adds the events you're invited to to your calendar when you ask it to."
+  },
   "android": { "app_name": "Sina" }
 }
