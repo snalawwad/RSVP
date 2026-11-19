@@ -1,0 +1,224 @@
+/* Guest invite (invite.html), built to Sama's Figma guest frames G01–G13 (phone) and W03 236:3448 (wide screens).
+   Colours come from the event (invite.html sets the variables from theme_accent / theme_paper).
+   Two looks: "plain" (no card image: the Figma page, a generated card in the event colours) and
+   "own design" (the host's card image on a page in the event's dark tone, the content on the event paper; Ghala's pilot).
+   The invite keeps its own fonts: Fraunces + DM Sans, Amiri + IBM Plex Sans Arabic. */
+:root{
+  --bg:#FDFDFD; --surface:#FDFDFD; --ink:#26181A; --muted:#625350; --line:#E6E6E8;
+  --acc:#5B0F1D; --acc-ink:#FDFDFD; --soft:#F7E7E5; --soft-ink:#5B0F1D; --head-ink:#26181A; --acc-hv:#4A0B17; --soft-hv:#F0D6D3;
+  --display:"Fraunces",Georgia,serif; --text:"DM Sans",system-ui,-apple-system,sans-serif;
+  --pad:16px; --r:12px; --pill:999px;
+  color-scheme:light;
+}
+html[lang="ar"]{--display:"Amiri","Fraunces",serif; --text:"IBM Plex Sans Arabic","DM Sans",system-ui,sans-serif}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--text);font-size:16px;line-height:1.55;min-height:100vh;overflow-x:hidden;
+  padding:env(safe-area-inset-top,0) 0 calc(var(--bar-h,0px) + env(safe-area-inset-bottom,0px))}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--acc)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:6px}
+h1,h2{font-family:var(--display);font-weight:600;margin:0;color:var(--ink);font-variation-settings:"SOFT" 0,"WONK" 1}
+html[lang="ar"] h1,html[lang="ar"] h2{font-weight:700;font-variation-settings:normal}
+.arch{display:inline-block;flex:none;width:22px;height:28px;background:currentColor;
+  -webkit-mask:url(assets/brand/arch.svg) center/contain no-repeat;mask:url(assets/brand/arch.svg) center/contain no-repeat}
+
+/* ---------- top bar ---------- */
+.top{display:flex;align-items:center;gap:10px;padding:8px var(--pad);min-height:60px;color:var(--head-ink)}
+.top .brand{display:inline-flex;align-items:center;gap:10px;margin-inline-end:auto;text-decoration:none;color:inherit;font-family:"Fraunces",serif;font-weight:600;font-size:16px;min-height:44px}
+.top .brand .arch{color:var(--acc)}
+html[lang="ar"] .top .brand{font-family:"Amiri",serif;font-size:18px;font-weight:700}
+.top .lang{background:none;border:0;color:inherit;opacity:.8;font-size:15px;min-height:44px;min-width:44px;padding:0 8px;border-radius:var(--pill)}
+.top .lang:hover{opacity:1}
+.demo{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;margin:0;padding:10px var(--pad);background:#F6F4F1;color:#26181A;font-size:14px}
+.demo a{color:#5B0F1D;font-weight:600;display:inline-flex;align-items:center;min-height:44px}
+
+/* ---------- page ---------- */
+main#inv{display:flex;flex-direction:column;gap:16px;padding:12px var(--pad) 32px;max-width:560px;margin:0 auto}
+.panel{display:flex;flex-direction:column;gap:16px;min-width:0}
+
+/* the invite card (generated, in the event colours) */
+.icard{background:var(--t-paper,#FFFFFF);color:var(--t-ink,#26181A);border:1px solid var(--t-line,#E6E6E8);display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:48px 28px 44px}
+.icard .arch{color:var(--t-accent,#5B0F1D)}
+.icard .fam{margin:0;font-size:14px;line-height:1.35;color:var(--t-muted,#625350)}
+.icard .names{margin:0;font-family:"Fraunces",serif;font-weight:600;font-size:41px;line-height:1;letter-spacing:-.03em;color:var(--t-ink,#26181A);overflow-wrap:anywhere;font-variation-settings:"SOFT" 0,"WONK" 1}
+.icard .names[lang="ar"],html[lang="ar"] .icard .names:not([lang="en"]){font-family:"Amiri",serif;font-weight:700;font-size:44px;line-height:1.3;letter-spacing:0}
+.icard .sub{margin:0;font-size:16px;color:var(--t-muted,#625350)}
+.icard.small{padding:32px 24px 30px}
+.icard.small .names{font-size:34px}
+/* the host's own card image */
+.hero-wrap{position:relative;width:100%;margin:0 auto}
+.hero{display:block;width:100%;height:auto;border-radius:12px;box-shadow:0 18px 40px rgba(0,0,0,.35)}
+.hero-map{position:absolute;min-height:44px;min-width:44px;border-radius:12px;-webkit-tap-highlight-color:rgba(0,0,0,.15)}
+.hero-map:focus-visible{background:rgba(255,255,255,.18);outline:2px solid #FFFFFF}
+
+/* the line under the card: "Reem, this invite is for 2 people. Please reply by 4 December." */
+.line{margin:0;font-size:16px;line-height:1.55;color:var(--ink)}
+.sub{margin:0;font-size:16px;line-height:1.5;color:var(--muted)}
+.head{display:flex;flex-direction:column;gap:8px}
+.head h1{font-size:32px;line-height:1.08;letter-spacing:-.01em}
+html[lang="ar"] .head h1{font-size:32px;line-height:1.4;letter-spacing:0}
+.head h1:focus{outline:none}
+.back{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;min-height:44px;padding:0 4px;margin:-8px 0 -4px;background:none;border:0;color:var(--ink);font-family:"Fraunces",serif;font-weight:600;font-size:16px}
+html[lang="ar"] .back{font-family:"Amiri",serif;font-size:18px}
+.back svg{width:20px;height:20px}
+[dir="rtl"] .back svg,[dir="rtl"] .row .chev{transform:scaleX(-1)}
+
+/* detail rows (date, place, reply by) */
+.rows{border-top:1px solid var(--line)}
+.row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);min-height:56px}
+.row>svg{flex:none;width:20px;height:20px;color:var(--ink)}
+.row .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.row .tx b{font-weight:400;font-size:16px;line-height:1.5;overflow-wrap:anywhere}
+.row .tx span{font-size:14px;line-height:1.35;color:var(--muted)}
+.row .act{flex:none;display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:0 2px;background:none;border:0;color:var(--acc);font-weight:600;font-size:14px;text-decoration:none;white-space:nowrap}
+.row .act.done{color:var(--ink);font-weight:500}
+.note{margin:0;font-size:15px;line-height:1.55;color:var(--muted);white-space:pre-line}
+
+/* buttons: one pair (filled accent / soft) and a text link */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:11px 18px;border-radius:var(--pill);border:1px solid var(--acc);background:var(--acc);color:var(--acc-ink);
+  font-family:var(--text);font-weight:600;font-size:16px;line-height:1.2;text-decoration:none;text-align:center;min-width:0;transition:background-color .14s,border-color .14s,transform .14s}
+.btn:hover{background:var(--acc-hv);border-color:var(--acc-hv);transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.98)}
+.btn.soft{background:var(--soft);border-color:var(--soft);color:var(--soft-ink)}
+.btn.soft:hover{background:var(--soft-hv);border-color:var(--soft-hv)}
+.btn[disabled],.btn[aria-disabled="true"]{opacity:.55;cursor:default;transform:none}
+.btn span{overflow:hidden;text-overflow:ellipsis}
+.tlink{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 12px;background:none;border:0;color:var(--acc);font-weight:600;font-size:16px;text-decoration:none}
+
+/* the action bar: fixed at the bottom on phones (Figma footer), inside the panel on wide screens */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;flex-direction:column;gap:8px;padding:12px var(--pad) calc(16px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line)}
+.bar .btns{display:flex;gap:8px;max-width:528px;width:100%;margin:0 auto}
+.bar .btns>*{flex:1}
+.bar .cap{margin:0 auto;max-width:528px;text-align:center;font-size:14px;line-height:1.4;color:var(--muted)}
+.bar .tlink{align-self:center}
+
+/* forms */
+.field{display:flex;flex-direction:column;gap:6px}
+.field label,.lbl{font-size:14px;font-weight:600;color:var(--muted);margin:0}
+.field input,.field textarea{width:100%;border:1px solid var(--line-strong,#B9B1B2);border-radius:var(--r);background:#FFFFFF;color:#26181A;padding:12px 14px;font-size:16px;line-height:1.4;min-height:48px}
+.field textarea{resize:vertical;min-height:84px}
+.field input:focus,.field textarea:focus{outline:2px solid var(--acc);outline-offset:0;border-color:var(--acc)}
+.who{display:flex;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.who .tx{flex:1;display:flex;flex-direction:column}
+.who .tx b{font-weight:600}
+.who .tx span{font-size:14px;color:var(--muted)}
+.who svg{width:20px;height:20px;color:var(--ok,#2F7A55)}
+.stepper-row{display:flex;align-items:center;gap:12px;padding:6px 0 16px;border-bottom:1px solid var(--line)}
+.stepper-row .tx{flex:1;display:flex;flex-direction:column}
+.stepper-row .tx span{font-size:14px;color:var(--muted)}
+.stepper{display:flex;align-items:center;gap:4px;border:1px solid var(--line-strong,#B9B1B2);border-radius:var(--pill);padding:3px}
+.stepper button{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#FFFFFF;color:#26181A;font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center}
+.stepper button[disabled]{opacity:.4;cursor:default}
+.stepper output{min-width:32px;text-align:center;font-family:"Fraunces",serif;font-weight:600;font-size:22px;color:var(--ink)}
+.choices{display:flex;flex-direction:column;gap:12px}
+.choice{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--line-strong,#B9B1B2);border-radius:var(--r);background:var(--surface);cursor:pointer;min-height:60px}
+.choice .tx{flex:1;display:flex;flex-direction:column}
+.choice .tx b{font-weight:600}
+.choice .tx span{font-size:14px;color:var(--muted)}
+.choice input{appearance:none;-webkit-appearance:none;flex:none;width:22px;height:22px;margin:0;border:1.5px solid var(--muted);border-radius:50%;display:grid;place-items:center}
+.choice input:checked{border-color:var(--acc)}
+.choice input:checked::after{content:"";width:12px;height:12px;border-radius:50%;background:var(--acc)}
+.choice:has(input:checked){border:2px solid var(--acc);padding:13px 15px}
+.choice:has(input:checked) .tx b{color:var(--acc)}
+.choice:has(input:focus-visible){outline:2px solid var(--acc);outline-offset:2px}
+
+/* your reply */
+.reply{display:flex;flex-direction:column;gap:8px}
+.reply h2.lbl{font-family:var(--text);font-weight:600;font-size:14px;line-height:1.4;color:var(--muted)}
+.reply-card{display:flex;align-items:flex-start;gap:12px;padding:16px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.reply-card svg{flex:none;width:20px;height:20px;margin-top:2px;color:var(--ink)}
+.reply-card .tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.reply-card .tx b{font-weight:600;color:var(--acc)}
+.reply-card .tx span{font-size:14px;color:var(--muted);overflow-wrap:anywhere}
+.acct{margin:0;font-size:14px;color:var(--muted)}
+.acct a{font-weight:600;display:inline-flex;align-items:center;min-height:44px}
+.sent{margin:8px 0 0;font-size:14px;color:var(--muted);text-align:center}
+.sent a{color:inherit;display:inline-flex;align-items:center;min-height:44px}
+.help{margin:0;text-align:center;font-size:14px;color:var(--muted)}
+.help a{color:inherit;display:inline-flex;align-items:center;min-height:44px}
+.msg{padding:28px 0;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+
+/* door pass (supabase/migrations/0005): event colours on top, white body, black-on-white QR (G11a) */
+.dpass{text-align:start}
+.dpass-h{font-size:28px;line-height:1.15;margin:0 0 12px}
+.dpass-card{background:#FFFFFF;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.dpass-top{display:flex;flex-direction:column;gap:4px;padding:18px 20px;background:var(--acc);color:var(--acc-ink)}
+.dpass-ev{margin:0;font-family:var(--display);font-size:22px;font-weight:600;line-height:1.2;overflow-wrap:anywhere}
+.dpass-when{margin:0;font-family:var(--text);font-size:14px;line-height:1.4;opacity:.92}
+.dpass-body{display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px 16px 18px;color:#26181A}
+.dpass-qr{width:225px;height:auto;aspect-ratio:1/1;max-width:100%;background:#FFFFFF}
+.dpass-qr svg{display:block;width:100%;height:100%}
+.dpass-qr.off{display:none}
+.dpass-holder{align-self:stretch;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;border-top:1px solid #E6E6E8;padding-top:14px;line-height:1.35}
+.dpass-who{min-width:0}
+.dpass-who b{display:block;font-size:16px;font-weight:600;color:#26181A;overflow-wrap:anywhere}
+.dpass-who span{display:block;font-size:14px;color:#625350}
+.dpass-code{flex:none;font-family:"DM Sans",system-ui,sans-serif;font-size:14px;color:#625350;letter-spacing:.04em;font-variant-numeric:tabular-nums lining-nums;white-space:nowrap}
+.dpass-cap{margin:12px 2px 0;font-size:14px;line-height:1.45;color:var(--muted)}
+.dpass-soon{display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.dpass-soon svg{flex:none;width:20px;height:20px;margin-top:2px;color:var(--ink)}
+.dps-t{margin:0;font-size:16px;color:var(--ink)}
+.dps-s{margin:2px 0 0;font-size:14px;color:var(--muted)}
+
+/* calendar sheet (G11b) */
+dialog.sheet{position:fixed;inset:auto 0 0 0;margin:0 auto;width:100%;max-width:560px;max-height:90vh;border:0;border-radius:20px 20px 0 0;padding:8px var(--pad) calc(16px + env(safe-area-inset-bottom,0px));background:#FFFFFF;color:#26181A;box-shadow:0 -10px 40px rgba(0,0,0,.18)}
+dialog.sheet::backdrop{background:rgba(20,10,12,.45)}
+.sheet .grab{width:36px;height:5px;border-radius:3px;background:#D9D4D0;margin:0 auto 12px}
+.sheet .sh-head{display:flex;align-items:flex-start;gap:12px;padding-bottom:12px;border-bottom:1px solid #E6E6E8}
+.sheet .sh-head div{flex:1}
+.sheet h2{font-size:22px;line-height:1.2;color:#26181A}
+.sheet .sh-head p{margin:4px 0 0;font-size:14px;color:#625350}
+.sheet .x{width:44px;height:44px;border:0;background:none;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#26181A;margin:-6px -8px 0 0}
+.sheet .x svg{width:20px;height:20px}
+.sheet .opt{display:flex;align-items:center;gap:12px;min-height:56px;padding:12px 0;border-bottom:1px solid #E6E6E8;color:#26181A;text-decoration:none}
+.sheet .opt>svg{flex:none;width:20px;height:20px}
+.sheet .opt .tx{flex:1;display:flex;flex-direction:column}
+.sheet .opt .tx span{font-size:14px;color:#625350}
+.sheet .opt .chev{width:16px;height:16px;color:#625350}
+[dir="rtl"] .sheet .opt .chev{transform:scaleX(-1)}
+.sheet .opt:focus-visible{outline:2px solid #5B0F1D;outline-offset:-2px}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(var(--bar-h,0px) + 18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:#26181A;color:#FFFFFF;padding:11px 18px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;text-align:center;box-shadow:0 10px 28px rgba(0,0,0,.25)}
+.toast.on{opacity:1}
+
+/* ---------- own design: the host's card image (pilot look) ---------- */
+body.own{--head-ink:rgba(255,244,240,.92)}
+body.own .top .brand .arch{color:rgba(255,244,240,.92)}
+body.own .panel.paper{background:var(--surface);border-radius:18px;padding:24px 20px;box-shadow:0 18px 40px rgba(0,0,0,.30)}
+body.own .sent,body.own .sent a,body.own .help,body.own .help a,body.own .msg-out{color:rgba(255,244,240,.8)}
+
+/* ---------- wide screens (W03): card and details on the left, the reply panel on the right ---------- */
+@media (min-width:960px){
+  :root{--pad:clamp(32px,8.334vw,120px)}
+  .top{min-height:88px;border-bottom:1px solid var(--line);padding-inline:var(--pad)}
+  body.own .top{border-bottom-color:rgba(255,255,255,.12)}
+  main#inv{max-width:calc(1200px + 2 * var(--pad));display:grid;grid-template-columns:minmax(0,1fr) 440px;gap:64px;align-items:start;padding:72px var(--pad) 48px}
+  .col-l{display:flex;flex-direction:column;gap:24px;min-width:0}
+  .col-r{position:sticky;top:24px}
+  .panel.side{border:2px solid var(--acc);border-radius:var(--r);padding:32px;background:var(--surface);gap:20px}
+  body.own .panel.side{border:0;border-radius:18px;box-shadow:0 18px 40px rgba(0,0,0,.30)}
+  .icard{padding:56px 40px 64px;gap:16px}
+  .icard .arch{width:28px;height:36px}
+  .icard .fam{font-size:18px}
+  .icard .names{font-size:72px}
+  html[lang="ar"] .icard .names:not([lang="en"]),.icard .names[lang="ar"]{font-size:72px}
+  .icard .sub{font-size:20px}
+  .row .tx b{font-weight:600;font-size:17px}
+  .bar{position:static;padding:0;background:none;border:0;gap:12px}
+  .bar .btns{flex-direction:column;gap:12px;max-width:none}
+  .bar .cap{text-align:start;margin:0}
+  .head h1{font-size:34px}
+  .hero{max-height:none}
+  .sent{grid-column:1/-1;text-align:start}
+  dialog.sheet{inset:0;margin:auto;border-radius:20px;max-width:480px;height:fit-content}
+}
+.ifoot{display:flex;flex-direction:column;padding-top:8px}
+.cap-only{font-size:14px}
+.sheet .opt .tx b{font-weight:500;font-size:16px}
+@media (min-width:960px){.ifoot{grid-column:1/-1;align-items:flex-start}.ifoot .help{text-align:start}}
+@media (max-width:359px){.bar .btns .btn{padding-inline:10px;font-size:15px}.icard{padding:40px 20px 36px}.icard .names{font-size:36px}}
+@media (prefers-reduced-motion:reduce){.toast,.btn,.btn:hover,.btn:active{transition:none;transform:none}}
