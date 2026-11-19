@@ -40,7 +40,7 @@ export function GuestsTab() {
     list = (h.filter === 'all' ? p : p.filter((g) => g.status === h.filter)).slice().sort((a, b) => order(a) - order(b));
   }
   const N = { all: p.length, yes: s.yes.length, pending: s.pend.length, no: s.no.length };
-  const showBanner = s.unsent.length > 0 && !q && (h.filter === 'all' || h.filter === 'pending');
+  const showBanner = !h.cohost && s.unsent.length > 0 && !q && (h.filter === 'all' || h.filter === 'pending');
   const editing = !!openId;
 
   const row = (g: Guest) => {
@@ -54,18 +54,18 @@ export function GuestsTab() {
     if (rd != null) bits.push(<Txt key="rem" v="small" tone="ink">{T.remAgo(rd)}</Txt>);
     if (!g.phone) bits.push(g.source === 'door' || g.side === 'Door' ? T.atDoor : T.viaLink);
     if (sideOf(g) && h.side === 'all' && !h.mySide) bits.push(sideOf(g) as string);
-    const act = unsent ? <Button small kind="secondary" icon="whatsapp" label={T.send} onPress={() => h.startQueue('send', [g.id])} testID={`send-${g.id}`} />
+    const act = h.cohost ? null : unsent ? <Button small kind="secondary" icon="whatsapp" label={T.send} onPress={() => h.startQueue('send', [g.id])} testID={`send-${g.id}`} />
       : g.phone && g.status === 'pending' && !g.checked_in_at ? <Button small kind="quiet" icon="bell" label={T.remind} onPress={() => h.startQueue('remind', [g.id])} testID={`remind-${g.id}`} /> : null;
     return (
       <View key={g.id} testID={`g-${g.id}`} style={{ backgroundColor: h.isFresh(g.id) ? c.okBg : undefined }}>
-        <Pressable accessibilityRole="button" accessibilityLabel={g.name} onPress={() => setOpenId(g.id)} testID={`open-${g.id}`}
+        <Pressable accessibilityRole={h.cohost ? undefined : 'button'} accessibilityLabel={g.name} disabled={h.cohost} onPress={() => setOpenId(g.id)} testID={`open-${g.id}`}
           style={({ pressed }) => ({ minHeight: act ? 56 : 68, paddingTop: 10, paddingBottom: act ? 0 : 10, paddingHorizontal: space[4], flexDirection: 'row', alignItems: 'center', gap: space[3],
             backgroundColor: pressed ? mix(c.card, c.ink, 0.08) : 'transparent' })}>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Txt v="name" numberOfLines={1}>{g.name}</Txt>
             <Meta bits={bits} />
           </View>
-          <Icon name="chev" color={c.muted} />
+          {h.cohost ? null : <Icon name="chev" color={c.muted} />}
         </Pressable>
         {act ? <View style={{ paddingHorizontal: space[4], marginTop: space[2], marginBottom: space[3] }}>{act}</View> : null}
       </View>
@@ -77,7 +77,7 @@ export function GuestsTab() {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
         <Txt v="label" tone="muted" style={{ flex: 1 }} testID="g-sum">{guests.length ? T.gSum(p.length, s.invited) : ''}</Txt>
         {/* filled plum only for one action: "Add guest" when nothing is waiting to be sent */}
-        <Button small kind={s.unsent.length || editing ? 'secondary' : 'primary'} icon="plus" label={T.addGuestBtn} onPress={() => h.openAdd(false)} testID="add-guest" />
+        {h.cohost ? null : <Button small kind={s.unsent.length || editing ? 'secondary' : 'primary'} icon="plus" label={T.addGuestBtn} onPress={() => h.openAdd(false)} testID="add-guest" />}
       </View>
       <View style={{ flexDirection: 'row', gap: space[2], alignItems: 'center' }}>
         <View style={{ flex: 1 }}>
@@ -99,7 +99,10 @@ export function GuestsTab() {
       ) : null}
       {q ? <Txt v="small" testID="results">{T.results(list.length)}</Txt> : null}
 
-      {!h.guestsLoaded ? null : !guests.length ? (
+      {h.cohost ? <Txt v="small" testID="cohost-note">{t.a.cohostNote}</Txt> : null}
+      {!h.guestsLoaded ? null : !guests.length && h.cohost ? (
+        <Txt v="body" tone="muted" center style={{ paddingVertical: space[5] }}>{T.emptyG}</Txt>
+      ) : !guests.length ? (
         <View style={{ gap: 10 }} testID="ways">
           <Txt v="name" center style={{ paddingTop: space[5], paddingBottom: 6 }}>{T.emptyG}</Txt>
           <RowList>
