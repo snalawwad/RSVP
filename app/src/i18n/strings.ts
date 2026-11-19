@@ -11,6 +11,7 @@
 // Coming «بيحضرون» · Can't come «اعتذروا» · No reply «ما ردوا» · Arrived «وصلوا».
 import { doorAr, doorEn } from './door';
 import { hostAr, hostEn } from './host';
+import { appAr, appEn } from './app';
 import { BRAND, type Lang } from '../lib/words';
 import type { Widen } from './widen';
 
@@ -126,6 +127,7 @@ const en = {
   door: doorEn,
   menu: menuEn,
   login: loginEn,
+  a: appEn,
 };
 
 export type Strings = Widen<typeof en>;
@@ -197,6 +199,7 @@ const ar: Strings = {
   door: doorAr,
   menu: menuAr,
   login: loginAr,
+  a: appAr,
 };
 
 export const strings: Record<Lang, Strings> = { en, ar };

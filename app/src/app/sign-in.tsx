@@ -1,117 +1,208 @@
-// Log in with a 6-digit code sent by email (the web login card, core.js requireLogin): the name Sina / سنة in
-// type, the envelope, a small kicker, the big heading, one field and one filled button, in the arch-topped card.
-// Step 1: email → Send my code. Step 2: the code → Log in, or use a different email.
-// The first login creates the account, like the web; what the person sees is decided by event_members.
-import { useRef, useState, type ComponentRef, type ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, View, type TextInput } from 'react-native';
-import { ArchMark, Button, Field, Icon, PressScale, Screen, Txt } from '../components';
-import { isConfigured } from '../lib/config';
-import { asciiDigits } from '../lib/names';
+// Getting in (Sama's Figma, Host 1 "Get started"):
+//   01 Welcome (50:13920) → 02 Create account (54:5565) or 02b Log in (54:5599) → 03 Enter the code (52:3006),
+//   with its states 03a empty (73:3535), 03b wrong code (73:3589) and 03c expired (73:3650).
+// A phone number and a WhatsApp code when EXPO_PUBLIC_LOGIN_PHONE=true (the WhatsApp code hook is on); until then an
+// email and an email code. Supabase signInWithOtp / verifyOtp. The first login makes the account.
+// Create account keeps the name (and email) and saves it with save_profile_v2 once logged in (see (app)/index).
+// The app never offers to create an event or to pay (Apple): getting in only.
+import { useEffect, useRef, useState } from 'react';
+import { KeyboardAvoidingView, Linking, Platform, ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { BrandBar, Button, Field, PageTitle, PressScale, Txt } from '../components';
+import { CodeBoxes, type CodeBoxesRef } from '../components/CodeBoxes';
+import { WelcomeArt } from '../components/WelcomeArt';
+import { config, isConfigured, links } from '../lib/config';
+import { normPhone, showPhone } from '../lib/phone';
+import { KEYS, kv } from '../lib/storage';
 import { supabase } from '../lib/supabase';
-import { iso } from '../lib/words';
 import { useApp } from '../providers/AppProvider';
-import { fonts, radius, shadow, size, space } from '../theme/tokens';
+import { fonts, radius, size, space } from '../theme/tokens';
+
+type Step = 'welcome' | 'create' | 'login' | 'code';
+type CodeErr = '' | 'wrong' | 'expired';
+const RESEND_S = 30;
+const OTP_TTL_MS = 60 * 60e3;
 
 export default function SignIn() {
-  const { t, lang, setLang, c } = useApp();
-  const L = t.login;
-  const [step, setStep] = useState<'email' | 'code'>('email');
+  const { t, lang, setLang, c, rtl } = useApp();
+  const A = t.a;
+  const phoneMode = config.loginPhone;
+  const [step, setStep] = useState<Step>('welcome');
+  const [from, setFrom] = useState<'create' | 'login'>('login');
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [errs, setErrs] = useState<{ name?: string; phone?: string; email?: string; send?: string }>({});
   const [code, setCode] = useState('');
+  const [codeErr, setCodeErr] = useState<CodeErr>('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const codeRef = useRef<ComponentRef<typeof TextInput>>(null);
+  const [sentAt, setSentAt] = useState(0);
+  const [now, setNow] = useState(0);
+  const [resentNote, setResentNote] = useState(false);
+  const boxes = useRef<CodeBoxesRef>(null);
   const ar = lang === 'ar';
 
-  async function sendCode() {
-    if (busy) return;
-    const e = email.trim().toLowerCase();
-    if (!/^\S+@\S+\.\S+$/.test(e)) return setError(L.bad);
-    setBusy(true); setError('');
-    const { error: err } = await supabase.auth.signInWithOtp({ email: e });
-    setBusy(false);
-    if (err) return setError(L.fail);
-    setEmail(e); setCode(''); setStep('code');
-    setTimeout(() => codeRef.current?.focus(), 50);
+  // the "Resend code in 0:24" countdown
+  useEffect(() => {
+    if (step !== 'code') return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [step]);
+  const wait = Math.max(0, RESEND_S - Math.floor((now - sentAt) / 1000));
+
+  const target = () => (phoneMode ? normPhone(phone) : email.trim().toLowerCase());
+  function check(): boolean {
+    const e: typeof errs = {};
+    if (step === 'create' && !name.trim()) e.name = A.needName;
+    if (phoneMode) {
+      const p = normPhone(phone);
+      if (!/^965\d{8}$/.test(p) && !/^(?!965)\d{9,15}$/.test(p)) e.phone = A.badPhone;
+      if (step === 'create' && email.trim() && !/^\S+@\S+\.\S+$/.test(email.trim())) e.email = A.badEmail;
+    } else if (!/^\S+@\S+\.\S+$/.test(email.trim())) e.email = A.badEmail;
+    setErrs(e);
+    return !Object.keys(e).length;
   }
 
-  async function verify() {
+  async function send(again = false) {
     if (busy) return;
-    const token = asciiDigits(code).replace(/\D/g, '');
-    if (token.length < 6) return setError(L.wrong);
-    setBusy(true); setError('');
-    const { error: err } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
+    if (!again && !check()) return;
+    setBusy(true); setErrs({});
+    const to = target();
+    const { error } = phoneMode ? await supabase.auth.signInWithOtp({ phone: '+' + to }) : await supabase.auth.signInWithOtp({ email: to });
     setBusy(false);
-    if (err) setError(L.wrong);
-    // On success the root layout switches to the app by itself.
+    if (error) { if (again) setCodeErr(''); setErrs({ send: A.sendFail }); return; }
+    if (!again) {
+      setFrom(step === 'create' ? 'create' : 'login');
+      // Create account: the name (and email) wait here until the login works, then go to the profile
+      if (step === 'create') kv.setJSON(KEYS.pendingProfile, { name: name.trim(), email: phoneMode ? email.trim().toLowerCase() || null : to });
+      else kv.remove(KEYS.pendingProfile);
+    }
+    setSentAt(Date.now()); setNow(Date.now()); setCode(''); setCodeErr(''); setResentNote(again); setStep('code');
+    setTimeout(() => boxes.current?.focus(), 80);
   }
 
-  const heading = { fontSize: 34, lineHeight: ar ? 54 : 40 };
+  async function verify(token = code) {
+    if (busy || token.length < 6) return;
+    setBusy(true); setCodeErr('');
+    const to = target();
+    const { error } = phoneMode
+      ? await supabase.auth.verifyOtp({ phone: '+' + to, token, type: 'sms' })
+      : await supabase.auth.verifyOtp({ email: to, token, type: 'email' });
+    setBusy(false);
+    if (!error) return;   // the root layout opens the app by itself
+    const msg = String(error.message || '');
+    const expired = Date.now() - sentAt > OTP_TTL_MS || (/expired/i.test(msg) && !/invalid/i.test(msg));
+    setCodeErr(expired ? 'expired' : 'wrong');
+  }
+
+  const toLang = (
+    <PressScale kind="chip" testID="lang-toggle" accessibilityRole="button" accessibilityLabel={`${t.menu.language}: ${t.menu.other}`} onPress={() => setLang(ar ? 'en' : 'ar')} hitSlop={4}
+      style={{ minHeight: size.target, paddingHorizontal: space[4], borderRadius: radius.pill, borderWidth: 1, borderColor: c.line, backgroundColor: c.card, justifyContent: 'center' }}>
+      <Txt v="label" tone="ink">{t.menu.other}</Txt>
+    </PressScale>
+  );
+  const back = (to: Step) => () => { setErrs({}); setCodeErr(''); setStep(to); };
+
+  if (!isConfigured) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: c.bg, padding: space[4], justifyContent: 'center' }}>
+        <PageTitle sub={t.login.cfgP}>{t.login.cfgH}</PageTitle>
+      </SafeAreaView>
+    );
+  }
+
+  // ---------- 01 Welcome ----------
+  if (step === 'welcome') {
+    return (
+      <SafeAreaView testID="sign-in" style={{ flex: 1, backgroundColor: c.bg }} edges={['top', 'left', 'right', 'bottom']}>
+        <BrandBar end={toLang} />
+        <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: space[5], paddingTop: space[6], paddingBottom: space[4], gap: space[4] }}>
+          <View testID="welcome" accessible accessibilityRole="header">
+            <Txt v="title" style={{ fontSize: ar ? 34 : 41, lineHeight: ar ? 56 : 42, letterSpacing: ar ? 0 : -1.2, fontFamily: ar ? fonts.arDisplayBold : fonts.display }}>{A.welcomeH1}</Txt>
+            <Txt v="title" style={{ marginTop: ar ? space[2] : space[6], fontSize: ar ? 34 : 41, lineHeight: ar ? 56 : 42, letterSpacing: ar ? 0 : -1.2, fontFamily: ar ? fonts.arDisplayBold : fonts.display }}>{A.welcomeH2}</Txt>
+          </View>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 220, transform: rtl ? [{ scaleX: -1 }] : undefined }}>
+            <WelcomeArt width={320} />
+          </View>
+          <Txt v="body" tone="muted" center>{A.welcomeP}</Txt>
+        </ScrollView>
+        <View style={{ paddingHorizontal: space[5], paddingTop: space[3], paddingBottom: space[4], gap: 10 }}>
+          <Button block kind="primary" label={A.logIn} onPress={() => setStep('login')} testID="go-login" />
+          <Button block kind="secondary" label={A.createAccount} onPress={() => setStep('create')} testID="go-create" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ---------- 02 Create account · 02b Log in · 03 Enter the code ----------
+  const head = step === 'create' ? A.createH : step === 'login' ? A.backH : A.codeH;
+  const sub = step === 'create' ? (phoneMode ? A.createPPhone : A.createPEmail)
+    : step === 'login' ? (phoneMode ? A.backPPhone : A.backPEmail)
+    : phoneMode ? A.sentPhone(showPhone(target()).replace(/^(\d{4})(\d{4})$/, '+965 $1 $2')) : A.sentEmail(target());
+
+  const footer = step === 'code' ? (
+    <Button block kind="primary" label={A.continue} onPress={() => verify()} busy={busy} disabled={code.length < 6 || !!codeErr} testID="verify" />
+  ) : (
+    <>
+      <Button block kind="primary" icon={phoneMode ? 'whatsapp' : 'env'} label={A.sendCode} onPress={() => send()} busy={busy} testID="send-code" />
+      <Button block kind="quiet" label={step === 'create' ? A.haveAccount : A.newHere} onPress={back(step === 'create' ? 'login' : 'create')} testID={step === 'create' ? 'to-login' : 'to-create'} />
+      {step === 'create' ? (
+        <PressScale kind="chip" accessibilityRole="link" accessibilityLabel={A.terms} onPress={() => Linking.openURL(links.terms(lang)).catch(() => {})} testID="terms"
+          style={{ minHeight: size.target, justifyContent: 'center', alignSelf: 'center', paddingHorizontal: space[2] }}>
+          <Txt v="small" center style={{ fontSize: 12.5, textDecorationLine: 'underline' }}>{A.terms}</Txt>
+        </PressScale>
+      ) : null}
+    </>
+  );
+
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Screen edges={['top', 'left', 'right', 'bottom']} contentStyle={{ flexGrow: 1, paddingTop: 0 }} gap={0} testID="sign-in">
-        {/* top bar: the arch mark at the start, the other language at the end */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 64, marginHorizontal: -space[4], paddingHorizontal: space[4], borderBottomWidth: 1, borderBottomColor: c.line }}>
-          <View accessible accessibilityLabel={t.appName}><ArchMark size={26} /></View>
-          <PressScale kind="chip" testID="lang-toggle" accessibilityRole="button" accessibilityLabel={`${t.menu.language}: ${t.menu.other}`} onPress={() => setLang(ar ? 'en' : 'ar')} hitSlop={4}
-            style={{ minHeight: size.target, paddingHorizontal: space[4], borderRadius: radius.pill, borderWidth: 1, borderColor: c.line, backgroundColor: c.card, justifyContent: 'center' }}>
-            <Txt v="label" tone="ink">{t.menu.other}</Txt>
-          </PressScale>
-        </View>
+      <SafeAreaView testID="sign-in" style={{ flex: 1, backgroundColor: c.bg }} edges={['top', 'left', 'right', 'bottom']}>
+        <BrandBar end={toLang} />
+        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1, paddingHorizontal: space[4], paddingTop: space[6], paddingBottom: space[6], gap: 18 }}>
+          <PageTitle testID={`step-${step}`} sub={<Txt v="body" tone="muted" testID="sent-to">{sub}</Txt>}>{head}</PageTitle>
 
-        <View style={{ flex: 1, justifyContent: 'center', paddingVertical: space[6] }}>
-          <ArchCard>
-            <Txt v="title" tone="plum" center accessibilityRole="text" testID="brandmark"
-              style={{ fontFamily: ar ? fonts.arDisplayBold : fonts.display, fontSize: 22, lineHeight: ar ? 36 : 28 }}>{t.appName}</Txt>
-            <View style={{ alignItems: 'center', marginBottom: space[1] }}><Icon name="env" size={40} color={c.plum} /></View>
-            {!isConfigured ? (
-              <>
-                <Txt v="title" center style={heading}>{L.cfgH}</Txt>
-                <Txt v="body" tone="muted" center>{L.cfgP}</Txt>
-              </>
-            ) : step === 'email' ? (
-              <>
-                <Txt v="label" tone="muted" center>{L.kick}</Txt>
-                <Txt v="title" center style={heading}>{L.h}</Txt>
-                <Txt v="body" tone="muted" center>{L.sub}</Txt>
-                <View style={{ gap: space[3], marginTop: space[4] }}>
-                  <Field label={L.email} value={email} onChangeText={(v) => { setEmail(v); if (error) setError(''); }} placeholder={t.emailPlaceholder} ltr
-                    autoCapitalize="none" autoCorrect={false} autoComplete="email" keyboardType="email-address" textContentType="emailAddress"
-                    inputMode="email" onSubmitEditing={sendCode} returnKeyType="send" error={error || undefined} testID="email" />
-                  <Button label={L.send} kind="primary" block onPress={sendCode} busy={busy} testID="send-code" />
+          {step === 'create' ? (
+            <Field label={A.yourName} value={name} onChangeText={(v) => { setName(v); setErrs((e) => ({ ...e, name: undefined })); }} autoComplete="name" textContentType="name"
+              returnKeyType="next" error={errs.name} testID="name" />
+          ) : null}
+          {step !== 'code' && phoneMode ? (
+            <Field label={A.phone} value={phone} onChangeText={(v) => { setPhone(v); setErrs((e) => ({ ...e, phone: undefined })); }} ltr placeholder="9876 5432"
+              keyboardType="phone-pad" inputMode="tel" autoComplete="tel" textContentType="telephoneNumber" error={errs.phone} testID="phone"
+              onSubmitEditing={step === 'login' ? () => send() : undefined} />
+          ) : null}
+          {step !== 'code' && (!phoneMode || step === 'create') ? (
+            <Field label={phoneMode ? A.emailOpt : A.email} value={email} onChangeText={(v) => { setEmail(v); setErrs((e) => ({ ...e, email: undefined })); }} ltr
+              placeholder={t.emailPlaceholder} autoCapitalize="none" autoCorrect={false} autoComplete="email" keyboardType="email-address" textContentType="emailAddress"
+              inputMode="email" error={errs.email} testID="email" onSubmitEditing={() => send()} returnKeyType="send" />
+          ) : null}
+          {errs.send ? <Txt v="small" tone="no" accessibilityRole="alert" testID="send-err">{errs.send}</Txt> : null}
+
+          {step === 'code' ? (
+            <View style={{ gap: space[3] }}>
+              <CodeBoxes ref={boxes} value={code} label={t.login.code} bad={codeErr === 'wrong'} testID="code"
+                onChange={(v) => { setCode(v); if (codeErr === 'wrong') setCodeErr(''); }} onDone={() => undefined} />
+              {codeErr === 'wrong' ? (
+                <View style={{ gap: space[1] }}>
+                  <Txt v="small" tone="no" accessibilityRole="alert" testID="code-wrong">{A.wrong}</Txt>
+                  {wait ? null : <Button small kind="quiet" label={A.resend} onPress={() => send(true)} testID="resend" style={{ marginStart: -space[4] }} />}
                 </View>
-              </>
-            ) : (
-              <>
-                <Txt v="label" tone="muted" center>{L.kick2}</Txt>
-                <Txt v="title" center style={heading}>{L.h2}</Txt>
-                <Txt v="body" tone="muted" center testID="sent-to">{L.sent(iso(email))}</Txt>
-                <View style={{ gap: space[3], marginTop: space[4] }}>
-                  <Field ref={codeRef} label={L.code} value={code} onChangeText={(v) => { setCode(v); if (error) setError(''); }} ltr
-                    keyboardType="number-pad" inputMode="numeric" autoComplete="one-time-code" textContentType="oneTimeCode" maxLength={8}
-                    onSubmitEditing={verify} returnKeyType="done" error={error || undefined} testID="code" />
-                  <Button label={L.verify} kind="primary" block onPress={verify} busy={busy} testID="verify" />
-                  <Button label={L.back} kind="quiet" onPress={() => { setStep('email'); setCode(''); setError(''); }} style={{ alignSelf: 'center' }} testID="use-other-email" />
+              ) : codeErr === 'expired' ? (
+                <View style={{ gap: space[2], alignItems: 'flex-start' }}>
+                  <Txt v="small" tone="no" accessibilityRole="alert" testID="code-expired">{A.expired}</Txt>
+                  <Button small kind="secondary" label={A.newCode} onPress={() => send(true)} busy={busy} testID="new-code" />
                 </View>
-              </>
-            )}
-          </ArchCard>
-        </View>
-      </Screen>
+              ) : wait ? (
+                <Txt v="small" testID="resend-wait">{resentNote ? `${A.resent}. ` : ''}{A.resendIn(`0:${String(wait).padStart(2, '0')}`)}</Txt>
+              ) : (
+                <Button small kind="quiet" label={A.resend} onPress={() => send(true)} testID="resend" style={{ alignSelf: 'flex-start', marginStart: -space[4] }} />
+              )}
+              <Button small kind="quiet" label={phoneMode ? A.otherPhone : t.login.back} onPress={back(from)} testID="use-other-email" style={{ alignSelf: 'flex-start', marginStart: -space[4] }} />
+            </View>
+          ) : null}
+        </ScrollView>
+        <View style={{ borderTopWidth: 1, borderTopColor: c.line, backgroundColor: c.bg, paddingHorizontal: space[4], paddingTop: space[3], paddingBottom: space[4], gap: space[2] }}>{footer}</View>
+      </SafeAreaView>
     </KeyboardAvoidingView>
-  );
-}
-
-/** The web login box: an arch-topped card with a hairline inside it. */
-function ArchCard({ children }: { children: ReactNode }) {
-  const { c, theme } = useApp();
-  const [wd, setWd] = useState(358);
-  const r = Math.min(220, wd / 2);
-  return (
-    <View onLayout={(e) => setWd(e.nativeEvent.layout.width)}
-      style={[{ width: '100%', maxWidth: 400, alignSelf: 'center', backgroundColor: c.card, borderWidth: 1, borderColor: c.line, borderTopLeftRadius: r, borderTopRightRadius: r, borderBottomLeftRadius: 20, borderBottomRightRadius: 20, paddingTop: 58, paddingHorizontal: 26, paddingBottom: 30, gap: space[2] }, shadow(theme, true)]}>
-      <View pointerEvents="none" style={{ position: 'absolute', top: 8, left: 8, right: 8, bottom: 8, borderWidth: 1, borderColor: c.line, borderTopLeftRadius: r - 8, borderTopRightRadius: r - 8, borderBottomLeftRadius: 13, borderBottomRightRadius: 13 }} />
-      {children}
-    </View>
   );
 }

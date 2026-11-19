@@ -47,8 +47,10 @@ type Ctx = {
   /** the phone asks for less motion */
   reduceMotion: boolean;
   session: Session | null;
-  /** the login's email, lower case ('' when logged out) */
+  /** the login's email, lower case ('' when logged out or a phone login) */
   email: string;
+  /** the login's phone, digits with the country code ('' for an email login) */
+  phone: string;
   sessionLoaded: boolean;
 };
 
@@ -85,7 +87,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo<Ctx>(
     () => ({
       lang, rtl: lang === 'ar', t: strings[lang], f: fill, setLang, theme, c, themePref, setThemePref, reduceMotion,
-      session, email: (session?.user.email ?? '').toLowerCase(), sessionLoaded,
+      session, email: (session?.user.email ?? '').toLowerCase(), phone: String(session?.user.phone ?? '').replace(/\D/g, ''), sessionLoaded,
     }),
     [lang, setLang, theme, c, themePref, setThemePref, reduceMotion, session, sessionLoaded],
   );
