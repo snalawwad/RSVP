@@ -38,10 +38,10 @@ try {
       <div class="dmeter" id="meter">
         <div class="dm-row">
           <p class="dm-n"><b id="mIn" class="num">0</b><span class="dm-l" id="mL"></span></p>
+          <button class="dm-wait" id="waitChip" type="button" hidden><span class="dot tone-wait" aria-hidden="true"></span><span id="waitL"></span><i class="i i-chev sm" aria-hidden="true"></i></button>
         </div>
         <div class="dm-row2" id="mRow2">
           <p class="dm-s" id="mS"></p>
-          <button class="dm-wait" id="waitChip" type="button" hidden><span id="waitL"></span><i class="i i-chev sm" aria-hidden="true"></i></button>
         </div>
         <div class="dm-bar" id="mBarBox" aria-hidden="true"><i id="mBar"></i></div>
       </div>
@@ -449,7 +449,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (list.length) prevPct = pct;
     const pend = v2 ? reqs.filter(r => r.status === 'pending').length : 0;
     $('#waitChip').hidden = !pend; $('#waitL').textContent = t.waitChip(pend);
-    $('#mRow2').hidden = !pend && !$('#mS').textContent;
+    $('#mRow2').hidden = !$('#mS').textContent;
   }
   function celebrate(msg) { toast(msg); }
   $('#waitChip').onclick = () => {
