@@ -382,20 +382,20 @@ document.addEventListener('DOMContentLoaded', function () {
     if (view === 'link') {
       const yes = draft.choice !== 'no';
       P.head = head(yes ? t.who : t.declineQ, '', 'main');
-      P.form = `<div class="field"><label for="gname">${t.yourName}</label><input id="gname" type="text" autocomplete="name" placeholder="${t.namePh}" value="${esc(draft.name)}"></div>
-        ${yes ? '' : `<div class="field"><label for="reason">${t.addNote}</label><textarea id="reason" rows="3" placeholder="${t.notePh}">${esc(draft.reason)}</textarea></div>`}`;
+      P.form = `<div class="field"><label for="gname">${t.yourName}</label><input id="gname" dir="auto" type="text" autocomplete="name" placeholder="${t.namePh}" value="${esc(draft.name)}"></div>
+        ${yes ? '' : `<div class="field"><label for="reason">${t.addNote}</label><textarea id="reason" dir="auto" rows="3" placeholder="${t.notePh}">${esc(draft.reason)}</textarea></div>`}`;
       P.bar = bar(btn(yes ? 'linkYes' : 'linkNo', t.send));
       return { m: ['head', 'form', 'bar'], l: ['card', 'details'], r: ['head', 'form', 'bar'] };
     }
     if (view === 'note') {   // G01a: the reply is saved; a note is optional
       P.head = head(t.told);
-      P.form = `<div class="field"><label for="reason">${t.addNote}</label><textarea id="reason" rows="3" placeholder="${t.notePh}">${esc(draft.reason)}</textarea></div>`;
+      P.form = `<div class="field"><label for="reason">${t.addNote}</label><textarea id="reason" dir="auto" rows="3" placeholder="${t.notePh}">${esc(draft.reason)}</textarea></div>`;
       P.bar = bar(btn('sendNote', t.sendNote), '', isOpen() && canChange() ? `<button type="button" class="tlink" data-act="afterAll">${t.afterAll}</button>` : '');
       return { m: ['head', 'form', 'bar'], l: ['card', 'details'], r: ['head', 'form', 'bar'] };
     }
     if (view === 'decline') {   // a reply that can't be changed later: confirm first
       P.head = head(t.declineQ, t.once, 'main');
-      P.form = `<div class="field"><label for="reason">${t.addNote}</label><textarea id="reason" rows="3" placeholder="${t.notePh}">${esc(draft.reason)}</textarea></div>`;
+      P.form = `<div class="field"><label for="reason">${t.addNote}</label><textarea id="reason" dir="auto" rows="3" placeholder="${t.notePh}">${esc(draft.reason)}</textarea></div>`;
       P.bar = bar(btn('sendNo', t.send));
       return { m: ['head', 'form', 'bar'], l: ['card', 'details'], r: ['head', 'form', 'bar'] };
     }
@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function () {
       P.form = `<div class="choices" role="radiogroup" aria-labelledby="h">${yes
         ? opt('yes', t.still, inv.seats > 1 && canCount() ? t.stillN : t.stillOne) + opt('no', t.cantNow, t.cantNowSub)
         : opt('yes', t.canCome, t.canComeSub) + opt('no', t.stillCant, t.stillCantSub)}</div>
-        <div class="field" id="msgF"${c === 'no' ? '' : ' hidden'}><label for="reason">${t.msgHosts}</label><textarea id="reason" rows="3" placeholder="${t.notePh}">${esc(draft.reason)}</textarea></div>`;
+        <div class="field" id="msgF"${c === 'no' ? '' : ' hidden'}><label for="reason">${t.msgHosts}</label><textarea id="reason" dir="auto" rows="3" placeholder="${t.notePh}">${esc(draft.reason)}</textarea></div>`;
       P.bar = bar(btn('doChange', t.update));
       return { m: ['head', 'form', 'bar'], l: ['card', 'details'], r: ['head', 'form', 'bar'] };
     }
