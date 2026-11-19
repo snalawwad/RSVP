@@ -31,7 +31,7 @@
       cH: 'Enter the code', cSent: w => PHONE ? `Sent to <bdi dir="ltr">${w}</bdi> on WhatsApp.` : `Sent to <bdi dir="ltr">${w}</bdi>. You can also tap the link in the email.`,
       cSentG: w => PHONE ? `We texted a code to <bdi dir="ltr">${w}</bdi>.` : `We sent a code to <bdi dir="ltr">${w}</bdi>.`,
       codeL: 'Login code', digit: (i, n) => `Digit ${i} of ${n}`,
-      resendIn: s => `Resend code in ${s}`, resend: 'Resend code', newCode: 'Send a new code', cont: 'Continue', other: PHONE ? 'Use a different number' : 'Use a different email',
+      resendIn: s => `Resend code in ${s}`, resend: 'Resend code', newCode: 'Send a new code', cont: 'Log in', contUp: 'Create my account', other: PHONE ? 'Use a different number' : 'Use a different email',
       wrong: 'That code isn’t right. Check the message and try again.', expired: 'This code has expired.', resent: 'We sent a new code',
       needName: 'Type your name', badPhone: 'Type a full phone number', badEmail: 'Type a full email address',
       sendFail: 'We couldn’t send the code. Check your connection and try again.', tooMany: 'Too many codes asked for. Wait a minute, then try again.',
@@ -50,7 +50,7 @@
       cH: 'اكتبوا الرمز', cSent: w => PHONE ? `أرسلناه إلى <bdi dir="ltr">${w}</bdi> على الواتساب.` : `أرسلناه إلى <bdi dir="ltr">${w}</bdi>. وتقدرون تضغطون الرابط اللي بالإيميل بعد.`,
       cSentG: w => PHONE ? `أرسلنا رمز إلى <bdi dir="ltr">${w}</bdi>.` : `أرسلنا رمز إلى <bdi dir="ltr">${w}</bdi>.`,
       codeL: 'رمز الدخول', digit: (i, n) => `الرقم ${i} من ${n}`,
-      resendIn: s => `تقدرون تطلبون رمز جديد بعد ${s}`, resend: 'أرسلوا الرمز مرة ثانية', newCode: 'أرسلوا رمز جديد', cont: 'كمّلوا', other: PHONE ? 'استخدموا رقم ثاني' : 'استخدموا إيميل ثاني',
+      resendIn: s => `تقدرون تطلبون رمز جديد بعد ${s}`, resend: 'أرسلوا الرمز مرة ثانية', newCode: 'أرسلوا رمز جديد', cont: 'سجّلوا الدخول', contUp: 'سوّوا الحساب', other: PHONE ? 'استخدموا رقم ثاني' : 'استخدموا إيميل ثاني',
       wrong: 'الرمز مو صحيح. شيّكوا الرسالة وجربوا مرة ثانية.', expired: 'انتهت صلاحية الرمز.', resent: 'أرسلنا لكم رمز جديد',
       needName: 'اكتبوا اسمكم', badPhone: 'اكتبوا رقم التلفون كامل', badEmail: 'اكتبوا الإيميل كامل',
       sendFail: 'ما قدرنا نرسل الرمز. شيّكوا النت وجربوا مرة ثانية.', tooMany: 'طلبتوا رموز واجد. انطروا دقيقة وجربوا مرة ثانية.',
@@ -124,7 +124,7 @@
           <label class="codebox${s.err ? ' bad' : ''}" for="auCode"><span class="sr">${T0.codeL}</span><input id="auCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="${LEN}" dir="ltr" value="${esc(s.code)}" aria-invalid="${!!s.err}"><span class="cbs" aria-hidden="true">${boxes}</span></label>
           ${err}<div class="au-again">${resend}</div>
           <button type="button" class="btn quiet au-other" id="auOther">${T0.other}</button></div>
-        <div class="scr-foot"><button type="button" class="btn primary block" id="auGo" ${s.code.length === LEN && !s.err ? '' : 'disabled'}>${T0.cont}</button></div></div>`;
+        <div class="scr-foot"><button type="button" class="btn primary block" id="auGo" ${s.code.length === LEN && !s.err ? '' : 'disabled'}>${s.from === 'signup' ? T0.contUp : T0.cont}</button></div></div>`;
     }
     s.el.innerHTML = html;
     wire();

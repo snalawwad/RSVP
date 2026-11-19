@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const step = STEP_OF[screen], sub = !!SUB[screen];
     const head = `<div class="fl-top"><button type="button" class="fl-back" id="flBack" aria-label="${esc(t.back)}"><i class="i i-chev"></i></button><p class="fl-title">${esc(opts.title || (ev && ev.title && step > 0 ? ev.title : t.title))}</p><button type="button" class="au-lang" id="flLang" lang="${lang === 'ar' ? 'en' : 'ar'}">${t.other}</button></div>`;
     const done = i => !!ev && (i === 0 ? !!(ev.title && ev.starts_at && ev.venue) : i === 1 ? STEP_OF[screen] > 1 || !!ls.get('new-team-' + ev.id) : i === 2 ? STEP_OF[screen] > 2 || !!ev.design_style : i === 3 ? guests.length > 0 && STEP_OF[screen] > 3 : false);
-    const rail = sub ? '' : `<ol class="rail" aria-label="${esc(t.railL)}">${t.rail.map((l, i) => `<li><button type="button" data-rail="${i}" class="${done(i) ? 'done' : ''}" ${i === step ? 'aria-current="step"' : ''} ${!ev || (i > step && !done(i - 1)) ? 'disabled' : ''}><b>0${i + 1}</b><span>${l}</span></button></li>`).join('')}</ol>`;
+    const rail = sub ? '' : `<div role="group" aria-label="${esc(t.railL)}"><ol class="rail">${t.rail.map((l, i) => `<li><button type="button" data-rail="${i}" class="${done(i) ? 'done' : ''}" ${i === step ? 'aria-current="step"' : ''} ${!ev || (i > step && !done(i - 1)) ? 'disabled' : ''}><b>0${i + 1}</b><span>${l}</span></button></li>`).join('')}</ol></div>`;
     $('#root').innerHTML = `<div class="scr">${head}${rail}<div class="scr-main">${body}</div>${foot ? `<div class="scr-foot">${foot}</div>` : ''}</div>`;
     $('#flBack').onclick = back;
     $('#flLang').onclick = () => { lang = lang === 'ar' ? 'en' : 'ar'; ls.set('host-lang', lang); applyLang(); };
@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let cells = wd.map(w => `<span class="wd" aria-hidden="true">${w}</span>`).join('') + '<span></span>'.repeat(first.getUTCDay());
     for (let d = 1; d <= days; d++) { const iso = `${calMonth}-${String(d).padStart(2, '0')}`; cells += `<button type="button" data-d="${iso}" aria-pressed="${iso === draft.date}" ${iso < today ? 'disabled' : ''} aria-label="${esc(new Date(iso + 'T12:00:00Z').toLocaleDateString(loc, { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }))}">${d}</button>`; }
     frame(`<h1 class="scr-h">${t.whenH}</h1>
-      <div class="cal"><div class="cal-top"><p class="cal-m">${esc(mName)}</p><button type="button" class="cal-nav prev" id="calP" aria-label="${esc(t.prevM)}"><i class="i i-chev sm"></i></button><button type="button" class="cal-nav next" id="calN" aria-label="${esc(t.nextM)}"><i class="i i-chev sm"></i></button></div><div class="cal-g">${cells}</div></div>
+      <div class="cal"><div class="cal-top" role="group" aria-label="${esc(mName)}"><p class="cal-m">${esc(mName)}</p><button type="button" class="cal-nav prev" id="calP" aria-label="${esc(t.prevM)}"><i class="i i-chev sm"></i></button><button type="button" class="cal-nav next" id="calN" aria-label="${esc(t.nextM)}"><i class="i i-chev sm"></i></button></div><div class="cal-g" role="group" aria-label="${esc(mName)}">${cells}</div></div>
       <div class="two">${field('fTime', t.starts, draft.time, 'type="time"')}${field('fEnd', t.ends, draft.end, 'type="time"')}</div>
       ${field('fReply', t.replyBy, draft.reply, `type="date" min="${today}"`)}`, foot('goNext', t.saveWhen, !!(draft.date && draft.time)));
     const ok = () => { $('#goNext').disabled = !(draft.date && draft.time); };
@@ -326,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const cur = COLOURS.find(c => c[0].toLowerCase() === String(draft.accent || '').toLowerCase());
     frame(`<h1 class="scr-h">${t.styleH}</h1><p class="scr-p">${t.styleP}</p><div class="choices">${['classic', 'modern', 'minimal'].map(k => choice(k, draft.style === k, t.STY[k], '', '', '', `<div class="ch-body" style="flex-basis:100%">${card({ design_style: k, theme_accent: draft.accent, noImg: true })}</div>`)).join('')}</div>
       <div class="sw-row"><p class="sec-k">${t.colour}</p><p class="sec-k" style="color:var(--ink)">${cur ? cur[lang === 'ar' ? 2 : 1] : ''}</p></div>
-      <div class="swatches" role="group" aria-label="${esc(t.colour)}">${COLOURS.map(c => `<button type="button" class="swatch" data-col="${c[0]}" style="background:${c[0]}" aria-pressed="${!!cur && cur[0] === c[0]}" aria-label="${esc(c[lang === 'ar' ? 2 : 1])}"></button>`).join('')}</div>`,
+      <div class="swatches" role="group" aria-label="${esc(t.colour)}">${COLOURS.map(c => `<button type="button" class="swatch" data-col="${c[0]}" aria-pressed="${!!cur && cur[0] === c[0]}" aria-label="${esc(c[lang === 'ar' ? 2 : 1])}"><span style="background:${c[0]}"></span></button>`).join('')}</div>`,
       foot('goNext', t.saveStyle), { title: t.style });
     bindChoices(k => { draft.style = k; drawStyle(); });
     document.querySelectorAll('[data-col]').forEach(b => b.onclick = () => { draft.accent = b.dataset.col; drawStyle(); });

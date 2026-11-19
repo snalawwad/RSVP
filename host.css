@@ -386,9 +386,9 @@ body.app .au-other{align-self:flex-start;padding-inline:0;color:var(--muted);fon
 [dir="rtl"] .fl-back .i{transform:none}
 .fl-title{flex:1;min-width:0;font-family:var(--display);font-weight:600;font-size:var(--fs-b);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0}
 html[lang="ar"] .fl-title{font-family:var(--body)}
-.rail{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin:0 -16px;padding:0 8px;border-bottom:1px solid var(--line);list-style:none}
+.rail{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin:0 -16px;padding:0 4px;border-bottom:1px solid var(--line);list-style:none}
 .rail li{min-width:0}
-.rail button{all:unset;box-sizing:border-box;width:100%;display:flex;flex-direction:column;align-items:center;min-height:56px;padding:6px 2px 8px;cursor:pointer;position:relative;color:var(--muted);text-align:center}
+.rail button{all:unset;box-sizing:border-box;width:100%;display:flex;flex-direction:column;align-items:center;min-height:56px;padding:6px 0 8px;cursor:pointer;position:relative;color:var(--muted);text-align:center}
 .rail button:disabled{cursor:default}
 .rail b{font-family:var(--display);font-weight:600;font-size:var(--fs-name);line-height:1.2;font-variant-numeric:lining-nums}
 .rail span{font-size:var(--fs-s);line-height:1.2;overflow:hidden;text-overflow:ellipsis;max-width:100%;white-space:nowrap}
@@ -443,7 +443,8 @@ button.line:focus-visible,a.line:focus-visible{outline:2px solid var(--focus);ou
 .cal-g .wd{font-size:var(--fs-s);color:var(--muted);padding:4px 0}
 .cal-g button{height:44px;width:44px;max-width:100%;justify-self:center;border:0;border-radius:50%;background:none;color:var(--ink);font-size:var(--fs-s);font-variant-numeric:tabular-nums}
 .cal-g button:disabled{color:var(--muted);opacity:.5}
-.cal-g button[aria-pressed="true"]{background:var(--plum);color:var(--plum-ink);font-weight:600}
+.cal-g button[aria-pressed="true"]{box-shadow:inset 0 0 0 2px var(--plum);color:var(--plum);font-weight:700;background:var(--accent-soft)}
+@media (max-width:360px){.cal{margin:0 -16px;border-radius:0;border-inline:0;padding:8px 2px}.cal-g{gap:0}}
 .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
 .check-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;font-size:var(--fs-b);color:var(--ink);cursor:pointer}
 .check-row input{width:22px;height:22px;flex:none;accent-color:var(--plum)}
@@ -452,7 +453,7 @@ button.line:focus-visible,a.line:focus-visible{outline:2px solid var(--focus);ou
 .prev-card{border:1px solid var(--line);border-radius:var(--r-l);background:var(--t-paper,var(--card));color:var(--t-ink,var(--ink));padding:22px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
 .prev-card .pc-k,.prev-card .pc-s{margin:0;font-size:var(--fs-s);color:var(--t-muted,var(--muted))}
 .prev-card .pc-t{margin:0;font-family:var(--display);font-weight:600;font-size:var(--fs-h);line-height:1.2;color:var(--t-ink,var(--ink));overflow-wrap:anywhere}
-.prev-card.big .pc-t{font-size:var(--fs-num);line-height:1.08}
+.prev-card.big .pc-t{font-size:var(--fs-num);line-height:1.18}
 html[lang="ar"] .prev-card .pc-t{line-height:1.5}
 .prev-card .pc-w{margin:4px 0 0;font-size:var(--fs-s);font-weight:600;color:var(--t-accent,var(--plum))}
 .prev-card .pc-mark{background:var(--t-accent,var(--plum))}
@@ -464,7 +465,8 @@ html[lang="ar"] .prev-card .pc-t{line-height:1.5}
 .hint{display:flex;gap:10px;align-items:flex-start;margin:0;font-size:var(--fs-s);color:var(--muted)}
 .hint .i{flex:none;color:var(--plum)}
 .swatches{display:flex;gap:10px;flex-wrap:wrap}
-.swatch{width:44px;height:44px;border-radius:50%;border:3px solid var(--card);box-shadow:0 0 0 1px var(--line)}
+.swatch{width:44px;height:44px;border-radius:50%;border:0;padding:3px;background:var(--card);box-shadow:0 0 0 1px var(--line)}
+.swatch span{display:block;width:100%;height:100%;border-radius:50%}
 .swatch[aria-pressed="true"]{box-shadow:0 0 0 2px var(--plum)}
 .sw-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
 .upbox{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:22px 16px;border:1.5px dashed var(--field-line);border-radius:var(--r-l);background:var(--card);text-align:center;cursor:pointer;color:var(--plum);font-weight:600}

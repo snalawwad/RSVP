@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const HW = (l, f) => App.hostWord(l, f);
   const T = {
     en: { title: HW('en', 'page'), other: 'العربية', out: 'Log out', home: 'Home', close: 'Close', admin: 'Admin', door: 'Door',
-      tHome: 'Home', tGuests: 'Guests', tInvite: 'Invite', tArr: 'Arrivals', doorScreen: 'Open the door screen',
+      tHome: 'Overview', tGuests: 'Guests', tInvite: 'Invite', tArr: 'Arrivals', doorScreen: 'Open the door screen',
       // home
       hero: n => n === 0 ? '<span class="hero-w">No one has said yes yet</span>' : `<b class="t-num">${n}</b> <span class="hero-w">${n === 1 ? 'person' : 'people'} coming</span>`,
       heroOf: (p, g) => `out of ${E(p)} invited (${E(g, 'guest')})`,
@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
       askSent: nm => `Did you send it to ${nm}?`, askHelp: 'We only mark it as sent when you say so.', yesSent: 'Yes, it’s sent', notYet: 'Not yet', openAgain: 'Open WhatsApp again',
       doneTo: { send: nm => `Sent to ${nm}`, remind: nm => `Reminder sent to ${nm}`, update: nm => `Update sent to ${nm}` },
       endT: (s, k) => (s ? `Sent to ${E(s, 'guest')}` : 'Nothing was sent this time') + (k ? ` · ${E(k, 'guest')} skipped` : ''),
-      sqNone: { send: 'Everyone on this list has their invitation.', remind: 'No one to remind right now.', update: 'No one to tell.' }, sqEndP: 'Replies will show up on Home as they come in.',
+      sqNone: { send: 'Everyone on this list has their invitation.', remind: 'No one to remind right now.', update: 'No one to tell.' }, sqEndP: 'Replies will show up on Overview as they come in.',
       remindTpl: 'Hello {name}, a gentle reminder about {event} on {date} at {time}. Please let us know if you can make it:\n{link}',
       updTpl: v => 'Hello {name}, a quick update about {event}: it’s now on {date} at {time}' + (v ? ', at {venue}' : '') + '.\n\nYour invitation link has all the details:\n{link}',
       // invite
@@ -278,13 +278,13 @@ document.addEventListener('DOMContentLoaded', function () {
       loadErrEv: 'Couldn’t load your events', loadErrG: 'Couldn’t load the guest list', doorH: 'Door check-in', doorP: 'Your account is set up for checking guests in at the door.', doorBtn: 'Open the door screen',
       noEvH: 'We’re preparing your event', noEvP: 'There’s no event linked to this email yet. Message us on WhatsApp and we’ll add it.',
       adminNoH: 'No events yet', adminNoP: 'You’re an admin. Create events and add people’s emails on the admin page.', adminNoB: 'Open the admin page',
-      help: [['How do I send the invitations?', 'On Home or Guests, tap Send the invitations. WhatsApp opens for one guest at a time. Send the message there, come back here and tap Yes, it’s sent.'],
+      help: [['How do I send the invitations?', 'On Overview or Guests, tap Send the invitations. WhatsApp opens for one guest at a time. Send the message there, come back here and tap Yes, it’s sent.'],
         ['Why do you ask “Did you send it?”', 'Opening WhatsApp doesn’t mean the message went. We only mark a guest as invited when you say so, so no one is missed.'],
         ['What’s the difference between guests and people?', 'A guest is one invitation, like a family. People are everyone who can come on that invitation. A guest with 3 people means up to 3 can come, the guest included.'],
-        ['The door is asking me something', 'When someone at the door needs your OK, a red bar shows on Home. Tap it, then choose Let them in or Turn them down. You have a few seconds to undo a Turn them down.'],
+        ['The door is asking me something', 'When someone at the door needs your OK, a red bar shows on Overview. Tap it, then choose Let them in or Turn them down. You have a few seconds to undo a Turn them down.'],
         ['I changed the date, time or place', 'After you save, we offer to tell the guests who already got the invitation, one by one on WhatsApp.']] },
     ar: { title: HW('ar', 'page'), other: 'English', out: 'تسجيل خروج', home: 'الرئيسية', close: 'إغلاق', admin: 'الإدارة', door: 'الباب',
-      tHome: 'الرئيسية', tGuests: 'الضيوف', tInvite: 'الدعوة', tArr: 'الحضور', doorScreen: 'افتحوا شاشة الباب',
+      tHome: 'الملخص', tGuests: 'الضيوف', tInvite: 'الدعوة', tArr: 'الحضور', doorScreen: 'افتحوا شاشة الباب',
       hero: n => n === 0 ? '<span class="hero-w">ما أحد أكد حضوره للحين</span>' : n === 1 ? '<b class="hero-b">شخص واحد</b> <span class="hero-w">بيحضر</span>' : n === 2 ? '<b class="hero-b">شخصين</b> <span class="hero-w">بيحضرون</span>'
         : `<b class="t-num">${n}</b> <span class="hero-w">${n % 100 >= 3 && n % 100 <= 10 ? 'أشخاص' : 'شخص'} بيحضرون</span>`,
       heroOf: (p, g) => `من أصل ${A(p)} (${A(g, 'guest')})`,
@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function () {
       askSent: nm => `أرسلتوها إلى ${nm}؟`, askHelp: 'ما نحسبها انرسلت إلا إذا قلتوا إي.', yesSent: 'إي، انرسلت', notYet: 'للحين لا', openAgain: 'افتحوا الواتساب مرة ثانية',
       doneTo: { send: nm => `انرسلت الدعوة إلى ${nm}`, remind: nm => `انرسل التذكير إلى ${nm}`, update: nm => `انرسل التبليغ إلى ${nm}` },
       endT: (s, k) => (s ? `انرسلت إلى ${A(s, 'guest')}` : 'ما انرسل شي هالمرة') + (k ? `، وتخطيتوا ${A(k, 'guest')}` : ''),
-      sqNone: { send: 'كل هالضيوف وصلتهم الدعوة.', remind: 'ما في أحد تذكرونه الحين.', update: 'ما في أحد تبلغونه.' }, sqEndP: 'الردود بتطلع لكم بالرئيسية أول بأول.',
+      sqNone: { send: 'كل هالضيوف وصلتهم الدعوة.', remind: 'ما في أحد تذكرونه الحين.', update: 'ما في أحد تبلغونه.' }, sqEndP: 'الردود بتطلع لكم بالملخص أول بأول.',
       remindTpl: 'هلا {الاسم}، حبينا نذكركم بـ{المناسبة} يوم {التاريخ} الساعة {الوقت}. ياليت تردون علينا من هالرابط:\n{الرابط}',
       updTpl: v => 'هلا {الاسم}، حبينا نبلغكم بتغيير بسيط: {المناسبة} صارت يوم {التاريخ} الساعة {الوقت}' + (v ? '، في {المكان}' : '') + '.\n\nكل التفاصيل برابط دعوتكم:\n{الرابط}',
       persH: 'الدعوات الشخصية', persP: 'كل ضيف توصله رسالة باسمه ورابط رد خاص فيه. هذي أفضل طريقة للدعوة.',
@@ -378,10 +378,10 @@ document.addEventListener('DOMContentLoaded', function () {
       loadErrEv: 'ما قدرنا نحمّل مناسباتكم', loadErrG: 'ما قدرنا نحمّل قائمة الضيوف', doorH: 'تسجيل وصول الضيوف', doorP: 'حسابكم مخصص للباب، تسجلون فيه الضيوف أول ما يوصلون.', doorBtn: 'افتحوا شاشة الباب',
       noEvH: 'قاعدين نجهّز مناسبتكم', noEvP: 'هذا الإيميل مو مربوط بأي مناسبة للحين. راسلونا على الواتساب ونضيفها لكم.',
       adminNoH: 'ما في مناسبات للحين', adminNoP: 'عندكم صلاحية الإدارة. سوّوا المناسبات وأضيفوا إيميلات الناس من صفحة الإدارة.', adminNoB: 'افتحوا صفحة الإدارة',
-      help: [['كيف نرسل الدعوات؟', 'من الرئيسية أو الضيوف اضغطوا «أرسلوا الدعوات». الواتساب يفتح لكل ضيف بروحه، أرسلوا الرسالة هناك وارجعوا هني واضغطوا «إي، انرسلت».'],
+      help: [['كيف نرسل الدعوات؟', 'من الملخص أو الضيوف اضغطوا «أرسلوا الدعوات». الواتساب يفتح لكل ضيف بروحه، أرسلوا الرسالة هناك وارجعوا هني واضغطوا «إي، انرسلت».'],
         ['ليش نسألكم إذا انرسلت؟', 'فتح الواتساب ما يعني إن الرسالة راحت. ما نحسب الضيف وصلته الدعوة إلا إذا قلتوا إي، عشان ما يفوتكم أحد.'],
         ['وش الفرق بين الضيف والشخص؟', 'الضيف يعني دعوة وحدة، مثل عائلة. والأشخاص هم كل اللي يقدرون يجون على هالدعوة. ضيف بـ3 أشخاص يعني يقدرون يجون 3 أشخاص بالكثير، والضيف منهم.'],
-        ['الباب يسألكم عن ضيف', 'إذا اللي على الباب يحتاج موافقتكم، يطلع لكم شريط أحمر بالرئيسية. اضغطوه واختاروا «إي، خلوهم يدخلون» أو «لا، ما يدخلون». وعندكم كم ثانية تتراجعون فيها عن الرفض.'],
+        ['الباب يسألكم عن ضيف', 'إذا اللي على الباب يحتاج موافقتكم، يطلع لكم شريط أحمر بالملخص. اضغطوه واختاروا «إي، خلوهم يدخلون» أو «لا، ما يدخلون». وعندكم كم ثانية تتراجعون فيها عن الرفض.'],
         ['غيّرتوا الموعد أو المكان؟', 'بعد الحفظ نسألكم إذا تبون تبلغون الضيوف اللي وصلتهم الدعوة، واحد واحد على الواتساب.']] }
   };
   // ---------- self-serve launch screens (Figma 04, 24g, 24e, 24c, 24k–24m, 24h–24j, 24f, 24b, 27, 27a) ----------
@@ -586,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function () {
     clearInterval(poll); if (channel) { sb.removeChannel(channel); channel = null; }
     $('#dash').hidden = true; $('#tabs').hidden = true; $('#evHome').hidden = false;
     if (location.search || location.hash !== '#events') history.replaceState(null, '', 'host.html#events');
-    $('#tbTitle').textContent = ''; document.title = App.brandTitle(t.yourEvents, lang);
+    $('#tbTitle').textContent = App.BRAND[lang]; $('#tbTitle').classList.add('on'); document.title = App.brandTitle(t.yourEvents, lang);
     if (noEv === 'door' || noEv === 'admin') { $('#evHome').innerHTML = ''; showNoEvents(); return; }
     $('#auth').innerHTML = '';
     const loc = lang === 'ar' ? 'ar-KW-u-nu-latn' : 'en-GB';
@@ -1350,6 +1350,8 @@ document.addEventListener('DOMContentLoaded', function () {
   function renderInvite() {
     if (!ev) return;
     const s = stats(guests), n = s.unsent.length, box = $('#invSend');
+    // a self-serve event whose invites are all out: the invite card leads (Figma 24c); the send panel comes back when someone is waiting
+    box.hidden = !!ev.package && !n && guests.length > 0;
     box.innerHTML = `<h2 class="next-h">${t.persH}</h2><p class="next-p">${t.persP}</p>`
       + (n ? `<button type="button" class="btn big block ${isDirty() ? 'secondary' : 'primary'}" id="invGo"><i class="i i-whatsapp"></i>${t.nSendB(n)}</button>`
         : `<p class="t-small">${guests.length ? t.persAll : t.persNone}</p><button type="button" class="btn block secondary" id="invAdd"><i class="i i-plus"></i>${t.addGuestsB}</button>`);
