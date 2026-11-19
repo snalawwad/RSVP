@@ -365,6 +365,11 @@ html[lang="ar"] body.app .au-hero{line-height:1.45;gap:4px}
 .au-art .a-inv{left:66%;top:50.97%;width:15.14%;height:13.87%}
 [dir="rtl"] .au-art{transform:scaleX(-1)}
 .au-lead{text-align:center;color:var(--muted);margin:0}
+/* Welcome fits one screen: the picture shrinks to the space left, the buttons stay in view */
+body.app main:has(.au-welcome){padding-top:0;padding-bottom:0}
+.au-welcome{height:100svh;min-height:0}
+.au-welcome .scr-main{min-height:0;padding:16px 0 8px;gap:14px}
+.au-welcome .au-art{flex:1 1 0;min-height:0;max-height:310px;height:auto;width:auto;max-width:100%;align-self:center}
 .au-terms{margin:4px 0 0;text-align:center;font-size:var(--fs-s)}
 .au-terms a{color:var(--muted);text-underline-offset:3px;display:inline-flex;min-height:44px;align-items:center}
 .codebox{position:relative;display:block;cursor:text}

@@ -13,7 +13,7 @@
 // Colour mode: the staff member's own choice wins. If they never chose, the door goes dark at night (Kuwait time).
 try {
   var th = localStorage.getItem('ui-theme');
-  if (!th) { var h = (new Date().getUTCHours() + 3) % 24; th = (h >= 17 || h < 5) ? 'dark' : 'auto'; }
+  if (!th) { var h = (new Date().getUTCHours() + 3) % 24; th = (h >= 17 || h < 5) ? 'dark' : 'light'; }
   document.documentElement.dataset.theme = th;
   if (localStorage.getItem('door-lang') === 'ar') { document.documentElement.lang = 'ar'; document.documentElement.dir = 'rtl'; }
 } catch (e) { document.documentElement.dataset.theme = 'auto'; }
