@@ -581,4 +581,150 @@
     need, v2Ready, rpc2, missingFn, normName, MAX_EXTRAS, clampSeats, peopleComing,
     nameKey, nameScore, searchNames, openSheet, closeSheet, setHelp, openHelp, countWord, arN, undoBand, hostWord, HOSTS,
     passLink, passKeyOf, passCode, loadScript };
+
+  // ======================================================================
+  // Added for the self-serve launch (host.html, new.html, pay.html, me.html). Additions only:
+  // nothing above changes, so door.html and admin.html keep working as they are.
+  // ======================================================================
+
+  // ---------- reading a guest list: pasted lines, or rows from Excel/CSV ----------
+  // The same reader host.html and admin's guest step use: a count after the phone, +44 numbers, and the lines it couldn't read.
+  // parseGuestLines(lines) / parseGuestRows(rows) → { rows: [{ name, phone, seats }], bad: [line text] }
+  const isPhoneLike = v => { const p = normPhone(v); return p.length >= 10 && p.length <= 15 && !/[a-zA-Zء-ي]/.test(String(v)); };
+  function parseGuestRows(rows) {
+    rows = rows.filter(r => r.some(c => String(c).trim())); if (!rows.length) return { rows: [], bad: [] };
+    const cols = Math.max(...rows.map(r => r.length)); let pc = -1, best = 0;
+    for (let c = 0; c < cols; c++) { const n = rows.filter(r => isPhoneLike(r[c])).length; if (n > best) { best = n; pc = c; } }
+    if (pc < 0) return { rows: [], bad: [] };
+    const head = rows[0].map(String); const sc = head.findIndex(h => /عدد|seats|count|كم/i.test(h)); let nc = -1;
+    for (let c = 0; c < cols; c++) { if (c === pc || c === sc) continue; if (rows.filter(r => /[ء-يa-zA-Z]/.test(String(r[c]))).length >= rows.length / 2) { nc = c; break; } }
+    if (nc < 0) return { rows: [], bad: [] };
+    const out = [], bad = [];
+    rows.forEach((r, i) => {
+      const name = String(r[nc] ?? '').trim();
+      if (isPhoneLike(r[pc]) && name) out.push({ name, phone: normPhone(r[pc]), seats: clampSeats(sc >= 0 ? r[sc] : 1) });
+      else if (i > 0) bad.push(r.map(c => String(c).trim()).filter(Boolean).join(' · '));
+    });
+    return { rows: out, bad };
+  }
+  const PHONE_RES = [/(?<![\d+])(?:\+|00)?965[\s-]?\d{4}[\s-]?\d{4}(?!\d)/, /(?<![\d+])(?:\+|00)[1-9][\d\s-]{6,}\d(?!\d)/, /(?<![\d+])\d{4}[\s-]?\d{4}(?!\d)/, /(?<![\d+])\+?\d[\d\s-]{6,}\d/];
+  function findPhone(l) {
+    const L = asciiDigits(l);
+    for (const re of PHONE_RES) {
+      const m = L.match(re); if (!m) continue;
+      let at = m.index, len = m[0].length;
+      const head = m[0].match(/^(\d{1,3})[\s-]+/);
+      if (head && isPhoneLike(m[0].slice(head[0].length))) { at += head[0].length; len -= head[0].length; }
+      const tail = L.slice(at, at + len).match(/\s([1-6])$/);
+      if (tail && isPhoneLike(L.slice(at, at + len - tail[0].length))) len -= tail[0].length;
+      if (isPhoneLike(L.slice(at, at + len))) return { i: at, len };
+    }
+    return null;
+  }
+  function parseGuestLines(lines) {
+    const out = [], bad = []; let pending = null;
+    lines.map(l => l.trim()).filter(Boolean).forEach(l => {
+      const ph = findPhone(l);
+      if (ph) {
+        let after = l.slice(ph.i + ph.len), seats = 1;
+        const sm = asciiDigits(after).match(/^[\s,;|:–-]*([1-6])\s*$/);
+        if (sm) { seats = +sm[1]; after = ''; }
+        const rest = (l.slice(0, ph.i) + ' ' + after).replace(/[-–:,|]/g, ' ').replace(/\s+/g, ' ').trim();
+        const own = /[ء-يa-zA-Z]/.test(rest), name = own ? rest : pending;
+        if (own && pending) bad.push(pending);
+        if (name) out.push({ name, phone: normPhone(l.slice(ph.i, ph.i + ph.len)), seats: clampSeats(seats) }); else bad.push(l); pending = null;
+      }
+      else if (/[ء-يa-zA-Z]/.test(l) && !/^(الاسم|name|الرقم|phone)/i.test(l)) { if (pending) bad.push(pending); pending = l; }
+      else if (/[\d٠-٩]/.test(l)) bad.push(l);
+    });
+    if (pending) bad.push(pending);
+    return { rows: out, bad };
+  }
+  // a file the host picked (Excel, CSV or Word) → the same { rows, bad }
+  async function parseGuestFile(f) {
+    if (/\.docx$/i.test(f.name)) { await need('mammoth'); return parseGuestLines((await mammoth.extractRawText({ arrayBuffer: await f.arrayBuffer() })).value.split(/\n/)); }
+    await need('xlsx');
+    const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
+    return parseGuestRows(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' }));
+  }
+
+  // ---------- the invite card: any photo or PDF → a JPEG, and its colours ----------
+  function palette(img) {
+    const W = 90, H = Math.max(1, Math.round(img.naturalHeight * W / img.naturalWidth));
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(img, 0, 0, W, H);
+    const d = cx.getImageData(0, 0, W, H).data, B = {};
+    for (let i = 0; i < d.length; i += 4) { if (d[i + 3] < 128) continue; const k = (d[i] >> 4) + '-' + (d[i + 1] >> 4) + '-' + (d[i + 2] >> 4); const o = B[k] || (B[k] = { n: 0, r: 0, g: 0, b: 0 }); o.n++; o.r += d[i]; o.g += d[i + 1]; o.b += d[i + 2]; }
+    const all = Object.values(B).map(o => ({ n: o.n, c: [o.r / o.n, o.g / o.n, o.b / o.n] })).sort((a, b) => b.n - a.n);
+    const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+    const sat = c => { const mx = Math.max(...c), mn = Math.min(...c); return mx ? (mx - mn) / mx : 0; };
+    const ds = []; all.forEach(o => { if (ds.length < 8 && ds.every(x => dist(x.c, o.c) > 48)) ds.push(o); });
+    const paper = ds[0] ? ds[0].c : [255, 251, 250];
+    let best = null, score = -1;
+    ds.slice(1).forEach(o => { const dd = dist(o.c, paper); if (dd < 70) return; const s = Math.sqrt(o.n) * (.35 + sat(o.c)) * dd; if (s > score) { score = s; best = o; } });
+    return { paper: rgb2hex(paper), accent: rgb2hex(best ? best.c : (lum(rgb2hex(paper)) > .4 ? [60, 40, 40] : [230, 210, 200])), chips: ds.map(o => rgb2hex(o.c)) };
+  }
+  async function toJpeg(f) {
+    let src;
+    if (f.type === 'application/pdf' || /\.pdf$/i.test(f.name)) {
+      await need('pdf');
+      const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await f.arrayBuffer()) }).promise;
+      const pg = await pdf.getPage(1); const vp = pg.getViewport({ scale: 1 }); const v = pg.getViewport({ scale: Math.min(2, 1400 / vp.width) });
+      const cv = document.createElement('canvas'); cv.width = v.width; cv.height = v.height;
+      await pg.render({ canvasContext: cv.getContext('2d'), viewport: v }).promise; src = cv.toDataURL('image/jpeg', .9);
+    } else src = URL.createObjectURL(f);
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+    const sc = Math.min(1, 1400 / Math.max(img.naturalWidth, img.naturalHeight));
+    const cv = document.createElement('canvas'); cv.width = Math.round(img.naturalWidth * sc); cv.height = Math.round(img.naturalHeight * sc);
+    const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(img, 0, 0, cv.width, cv.height);
+    const blob = await new Promise(res => cv.toBlob(res, 'image/jpeg', .85));
+    return { img, blob };
+  }
+  // Upload into the existing card storage (bucket "cards", path <event id>/<time>.jpg: can_upload_card checks the host).
+  // → { url, pal } ; throws on failure.
+  async function uploadCard(eventId, file) {
+    const { img, blob } = await toJpeg(file);
+    const pal = palette(img);
+    const path = `${eventId}/${Date.now()}.jpg`;
+    const up = await sb.storage.from('cards').upload(path, blob, { contentType: 'image/jpeg' });
+    if (up.error) throw up.error;
+    return { url: sb.storage.from('cards').getPublicUrl(path).data.publicUrl, pal };
+  }
+
+  // ---------- money: amounts are fils (1 KWD = 1000 fils), shown as "15 KWD" / «15 د.ك» ----------
+  function kwd(fils, lang) {
+    const n = (+fils || 0) / 1000, s = Number.isInteger(n) ? String(n) : n.toFixed(3).replace(/0+$/, '');
+    return (lang || uiLang()) === 'ar' ? `${s} د.ك` : `${s} KWD`;
+  }
+
+  // ---------- payment: one place that hands an order to the gateway ----------
+  // start_checkout_v2 / request_change_v2 / approve_design_v2 make a pending order; this asks the server (edge function
+  // "checkout") where to pay it and goes there. Test mode answers with pay.html?order=…; a real gateway answers with its own page.
+  // → never resolves on success (the page moves); resolves { error } when the server says no.
+  async function checkout(orderId) {
+    let r;
+    try { r = await sb.functions.invoke('checkout', { body: { order_id: orderId } }); } catch (e) { r = { error: e }; }
+    if (r.error) {
+      let code = '';
+      try { const ctx = r.error.context; if (ctx && ctx.json) code = (await ctx.json()).error || ''; } catch (e) {}
+      return { error: code || r.error.message || 'checkout_failed' };
+    }
+    const url = r.data && r.data.url;
+    if (!url) return { error: 'checkout_failed' };
+    location.href = url;
+    return new Promise(() => {});
+  }
+
+  // ---------- a file the host downloads (guest list as CSV that Excel opens, Arabic included) ----------
+  function downloadCsv(name, rows) {
+    const cell = v => { const s = String(v ?? ''); return /[",\n;]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    const csv = '﻿' + rows.map(r => r.map(cell).join(',')).join('\r\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+
+  // phones for people: "+965 9988 7766" (Latin digits in both languages)
+  const prettyPhone = p => { p = normPhone(p); if (!p) return ''; return p.startsWith('965') && p.length === 11 ? `+965 ${p.slice(3, 7)} ${p.slice(7)}` : '+' + p; };
+
+  Object.assign(window.App, { parseGuestLines, parseGuestRows, parseGuestFile, findPhone, palette, toJpeg, uploadCard, kwd, checkout, downloadCsv, prettyPhone });
 })();

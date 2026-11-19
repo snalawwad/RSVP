@@ -10,5 +10,8 @@ window.CONFIG = {
   BRAND_EN: 'Sina',
   SUPPORT_WHATSAPP: '965XXXXXXXX',              // your business WhatsApp, digits only (placeholder = hidden)
   SUPPORT_EMAIL: '',                            // support email for privacy/support pages (empty = hidden)
-  WHATSAPP_AUTO: false                          // true once door passes go out on WhatsApp automatically (supabase/WHATSAPP_SETUP.md)
+  WHATSAPP_AUTO: false,                         // true once door passes go out on WhatsApp automatically (supabase/WHATSAPP_SETUP.md)
+  LOGIN_PHONE: false,                           // true once the WhatsApp login code (Auth "Send SMS hook") is switched on; until then people log in with an email code
+  LOGIN_CODE_LENGTH: 6,                         // digits in the login code (Supabase Auth setting)
+  PAYMENT_MODE: 'test'                          // 'test' = the test gateway on pay.html; a real gateway replaces it later
 };
