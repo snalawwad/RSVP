@@ -10,6 +10,7 @@ import type {
 } from './types';
 
 export * from './types';
+export * from './types7';
 
 export type ApiError = { message: string; code?: string; details?: string; hint?: string };
 export type Res<T> = { data: T | null; error: ApiError | null };
@@ -21,7 +22,7 @@ const asErr = (e: unknown): ApiError => {
   }
   return { message: String(e) };
 };
-async function wrap<T>(p: PromiseLike<{ data: unknown; error: unknown }>): Promise<Res<T>> {
+export async function wrap<T>(p: PromiseLike<{ data: unknown; error: unknown }>): Promise<Res<T>> {
   try {
     const r = await p;
     return { data: (r.data as T) ?? null, error: r.error ? asErr(r.error) : null };

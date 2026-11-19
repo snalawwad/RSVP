@@ -1,96 +1,77 @@
-// Your events. Works like the web host page after login (host.html requireLogin):
-//  - events this login hosts (door-only events left out unless admin), soonest first, as the web admin list
-//    rows: date tile, the event's name, when, and the counts with their words
-//  - a host with one event goes straight into it; a door-only member goes straight into door mode
-//    (the door screen picks the saved event, else the next one, like door.html). Admins stay on the list
-//    (on the web they work from admin.html), however many events there are.
-//  - door-only member: the web "Door check-in" card; no events at all: "We're preparing your event"
+// One home for everyone (Sama's Figma 24g Your events 151:4222, 04 no events 52:3032, G10 Your invites 143:3951,
+// G10a none 143:4015): the events this login hosts, co-hosts or works the door for (my_events_v2), then the
+// invitations sent to their phone number (my_invites_v2). Someone who is both a host and a guest sees both lists.
+//  - Empty: a neutral line. No create button and no word about the website or paying (Apple: no purchases).
+//  - Draft events: "Not sent yet", no actions.
+//  - A host with exactly one event and nothing else goes straight into it; door staff with one event straight to
+//    the door. Admins always stay here.
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Linking, Pressable, View } from 'react-native';
-import { Busy, Button, Icon, Kicker, Panel, Row, RowList, Screen, Txt } from '../../components';
-import { listEvents, listGuests, loadHostHome, pickDoorEvent, type EventRow, type Guest } from '../../lib/api';
-import { links } from '../../lib/config';
-import { supabase } from '../../lib/supabase';
-import { dayMon, daysTo, fmtTime, kwDay, shortDate } from '../../lib/format';
+import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { BrandBar, Busy, Button, Icon, PageTitle, Panel, PressScale, Txt } from '../../components';
+import { listGuests, type Guest } from '../../lib/api';
+import { myEvents, myInvites, myProfile, saveProfile } from '../../lib/api7';
+import { daysTo, fmtTime, kwDay, kwParts } from '../../lib/format';
 import { peopleComing } from '../../lib/guests';
 import { KEYS, kv } from '../../lib/storage';
-import { arN, countWord, nb, type Lang } from '../../lib/words';
+import { supabase } from '../../lib/supabase';
+import type { MyEvent, MyInvite } from '../../lib/types7';
+import { nb, type Lang } from '../../lib/words';
 import { useApp } from '../../providers/AppProvider';
-import { radius, scriptOf, shadow, space } from '../../theme/tokens';
+import { mix, radius, scriptOf, size, space } from '../../theme/tokens';
 
-// Words from the web admin event list (admin.html T) that the shared strings don't have yet.
-const W = {
-  en: {
-    homeSub: (u: number, p: number) => (u ? `${u} ${u === 1 ? 'event' : 'events'} coming up` : 'No events coming up') + (p ? ` · ${p} past` : ''),
-    upcomingH: 'Coming up', pastH: (n: number) => `Past events (${n})`, noDate: 'No date yet', noGuestsShort: 'No guests yet',
-    coming: (n: number) => (n ? `${n} ${n === 1 ? 'person' : 'people'} coming` : 'No one coming yet'), gErrShort: 'Guests didn’t load',
-    rowSent: (a: number, b: number) => `${a} of ${b} sent`, retry: 'Try again', sep: ' · ',
-  },
-  ar: {
-    homeSub: (u: number, p: number) => (u ? arN(u, 'مناسبة وحدة جاية', 'مناسبتين جاية', 'مناسبات جاية', 'مناسبة جاية') : 'ما في مناسبات جاية') + (p ? '، و' + arN(p, 'وحدة خلصت', 'ثنتين خلصت', 'خلصت', 'خلصت') : ''),
-    upcomingH: 'المناسبات الجاية', pastH: (n: number) => `مناسبات خلصت (${n})`, noDate: 'بدون تاريخ للحين', noGuestsShort: 'ما في ضيوف للحين',
-    coming: (n: number) => (n ? arN(n, 'شخص واحد بيحضر', 'شخصين بيحضرون', 'أشخاص بيحضرون', 'شخص بيحضرون') : 'محد أكّد حضوره للحين'), gErrShort: 'الضيوف ما طلعوا',
-    rowSent: (a: number, b: number) => `انرسل ${a} من ${b}`, retry: 'جربوا مرة ثانية', sep: '، ',
-  },
-} satisfies Record<Lang, unknown>;
-
-// admin.html countsOf: phones / sent drive "x of y sent"; yesG / no decide whether the coming line shows
-type Counts = { g: number; phones: number; sent: number; yesG: number; no: number; coming: number; err: boolean };
-type Home =
+type HomeState =
   | { kind: 'loading' }
   | { kind: 'error' }
-  | { kind: 'none' }
-  | { kind: 'door'; doorId: string | null }
-  | { kind: 'list'; events: EventRow[]; doorEvents: EventRow[]; counts: Record<string, Counts>; admin: boolean };
+  | { kind: 'ok'; events: MyEvent[]; invites: MyInvite[]; admin: boolean; name: string };
 
-// Go straight in only once per login, so Back from the event or the door shows this screen. Logging out
-// (Menu, or deleting the account) clears it, so the next login, even with the same email, goes straight in.
+// Go straight in only once per login, so Back shows this screen. Logging out clears it.
 let autoOpened = '';
 supabase.auth.onAuthStateChange((e) => { if (e === 'SIGNED_OUT') autoOpened = ''; });
 
+const MON_EN = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+const MON_AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 const isAr = (s: string | null | undefined) => !!s && scriptOf(s) === 'ar';
-/** The Arabic headline in the Arabic screens when there is one, else the event name (host.html evName). */
-const evName = (e: Pick<EventRow, 'title' | 'headline'>, lang: Lang) => (lang === 'ar' && isAr(e.headline) ? e.headline! : e.title);
-const isPast = (e: EventRow) => !!e.starts_at && kwDay(e.ends_at || e.starts_at) < kwDay(new Date());
+/** The Arabic headline in the Arabic screens when there is one, else the event name. */
+export const evName = (e: { title: string; headline?: string | null }, lang: Lang) => (lang === 'ar' && isAr(e.headline) ? e.headline! : e.title);
+const pastEvent = (e: { starts_at: string | null; ends_at?: string | null }) => !!e.starts_at && kwDay(e.ends_at || e.starts_at) < kwDay(new Date());
 
-export default function Events() {
-  const { t, lang, email, c, rtl } = useApp();
-  const w = W[lang];
-  const [home, setHome] = useState<Home>({ kind: 'loading' });
+/** Counts for an event the old way (before 0007 or for an admin row): from its guest list. */
+function countsOf(gs: Guest[]) {
+  let yes_people = 0, yes = 0, no = 0, no_reply = 0, arrived = 0;
+  for (const g of gs) {
+    if (g.status === 'yes') { yes++; yes_people += peopleComing(g); } else if (g.status === 'no') no++; else no_reply++;
+    arrived += g.checked_in_count || 0;
+  }
+  return { invited: gs.length, yes, yes_people, no, no_reply, arrived };
+}
+
+export default function Home() {
+  const { t, email, c } = useApp();
+  const A = t.a;
+  const [home, setHome] = useState<HomeState>({ kind: 'loading' });
   const [refreshing, setRefreshing] = useState(false);
-  const [showPast, setShowPast] = useState(false);
   const busy = useRef(false);
+  const me = email || 'phone';
 
   const load = useCallback(async () => {
-    if (busy.current || !email) return;
+    if (busy.current) return;
     busy.current = true;
     try {
-      const r = await loadHostHome(email);
-      if (r.error) { setHome((h) => (h.kind === 'list' ? h : { kind: 'error' })); return; }   // keep what we had rather than an empty list
-      const doorIds = new Set('doorEventIds' in r ? r.doorEventIds : []);
-      if (r.noEvents === 'none') { setHome({ kind: 'none' }); return; }
-      if (r.noEvents === 'door') {
-        // door.html: the saved event, else the next one (Kuwait date), else the last
-        const doorEvents = await doorOnlyEvents(doorIds);
-        const pick = pickDoorEvent(doorEvents, kv.get(KEYS.doorEvent));
-        setHome({ kind: 'door', doorId: pick?.id ?? null });
-        return;
+      // the name typed on Create account goes to the profile once (save_profile_v2)
+      const pend = kv.getJSON<{ name?: string; email?: string | null } | null>(KEYS.pendingProfile, null);
+      if (pend?.name) { const r = await saveProfile(pend.name, pend.email ?? null); if (!r.error || /Could not find|PGRST202/.test(r.error.message)) kv.remove(KEYS.pendingProfile); }
+      const [ev, inv, prof] = await Promise.all([myEvents(email), myInvites(), myProfile()]);
+      if (ev.error || !ev.data) { setHome((h) => (h.kind === 'ok' ? h : { kind: 'error' })); return; }
+      const events = ev.data;
+      // counts the old way where my_events_v2 didn't give them (old schema, admin rows)
+      const need = events.filter((e) => !e.counts && e.role === 'host' && e.status !== 'draft');
+      if (need.length) {
+        const lists = await Promise.all(need.map((e) => listGuests(e.id)));
+        need.forEach((e, i) => { if (!lists[i].error) e.counts = countsOf(lists[i].data ?? []); });
       }
-      const lists = await Promise.all(r.events.map((e) => listGuests(e.id)));
-      const counts: Record<string, Counts> = {};
-      r.events.forEach((e, i) => {
-        const gs: Guest[] = lists[i].data ?? [];
-        const s: Counts = { g: 0, phones: 0, sent: 0, yesG: 0, no: 0, coming: 0, err: !!lists[i].error };
-        gs.forEach((g) => {
-          s.g++;
-          if (g.phone) { s.phones++; if (g.sent_at) s.sent++; }
-          if (g.status === 'yes') { s.yesG++; s.coming += peopleComing(g); } else if (g.status === 'no') s.no++;
-        });
-        counts[e.id] = s;
-      });
-      const doorEvents = r.admin ? [] : await doorOnlyEvents(doorIds);
-      setHome({ kind: 'list', events: r.events, doorEvents, counts, admin: !!r.admin });
+      setHome({ kind: 'ok', events, invites: inv.data ?? [], admin: ev.admin, name: (prof.data?.name || pend?.name || '').trim() });
     } finally {
       busy.current = false;
     }
@@ -98,173 +79,149 @@ export default function Events() {
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  // Straight in: a host with one event → that event's tabs; a door-only member → door mode. Never for admins.
+  // straight in: one hosted event and nothing else → its dashboard; door staff with one event → the door
   useEffect(() => {
-    if (!email || autoOpened === email) return;
-    let to: string | null = null;
-    if (home.kind === 'door' && home.doorId) to = `/door/${home.doorId}`;
-    else if (home.kind === 'list' && !home.admin && home.events.length === 1 && !home.doorEvents.length) to = `/event/${home.events[0].id}`;
-    else if (home.kind === 'list' || home.kind === 'none' || home.kind === 'door') { autoOpened = email; return; }
-    if (!to) return;
-    autoOpened = email;
-    const go = to;
-    const id = setTimeout(() => router.push(go as never), 0);
+    if (home.kind !== 'ok' || autoOpened === me) return;
+    autoOpened = me;
+    if (home.admin) return;
+    const live = home.events.filter((e) => e.status !== 'draft');
+    if (live.length !== 1 || home.invites.length || home.events.length !== 1) return;
+    const e = live[0];
+    const to = e.role === 'door' ? `/door/${e.id}` : `/event/${e.id}`;
+    const id = setTimeout(() => router.push(to as never), 0);
     return () => clearTimeout(id);
-  }, [home, email]);
+  }, [home, me]);
 
   const refresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
 
-  if (home.kind === 'loading') return <Screen><Busy /></Screen>;
+  const accountBtn = (
+    <PressScale kind="chip" testID="menu-btn" accessibilityRole="button" accessibilityLabel={A.account} onPress={() => router.push('/settings')} hitSlop={4}
+      style={{ minHeight: size.target, paddingHorizontal: space[4], borderRadius: radius.pill, borderWidth: 1, borderColor: c.line, backgroundColor: c.card, flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+      <Icon name="person" sm color={c.ink} />
+      <Txt v="label" tone="ink">{A.account}</Txt>
+    </PressScale>
+  );
 
-  if (home.kind === 'error') {
-    return (
-      <Screen onRefresh={refresh} refreshing={refreshing}>
-        <Panel tone="no" testID="events-error">
-          <Txt v="name" tone="no">{t.host.loadErrEv}</Txt>
-          <Txt v="small" tone="no">{t.couldNotLoad}</Txt>
-          <Button label={w.retry} kind="secondary" small onPress={refresh} testID="events-retry" />
-        </Panel>
-      </Screen>
+  let body: ReactNode;
+  if (home.kind === 'loading') body = <Busy />;
+  else if (home.kind === 'error') {
+    body = (
+      <Panel tone="no" testID="events-error">
+        <Txt v="name" tone="no">{A.loadErr}</Txt>
+        <Txt v="small" tone="no">{t.couldNotLoad}</Txt>
+        <Button label={A.retry} kind="secondary" small onPress={refresh} testID="events-retry" />
+      </Panel>
+    );
+  } else {
+    const { events, invites, name } = home;
+    const ts = (s: string | null) => (s ? new Date(s).getTime() : Infinity);
+    const hosting = events.filter((e) => e.role !== 'door' && !pastEvent(e)).sort((a, b) => ts(a.starts_at) - ts(b.starts_at));
+    const door = events.filter((e) => e.role === 'door' && !pastEvent(e)).sort((a, b) => ts(a.starts_at) - ts(b.starts_at));
+    const invUp = invites.filter((i) => !i.past);
+    const pastEv = events.filter(pastEvent).sort((a, b) => ts(b.starts_at) - ts(a.starts_at));
+    const pastInv = invites.filter((i) => i.past);
+    const empty = !events.length && !invites.length;
+    body = (
+      <>
+        <PageTitle testID="home-title" sub={empty ? <Txt v="body" tone="muted" testID="no-events">{A.emptyP}</Txt> : undefined}>
+          {name ? A.hi(name.split(/\s+/)[0]) : A.yourEvents}
+        </PageTitle>
+        {hosting.length ? <Section title={A.hosting} testID="events-up">{hosting.map((e) => <EventCard key={e.id} e={e} />)}</Section> : null}
+        {door.length ? <Section title={A.atDoor} testID="events-door">{door.map((e) => <EventCard key={e.id} e={e} />)}</Section> : null}
+        {invUp.length ? <Section title={hosting.length || door.length ? A.invitedTo : A.comingUp} testID="invites-up">{invUp.map((i) => <InviteCard key={i.token} i={i} />)}</Section> : null}
+        {pastEv.length || pastInv.length ? (
+          <Section title={A.past} testID="events-past">
+            {pastEv.map((e) => <EventCard key={e.id} e={e} />)}
+            {pastInv.map((i) => <InviteCard key={i.token} i={i} />)}
+          </Section>
+        ) : null}
+      </>
     );
   }
-
-  if (home.kind === 'none') {
-    const wa = links.whatsapp(lang === 'ar' ? 'مرحبا، أبي أحجز مناسبة' : 'Hi, I’d like to book an event');
-    return (
-      <Screen onRefresh={refresh} refreshing={refreshing} contentStyle={{ flexGrow: 1, justifyContent: 'center' }}>
-        <ArchCard testID="no-events">
-          <Txt v="title" center style={{ fontSize: 28, lineHeight: lang === 'ar' ? 44 : 34 }}>{t.host.noEvH}</Txt>
-          <Txt v="body" tone="muted" center>{t.host.noEvP}</Txt>
-          {wa ? <Button label={t.messageUs} kind="primary" icon="whatsapp" block onPress={() => Linking.openURL(wa)} style={{ marginTop: space[3] }} /> : null}
-        </ArchCard>
-      </Screen>
-    );
-  }
-
-  if (home.kind === 'door') {
-    return (
-      <Screen onRefresh={refresh} refreshing={refreshing} contentStyle={{ flexGrow: 1, justifyContent: 'center' }}>
-        <ArchCard testID="door-only">
-          <Txt v="title" center style={{ fontSize: 28, lineHeight: lang === 'ar' ? 44 : 34 }}>{t.host.doorH}</Txt>
-          <Txt v="body" tone="muted" center>{t.host.doorP}</Txt>
-          {home.doorId ? (
-            <Button label={t.host.doorBtn} kind="primary" icon="door" onPress={() => router.push(`/door/${home.doorId}` as never)} style={{ alignSelf: 'center', marginTop: space[3] }} testID="open-door" />
-          ) : null}
-        </ArchCard>
-      </Screen>
-    );
-  }
-
-  const { events, doorEvents, counts } = home;
-  const ts = (e: EventRow) => (e.starts_at ? new Date(e.starts_at).getTime() : Infinity);
-  const up = events.filter((e) => !isPast(e)).sort((a, b) => ts(a) - ts(b));
-  const past = events.filter(isPast).sort((a, b) => ts(b) - ts(a));
-  const pastOpen = showPast || !up.length;
 
   return (
-    <Screen onRefresh={refresh} refreshing={refreshing} gap={space[3]} testID="events">
-      <View style={{ gap: 2, marginBottom: space[2] }}>
-        <Txt v="title" style={{ fontSize: 28, lineHeight: lang === 'ar' ? 44 : 34 }}>{t.yourEvents}</Txt>
-        <Txt v="small">{w.homeSub(up.length, past.length)}</Txt>
-      </View>
-
-      {up.length ? (
-        <>
-          <Kicker>{w.upcomingH}</Kicker>
-          <RowList testID="events-up">{up.map((e) => <EventRowView key={e.id} e={e} s={counts[e.id]} />)}</RowList>
-        </>
-      ) : null}
-
-      {past.length ? (
-        <View style={{ gap: space[3], marginTop: up.length ? space[3] : 0 }}>
-          <Pressable accessibilityRole="button" accessibilityState={{ expanded: pastOpen }} onPress={() => setShowPast(!pastOpen)} disabled={!up.length} testID="past-toggle"
-            style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
-            <Txt v="label" tone="muted">{w.pastH(past.length)}</Txt>
-            {up.length ? <View style={{ transform: [{ rotate: pastOpen ? (rtl ? '-90deg' : '90deg') : '0deg' }] }}><Icon name="chev" sm color={c.muted} /></View> : null}
-          </Pressable>
-          {pastOpen ? <RowList testID="events-past">{past.map((e) => <EventRowView key={e.id} e={e} s={counts[e.id]} />)}</RowList> : null}
-        </View>
-      ) : null}
-
-      {doorEvents.length ? (
-        <View style={{ gap: space[3], marginTop: space[3] }}>
-          <Kicker>{t.host.doorH}</Kicker>
-          <RowList testID="events-door">
-            {doorEvents.map((e) => (
-              <Row key={e.id} chevron testID={`door-ev-${e.id}`} onPress={() => router.push(`/door/${e.id}` as never)}
-                accessibilityLabel={[evName(e, lang), whenOf(e, lang, w.noDate, t.host.cd), t.door.title].join(', ')}
-                start={<DateTile iso={e.starts_at} lang={lang} door />}
-                title={evName(e, lang)} sub={whenOf(e, lang, w.noDate, t.host.cd)} />
-            ))}
-          </RowList>
-        </View>
-      ) : null}
-    </Screen>
+    <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1, backgroundColor: c.bg }} testID="events">
+      <BrandBar end={accountBtn} />
+      <ScrollView contentContainerStyle={{ paddingHorizontal: space[4], paddingTop: space[5], paddingBottom: space[10], gap: space[5], width: '100%', maxWidth: 760, alignSelf: 'center' }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={c.plum} colors={[c.plum]} />}>
+        {body}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-/** Events where this login is door staff only (door.html would show them). */
-async function doorOnlyEvents(ids: Set<string>): Promise<EventRow[]> {
-  if (!ids.size) return [];
-  const r = await listEvents('id, title, headline, starts_at, ends_at, venue, lang, invite_limit, card_image_url');
-  return (r.data ?? []).filter((e) => ids.has(e.id));
-}
-
-const keep = (s: string) => s.replace(/ /g, '\u00a0');   // no-break spaces: one unit on one line
-
-/** "Sun 20 Dec · 8:00 PM · 35 days to go" (host masthead line). */
-function whenOf(e: EventRow, lang: Lang, noDate: string, cd: (n: number) => string) {
-  if (!e.starts_at) return noDate;
-  const n = daysTo(e.starts_at);
-  // each part is no-break, so a line only ever breaks at a " · " (never «باقي» / «35 يوم»)
-  return [shortDate(e.starts_at, lang), nb(fmtTime(e.starts_at, lang)), n == null ? '' : keep(cd(n))].filter(Boolean).join(' · ');
-}
-
-/** One event (web admin .evrow): date tile, name, when, then the guests and people coming. */
-function EventRowView({ e, s }: { e: EventRow; s?: Counts }) {
-  const { t, lang } = useApp();
-  const w = W[lang];
-  const name = evName(e, lang);
-  const when = whenOf(e, lang, w.noDate, t.host.cd);
-  // admin.html evRow (each part one piece, breaking only at the separators): the guests, then "x of y sent" when anyone has a number, then who's coming once anyone has replied
-  const prog = !s ? '' : s.err ? w.gErrShort : s.g
-    ? [countWord(s.g, 'guest', lang), s.phones ? w.rowSent(s.sent, s.phones) : '', s.yesG || s.no ? w.coming(s.coming) : ''].filter(Boolean).map(keep).join(w.sep)
-    : w.noGuestsShort;
+function Section({ title, children, testID }: { title: string; children: ReactNode; testID?: string }) {
   return (
-    <Row testID={`ev-${e.id}`} chevron onPress={() => router.push(`/event/${e.id}` as never)}
-      accessibilityLabel={[name, when, prog].filter(Boolean).join(', ')}
-      start={<DateTile iso={e.starts_at} lang={lang} />} style={{ minHeight: 78 }}>
-      <Txt v="name" numberOfLines={2}>{name}</Txt>
-      <Txt v="small">{when}</Txt>
-      {prog ? <Txt v="small" tone={s?.err ? 'no' : 'ink'}>{prog}</Txt> : null}
-    </Row>
-  );
-}
-
-/** Web .dblock: month in plum over the day number. No date: a calendar icon. Door events: a door icon. */
-function DateTile({ iso, lang, door }: { iso: string | null; lang: Lang; door?: boolean }) {
-  const { c } = useApp();
-  const box = { width: lang === 'ar' ? 64 : 52, height: 60, borderRadius: radius.m, borderWidth: 1, borderColor: c.line, backgroundColor: c.surface, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 2 };
-  if (!iso || door) return <View style={box} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden><Icon name={door ? 'door' : 'calendar'} color={door ? c.plum : c.muted} /></View>;
-  const [day, ...mon] = dayMon(iso, lang).split(' ');
-  return (
-    <View style={box} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
-      <Txt v="label" tone="plum" center numberOfLines={1} style={{ fontSize: 14, lineHeight: 18 }}>{mon.join(' ')}</Txt>
-      <Txt v="name" center script="lat" style={{ fontSize: 22, lineHeight: 26 }}>{day}</Txt>
+    <View style={{ gap: 10 }} testID={testID}>
+      <Txt v="label" tone="muted" accessibilityRole="header">{title}</Txt>
+      {children}
     </View>
   );
 }
 
-/** The web login box: an arch-topped card with a hairline inside it. */
-function ArchCard({ children, testID }: { children: ReactNode; testID?: string }) {
-  const { c, theme } = useApp();
-  const [wd, setWd] = useState(358);
-  const r = Math.min(220, wd / 2);
+/** Figma list card: date tile, name, a line under it, a bold line, and a chevron when it opens. */
+function Card({ iso, title, sub, meta, metaTone, onPress, testID, a11y }: {
+  iso: string | null; title: string; sub?: string; meta?: string; metaTone?: 'plum' | 'ink' | 'muted'; onPress?: () => void; testID?: string; a11y?: string;
+}) {
+  const { c, rtl } = useApp();
+  const inner = (pressed: boolean) => (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 84, paddingVertical: 14, paddingHorizontal: space[4], borderRadius: radius.l,
+      borderWidth: 1, borderColor: c.line, backgroundColor: pressed ? mix(c.card, c.ink, 0.05) : c.card }}>
+      <DateTile iso={iso} />
+      <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+        <Txt v="button" numberOfLines={2}>{title}</Txt>
+        {sub ? <Txt v="small" numberOfLines={2}>{sub}</Txt> : null}
+        {meta ? <Txt v="label" tone={metaTone ?? 'ink'} style={rtl ? undefined : { fontSize: 13.5 }}>{meta}</Txt> : null}
+      </View>
+      {onPress ? <Icon name="chev" color={c.ink} /> : null}
+    </View>
+  );
+  if (!onPress) return <View testID={testID} accessible accessibilityLabel={a11y}>{inner(false)}</View>;
+  return <Pressable testID={testID} accessibilityRole="button" accessibilityLabel={a11y} onPress={onPress}>{({ pressed }) => inner(pressed)}</Pressable>;
+}
+
+function whenLine(iso: string | null, venue: string | null | undefined, lang: Lang, noDate: string) {
+  return [iso ? nb(fmtTime(iso, lang)) : noDate, venue || ''].filter(Boolean).join(' · ');
+}
+
+function EventCard({ e }: { e: MyEvent }) {
+  const { t, lang } = useApp();
+  const A = t.a;
+  const name = evName(e, lang);
+  const sub = whenLine(e.starts_at, e.venue, lang, t.noDate);
+  const draft = e.status === 'draft';
+  const n = e.counts;
+  const meta = draft ? A.notSentYet
+    : e.role === 'door' ? A.doorTag
+    : n ? (n.invited ? A.invitesComing(n.invited, n.yes_people) : t.host.emptyG) : '';
+  const go = draft ? undefined : () => router.push((e.role === 'door' ? `/door/${e.id}` : `/event/${e.id}`) as never);
+  const tag = e.role === 'cohost' ? ` · ${A.cohostTag}` : '';
+  return <Card iso={e.starts_at} title={name} sub={sub + tag} meta={meta} metaTone={draft ? 'muted' : 'ink'} onPress={go}
+    testID={e.role === 'door' ? `door-ev-${e.id}` : `ev-${e.id}`} a11y={[name, sub, meta].filter(Boolean).join(', ')} />;
+}
+
+function InviteCard({ i }: { i: MyInvite }) {
+  const { t, lang } = useApp();
+  const A = t.a;
+  const sub = whenLine(i.event.starts_at, i.event.venue, lang, t.noDate);
+  const n = i.confirmed_count || i.seats || 1;
+  const meta = i.status === 'yes' ? (i.past ? A.youWent : A.youComing(n)) : i.status === 'no' ? A.youCant : i.past ? A.youMissed : A.waitingReply;
+  const d = daysTo(i.event.starts_at);
+  return <Card iso={i.event.starts_at} title={i.event.title} sub={sub} meta={meta} metaTone={i.status === 'pending' && !i.past ? 'plum' : 'ink'}
+    onPress={() => router.push({ pathname: '/invite/[token]', params: { token: i.token } })}
+    testID={`inv-${i.token.slice(0, 8)}`} a11y={[i.event.title, sub, meta, d != null && d >= 0 ? A.inDays(d) : ''].filter(Boolean).join(', ')} />;
+}
+
+/** Month over the day number (Figma date tile). No date: a calendar icon. */
+function DateTile({ iso }: { iso: string | null }) {
+  const { c, lang } = useApp();
+  const box = { width: lang === 'ar' ? 60 : 46, minHeight: 54, paddingVertical: 6, borderRadius: radius.m, backgroundColor: c.surface, alignItems: 'center' as const, justifyContent: 'center' as const };
+  if (!iso) return <View style={box} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"><Icon name="calendar" color={c.muted} /></View>;
+  const p = kwParts(iso);
   return (
-    <View testID={testID} onLayout={(e) => setWd(e.nativeEvent.layout.width)}
-      style={[{ width: '100%', maxWidth: 400, alignSelf: 'center', backgroundColor: c.card, borderWidth: 1, borderColor: c.line, borderTopLeftRadius: r, borderTopRightRadius: r, borderBottomLeftRadius: 20, borderBottomRightRadius: 20, paddingTop: 58, paddingHorizontal: 26, paddingBottom: 30, gap: space[2] }, shadow(theme, true)]}>
-      <View pointerEvents="none" style={{ position: 'absolute', top: 8, left: 8, right: 8, bottom: 8, borderWidth: 1, borderColor: c.line, borderTopLeftRadius: r - 8, borderTopRightRadius: r - 8, borderBottomLeftRadius: 13, borderBottomRightRadius: 13 }} />
-      {children}
+    <View style={box} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <Txt v="label" tone="plum" center numberOfLines={1} style={lang === 'ar' ? { fontSize: 12, lineHeight: 18 } : { fontSize: 11, lineHeight: 14, letterSpacing: 0.6 }}>{lang === 'ar' ? MON_AR[p.m] : MON_EN[p.m]}</Txt>
+      <Txt v="title" center script="lat" style={{ fontSize: 22, lineHeight: 26 }}>{String(p.d).padStart(2, '0')}</Txt>
     </View>
   );
 }
