@@ -2,20 +2,18 @@ import type { Session } from '@supabase/supabase-js';
 import * as Localization from 'expo-localization';
 import * as Updates from 'expo-updates';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { I18nManager, Platform, useColorScheme } from 'react-native';
+import { I18nManager, Platform } from 'react-native';
 import { fill, strings, type Lang, type Strings } from '../i18n/strings';
+import { KEYS, kv } from '../lib/storage';
 import { supabase } from '../lib/supabase';
-import { colors, type Colors, type ThemeName } from '../theme/tokens';
+import { useTheme } from '../theme/ThemeProvider';
+import type { Colors, ThemeName, ThemePref } from '../theme/tokens';
 
-const LANG_KEY = 'app-lang';
+const LANG_KEY = KEYS.lang;
 
 function savedLang(): Lang | null {
-  try {
-    const v = localStorage.getItem(LANG_KEY);
-    return v === 'ar' || v === 'en' ? v : null;
-  } catch {
-    return null;
-  }
+  const v = kv.get(LANG_KEY);
+  return v === 'ar' || v === 'en' ? v : null;
 }
 
 export function initialLang(): Lang {
@@ -40,9 +38,17 @@ type Ctx = {
   t: Strings;
   f: typeof fill;
   setLang: (l: Lang) => void;
+  /** the colours mode in use (cream / light / dark) */
   theme: ThemeName;
   c: Colors;
+  /** what the person picked in Colours ('auto' follows the phone) */
+  themePref: ThemePref;
+  setThemePref: (p: ThemePref) => void;
+  /** the phone asks for less motion */
+  reduceMotion: boolean;
   session: Session | null;
+  /** the login's email, lower case ('' when logged out) */
+  email: string;
   sessionLoaded: boolean;
 };
 
@@ -50,8 +56,7 @@ const AppContext = createContext<Ctx | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(initialLang);
-  const scheme = useColorScheme();
-  const theme: ThemeName = scheme === 'dark' ? 'dark' : 'light';
+  const { theme, c, pref: themePref, setPref: setThemePref, reduceMotion } = useTheme();
   const [session, setSession] = useState<Session | null>(null);
   const [sessionLoaded, setSessionLoaded] = useState(false);
 
@@ -72,18 +77,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [lang]);
 
   const setLang = useCallback((l: Lang) => {
-    try {
-      localStorage.setItem(LANG_KEY, l);
-    } catch {
-      /* ignore */
-    }
+    kv.set(LANG_KEY, l);
     setLangState(l);
     syncDirection(l);
   }, []);
 
   const value = useMemo<Ctx>(
-    () => ({ lang, rtl: lang === 'ar', t: strings[lang], f: fill, setLang, theme, c: colors[theme], session, sessionLoaded }),
-    [lang, setLang, theme, session, sessionLoaded],
+    () => ({
+      lang, rtl: lang === 'ar', t: strings[lang], f: fill, setLang, theme, c, themePref, setThemePref, reduceMotion,
+      session, email: (session?.user.email ?? '').toLowerCase(), sessionLoaded,
+    }),
+    [lang, setLang, theme, c, themePref, setThemePref, reduceMotion, session, sessionLoaded],
   );
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
