@@ -61,7 +61,7 @@ export function ArrivalsTab() {
 
       <Panel testID="a-meter">
         <Hero testID="here-hero" parts={none ? { w: T.noOneYet } : T.hereHero(here, tot)} />
-        <Txt v="small" testID="last-arr">{last ? T.lastArr(last.name, fmtTime(last.checked_in_at, lang)) : none ? T.noOneExp : T.noOneYet}</Txt>
+        {h.cohost && last ? null : <Txt v="small" testID="last-arr">{last ? T.lastArr(last.name, fmtTime(last.checked_in_at, lang)) : none ? T.noOneExp : T.noOneYet}</Txt>}
         <View style={{ height: 10, borderRadius: radius.pill, backgroundColor: c.surface, marginTop: space[2], overflow: 'hidden' }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           <View style={{ height: 10, borderRadius: radius.pill, backgroundColor: c.okMark, width: `${tot ? Math.min(100, Math.round((here / tot) * 100)) : 0}%` }} />
         </View>
@@ -85,7 +85,7 @@ export function ArrivalsTab() {
             if (g.checked_in_at) {
               const cnt = g.checked_in_count || g.seats || 1, s = g.status === 'yes' ? peopleComing(g) : g.seats;
               meta = cnt < s ? [<Tag key="p" tone="wait" label={T.partHere(cnt, s)} />] : [<Tag key="i" tone="ok" label={T.attK.in} />, h.cw(cnt)];
-              end = <Txt v="label" tone="ok">{fmtTime(g.checked_in_at, lang)}</Txt>;
+              end = h.cohost ? null : <Txt v="label" tone="ok">{fmtTime(g.checked_in_at, lang)}</Txt>;
             } else meta = g.status === 'pending' ? [<Tag key="w" tone="wait" label={T.K.pending} />, h.cw(g.seats || 1)] : [T.expectedN(peopleComing(g))];
             return (
               <Row key={g.id} title={g.name} end={end} testID={`ar-${g.id}`} style={h.isFresh(g.id) ? { backgroundColor: c.okBg } : undefined}>
@@ -96,7 +96,7 @@ export function ArrivalsTab() {
         </RowList>
       ) : <Txt v="body" tone="muted" center style={{ paddingVertical: space[5] }}>{T.attNone}</Txt>}
 
-      <Button kind="quiet" icon="door" label={T.doorScreen} onPress={() => router.push({ pathname: '/door/[id]', params: { id: h.id } })} testID="door-screen" />
+      {h.cohost ? null : <Button kind="quiet" icon="door" label={T.doorScreen} onPress={() => router.push({ pathname: '/door/[id]', params: { id: h.id } })} testID="door-screen" />}
     </Screen>
   );
 }

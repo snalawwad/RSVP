@@ -1,6 +1,6 @@
 // The host dashboard for one event (host.html): four tabs — Home · Guests · Invite · Arrivals — with no count
 // badges. The event, its guests and the door's requests are loaded once here and shared by every tab.
-import { router, Stack, useLocalSearchParams, usePathname } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { TabList, Tabs, TabSlot, TabTrigger } from 'expo-router/ui';
 import { Platform, View } from 'react-native';
 import { Busy, Button, Centered, EmptyState, Icon, PressScale, TabBarFrame, TabButton } from '../../../../components';
@@ -37,24 +37,23 @@ export default function EventLayout() {
 function EventTabs({ id }: { id: string }) {
   const { t, c, lang } = useApp();
   const h = useHost();
-  const path = usePathname();
-  const tab: Tab = /\/guests$/.test(path) ? 'guests' : /\/invite$/.test(path) ? 'invite' : /\/arrivals$/.test(path) ? 'arrivals' : 'home';
   const T = t.host;
+  // a co-host has no Invite tab (sending and the invite's words stay with the main host)
   const tabs: { k: Tab; icon: 'home' | 'people' | 'env' | 'door'; label: string }[] = [
-    { k: 'home', icon: 'home', label: T.tHome }, { k: 'guests', icon: 'people', label: T.tGuests },
-    { k: 'invite', icon: 'env', label: T.tInvite }, { k: 'arrivals', icon: 'door', label: T.tArr },
+    { k: 'home', icon: 'home', label: t.a.overview }, { k: 'guests', icon: 'people', label: T.tGuests },
+    ...(h.cohost ? [] : [{ k: 'invite' as Tab, icon: 'env' as const, label: T.tInvite }]), { k: 'arrivals', icon: 'door', label: T.tArr },
   ];
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       {/* the event's name sits in the top bar on every tab except Home (where the one-line title is on the page) */}
-      <Stack.Screen options={{ title: tab === 'home' ? '' : h.evName, ...webBack }} />
+      <Stack.Screen options={{ title: h.evName, ...webBack }} />
       <Tabs style={{ flex: 1 }}>
         <TabSlot />
         <TabList asChild>
           <TabBarFrame>
             {tabs.map((x) => (
               <TabTrigger key={x.k} name={x.k} href={tabHref(id, x.k)} asChild>
-                <TabButton icon={x.icon} label={x.label} testID={`tab-${x.k}`} />
+                <TabButton icon={x.icon} label={x.label} badge={x.k === 'arrivals' ? h.openReqs.length : 0} testID={`tab-${x.k}`} />
               </TabTrigger>
             ))}
           </TabBarFrame>
@@ -65,6 +64,8 @@ function EventTabs({ id }: { id: string }) {
           <Centered>
             {h.status === 'loading' ? <Busy /> : h.status === 'door' ? (
               <EmptyState title={T.doorH} body={T.doorP} action={<Button big block kind="primary" icon="door" label={T.doorBtn} onPress={() => router.replace({ pathname: '/door/[id]', params: { id } })} />} />
+            ) : h.status === 'draft' ? (
+              <EmptyState title={t.a.draftH} body={t.a.draftP} testID="ev-draft" />
             ) : h.status === 'none' ? (
               <EmptyState title={T.noEvH} body={T.noEvP} />
             ) : (

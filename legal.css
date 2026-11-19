@@ -1,42 +1,4 @@
-/* Privacy, support and account-deletion pages. Pastel design system tokens.
-   Separate from style.css so the live guest, host, admin and door pages are untouched. */
-:root{
-  --bg:#FFFFFF; --surface:#F8F4EE; --raised:#FFFFFF; --ink:#1E241E; --muted:#5E645C;
-  --line:#E9E3DA; --line-control:#8B8F87; --primary:#2F3E2F; --on-primary:#FFFFFF;
-  --primary-soft:#F6E2E3; --powder-soft:#E4EDF6; --powder-ink:#2D4A66;
-  --font-display:"Cormorant Garamond","Markazi Text",Georgia,serif;
-  --font-sans:"DM Sans","IBM Plex Sans Arabic",system-ui,-apple-system,sans-serif;
-  color-scheme:light;
-}
-@media (prefers-color-scheme:dark){:root{
-  --bg:#121412; --surface:#1C1F1C; --raised:#252825; --ink:#F4EDE3; --muted:#B9B5AE;
-  --line:#343834; --line-control:#7B7E78; --primary:#E8B5B7; --on-primary:#1E241E;
-  --primary-soft:#3A2528; --powder-soft:#1F2832; --powder-ink:#C7D8E8;
-  color-scheme:dark;
-}}
-*,*::before,*::after{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-size:16px;line-height:1.6}
-main{max-width:720px;margin:0 auto;padding:20px 20px 72px}
-header.bar{display:flex;align-items:center;gap:12px;max-width:720px;margin:0 auto;padding:16px 20px 0}
-.brand{font-family:var(--font-display);font-size:24px;font-weight:600;color:var(--primary);margin-inline-end:auto;text-decoration:none}
-.langs{display:flex;gap:6px}
-.langs button{border:1.5px solid var(--line-control);background:transparent;color:var(--ink);border-radius:999px;padding:6px 14px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;min-height:36px}
-.langs button[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
-:focus-visible{outline:none;box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--primary)}
-h1{font-family:var(--font-display);font-weight:600;font-size:34px;line-height:1.15;margin:24px 0 6px;color:var(--ink)}
-h2{font-family:var(--font-display);font-weight:600;font-size:24px;line-height:1.25;margin:32px 0 8px}
-[lang="ar"] h1,[lang="ar"] h2{font-family:"Markazi Text","Amiri",serif;line-height:1.4}
-[lang="ar"]{font-family:"IBM Plex Sans Arabic","DM Sans",system-ui,sans-serif;line-height:1.75}
-p,li{margin:0 0 10px}
-ul,ol{padding-inline-start:22px;margin:0 0 12px}
-.muted{color:var(--muted);font-size:14px}
-a{color:var(--primary);text-underline-offset:3px}
-.box{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;margin:16px 0}
-.note{background:var(--powder-soft);color:var(--powder-ink);border-radius:14px;padding:12px 14px;margin:16px 0}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--primary);color:var(--on-primary);border-radius:999px;padding:11px 20px;min-height:46px;font-weight:600;text-decoration:none}
-.btn.outline{background:transparent;color:var(--primary);border:1.5px solid var(--line-control)}
-.actions{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
-footer{max-width:720px;margin:0 auto;padding:0 20px 40px;display:flex;flex-wrap:wrap;gap:16px;font-size:14px}
-footer a{color:var(--muted)}
-[hidden]{display:none !important}
+/* Privacy, support, terms and account-deletion pages: the public website's look (site.css, Figma W01/W02).
+   Kept as its own file because delete-account.html links it; it brings the fonts and site.css with it. */
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600&family=Fraunces:opsz,wght@9..144,600&family=Noto+Kufi+Arabic:wght@400;600&family=Noto+Naskh+Arabic:wght@600&display=swap");
+@import url("site.css");

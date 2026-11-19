@@ -25,11 +25,22 @@
     <!-- ===== home: every event, upcoming first ===== -->
     <div id="home">
       <header class="home-head" id="homeMast">
-        <div class="hh-t"><h1 class="t-title" data-i18n="homeT">Events</h1><p class="t-small" id="homeSub"></p></div>
+        <div class="hh-t"><p class="hh-k" data-i18n="kickHome">The back office</p><h1 class="t-title" id="homeT">Events</h1><p class="t-small" id="homeSub"></p></div>
         <button class="btn primary" id="newEv"><i class="i i-plus"></i><span data-i18n="newEv">New event</span></button>
       </header>
+      <!-- the team's three lists (supabase/migrations/0007): events, orders to check, design and change requests -->
+      <div class="seg fill hometabs" id="homeTabs" role="group" aria-label="Lists" data-i18n-aria="tabsL" hidden>
+        <button type="button" data-tab="events" aria-pressed="true"><span data-i18n="tabEvents">Events</span></button>
+        <button type="button" data-tab="orders" aria-pressed="false"><span data-i18n="tabOrders">Orders</span><b class="tabn" id="ordN" hidden></b></button>
+        <button type="button" data-tab="requests" aria-pressed="false"><span data-i18n="tabReqs">Requests</span><b class="tabn" id="reqN" hidden></b></button>
+      </div>
       <div class="searchbox" id="searchWrap" hidden><i class="i i-search"></i><input type="search" id="evSearch" dir="auto" autocomplete="off" data-i18n-ph="searchPh" data-i18n-aria="searchPh" placeholder="Search events" aria-label="Search events"></div>
       <div id="evlist"></div>
+      <div id="ordersView" hidden>
+        <div class="fchips ordfilter" id="ordFilter" role="group" aria-label="Show" data-i18n-aria="ordShow"></div>
+        <div id="ordList" aria-live="polite"></div>
+      </div>
+      <div id="reqsView" hidden><div id="reqList" aria-live="polite"></div></div>
     </div>
 
     <div id="evArea" hidden>
@@ -43,6 +54,7 @@
         <div id="ovSave" aria-live="polite"></div>
         <div class="panel pgpanel" id="progress" aria-live="polite"></div>
         <div class="panel nextcard" id="nextCard"></div>
+        <div class="panel pkgpanel" id="pkgPanel" hidden></div>
         <h2 class="sect" data-i18n="setupH">Setup</h2>
         <div class="rowlist checklist" id="checklist"></div>
         <h2 class="sect" data-i18n="openH">Other screens</h2>
@@ -55,6 +67,7 @@
 
       <!-- ===== one setup step at a time ===== -->
       <div id="stepView" hidden>
+        <nav class="steprail" id="stepRail" aria-label="Setup steps" data-i18n-aria="railL"></nav>
         <header class="stephead" id="stepHead">
           <button type="button" class="iconbtn" id="toOv" aria-label="Back" data-i18n-aria="toOv"><i class="i i-chev"></i></button>
           <div class="sh-t"><p class="t-small" id="stepK"></p><h1 class="t-title" id="stepT"></h1></div>
@@ -112,11 +125,14 @@
             <h2 class="t-name" data-i18n="addSomeone">New team member</h2>
             <div class="seg fill" id="roleSeg" role="group" aria-label="Access" data-i18n-aria="access">
               <button type="button" data-role="host" aria-pressed="true"><i class="i i-person sm"></i><span data-i18n="roleHost">Hosts</span></button>
+              <button type="button" data-role="cohost" aria-pressed="false" hidden><i class="i i-people sm"></i><span data-i18n="roleCohost">Co-hosts</span></button>
               <button type="button" data-role="door" aria-pressed="false"><i class="i i-door sm"></i><span data-i18n="roleDoor">Door team</span></button>
             </div>
             <p class="help" id="roleHelp"></p>
             <div class="fld" id="mSideWrap"><span class="f lbl" id="mSideL" data-i18n="mSide">Only sees guests from</span><div class="fchips sidechips" id="mSideChips" role="group" aria-labelledby="mSideL"></div><input type="text" id="mSide" dir="auto" autocomplete="off" data-i18n-ph="mSidePh" data-i18n-aria="mSideNew" placeholder="Another side, e.g. Groom’s mum" aria-label="Another side"><p class="help" data-i18n="mSideHelp">With a side, they only see and add that side’s guests.</p></div>
             <div class="fld" id="mUntilWrap" hidden><label class="f" for="mUntil" data-i18n="mUntil">Access ends</label><input type="date" id="mUntil"><p class="help" data-i18n="mUntilHelp">At midnight Kuwait time on this day.</p></div>
+            <div class="fld" id="mNameWrap" hidden><label class="f" for="mName" data-i18n="mName">Name (optional)</label><input type="text" id="mName" dir="auto" maxlength="80" autocomplete="off"></div>
+            <div class="fld" id="mPhoneWrap" hidden><label class="f" for="mPhone" data-i18n="mPhone">Phone number</label><input type="tel" id="mPhone" dir="ltr" inputmode="tel" autocomplete="off" placeholder="9999 8888"><p class="help" data-i18n="mPhoneHelp">They log in with this number. Add a phone number, an email, or both.</p></div>
             <div class="fld"><label class="f" for="mEmail" data-i18n="email">Email</label><div class="inrow"><input type="email" id="mEmail" dir="ltr" inputmode="email" autocapitalize="none" spellcheck="false" autocomplete="off" placeholder="name@example.com"><button type="button" class="btn secondary" id="addMem" data-i18n="add">Add to the team</button></div></div>
           </div>
         </section>
@@ -420,6 +436,68 @@ document.addEventListener('DOMContentLoaded', function () {
         ['شنو الفرق بين الضيف والشخص؟', 'الضيف يعني دعوة وحدة، والشخص يعني فرد. يعني دعوة لعائلة من 3 أشخاص تنحسب ضيف واحد و3 أشخاص.']] }
   };
   let lang = 'en'; try { lang = localStorage.getItem('admin-lang') === 'ar' ? 'ar' : 'en'; } catch (e) {}
+  // ---- strings for the self-serve back office (supabase/migrations/0007): orders, requests, packages, co-hosts ----
+  const kwd = (f, l) => { const v = (Number(f) || 0) / 1000, n = Number.isInteger(v) ? String(v) : v.toFixed(3); return l === 'ar' ? `${n} د.ك` : `${n} KWD`; };
+  Object.assign(T.en, {
+    kickHome: 'The back office', tabsL: 'Lists', tabEvents: 'Events', tabOrders: 'Orders', tabReqs: 'Requests', ordShow: 'Show',
+    evSt: { draft: 'Draft', active: 'Active', done: 'Done', cancelled: 'Cancelled' }, noPkg: 'No package',
+    pkgShort: (n, door) => door ? `${n} + door` : n,
+    // orders
+    ordF: { pending: 'Not paid yet', paid: 'Paid', failed: 'Failed', cancelled: 'Cancelled', all: 'All' },
+    ordSt: { pending: 'Not paid yet', paid: 'Paid', failed: 'Failed', cancelled: 'Cancelled' },
+    ordKind: { package: (p, d) => `${p} package${d ? ' + door check-in' : ''}`, door_addon: () => 'Door check-in add-on', invite_change: () => 'Change to the invite', design: () => 'Card design' },
+    ordNone: { pending: 'No orders waiting for payment.', paid: 'No paid orders yet.', failed: 'No failed payments.', cancelled: 'No cancelled orders.', all: 'No orders yet.' },
+    ordErr: 'Couldn’t load the orders. Check the connection and try again.', ordBy: m => ({ knet: 'KNET', card: 'Card', manual: 'Marked by hand' })[m] || '',
+    ordWhen: d => `Ordered ${d}`, paidWhen: d => `Paid ${d}`,
+    markPaid: 'Mark as paid', payQ: (a, e) => `Mark ${a} from “${e}” as paid? Only do this once the money is in.`, payNote: 'Note (optional)', payNotePh: 'e.g. bank transfer on 20 Nov',
+    payYes: 'Yes, mark it paid', payNo: 'Keep it unpaid', paidOk: 'Marked as paid', payErr: 'Couldn’t mark it paid. Try again.',
+    // requests
+    reqKind: { design: 'Card design', change: 'Change to the invite' },
+    reqSt: { change: { awaiting_payment: 'Waiting for payment', requested: 'New', in_progress: 'In progress', done: 'Done', cancelled: 'Cancelled' },
+             design: { requested: 'New', draft_sent: 'Draft sent', approved: 'Approved', cancelled: 'Cancelled' } },
+    reqNone: 'No design or change requests yet.', reqErr: 'Couldn’t load the requests. Check the connection and try again.',
+    rIdea: 'Idea', rWhat: 'What to change', rWording: 'Wording', rColours: 'Colours', rPhotos: n => n === 1 ? '1 photo' : `${n} photos`, rHost: 'Host',
+    rStatus: 'Status', rDraft: 'Draft link', rDraftPh: 'https://…', rSave: 'Save the status', rSaved: 'Request updated', rSaveErr: 'Couldn’t update the request. Try again.',
+    rOpenDraft: 'Open the draft', rAsked: d => `Asked ${d}`, rBadUrl: 'The draft link must start with https://',
+    // package fix
+    pkgH: 'Package', pkgNone: 'No package. Set up by the team before packages.', pkgDoorIn: 'door check-in included', pkgDoorAdd: 'door check-in added', pkgNoDoor: 'no door check-in',
+    pkgInv: n => `${n} invites`, pkgFix: 'Change the package', pkgPick: 'Package', pkgDoor: 'Add door check-in', pkgDoorP: 'Included in Plus and Premium.',
+    pkgSave: 'Save the package', pkgSaved: 'Package saved', pkgErr: 'Couldn’t save the package. Try again.', pkgCancel: 'Keep it as it is',
+    pkgLine: (n, p, i) => `${n} · ${p} · ${i}`,
+    // team
+    roleCohost: 'Co-hosts', roleCohostP: 'Sees names, party sizes and replies only. No phone numbers, and can’t change the list.', cohost: 'Co-host',
+    mName: 'Name (optional)', mPhone: 'Phone number', mPhoneHelp: 'They log in with this number. Add a phone number, an email, or both.',
+    needContact: 'Add a phone number or an email', badPhone: 'That phone number doesn’t look right', dupMember: 'That person is already on the team',
+    railL: 'Setup steps', railShort: { details: 'Details', team: 'Team', design: 'Design', guests: 'Guests', send: 'Send' }
+  });
+  Object.assign(T.ar, {
+    kickHome: 'فريق سنة', tabsL: 'القوائم', tabEvents: 'المناسبات', tabOrders: 'الدفعات', tabReqs: 'الطلبات', ordShow: 'عرض',
+    evSt: { draft: 'مسودة', active: 'فعّالة', done: 'خلصت', cancelled: 'ملغية' }, noPkg: 'بدون باقة',
+    pkgShort: (n, door) => door ? `${n} + الباب` : n,
+    ordF: { pending: 'ما اندفعت', paid: 'مدفوعة', failed: 'ما تم الدفع', cancelled: 'ملغية', all: 'الكل' },
+    ordSt: { pending: 'ما اندفعت', paid: 'مدفوعة', failed: 'ما تم الدفع', cancelled: 'ملغية' },
+    ordKind: { package: (p, d) => `الباقة ${p}${d ? ' مع تسجيل الوصول على الباب' : ''}`, door_addon: () => 'إضافة تسجيل الوصول على الباب', invite_change: () => 'تعديل على الدعوة', design: () => 'تصميم الكرت' },
+    ordNone: { pending: 'ما في دفعات تنتظر.', paid: 'ما في دفعات مدفوعة للحين.', failed: 'ما في دفعات فشلت.', cancelled: 'ما في دفعات ملغية.', all: 'ما في دفعات للحين.' },
+    ordErr: 'ما قدرنا نجيب الدفعات. شيكوا على النت وحاولوا مرة ثانية.', ordBy: m => ({ knet: 'كي نت', card: 'بطاقة', manual: 'انسجلت يدوي' })[m] || '',
+    ordWhen: d => `انطلبت ${d}`, paidWhen: d => `اندفعت ${d}`,
+    markPaid: 'سجّلوها مدفوعة', payQ: (a, e) => `نسجّل ${a} من «${e}» مدفوعة؟ سوّوها بس بعد ما توصل الفلوس.`, payNote: 'ملاحظة (اختياري)', payNotePh: 'مثلاً: تحويل بنكي يوم 20 نوفمبر',
+    payYes: 'إي، سجّلوها مدفوعة', payNo: 'لا، خلّوها', paidOk: 'انسجلت مدفوعة', payErr: 'ما قدرنا نسجّلها مدفوعة. حاولوا مرة ثانية.',
+    reqKind: { design: 'تصميم الكرت', change: 'تعديل على الدعوة' },
+    reqSt: { change: { awaiting_payment: 'تنتظر الدفع', requested: 'جديد', in_progress: 'نشتغل عليه', done: 'خلص', cancelled: 'ملغي' },
+             design: { requested: 'جديد', draft_sent: 'أرسلنا المسودة', approved: 'انعتمد', cancelled: 'ملغي' } },
+    reqNone: 'ما في طلبات تصميم أو تعديل للحين.', reqErr: 'ما قدرنا نجيب الطلبات. شيكوا على النت وحاولوا مرة ثانية.',
+    rIdea: 'الفكرة', rWhat: 'شنو يتعدّل', rWording: 'الكلام', rColours: 'الألوان', rPhotos: n => App.arN(n, 'صورة وحدة', 'صورتين', 'صور', 'صورة'), rHost: 'أهل المناسبة',
+    rStatus: 'الحالة', rDraft: 'رابط المسودة', rDraftPh: 'https://…', rSave: 'احفظوا الحالة', rSaved: 'انحفظ الطلب', rSaveErr: 'ما قدرنا نحفظ الطلب. حاولوا مرة ثانية.',
+    rOpenDraft: 'افتحوا المسودة', rAsked: d => `انطلب ${d}`, rBadUrl: 'رابط المسودة لازم يبدأ بـ https://',
+    pkgH: 'الباقة', pkgNone: 'بدون باقة. الفريق جهّزها قبل الباقات.', pkgDoorIn: 'تسجيل الوصول على الباب ضمنها', pkgDoorAdd: 'مضاف لها تسجيل الوصول على الباب', pkgNoDoor: 'بدون تسجيل الوصول على الباب',
+    pkgInv: n => `${n} دعوة`, pkgFix: 'غيّروا الباقة', pkgPick: 'الباقة', pkgDoor: 'أضيفوا تسجيل الوصول على الباب', pkgDoorP: 'موجود في بلس وبريميوم.',
+    pkgSave: 'احفظوا الباقة', pkgSaved: 'انحفظت الباقة', pkgErr: 'ما قدرنا نحفظ الباقة. حاولوا مرة ثانية.', pkgCancel: 'خلّوها مثل ما هي',
+    pkgLine: (n, p, i) => `${n}، ${p}، ${i}`,
+    roleCohost: 'المساعدين', roleCohostP: 'يشوف الأسماء وعدد الأشخاص والردود بس. ما يشوف الأرقام وما يقدر يعدّل القائمة.', cohost: 'مساعد',
+    mName: 'الاسم (اختياري)', mPhone: 'رقم التلفون', mPhoneHelp: 'يدخل بهالرقم. أضيفوا رقم أو إيميل أو الاثنين.',
+    needContact: 'أضيفوا رقم تلفون أو إيميل', badPhone: 'رقم التلفون مو صحيح', dupMember: 'هالشخص موجود بالفريق من قبل',
+    railL: 'خطوات التجهيز', railShort: { details: 'التفاصيل', team: 'الفريق', design: 'التصميم', guests: 'الضيوف', send: 'الإرسال' }
+  });
   let t = T[lang], notAdmin = false;
   App.setHelp(l => T[l].help);
   const typeLabel = k => t['t' + String(k || 'other').charAt(0).toUpperCase() + String(k || 'other').slice(1)] || t.tOther;
@@ -449,7 +527,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!admin) { notAdmin = true; showNotAdmin(); return; }
     v2 = await App.v2Ready();
     $('#adm').hidden = false; booted = true;
-    await loadEvents();
+    await Promise.all([loadEvents(), probe7()]);
     route();
   });
 
@@ -484,13 +562,13 @@ document.addEventListener('DOMContentLoaded', function () {
     events = er.data || []; stats = {};
     const by = {}; (gr.data || []).forEach(g => (by[g.event_id] || (by[g.event_id] = [])).push(g));
     events.forEach(e => { stats[e.id] = { ...countsOf(by[e.id] || []), hosts: 0, doors: 0, err: !!gr.error }; });
-    (mr.data || []).forEach(m => { const s = stats[m.event_id]; if (!s) return; if (m.role === 'host') s.hosts++; else s.doors++; });
+    (mr.data || []).forEach(m => { const s = stats[m.event_id]; if (!s) return; if (m.role === 'host') s.hosts++; else if (m.role === 'door') s.doors++; });
     if (ev) { const fresh = events.find(x => x.id === ev.id); if (fresh) ev = fresh; }
     renderHome();
   }
   function syncStats() {   // keep the home list in step with what changed on this event
     if (!ev) return;
-    stats[ev.id] = { ...countsOf(guests), hosts: members.filter(m => m.role === 'host').length, doors: members.filter(m => m.role !== 'host').length, err: guestsErr };
+    stats[ev.id] = { ...countsOf(guests), hosts: members.filter(m => m.role === 'host').length, doors: members.filter(m => m.role === 'door').length, err: guestsErr };
     const i = events.findIndex(x => x.id === ev.id); if (i >= 0) events[i] = ev;
   }
   async function loadGuests() {
@@ -503,7 +581,8 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   async function loadMembers() {
     const id = ev && ev.id; if (!id) return;
-    const { data, error } = await sb.from('event_members').select('*').eq('event_id', id).order('created_at');
+    let { data, error } = v7 ? await sb.rpc('list_members_v2', { p_event: id }) : await sb.from('event_members').select('*').eq('event_id', id).order('created_at');
+    if (v7 && error && App.missingFn(error)) ({ data, error } = await sb.from('event_members').select('*').eq('event_id', id).order('created_at'));
     if (!ev || ev.id !== id) return;
     membersErr = !!error;
     if (!error) members = data || [];
@@ -537,7 +616,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const e = id && events.find(x => x.id === id);
     if (id === 'new') { if (!(view === 'step' && !ev)) open(null, { push: false }); }
     else if (e) { if (ev && ev.id === e.id) (STEPS.includes(k) ? showStep(k, false) : showOverview(false)); else open(e, { push: false, step: STEPS.includes(k) ? k : null }); }
-    else showHome(false);
+    else { const tb = p.get('tab'); homeTab = v7 && ['orders', 'requests'].includes(tb) ? tb : 'events'; showHome(false); }
   }
   const here = () => ev ? url(ev.id, view === 'step' ? step : null) : (view === 'step' ? '?event=new' : location.pathname);
   function showView(v) {
@@ -564,7 +643,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!(await leaveOK())) { if (!push) history.pushState({}, '', was); return; }
     ++openSeq;
     ev = null; copyFrom = null; clearTimeout(retryTimer); showView('home'); renderHome();
-    if (push) history.pushState({}, '', location.pathname);
+    if (push) history.pushState({}, '', homeTab === 'events' ? location.pathname : '?tab=' + homeTab);
     window.scrollTo(0, 0);
   }
   function showOverview(push = true) {
@@ -622,10 +701,12 @@ document.addEventListener('DOMContentLoaded', function () {
   function evRow(e) {
     const s = stats[e.id] || countsOf([]);
     const when = e.starts_at ? shortDate(e.starts_at) : t.noDate;
-    const meta = [typeLabel(e.event_type), s.err ? t.gErrShort : s.g ? cw(s.g, 'guest') : t.noGuestsShort].join(t.sep);
+    const pk = 'package' in e ? (e.package ? t.pkgShort(pkgName(e.package), hasDoor(e) && !(pkgOf(e.package) || {}).door_included) : t.noPkg) : '';
+    const meta = [typeLabel(e.event_type), pk, s.err ? t.gErrShort : s.g ? cw(s.g, 'guest') : t.noGuestsShort].filter(Boolean).join(t.sep);
+    const st = e.status && t.evSt[e.status] ? `<span class="tag evst tone-${e.status === 'draft' ? 'wait' : e.status === 'active' ? 'ok' : 'mute'}">${esc(t.evSt[e.status])}</span>` : '';
     const prog = s.g && !s.err ? [s.phones ? t.rowSent(s.sent, s.phones) : '', s.yesG || s.no ? t.coming(s.coming) : ''].filter(Boolean).join(t.sep) : '';
-    return `<button type="button" class="evrow" data-id="${esc(e.id)}" aria-label="${esc([e.title, when, meta, prog].filter(Boolean).join(', '))}">${dblock(e)}
-      <span class="evrow-main"><span class="evrow-t" dir="auto">${esc(e.title)}</span><span class="evrow-m">${esc(meta)}</span>${prog ? `<span class="evrow-p">${esc(prog)}</span>` : ''}</span><i class="i i-chev" aria-hidden="true"></i></button>`;
+    return `<button type="button" class="evrow" data-id="${esc(e.id)}" aria-label="${esc([e.title, e.status && t.evSt[e.status], when, meta, prog].filter(Boolean).join(', '))}">${dblock(e)}
+      <span class="evrow-main"><span class="evrow-tt"><span class="evrow-t" dir="auto">${esc(e.title)}</span>${st}</span><span class="evrow-m">${esc(meta)}</span>${prog ? `<span class="evrow-p">${esc(prog)}</span>` : ''}</span><i class="i i-chev" aria-hidden="true"></i></button>`;
   }
   function renderHome() {
     const raw = $('#evSearch').value.trim(), q = normName(raw);
@@ -649,8 +730,192 @@ document.addEventListener('DOMContentLoaded', function () {
     $$('#evlist .evrow').forEach(b => b.onclick = () => open(events.find(x => x.id === b.dataset.id)));
     const nb = $('#evlist [data-new]'); if (nb) nb.onclick = newEvent;
     if ($('#reloadEvs')) $('#reloadEvs').onclick = async () => { await loadEvents(); if (!eventsErr) route(); };
+    renderTabs();
+    if (homeTab === 'orders') renderOrders(); else if (homeTab === 'requests') renderReqs7();
   }
   $('#evSearch').addEventListener('input', renderHome);
+
+  // ---------------------------------------------------------------- self-serve (supabase/migrations/0007)
+  // Orders to check and mark paid, design and change requests, an event's package, co-hosts and phone members.
+  // Everything here waits for 0007: before it is run the tabs, the package panel and the co-host option stay hidden.
+  let v7 = false, homeTab = 'events', orders = null, ordersErr = false, ordFilter = 'pending', reqs7 = null, reqsErr = false;
+  let payAsk = null, pkgs = [], pkgOpen = false, pkgBusy = false;
+  const PKG_FALLBACK = [{ code: 'basic', name_en: 'Basic', name_ar: 'الأساسية', price_fils: 15000, invite_limit: 50, door_included: false },
+    { code: 'plus', name_en: 'Plus', name_ar: 'بلس', price_fils: 35000, invite_limit: 150, door_included: true },
+    { code: 'premium', name_en: 'Premium', name_ar: 'بريميوم', price_fils: 75000, invite_limit: 400, door_included: true }];
+  async function probe7() {
+    let r; try { r = await sb.rpc('admin_orders_v2', { p_status: 'pending' }); } catch (e) { r = { error: e }; }
+    v7 = !r.error;
+    if (!v7) return;
+    orders = null;
+    const p = await sb.from('packages').select('*').order('sort');
+    pkgs = (!p.error && p.data && p.data.length) ? p.data : PKG_FALLBACK;
+    $('[data-role="cohost"]').hidden = false;
+    loadOrders(); loadReqs7();
+  }
+  const pkgOf = code => pkgs.find(p => p.code === code) || PKG_FALLBACK.find(p => p.code === code) || null;
+  const pkgName = code => { const p = pkgOf(code); return p ? (lang === 'ar' ? p.name_ar : p.name_en) || code : code; };
+  const hasDoor = e => !!e && (!!e.door_addon || !!(pkgOf(e.package) || {}).door_included);
+  const ago = iso => iso ? new Date(iso).toLocaleDateString(loc(), { timeZone: TZ, day: 'numeric', month: 'short' }) + ', ' + App.fmtTime(iso, lang) : '';
+  const hostOf = h => h ? [h.name, h.email, h.phone ? showPhone(h.phone) : ''].filter(Boolean) : [];
+
+  // ---- the three lists on the home screen ----
+  function renderTabs() {
+    $('#homeTabs').hidden = !v7;
+    if (!v7) homeTab = 'events';
+    $$('#homeTabs [data-tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === homeTab)));
+    const pend = (orders || []).filter(o => o.status === 'pending').length, open = (reqs7 || []).filter(r => ['requested', 'in_progress'].includes(r.status)).length;
+    $('#ordN').hidden = !pend; $('#ordN').textContent = pend; $('#reqN').hidden = !open; $('#reqN').textContent = open;
+    $('#homeT').textContent = homeTab === 'orders' ? t.tabOrders : homeTab === 'requests' ? t.tabReqs : t.homeT;
+    const evs = homeTab === 'events';
+    $('#evlist').hidden = !evs; $('#homeSub').hidden = !evs; $('#ordersView').hidden = homeTab !== 'orders'; $('#reqsView').hidden = homeTab !== 'requests';
+    if (!evs) $('#searchWrap').hidden = true;
+  }
+  $$('#homeTabs [data-tab]').forEach(b => b.onclick = () => {
+    homeTab = b.dataset.tab; payAsk = null;
+    history.pushState({}, '', homeTab === 'events' ? location.pathname : '?tab=' + homeTab);
+    renderHome();
+    if (homeTab === 'orders') loadOrders(); if (homeTab === 'requests') loadReqs7();
+  });
+
+  // ---- orders: filter by status, "Mark as paid" with a confirm step ----
+  async function loadOrders() {
+    if (!v7) return;
+    const { data, error } = await sb.rpc('admin_orders_v2', { p_status: null });
+    ordersErr = !!error; if (!error) orders = data || [];
+    if (view === 'home') { renderTabs(); if (homeTab === 'orders') renderOrders(); }
+  }
+  function ordKindLabel(o) {
+    const k = t.ordKind[o.kind] || (() => o.kind);
+    return o.kind === 'package' ? k(pkgName(o.package), !!o.door && !(pkgOf(o.package) || {}).door_included) : k();
+  }
+  function renderOrders() {
+    const F = ['pending', 'paid', 'failed', 'cancelled', 'all'];
+    const n = k => (orders || []).filter(o => k === 'all' || o.status === k).length;
+    $('#ordFilter').innerHTML = F.map(k => `<button type="button" class="fchip" data-of="${k}" aria-pressed="${ordFilter === k}">${esc(t.ordF[k])}${orders ? ` <span class="num">${n(k)}</span>` : ''}</button>`).join('');
+    $$('#ordFilter [data-of]').forEach(b => b.onclick = () => { ordFilter = b.dataset.of; payAsk = null; renderOrders(); });
+    const L = $('#ordList');
+    if (ordersErr && !orders) { L.innerHTML = `<div class="warnstrip loaderr"><span>${t.ordErr}</span><button type="button" class="btn small secondary" id="ordRetry">${t.retry}</button></div>`; $('#ordRetry').onclick = loadOrders; return; }
+    if (!orders) { L.innerHTML = ''; return; }
+    const list = orders.filter(o => ordFilter === 'all' || o.status === ordFilter);
+    if (!list.length) { L.innerHTML = `<p class="empty">${esc(t.ordNone[ordFilter])}</p>`; return; }
+    const tone = { pending: 'wait', paid: 'ok', failed: 'no', cancelled: 'mute' };
+    L.innerHTML = `<div class="glist ordl">${list.map(o => {
+      const meta = [o.status === 'paid' && o.paid_at ? t.paidWhen(ago(o.paid_at)) : t.ordWhen(ago(o.created_at)), t.ordBy(o.method)].filter(Boolean).join(t.sep);
+      const host = hostOf(o.host);
+      const ask = payAsk === o.id;
+      return `<article class="ordrow${ask ? ' asking' : ''}" data-id="${esc(o.id)}">
+        <div class="or-top"><span class="or-amt num">${esc(kwd(o.amount_fils, lang))}</span><span class="tag tone-${tone[o.status] || 'mute'}">${esc(t.ordSt[o.status] || o.status)}</span></div>
+        <p class="or-t"><bdi>${esc(o.event_title || '')}</bdi></p>
+        <p class="t-small or-k">${esc(ordKindLabel(o))}</p>
+        ${host.length ? `<p class="t-small or-h">${host.map(x => `<bdi dir="auto">${esc(x)}</bdi>`).join(t.sep)}</p>` : ''}
+        <p class="t-small or-m">${esc(meta)}</p>
+        ${o.status === 'pending' ? (ask
+          ? `<div class="payq" role="group" aria-label="${esc(t.markPaid)}"><p class="t-body">${esc(t.payQ(kwd(o.amount_fils, lang), o.event_title || ''))}</p>
+              <label class="f" for="payNote">${t.payNote}</label><input type="text" id="payNote" dir="auto" maxlength="150" autocomplete="off" placeholder="${esc(t.payNotePh)}">
+              <div class="payq-b"><button type="button" class="btn primary" data-payyes="${esc(o.id)}">${t.payYes}</button><button type="button" class="btn secondary" data-payno>${t.payNo}</button></div></div>`
+          : `<button type="button" class="btn secondary block or-pay" data-pay="${esc(o.id)}"><i class="i i-check sm"></i><span>${t.markPaid}</span></button>`) : ''}
+      </article>`;
+    }).join('')}</div>`;
+    $$('#ordList [data-pay]').forEach(b => b.onclick = () => { payAsk = b.dataset.pay; renderOrders(); const y = $('#ordList [data-payyes]'); if (y) y.focus(); });
+    $$('#ordList [data-payno]').forEach(b => b.onclick = () => { const id = payAsk; payAsk = null; renderOrders(); const r = $(`#ordList [data-pay="${id}"]`); if (r) r.focus(); });
+    $$('#ordList [data-payyes]').forEach(b => b.onclick = async () => {
+      if (b.getAttribute('aria-busy')) return; b.setAttribute('aria-busy', 'true');
+      const note = ($('#payNote') && $('#payNote').value.trim()) || null;
+      const { error } = await sb.rpc('admin_mark_paid_v2', { p_order: b.dataset.payyes, p_note: note });
+      if (error) { b.removeAttribute('aria-busy'); toast(t.payErr); return; }
+      payAsk = null; toast(t.paidOk);
+      await Promise.all([loadOrders(), loadEvents()]);
+    });
+  }
+
+  // ---- design and change requests: status, and the draft link for a design ----
+  async function loadReqs7() {
+    if (!v7) return;
+    const { data, error } = await sb.rpc('admin_requests_v2');
+    reqsErr = !!error; if (!error) reqs7 = data || [];
+    if (view === 'home') { renderTabs(); if (homeTab === 'requests') renderReqs7(); }
+  }
+  function renderReqs7() {
+    const L = $('#reqList');
+    if (reqsErr && !reqs7) { L.innerHTML = `<div class="warnstrip loaderr"><span>${t.reqErr}</span><button type="button" class="btn small secondary" id="reqRetry">${t.retry}</button></div>`; $('#reqRetry').onclick = loadReqs7; return; }
+    if (!reqs7) { L.innerHTML = ''; return; }
+    if (!reqs7.length) { L.innerHTML = `<p class="empty">${esc(t.reqNone)}</p>`; return; }
+    const tone = { awaiting_payment: 'wait', requested: 'wait', in_progress: 'wait', draft_sent: 'wait', done: 'ok', approved: 'ok', cancelled: 'mute' };
+    L.innerHTML = `<div class="glist reql">${reqs7.map(r => {
+      const sts = t.reqSt[r.kind] || {}, host = hostOf(r.host), id = esc(r.id);
+      const lines = r.kind === 'design' ? [[t.rIdea, r.idea], [t.rWording, r.wording], [t.rColours, r.colours]] : [[t.rWhat, r.what], [t.rWording, r.wording], [t.rColours, r.colours]];
+      const photos = (r.photos || []).length;
+      return `<article class="reqrow" data-id="${id}" data-kind="${esc(r.kind)}">
+        <div class="or-top"><span class="t-name">${esc(t.reqKind[r.kind] || r.kind)}</span><span class="tag tone-${tone[r.status] || 'mute'}">${esc(sts[r.status] || r.status)}</span></div>
+        <p class="or-t"><bdi>${esc(r.event_title || '')}</bdi></p>
+        ${host.length ? `<p class="t-small or-h">${host.map(x => `<bdi dir="auto">${esc(x)}</bdi>`).join(t.sep)}</p>` : ''}
+        <dl class="rq-d">${lines.filter(([, v]) => v).map(([k, v]) => `<div><dt>${esc(k)}</dt><dd dir="auto">${esc(v)}</dd></div>`).join('')}${photos ? `<div><dt>${esc(t.rPhotos(photos))}</dt><dd>${(r.photos || []).map((u, i) => /^https:\/\//.test(u) ? `<a href="${esc(u)}" target="_blank" rel="noopener">${i + 1}</a>` : '').join(' ')}</dd></div>` : ''}</dl>
+        <p class="t-small or-m">${esc(t.rAsked(ago(r.created_at)))}${r.draft_url ? `${t.sep}<a href="${esc(r.draft_url)}" target="_blank" rel="noopener">${t.rOpenDraft}</a>` : ''}</p>
+        <div class="rq-edit">
+          <div class="fld"><label class="f" for="rs-${id}">${t.rStatus}</label><select id="rs-${id}" data-rs>${Object.keys(sts).map(k => `<option value="${k}"${k === r.status ? ' selected' : ''}>${esc(sts[k])}</option>`).join('')}</select></div>
+          ${r.kind === 'design' ? `<div class="fld"><label class="f" for="rd-${id}">${t.rDraft}</label><input type="url" id="rd-${id}" data-rd dir="ltr" inputmode="url" placeholder="${esc(t.rDraftPh)}" value="${esc(r.draft_url || '')}"></div>` : ''}
+          <button type="button" class="btn secondary" data-rsave>${t.rSave}</button>
+        </div>
+      </article>`;
+    }).join('')}</div>`;
+    $$('#reqList [data-rsave]').forEach(b => b.onclick = async () => {
+      const row = b.closest('.reqrow'), st = row.querySelector('[data-rs]').value, du = row.querySelector('[data-rd]');
+      const url = du ? du.value.trim() : '';
+      if (url && !/^https:\/\/\S+$/.test(url)) { toast(t.rBadUrl); du.focus(); return; }
+      if (b.getAttribute('aria-busy')) return; b.setAttribute('aria-busy', 'true');
+      const { error } = await sb.rpc('admin_set_request_v2', { p_kind: row.dataset.kind, p_id: row.dataset.id, p_status: st, p_draft_url: url || null });
+      b.removeAttribute('aria-busy');
+      if (error) { toast(t.rSaveErr); return; }
+      toast(t.rSaved); loadReqs7();
+    });
+  }
+
+  // ---- the event's package (fix it by hand) ----
+  function renderPkg() {
+    const P = $('#pkgPanel');
+    P.hidden = !v7 || !ev || !('package' in ev);
+    if (P.hidden) return;
+    const st = ev.status || 'active', door = hasDoor(ev), p = pkgOf(ev.package);
+    const doorTxt = !p ? '' : p.door_included ? t.pkgDoorIn : ev.door_addon ? t.pkgDoorAdd : t.pkgNoDoor;
+    let h = `<div class="pk-top"><p class="t-small">${t.pkgH}</p><span class="tag tone-${st === 'draft' ? 'wait' : st === 'active' ? 'ok' : 'mute'}">${esc(t.evSt[st] || st)}</span></div>`
+      + `<p class="t-name pk-now">${p ? esc(t.pkgLine(pkgName(p.code), doorTxt, t.pkgInv(ev.invite_limit || p.invite_limit))) : esc(t.pkgNone)}</p>`;
+    if (!pkgOpen) h += `<button type="button" class="btn secondary" id="pkgFix"><i class="i i-pen sm"></i><span>${t.pkgFix}</span></button>`;
+    else {
+      const cur = ev.package || 'plus';
+      h += `<fieldset class="pk-pick"><legend class="f">${t.pkgPick}</legend>${pkgs.map(x => `<label class="radio pk-opt"><input type="radio" name="pkgR" value="${esc(x.code)}"${x.code === cur ? ' checked' : ''}>
+          <span class="pk-o"><b>${esc(lang === 'ar' ? x.name_ar : x.name_en)}</b><span class="t-small">${esc([kwd(x.price_fils, lang), t.pkgInv(x.invite_limit), x.door_included ? t.pkgDoorIn : t.pkgNoDoor].join(t.sep))}</span></span></label>`).join('')}</fieldset>
+        <label class="check pk-door"><input type="checkbox" id="pkgDoor"${ev.door_addon ? ' checked' : ''}><span>${t.pkgDoor}</span></label><p class="help" id="pkgDoorP">${t.pkgDoorP}</p>
+        <div class="payq-b"><button type="button" class="btn primary" id="pkgSave">${t.pkgSave}</button><button type="button" class="btn secondary" id="pkgCancel">${t.pkgCancel}</button></div>`;
+    }
+    P.innerHTML = h;
+    if ($('#pkgFix')) $('#pkgFix').onclick = () => { pkgOpen = true; renderPkg(); const r = $('#pkgPanel input[name="pkgR"]:checked'); if (r) r.focus(); };
+    if (!pkgOpen) return;
+    const syncDoor = () => { const x = pkgOf(($('#pkgPanel input[name="pkgR"]:checked') || {}).value); const inc = !!(x && x.door_included); $('#pkgDoor').disabled = inc; if (inc) $('#pkgDoor').checked = true; $('#pkgDoorP').hidden = !inc; };
+    $$('#pkgPanel input[name="pkgR"]').forEach(r => r.onchange = syncDoor); syncDoor();
+    $('#pkgCancel').onclick = () => { pkgOpen = false; renderPkg(); $('#pkgFix').focus(); };
+    $('#pkgSave').onclick = async () => {
+      if (pkgBusy) return;
+      const code = ($('#pkgPanel input[name="pkgR"]:checked') || {}).value; if (!code) return;
+      pkgBusy = true; $('#pkgSave').setAttribute('aria-busy', 'true');
+      const { data, error } = await sb.rpc('admin_set_package_v2', { p_event: ev.id, p_package: code, p_door: $('#pkgDoor').checked });
+      pkgBusy = false; if ($('#pkgSave')) $('#pkgSave').removeAttribute('aria-busy');
+      if (error) { toast(t.pkgErr); return; }
+      if (data && data.id === ev.id) { ev = { ...ev, ...data }; const i = events.findIndex(x => x.id === ev.id); if (i >= 0) events[i] = ev; }
+      else await loadEvent();
+      pkgOpen = false; toast(t.pkgSaved); renderPkg();
+    };
+  }
+
+  // ---- the step rail (Figma "Details" to "Send"): 01 Details … 05 Send, the open step underlined ----
+  function renderRail() {
+    const R = $('#stepRail');
+    R.hidden = !ev;
+    if (!ev) { R.innerHTML = ''; return; }
+    const st = stepState();
+    R.innerHTML = STEPS.map((k, i) => `<button type="button" class="rail-i${k === step ? ' on' : ''}${st[k].done ? ' done' : ''}" data-rail="${k}"${k === step ? ' aria-current="step"' : ''} aria-label="${esc(`${i + 1}. ${t['s_' + k]}${st[k].done ? ', ' + t.done : ''}`)}"><span class="rail-n num">0${i + 1}${st[k].done ? '<i class="i i-check sm" aria-hidden="true"></i>' : ''}</span><span class="rail-l">${esc(t.railShort[k])}</span></button>`).join('');
+    $$('#stepRail [data-rail]').forEach(b => b.onclick = () => { if (b.dataset.rail !== step) showStep(b.dataset.rail); });
+  }
 
   // ---- "+ New event": start blank, or copy the settings of an event we already made ----
   function newEvent() {
@@ -674,7 +939,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (e) e = events.find(x => x.id === e.id) || e;   // the newest copy we have (a save may have finished after leaving)
     const my = ++openSeq;
     ev = e || null; copyFrom = copy; draft = {}; newDirty = false;
-    parsed = []; badLines = []; chips = []; chipsFor = ''; lastImport = null; lastAdded = null; rmAsk = null; pickSw = null; colWarn = false;
+    parsed = []; badLines = []; chips = []; chipsFor = ''; lastImport = null; lastAdded = null; rmAsk = null; pickSw = null; colWarn = false; pkgOpen = false;
     sentUndo = null; skipped = new Set(); forceNext = null; editingMsg = false; msgEdit = {}; justFinished = false; lastSentN = 0; guests = []; members = [];
     asking = null; rowAsk = null; takenCode = ''; saveSt = ''; saveMsg = ''; guestsErr = false; membersErr = false; clearTimeout(retryTimer); retryN = 0;
     $('#pasteList').value = ''; $('#impSide').value = ''; $('#mEmail').value = ''; $('#mSide').value = ''; $('#mUntil').value = ''; $('#allMsgs').open = false; $('#moreOpts').open = false;
@@ -702,7 +967,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ---------------------------------------------------------------- overview: progress, next step, checklist
   function stepState() {
-    const s = countsOf(guests), hosts = members.filter(m => m.role === 'host').length, doors = members.length - hosts;
+    const s = countsOf(guests), hosts = members.filter(m => m.role === 'host').length, doors = members.filter(m => m.role === 'door').length;
     const e = ev || {};
     const sep = t.sep, when = e.starts_at ? [shortDate(e.starts_at), App.fmtTime(e.starts_at, lang)].join(sep) : '';
     return {
@@ -766,6 +1031,7 @@ const bigLine = n => !n ? `<span class="pg-w">${esc(t.coming(0))}</span>` : lang
     $$('#checklist .ck-row').forEach(b => b.onclick = () => showStep(b.dataset.step));
     $('#openHost').href = `host.html?event=${ev.id}`; $('#openDoor').href = `door.html?event=${ev.id}`;
     const first = guests.find(g => g.token); $('#testInv').hidden = !first; if (first) $('#testInv').href = inviteLink(first.token);
+    renderPkg();
   }
 
   // ---------------------------------------------------------------- door passes (supabase/migrations/0006)
@@ -830,7 +1096,7 @@ const bigLine = n => !n ? `<span class="pg-w">${esc(t.coming(0))}</span>` : lang
     if (step === 'guests' && lastImport && !parsed.length) $('#stepNext').hidden = true;
     // one filled button per screen: on the guest list the import owns it
     $('#nextBtn').className = 'btn block ' + (step === 'guests' && (parsed.length || lastImport) ? 'secondary' : 'primary');
-    renderCopied(); renderSaveState();
+    renderCopied(); renderSaveState(); renderRail();
   }
   function renderCopied() {
     const cn = $('#copiedNote'); cn.hidden = !(!ev && copyFrom);
@@ -1075,8 +1341,10 @@ const bigLine = n => !n ? `<span class="pg-w">${esc(t.coming(0))}</span>` : lang
   $$('#roleSeg button').forEach(b => b.onclick = () => { role = b.dataset.role; renderTeamForm(); });
   function renderTeamForm() {
     $$('#roleSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.role === role)));
+    if (!v7 && role === 'cohost') role = 'host';
     $('#mSideWrap').hidden = role !== 'host'; $('#mUntilWrap').hidden = !(v2 && role === 'door');
-    $('#roleHelp').textContent = role === 'host' ? t.roleHostP : t.roleDoorP;
+    $('#mNameWrap').hidden = !v7; $('#mPhoneWrap').hidden = !v7;
+    $('#roleHelp').textContent = role === 'host' ? t.roleHostP : role === 'cohost' ? t.roleCohostP : t.roleDoorP;
     sideChips('#mSideChips', '#mSide', t.sideAll); sideChips('#impSideChips', '#impSide', t.sideNone);
   }
   // sides as one-tap chips: "Everyone" (or "No side"), then every side already used; a new one is typed below
@@ -1094,9 +1362,14 @@ const bigLine = n => !n ? `<span class="pg-w">${esc(t.coming(0))}</span>` : lang
       const sub = x.role === 'host' ? (x.side ? t.sideList(bdi(x.side)) : t.allLists) : (x.expires_at ? `${ended ? t.accessEnded : t.until} ${esc(App.fmtDate(x.expires_at, lang))}` : '');
       const act = rmAsk === x.id
         ? `<span class="rmq">${t.rmQ}</span><button type="button" class="btn small danger" data-rmyes="${esc(x.id)}">${t.rmYes}</button><button type="button" class="btn small secondary" data-rmno>${t.rmNo}</button>`
-        : `<button type="button" class="iconbtn" data-rm="${esc(x.id)}" aria-label="${esc(t.removeWho(x.email))}"><i class="i i-trash"></i></button>`;
+        : `<button type="button" class="iconbtn" data-rm="${esc(x.id)}" aria-label="${esc(t.removeWho(x.name || x.email || showPhone(x.phone)))}"><i class="i i-trash"></i></button>`;
+      const who = x.name || x.email || (x.phone ? showPhone(x.phone) : '');
+      const reach = [x.name ? x.email : '', x.phone && (x.name || x.email) ? showPhone(x.phone) : ''].filter(Boolean);
+      const tag = x.role === 'host' ? `<span class="tag tone-ok">${t.host}</span>` : x.role === 'cohost' ? `<span class="tag tone-wait">${t.cohost}</span>` : `<span class="tag tone-mute">${t.doorOnly}</span>`;
+      // Sama's monogram (Figma Team): the initial in a small arch, English only (no single-letter initials in Arabic)
+      const ini = lang === 'ar' ? '' : (String(who).trim().match(/^[A-Za-z]/) || [''])[0].toUpperCase();
       return `<div class="row mem${ended ? ' ended' : ''}${rmAsk === x.id ? ' asking' : ''}">
-        <div class="row-main"><b class="mem-e" dir="ltr">${esc(x.email)}</b><div class="mem-sub"><span class="tag ${x.role === 'host' ? 'tone-ok' : 'tone-mute'}">${x.role === 'host' ? t.host : t.doorOnly}</span>${sub ? `<span class="t-small">${sub}</span>` : ''}</div></div>
+        ${lang === 'ar' ? '' : `<span class="mmono tone-${x.role === 'host' ? 'no' : x.role === 'cohost' ? 'wait' : 'mute'}" aria-hidden="true">${esc(ini)}</span>`}<div class="row-main"><b class="mem-e" dir="${x.name ? 'auto' : 'ltr'}">${esc(who)}</b>${reach.length ? `<span class="t-small mem-r" dir="ltr">${reach.map(esc).join(' · ')}</span>` : ''}<div class="mem-sub">${tag}${sub ? `<span class="t-small">${sub}</span>` : ''}</div></div>
         <div class="row-end">${act}</div></div>`;
     }).join('') : `<p class="mem-empty">${t.noHosts}</p>`;
     $$('#members [data-rm]').forEach(b => b.onclick = () => { rmAsk = b.dataset.rm; renderMembers(); const y = $('#members [data-rmyes]'); if (y) y.focus(); });
@@ -1121,6 +1394,7 @@ const bigLine = n => !n ? `<span class="pg-w">${esc(t.coming(0))}</span>` : lang
     };
   }
   async function addMember() {
+    if (v7) return addMember7();
     const email = $('#mEmail').value.trim().toLowerCase();
     if (!/^\S+@\S+\.\S+$/.test(email)) { toast(t.badEmail); $('#mEmail').focus(); return; }
     const row = { event_id: ev.id, email, role, side: role === 'host' ? ($('#mSide').value.trim() || null) : null };
@@ -1134,6 +1408,35 @@ const bigLine = n => !n ? `<span class="pg-w">${esc(t.coming(0))}</span>` : lang
     b.removeAttribute('aria-busy');
     if (error) { toast(error.code === '23505' ? t.dupEmail : t.addErr); return; }
     $('#mEmail').value = ''; $('#mSide').value = ''; $('#mUntil').value = ''; lastAdded = { email, role: row.role }; setSaveState('saved');
+    await loadMembers(); renderMembers(); renderTeamForm(); syncStats(); renderOverview();
+  }
+  async function addMember7() {
+    const email = $('#mEmail').value.trim().toLowerCase(), rawPhone = $('#mPhone').value.trim(), name = $('#mName').value.trim();
+    const phone = rawPhone ? normPhone(rawPhone) : '';
+    if (!email && !rawPhone) { toast(t.needContact); $('#mPhone').focus(); return; }
+    if (rawPhone && !phone) { toast(t.badPhone); $('#mPhone').focus(); return; }
+    if (email && !/^\S+@\S+\.\S+$/.test(email)) { toast(t.badEmail); $('#mEmail').focus(); return; }
+    const b = $('#addMem'); if (b.getAttribute('aria-busy')) return; b.setAttribute('aria-busy', 'true');
+    let r;
+    if (role === 'host') {
+      // add_member_v2 adds co-hosts and door staff only; the team adds hosts straight into the table (admin rights)
+      const row = { event_id: ev.id, email: email || null, phone: phone || null, name: name || null, role: 'host', side: $('#mSide').value.trim() || null };
+      r = await sb.from('event_members').insert(row);
+    } else {
+      r = await sb.rpc('add_member_v2', { p_event: ev.id, p_name: name || null, p_phone: phone || null, p_email: email || null, p_role: role });
+      if (!r.error && role === 'door' && r.data && r.data.id) {
+        const until = $('#mUntil').value || (ev.starts_at ? App.isoToKw(new Date(new Date(ev.starts_at).getTime() + 864e5).toISOString()).date : '');
+        if (until) await sb.from('event_members').update({ expires_at: kwToIso(until, '23:59') }).eq('id', r.data.id);
+      }
+    }
+    b.removeAttribute('aria-busy');
+    if (r.error) {
+      const m = r.error.message || '';
+      toast(r.error.code === '23505' || /ALREADY_MEMBER/.test(m) ? t.dupMember : /BAD_PHONE/.test(m) ? t.badPhone : /BAD_EMAIL/.test(m) ? t.badEmail : /PHONE_OR_EMAIL/.test(m) ? t.needContact : t.addErr);
+      return;
+    }
+    $('#mEmail').value = ''; $('#mPhone').value = ''; $('#mName').value = ''; $('#mSide').value = ''; $('#mUntil').value = '';
+    lastAdded = email ? { email, role } : null; setSaveState('saved');
     await loadMembers(); renderMembers(); renderTeamForm(); syncStats(); renderOverview();
   }
   $('#addMem').onclick = addMember;

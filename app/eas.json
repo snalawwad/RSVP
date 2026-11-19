@@ -1,0 +1,32 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": { "simulator": false },
+      "env": { "EXPO_PUBLIC_LOGIN_PHONE": "false" }
+    },
+    "preview": {
+      "distribution": "internal",
+      "autoIncrement": true,
+      "env": { "EXPO_PUBLIC_LOGIN_PHONE": "false" }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": { "EXPO_PUBLIC_LOGIN_PHONE": "false" }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "APPLE_ID_EMAIL_PLACEHOLDER",
+        "ascAppId": "APP_STORE_CONNECT_APP_ID_PLACEHOLDER",
+        "appleTeamId": "APPLE_TEAM_ID_PLACEHOLDER"
+      }
+    }
+  }
+}

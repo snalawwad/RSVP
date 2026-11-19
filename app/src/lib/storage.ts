@@ -29,5 +29,7 @@ export const KEYS = {
   hostReminded: (eventId: string) => `host-rem-${eventId}`,
   hostMilestones: (eventId: string) => `host-ms-${eventId}`,
   doorEvent: 'door-ev',
+  /** name (and email) typed on Create account, saved to the profile once logged in */
+  pendingProfile: 'pending-profile',
   doorRecent: (eventId: string) => `door-recent-${eventId}`,
 } as const;

@@ -12,6 +12,7 @@ import { showPhone } from '../../lib/phone';
 import { useApp } from '../../providers/AppProvider';
 import { radius, space } from '../../theme/tokens';
 import { Button } from '../Button';
+import { Choice } from '../Choice';
 import { Segmented } from '../Chip';
 import { useToast } from '../Feedback';
 import { Icon } from '../Icon';
@@ -132,10 +133,19 @@ export function GuestSheet({ id, onClose }: { id: string | null; onClose: () => 
               onChange={(k) => { setSt(k); if (k === 'yes') setCnt((x) => Math.min(x, party)); }}
               options={(['yes', 'pending', 'no'] as GuestStatus[]).map((k) => ({ key: k, label: T.K[k] }))} />
           ) : null}
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[3], flexWrap: 'wrap', paddingVertical: space[2], borderTopWidth: 1, borderTopColor: c.line }}>
-            <Txt v="body">{T.partyL}</Txt>
-            <Stepper value={party} min={1} max={MAX_PEOPLE} label={T.partyL} lessLabel={T.less} moreLabel={T.more} testID="party"
-              onChange={(v) => { setParty(v); if (cnt > v) setCnt(v); }} />
+          {/* Figma 17a: "Can they bring people?" Just them / They can bring people (up to how many more) */}
+          <View style={{ gap: space[2], paddingTop: space[2], borderTopWidth: 1, borderTopColor: c.line }} accessibilityRole="radiogroup" accessibilityLabel={t.a.canBringQ}>
+            <Txt v="label" tone="muted">{t.a.canBringQ}</Txt>
+            <Choice on={party === 1} title={t.a.justThem} sub={t.a.justThemP} onPress={() => { setParty(1); setCnt(1); }} testID="g-just" />
+            <Choice on={party > 1} title={t.a.canBring} sub={t.a.canBringP} onPress={() => setParty((n) => Math.max(2, n))} testID="g-bring">
+              {party > 1 ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[3], flexWrap: 'wrap', marginTop: space[3] }}>
+                  <Txt v="body" style={{ flexShrink: 1 }}>{t.a.upTo}</Txt>
+                  <Stepper value={party - 1} min={1} max={MAX_PEOPLE - 1} label={t.a.upTo} lessLabel={T.less} moreLabel={T.more} testID="party"
+                    onChange={(v) => { setParty(v + 1); if (cnt > v + 1) setCnt(v + 1); }} />
+                </View>
+              ) : null}
+            </Choice>
           </View>
           {st === 'yes' ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[3], flexWrap: 'wrap', paddingVertical: space[2], borderTopWidth: 1, borderTopColor: c.line }}>

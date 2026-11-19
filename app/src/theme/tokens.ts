@@ -1,7 +1,8 @@
 // Design tokens: the web back office (style.css, body.app section, Nov 2026) ported to React Native.
 // The web is the source of truth. Same names as the CSS custom properties, in camelCase:
 //   --bg → bg, --field-line → fieldLine, --plum-ink → plumInk, --ok-bg → okBg …
-// Modes: cream (default), light, dark. "auto" follows the phone (dark, or cream when the phone is light).
+// Modes: light (Sama's Figma, the default), dark, and cream (the earlier web look, kept for people who picked it).
+// "auto" follows the phone (dark, or light when the phone is light).
 
 export type ThemeName = 'cream' | 'light' | 'dark';
 export type ThemePref = ThemeName | 'auto';
@@ -38,7 +39,16 @@ const cream = {
   alert: '#B3261E', alertInk: '#FFFFFF',
   scrim: 'rgba(20,21,20,0.45)', shadow: '#3C1E14',
 };
-const light = { ...cream, bg: '#FFFFFF', surface: '#F6F1EA', card: '#FFFFFF', line: '#E7DED2', muted: '#625350', accentSoft: '#F7E7E5', shadow: '#281414' };
+// Sama's Figma (file 2U3uN0UAeoQUq9sSaMgDW5, variables --bg --surface --line --field-line --ok --wait --no …)
+const light = {
+  ...cream,
+  bg: '#FDFDFD', surface: '#F3F3F4', card: '#FFFFFF', ink: '#26181A', muted: '#625350', line: '#E6E6E8', fieldLine: '#8A8A90',
+  plum: '#5B0F1D', plumInk: '#FDFDFD', gold: '#6B5A45', focus: '#5B0F1D', accentSoft: '#F7E7E5',
+  ok: '#47533B', okBg: '#ECEFE7', okBar: '#9BA38F', okMark: '#76825F', okStrong: '#47533B', okStrongInk: '#FFFFFF',
+  wait: '#38506B', waitBg: '#E8EEF5', waitBar: '#C7D5E4', waitMark: '#5F7FA3', waitStrong: '#C7D5E4', waitStrongInk: '#1F2F42',
+  no: '#7A1C2A', noBg: '#F7E7E5', noBar: '#E7B6B6', noMark: '#A8323F', noStrong: '#7A1C2A', noStrongInk: '#FFFFFF',
+  alert: '#7A1C2A', alertInk: '#FFFFFF', shadow: '#281414',
+};
 const dark = {
   ...cream,
   bg: '#141514', surface: '#1A1B19', card: '#1E1F1C', ink: '#EDE5DA', muted: '#AAA296', line: '#2E2F2A', fieldLine: '#74756B',
@@ -59,7 +69,7 @@ const withLegacy = (x: typeof cream): Colors => ({
 export const colors: Record<ThemeName, Colors> = { cream: withLegacy(cream), light: withLegacy(light), dark: withLegacy(dark) };
 
 /** Swatches for the Colours switch (web .sw-cream/.sw-light/.sw-dark). */
-export const swatch: Record<ThemeName, string> = { cream: '#EDE5DA', light: '#FFFFFF', dark: '#141514' };
+export const swatch: Record<ThemeName, string> = { cream: '#EDE5DA', light: '#FDFDFD', dark: '#141514' };
 
 /** The tone set for a status (web .tone-ok / .tone-wait / .tone-no / .tone-mute). */
 export function toneColors(c: Colors, tone: Tone) {
@@ -145,7 +155,7 @@ export function textStyle(v: TextVariant, script: Script) {
 /** Card shadow (web --shadow / --shadow-lg) as a boxShadow string (React Native 0.76+ and web). */
 export function shadow(theme: ThemeName, big = false): { boxShadow: string } {
   if (theme === 'dark') return { boxShadow: big ? '0px 18px 50px rgba(0,0,0,0.55)' : '0px 10px 30px rgba(0,0,0,0.35)' };
-  if (theme === 'light') return { boxShadow: big ? '0px 18px 50px rgba(60,30,20,0.16)' : '0px 1px 0px rgba(91,15,29,0.04), 0px 10px 30px rgba(40,20,20,0.06)' };
+  if (theme === 'light') return { boxShadow: big ? '0px 12px 40px rgba(38,24,26,0.12)' : '0px 1px 2px rgba(38,24,26,0.04)' };
   return { boxShadow: big ? '0px 18px 50px rgba(60,30,20,0.16)' : '0px 1px 0px rgba(91,15,29,0.04), 0px 10px 30px rgba(60,30,20,0.07)' };
 }
 

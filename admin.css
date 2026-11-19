@@ -388,3 +388,87 @@ body.app #newSheet .nk{margin:22px 0 4px;font-family:var(--body)}
 
 /* nothing moves under reduced motion (the colour-set press included) */
 @media (prefers-reduced-motion:reduce){.switch,.switch::after{transition:none}.cset:active{transform:none}.dz.busy .dz-bar{animation:none}}
+
+/* =====================================================================
+   Self-serve back office (supabase/migrations/0007): the three lists, orders,
+   requests, the package panel, the step rail. Figma "RSVP team" 55:5977.
+   ===================================================================== */
+/* the kicker over "Events" (Figma: THE BACK OFFICE). English: plum rule, sentence case (style.css keeps letter-spacing off); Arabic plain */
+.hh-k{margin:0 0 2px;font-size:var(--fs-s);font-weight:600;line-height:1.3;color:var(--plum)}
+html[lang="en"] .hh-k{display:flex;align-items:center;gap:10px;}
+html[lang="en"] .hh-k::before{content:"";flex:none;width:22px;height:1px;background:currentColor}
+html[lang="ar"] .hh-k{color:var(--muted);font-weight:500}
+body.app .home-head .t-title{font-size:var(--fs-num);line-height:1.1}
+html[lang="ar"] body.app .home-head .t-title{line-height:1.5}
+.hometabs{margin:0 0 16px}
+.hometabs button{gap:6px}
+.tabn{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:var(--r-pill);background:var(--wait-bg);color:var(--wait);font-size:var(--fs-s);font-weight:600;font-variant-numeric:lining-nums tabular-nums}
+.evrow-tt{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-width:0}
+.evrow-tt .evrow-t{flex:1;min-width:0}
+.evrow .evst{flex:none;margin-top:2px}
+
+/* orders and requests: one card per row, inside the shared list style */
+.ordfilter{margin:0 0 14px}
+.ordfilter .num{opacity:.8}
+.ordrow,.reqrow{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.ordrow:last-child,.reqrow:last-child{border-bottom:0}
+.or-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.or-amt{font-family:var(--display);font-weight:600;font-size:var(--fs-h);line-height:1.2;color:var(--ink);font-variant-numeric:lining-nums tabular-nums}
+.or-t{margin:0;font-weight:600;font-size:var(--fs-b);color:var(--ink);overflow-wrap:anywhere}
+.or-k,.or-h,.or-m{margin:0;overflow-wrap:anywhere}
+.or-pay{margin-top:8px}
+.payq{display:grid;gap:8px;margin-top:8px;padding:14px;border:1px solid var(--wait-mark);border-radius:var(--r-m);background:var(--wait-bg)}
+.payq .t-body{margin:0;color:var(--ink)}
+.payq-b{display:flex;flex-wrap:wrap;gap:8px}
+.payq-b .btn{flex:1 1 auto}
+.rq-d{margin:6px 0 0;display:grid;gap:4px}
+.rq-d div{display:grid;grid-template-columns:minmax(90px,30%) 1fr;gap:8px;font-size:var(--fs-s)}
+.rq-d dt{color:var(--muted)}
+.rq-d dd{margin:0;color:var(--ink);overflow-wrap:anywhere;white-space:pre-line}
+.rq-d a,.or-m a{color:var(--plum);font-weight:600}
+.rq-edit{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px;padding-top:12px;border-top:1px dashed var(--line)}
+.rq-edit .fld{margin:0}
+.rq-edit .btn{justify-self:start}
+@media (min-width:720px){ .rq-edit{grid-template-columns:1fr 1.4fr auto;align-items:end} }
+
+/* the package panel on an event's overview */
+.pkgpanel{display:grid;gap:8px}
+.pk-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pk-top .t-small{margin:0}
+.pk-now{margin:0}
+.pkgpanel>.btn{justify-self:start}
+.pk-pick{border:0;margin:6px 0 0;padding:0;display:grid;gap:8px}
+.pk-opt{display:flex;align-items:center;gap:12px;min-height:56px;padding:10px 14px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--card);cursor:pointer}
+.pk-opt:has(input:checked){border-color:var(--plum);box-shadow:inset 0 0 0 1px var(--plum)}
+.pk-opt input{width:20px;height:20px;flex:none;accent-color:var(--plum)}
+.pk-o{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pk-door{min-height:44px}
+.pkgpanel .help{margin:0}
+
+/* team: name and number under the person */
+.mem-r{display:block;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+[dir="rtl"] .mem-r{text-align:right}
+
+/* the step rail (Figma Details to Send): 01 Details … 05 Send, the open step underlined in plum */
+.steprail{display:flex;gap:8px;margin:-4px -16px 18px;padding:0 8px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.steprail::-webkit-scrollbar{display:none}
+.rail-i{all:unset;box-sizing:border-box;flex:1 0 auto;min-width:52px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 4px 9px;position:relative;cursor:pointer;color:var(--muted)}
+.rail-i:focus-visible{outline:2px solid var(--focus);outline-offset:-2px;border-radius:12px 12px 0 0}
+.rail-n{display:inline-flex;align-items:center;gap:3px;font-family:var(--display);font-weight:600;font-size:18px;line-height:1.1}
+.rail-n .i{width:14px;height:14px}
+.rail-l{font-size:var(--fs-s);font-weight:600;line-height:1.2;white-space:nowrap}
+.rail-i.done,.rail-i.on{color:var(--ink)}
+.rail-i.done .rail-n,.rail-i.on .rail-n{color:var(--plum)}
+.rail-i.on .rail-l{color:var(--plum)}
+.rail-i.on::after{content:"";position:absolute;inset-inline:10px;bottom:-1px;height:2px;border-radius:2px 2px 0 0;background:var(--plum)}
+@media (hover:hover){ .rail-i:hover{color:var(--ink)} }
+
+/* three roles (hosts, co-hosts, door) and three lists share narrow phones: the labels may wrap, never stick out */
+#roleSeg button,.hometabs button{min-width:0;flex:1 1 0;padding:4px 8px;white-space:normal;text-align:center;line-height:1.25}
+#roleSeg button .i{flex:none}
+@media (max-width:400px){ #roleSeg button .i{display:none} }
+
+/* team rows: the monogram (English only) */
+.mmono{flex:none;display:inline-flex;align-items:center;justify-content:center;width:36px;height:42px;border-radius:18px 18px 0 0;font-family:var(--display);font-weight:600;font-size:18px;line-height:1;background:var(--surface);color:var(--ink)}
+.mmono.tone-no{background:var(--accent-soft,var(--no-bg));color:var(--plum)}
+.mmono.tone-wait{background:var(--wait-bg);color:var(--wait)}

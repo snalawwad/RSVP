@@ -10,6 +10,8 @@ import {
   decideRequest, listGuests, listRequests, loadHostHome, markSent as apiMarkSent, mySide as apiMySide, subscribeGuests, why,
   type DoorRequest, type EventRow, type Guest, type MemberRow,
 } from '../../lib/api';
+import { cohostGuests, myEvents } from '../../lib/api7';
+import type { MyEvent } from '../../lib/types7';
 import { daysTo, kwDay } from '../../lib/format';
 import { atDoor, isUnsent, peopleComing, sideOf, stats, sumPeople, sumSeats } from '../../lib/guests';
 import { haptics } from '../../lib/haptics';
@@ -23,7 +25,10 @@ export type Tab = 'home' | 'guests' | 'invite' | 'arrivals';
 export type Filter = 'all' | 'yes' | 'pending' | 'no';
 export type QueueMode = 'send' | 'remind' | 'update';
 export type Queue = { mode: QueueMode; ids: string[]; i: number; done: Set<string>; skipped: Set<string>; asking: boolean; answered: boolean };
-type Status = 'loading' | 'ok' | 'error' | 'door' | 'none' | 'missing';
+type Status = 'loading' | 'ok' | 'error' | 'door' | 'none' | 'missing' | 'draft';
+
+/** a co-host's list has no arrival times: this stands in for "came" (times are hidden for co-hosts) */
+export const COHOST_IN = '1970-01-01T00:00:00.000Z';
 
 export const isAr = (s: string | null | undefined) => scriptOf(s || '') === 'ar';
 const clip = (s: string, n = 22) => { s = String(s || '').trim(); return s.length > n ? s.slice(0, n - 1).trim() + '…' : s; };
@@ -32,6 +37,10 @@ type HostCtx = {
   id: string; status: Status; retry: () => void;
   ev: EventRow | null; setEv: (e: EventRow) => void; evName: string; evLang: Lang;
   guests: Guest[]; guestsLoaded: boolean; members: MemberRow[]; admin: boolean; v2: boolean; mySide: string | null; live: boolean;
+  /** this event from my_events_v2 (role, status, package, door) or null before 0007 */
+  me: MyEvent | null;
+  /** a co-host: sees names, people and replies only (cohost_guests_v2), changes nothing */
+  cohost: boolean;
   reload: () => Promise<void>; loadReqs: () => Promise<void>;
   // filters (Guests)
   filter: Filter; setFilter: (f: Filter) => void; side: string; setSide: (s: string) => void; query: string; setQuery: (q: string) => void;
@@ -87,6 +96,9 @@ export function HostProvider({ id, children }: { id: string; children: ReactNode
   const [queue, setQueue] = useState<Queue | null>(null);
   const [addSheet, setAddSheet] = useState<null | { many: boolean }>(null);
   const [busyReq, setBusyReq] = useState<string | null>(null);
+  const [me, setMe] = useState<MyEvent | null>(null);
+  const cohostRef = useRef(false);
+  const [cohost, setCohost] = useState(false);
   const [, bump] = useReducer((x: number) => x + 1, 0);
   const prev = useRef<Map<string, { s: string; c: number; a: boolean }> | null>(null);
   const fresh = useRef(new Map<string, number>());
@@ -154,9 +166,18 @@ export function HostProvider({ id, children }: { id: string; children: ReactNode
 
   const reload = useCallback(async () => {
     if (!evRef.current) return;
-    const { data, error } = await listGuests(id);
-    if (error) { toast(tRef.current.host.loadErrG); return; }
-    const list = data ?? [];
+    let list: Guest[];
+    if (cohostRef.current) {
+      // never a phone or a link: sent_at is a placeholder so nobody shows as "not sent yet"
+      const r = await cohostGuests(id);
+      if (r.error) { toast(tRef.current.host.loadErrG); return; }
+      list = (r.data ?? []).map((g) => ({ ...g, event_id: id, phone: null, token: '', decline_reason: null, responded_at: g.responded_at ?? null, sent_at: 'cohost',
+        checked_in_at: g.checked_in_count ? COHOST_IN : null, created_at: '', source: 'list' }));
+    } else {
+      const { data, error } = await listGuests(id);
+      if (error) { toast(tRef.current.host.loadErrG); return; }
+      list = data ?? [];
+    }
     if (!prev.current) {
       const k = KEYS.hostSeen(id), last = +(kv.get(k) || 0) || 0;
       setNewSince(last ? list.filter((g) => g.responded_at && g.status !== 'pending' && !atDoor(g) && new Date(g.responded_at).getTime() > last).length : 0);
@@ -169,7 +190,7 @@ export function HostProvider({ id, children }: { id: string; children: ReactNode
   }, [id, diff, milestones, toast]);
 
   const loadReqs = useCallback(async () => {
-    if (!v2Ref.current || !evRef.current) return;   // no door requests on the old schema
+    if (!v2Ref.current || !evRef.current || cohostRef.current) return;   // no door requests on the old schema or for a co-host
     const { data, error } = await listRequests(id);
     if (error) return;
     setReqs(data ?? []);
@@ -179,12 +200,26 @@ export function HostProvider({ id, children }: { id: string; children: ReactNode
   useEffect(() => {
     let off = false;
     (async () => {
-      const h = await loadHostHome(email);
+      const [h, m7] = await Promise.all([loadHostHome(email), myEvents(email)]);
       if (off) return;
+      const mine = m7.data?.find((x) => x.id === id) ?? null;
+      setMe(mine);
+      if (mine?.status === 'draft') { setStatus('draft'); return; }   // "Not sent yet": nothing to do here
+      // a co-host can't read the events or guests rows: the event comes from my_events_v2, the list from cohost_guests_v2
+      if (mine?.role === 'cohost' && !h.events.some((x) => x.id === id)) {
+        cohostRef.current = true; setCohost(true);
+        setAdmin(false); setV2(true); v2Ref.current = true; setMembers([]);
+        const e: EventRow = { id, title: mine.title, headline: mine.headline ?? null, starts_at: mine.starts_at, ends_at: mine.ends_at ?? null, venue: mine.venue,
+          card_image_url: mine.card_image_url ?? null, lang: mine.lang === 'en' ? 'en' : 'ar', invite_limit: mine.invite_limit ?? null, public_code: mine.public_code ?? null };
+        evRef.current = e; setEvState(e); prev.current = null; fresh.current = new Map();
+        setStatus('ok');
+        return;
+      }
+      cohostRef.current = false; setCohost(false);
       if (h.error) { setStatus('error'); toast(tRef.current.host.loadErrEv); return; }
       setAdmin(h.admin); setV2(h.v2); v2Ref.current = h.v2; setMembers(h.members);
       const e = h.events.find((x) => x.id === id);
-      if (!e) { setStatus(h.noEvents === 'door' || (h.doorEventIds || []).includes(id) ? 'door' : h.noEvents === 'none' ? 'none' : 'missing'); return; }
+      if (!e) { setStatus(mine?.role === 'door' || h.noEvents === 'door' || (h.doorEventIds || []).includes(id) ? 'door' : h.noEvents === 'none' && !mine ? 'none' : 'missing'); return; }
       evRef.current = e; setEvState(e);
       prev.current = null; fresh.current = new Map();
       setStatus('ok');
@@ -310,7 +345,7 @@ export function HostProvider({ id, children }: { id: string; children: ReactNode
   const value: HostCtx = {
     id, status, retry: () => { setStatus('loading'); setBoot((b) => b + 1); },
     ev, setEv: (e) => { evRef.current = e; setEvState(e); }, evName, evLang,
-    guests, guestsLoaded, members, admin, v2, mySide, live, reload, loadReqs,
+    guests, guestsLoaded, members, admin, v2, mySide, live, reload, loadReqs, me, cohost,
     filter, setFilter, side: sideNow, setSide, query, setQuery, sides, pool,
     newSince, isFresh, cw, nameParts,
     remDays, setReminded, remindList,

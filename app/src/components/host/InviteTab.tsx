@@ -1,9 +1,9 @@
 // INVITE (host.html #pg-invite): personal invitations first (send one by one), then the invite's details with
 // one save bar, the WhatsApp message (shown as the guest reads it; the reply link is required), the group link
 // (secondary), the package, and the activity log.
+import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState, type ComponentRef } from 'react';
 import { Image, Linking, Platform, Pressable, Share, Switch, TextInput, View } from 'react-native';
-import { config } from '../../lib/config';
 import { auditLog, setRules, updateEvent, why, type AuditRow, type EventRow } from '../../lib/api';
 import { fmtDate, fmtTime, shortDate } from '../../lib/format';
 import { stats, sumSeats } from '../../lib/guests';
@@ -169,7 +169,6 @@ export function InviteTab() {
 
   // ---------- the package ----------
   const used = sumSeats(h.guests), lim = ev.invite_limit, left = lim == null ? 0 : Math.max(0, lim - used), low = lim != null && left < 10;
-  const wa = (config.supportWhatsApp || '').replace(/\D/g, '');
 
   // ---------- previews in the closed groups ----------
   const pv2 = [ev.starts_at ? `${shortDate(ev.starts_at, lang)} · ${fmtTime(ev.starts_at, lang)}` : T.noDate, cut(form.venue)].filter(Boolean).join(' · ');
@@ -312,17 +311,18 @@ export function InviteTab() {
         ) : null}
 
         {lim != null ? (
-          <Panel flat testID="pkg" gap={2}>
+          // Figma 24c "Your package": read-only; opens 24f. No upsell and no link to buy more (Apple: no purchases in the app).
+          <Pressable testID="pkg" accessibilityRole="button" accessibilityLabel={`${T.pkgK}: ${T.pkgLeft(left, lim)}`} onPress={() => router.push({ pathname: '/package/[id]', params: { id: h.id } })}
+            style={({ pressed }) => ({ padding: space[4], gap: 2, borderRadius: radius.l, borderWidth: 1, borderColor: c.line, backgroundColor: pressed ? c.surface : c.card })}>
             <Txt v="label" tone="muted">{T.pkgK}</Txt>
             <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-              <Txt v="button" tone={low ? 'no' : 'ink'}>{T.pkgLeft(left, lim)}</Txt>
+              <Txt v="button" tone={low ? 'no' : 'ink'}>{left ? T.pkgLeft(left, lim) : t.a.fullH}</Txt>
               <Txt v="small">{T.pkgUsed(used)}</Txt>
             </View>
             <View style={{ height: 6, borderRadius: radius.pill, backgroundColor: c.surface, marginTop: 10, overflow: 'hidden' }}>
-              <View style={{ height: 6, borderRadius: radius.pill, backgroundColor: low ? c.noMark : c.okMark, width: `${lim ? Math.min(100, (used / lim) * 100) : 100}%` }} />
+              <View style={{ height: 6, borderRadius: radius.pill, backgroundColor: low ? c.noMark : c.okBar, width: `${lim ? Math.min(100, (used / lim) * 100) : 100}%` }} />
             </View>
-            {low && wa.length >= 8 ? <Button small kind="quiet" icon="whatsapp" label={T.pkgMore} onPress={() => Linking.openURL(`https://wa.me/${wa}`).catch(() => {})} /> : null}
-          </Panel>
+          </Pressable>
         ) : null}
 
         {h.v2 && !h.mySide ? (
