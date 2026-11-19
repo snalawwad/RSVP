@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Your invites · Sina</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=DM+Sans:wght@400;500;600&family=Noto+Naskh+Arabic:wght@500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="host.css">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('ui-theme')||'auto';var l=localStorage.getItem('host-lang')==='ar'?'ar':'en';document.documentElement.lang=l;document.documentElement.dir=l==='ar'?'rtl':'ltr'}catch(e){}</script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script defer src="config.js"></script>
+<script defer src="core.js"></script>
+<script defer src="auth.js"></script>
+</head>
+<body class="app me flow">
+<!-- Figma Guest 3 "Come back any time": G08 Log in, G09 Code (auth.js), G10 Your invites, G10a None, G10b Account -->
+<main id="root" aria-live="polite"></main>
+<nav class="tabs" id="tabs" role="tablist" hidden>
+  <button role="tab" id="tab-invites" data-tab="invites" aria-selected="true"><i class="i i-env"></i><span data-t="tInv">Invites</span></button>
+  <button role="tab" id="tab-account" data-tab="account" aria-selected="false"><i class="i i-person"></i><span data-t="tAcc">Account</span></button>
+</nav>
+<dialog class="sheet" id="sheet" aria-labelledby="shH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="shH"></h2><button class="sheet-x" data-close aria-label="Close"><i class="i i-x"></i></button></div><div id="shBody"></div></dialog>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const { sb, esc } = App, $ = s => document.querySelector(s);
+  let lang = document.documentElement.lang === 'ar' ? 'ar' : 'en';
+  const T = {
+    en: { title: 'Your invites', tInv: 'Invites', tAcc: 'Account', hi: n => n ? `Hi ${n}` : 'Your invites', up: 'Coming up', past: 'Past',
+      none: 'No invites yet. When someone invites you, it shows up here.', noneEmail: 'Invites are matched to the phone number they were sent to. Log in with your phone number to see them.',
+      coming: n => `Coming · ${App.countWord(n, 'person', 'en')}`, wait: 'Waiting for your reply', no: 'You can’t make it', went: 'You went', missed: 'You couldn’t make it',
+      acc: 'Account', name: 'Name', phone: 'Phone number', email: 'Email', language: 'Language', langV: 'English', other: 'العربية', out: 'Log out', del: 'Delete my account',
+      editName: 'Your name', saveName: 'Save the name', saved: 'Saved', err: 'Couldn’t load your invites. Pull down to try again.', saveErr: 'Couldn’t save. Try again.', close: 'Close' },
+    ar: { title: 'دعواتكم', tInv: 'الدعوات', tAcc: 'الحساب', hi: n => n ? `هلا ${n}` : 'دعواتكم', up: 'الجاية', past: 'اللي راحت',
+      none: 'ما عندكم دعوات للحين. أول ما أحد يعزمكم، بتطلع هني.', noneEmail: 'الدعوات تنربط بالرقم اللي انرسلت عليه. سجّلوا الدخول برقم تلفونكم عشان تشوفونها.',
+      coming: n => `بتحضرون · ${App.countWord(n, 'person', 'ar')}`, wait: 'ننتظر ردكم', no: 'اعتذرتوا', went: 'حضرتوا', missed: 'ما قدرتوا تحضرون',
+      acc: 'الحساب', name: 'الاسم', phone: 'رقم التلفون', email: 'الإيميل', language: 'اللغة', langV: 'العربية', other: 'English', out: 'تسجيل خروج', del: 'احذفوا حسابي',
+      editName: 'اسمكم', saveName: 'احفظوا الاسم', saved: 'انحفظ', err: 'ما قدرنا نحمّل دعواتكم. اسحبوا الصفحة لتحت وجربوا مرة ثانية.', saveErr: 'ما قدرنا نحفظ، جربوا مرة ثانية.', close: 'إغلاق' }
+  };
+  let t = T[lang], tab = 'invites', invites = [], prof = {}, phoneLogin = false;
+  const ls = { set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
+  const loc = () => lang === 'ar' ? 'ar-KW-u-nu-latn' : 'en-GB';
+
+  function setLang(l) { lang = l; ls.set('host-lang', l); t = T[l]; document.documentElement.lang = l; document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr'; document.title = App.brandTitle(t.title, l); }
+  function draw() {
+    document.querySelectorAll('[data-t]').forEach(e => { e.textContent = t[e.dataset.t]; });
+    ['invites', 'account'].forEach(k => $('#tab-' + k).setAttribute('aria-selected', k === tab));
+    const top = `<div class="au-top"><span class="au-mark" aria-hidden="true"></span><span class="au-brand">${esc(App.BRAND[lang])}</span></div>`;
+    if (tab === 'invites') {
+      const tile = iso => iso ? `<span class="dtile"><small>${esc(new Date(iso).toLocaleDateString(loc(), { timeZone: 'Asia/Kuwait', month: 'short' }))}</small><b>${esc(new Date(iso).toLocaleDateString('en-GB', { timeZone: 'Asia/Kuwait', day: '2-digit' }))}</b></span>` : '<span class="dtile"><b>·</b></span>';
+      const card = i => {
+        const e = i.event || {}, st = i.past ? (i.status === 'yes' ? t.went : i.status === 'no' ? t.missed : '') : i.status === 'yes' ? t.coming(i.confirmed_count || i.seats || 1) : i.status === 'no' ? t.no : t.wait;
+        const sub = [e.starts_at ? App.fmtTime(e.starts_at, lang) : '', e.venue].filter(Boolean).map(esc).join(' · ');
+        return `<a class="evc" href="invite.html?t=${encodeURIComponent(i.token)}">${tile(e.starts_at)}<span class="e-main"><span class="e-t" dir="auto">${esc(e.title || '')}</span>${sub ? `<span class="e-s" dir="auto">${sub}</span>` : ''}${st ? `<span class="e-x${!i.past && i.status === 'yes' ? ' ok' : !i.past && i.status === 'pending' ? ' wait' : ''}">${esc(st)}</span>` : ''}</span><i class="i i-chev"></i></a>`;
+      };
+      const up = invites.filter(i => !i.past), past = invites.filter(i => i.past);
+      const name = (prof.name || '').split(' ')[0];
+      $('#root').innerHTML = `<div class="scr">${top}<div class="scr-main" style="padding-bottom:100px"><h1 class="scr-h">${esc(t.hi(name))}</h1>
+        ${invites.length ? `${up.length ? `<p class="sec-k">${t.up}</p><div>${up.map(card).join('')}</div>` : ''}${past.length ? `<p class="sec-k">${t.past}</p><div>${past.map(card).join('')}</div>` : ''}`
+          : `<p class="scr-p" id="none">${t.none}</p>${phoneLogin ? '' : `<p class="note-box">${t.noneEmail}</p>`}`}</div></div>`;
+    } else {
+      const ph = prof.phone || '';
+      $('#root').innerHTML = `<div class="scr">${top}<div class="scr-main" style="padding-bottom:100px"><h1 class="scr-h">${t.acc}</h1><div class="lines">
+        <button type="button" class="line" id="aName"><span class="l">${t.name}</span><span class="v" dir="auto">${esc(prof.name || '')}</span><i class="i i-chev"></i></button>
+        ${ph ? `<div class="line"><span class="l">${t.phone}</span><span class="v" dir="ltr">${esc(App.prettyPhone(ph))}</span></div>` : `<div class="line"><span class="l">${t.email}</span><span class="v" dir="ltr">${esc(prof.email || '')}</span></div>`}
+        <button type="button" class="line" id="aLang"><span class="l">${t.language}</span><span class="v">${t.langV}</span><span class="t-small" lang="${lang === 'ar' ? 'en' : 'ar'}" style="color:var(--plum);font-weight:600">${t.other}</span></button></div>
+        <button type="button" class="btn quiet" id="aOut" style="align-self:flex-start">${t.out}</button>
+        <a class="btn danger" href="delete-account.html" id="aDel" style="align-self:flex-start">${t.del}</a></div></div>`;
+      $('#aName').onclick = editName;
+      $('#aLang').onclick = () => { setLang(lang === 'ar' ? 'en' : 'ar'); draw(); };
+      $('#aOut').onclick = () => SinaAuth.signOut('me.html');
+    }
+  }
+  function editName() {
+    $('#shH').textContent = t.editName;
+    $('#shBody').innerHTML = `<div class="fld"><label class="f" for="nIn">${t.name}</label><input type="text" id="nIn" dir="auto" value="${esc(prof.name || '')}" autocomplete="name"></div><div style="height:14px"></div><button type="button" class="btn primary block" id="nSave">${t.saveName}</button>`;
+    $('#sheet .sheet-x').setAttribute('aria-label', t.close);
+    App.openSheet($('#sheet'));
+    $('#nSave').onclick = async () => {
+      const r = await sb.rpc('save_profile_v2', { p_name: $('#nIn').value.trim(), p_email: prof.email || null });
+      if (r.error) { App.toast(t.saveErr); return; }
+      prof = { ...prof, ...(r.data || {}) }; App.closeSheet($('#sheet')); App.toast(t.saved); draw();
+    };
+  }
+  $('#tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) { tab = b.dataset.tab; draw(); window.scrollTo(0, 0); } });
+
+  setLang(lang);
+  SinaAuth.mount($('#root'), { audience: 'guest', start: 'login', onLang: () => setLang(lang === 'ar' ? 'en' : 'ar'),
+    onReady: async (session, p) => {
+      prof = p || {}; phoneLogin = !!(session.user && session.user.phone);
+      const r = await sb.rpc('my_invites_v2');
+      if (r.error) App.toast(t.err);
+      invites = Array.isArray(r.data) ? r.data : [];
+      $('#tabs').hidden = false; draw();
+    } });
+});
+</script>
+</body>
+</html>

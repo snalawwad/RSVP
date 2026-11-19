@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Pay · Sina</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=DM+Sans:wght@400;500;600&family=Noto+Naskh+Arabic:wght@500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="host.css">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('ui-theme')||'auto';var l=localStorage.getItem('host-lang')==='ar'?'ar':'en';document.documentElement.lang=l;document.documentElement.dir=l==='ar'?'rtl':'ltr'}catch(e){}</script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script defer src="config.js"></script>
+<script defer src="core.js"></script>
+<script defer src="auth.js"></script>
+</head>
+<body class="app host flow">
+<!-- The payment page. Today it is the TEST gateway (CONFIG.PAYMENT_MODE 'test'): it shows the amount and method and lets
+     you pass or fail the payment. It is also where a payment comes back to (?order=…): it reads order_status_v2 and says
+     how it went. A real gateway replaces only the GATEWAY object below: checkout (edge function) sends people to the bank,
+     the bank sends them back here, and payment-webhook marks the order paid on the server. -->
+<main id="root" aria-live="polite"></main>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const { sb, esc } = App, $ = s => document.querySelector(s);
+  let lang = document.documentElement.lang === 'ar' ? 'ar' : 'en';
+  const T = {
+    en: { title: 'Pay', back: 'Back', other: 'العربية', what: { package: k => `${k} package`, door_addon: () => 'Door check-in', invite_change: () => 'Changes to your invite', design: () => 'Invite design' },
+      total: 'Total', payWith: 'Pay with', knet: 'KNET', knetS: 'Kuwaiti debit cards', card: 'Credit card', cardS: 'Visa, Mastercard',
+      testNote: 'Test payments: no money moves. Pick how this payment ends.', pay: p => `Pay ${p} (test)`, fail: 'Payment fails (test)',
+      paidH: 'Payment received', paidP: { package: 'Your event is ready. Your invite links are ready to send.', invite_change: 'Our designer will send the new version within a day.', design: 'Your design is approved.' },
+      failH: 'Payment didn’t go through', failP: 'Nothing was charged. You can try again.', waitH: 'Waiting for the bank', waitP: 'We’ll show the result here as soon as the bank answers.',
+      next: { package: 'See my sent invites', invite_change: 'Open my event', design: 'Open my event' }, again: 'Try the payment again', noOrder: 'This payment link isn’t complete.', notYours: 'This payment isn’t for one of your events.',
+      err: 'Couldn’t reach the payment. Check your connection and try again.', offH: 'Payments aren’t switched on yet', offP: 'Message us and we’ll finish this for you.', home: 'Open my events',
+      PK: { basic: 'Basic', plus: 'Plus', premium: 'Premium' } },
+    ar: { title: 'الدفع', back: 'رجوع', other: 'English', what: { package: k => `باقة ${k}`, door_addon: () => 'تسجيل الحضور عند الباب', invite_change: () => 'تعديلات على دعوتكم', design: () => 'تصميم الدعوة' },
+      total: 'المجموع', payWith: 'ادفعوا بـ', knet: 'كي نت', knetS: 'بطاقات السحب الكويتية', card: 'بطاقة ائتمان', cardS: 'فيزا، ماستركارد',
+      testNote: 'دفع تجريبي: ما تنسحب أي فلوس. اختاروا شلون ينتهي الدفع.', pay: p => `ادفعوا ${p} (تجربة)`, fail: 'الدفع يفشل (تجربة)',
+      paidH: 'وصلنا الدفع', paidP: { package: 'مناسبتكم جاهزة، وروابط الدعوات جاهزة للإرسال.', invite_change: 'المصممة بترسل لكم النسخة الجديدة خلال يوم.', design: 'تمت الموافقة على التصميم.' },
+      failH: 'الدفع ما تم', failP: 'ما انسحب شي. تقدرون تجربون مرة ثانية.', waitH: 'ننتظر رد البنك', waitP: 'بنعرض لكم النتيجة هني أول ما يرد البنك.',
+      next: { package: 'شوفوا دعواتكم', invite_change: 'افتحوا مناسبتكم', design: 'افتحوا مناسبتكم' }, again: 'جربوا الدفع مرة ثانية', noOrder: 'رابط الدفع ناقص.', notYours: 'هالدفع مو لمناسبة من مناسباتكم.',
+      err: 'ما قدرنا نوصل للدفع. شيّكوا النت وجربوا مرة ثانية.', offH: 'الدفع مو شغال للحين', offP: 'راسلونا ونكمّل لكم.', home: 'افتحوا مناسباتكم',
+      PK: { basic: 'الأساسية', plus: 'بلس', premium: 'بريميوم' } }
+  };
+  let t = T[lang];
+  const orderId = new URLSearchParams(location.search).get('order');
+  let order = null, method = 'knet', busy = false;
+
+  // ---------- the gateway: the only part a real payment provider replaces ----------
+  const GATEWAY = {
+    name: 'test',
+    // ends a pending order: 'paid' or 'failed' (edge function checkout-test, works only while PAYMENT_MODE is test)
+    async finish(id, outcome) {
+      let r; try { r = await sb.functions.invoke('checkout-test', { body: { order_id: id, outcome } }); } catch (e) { r = { error: e }; }
+      if (r.error) { let code = ''; try { const c = r.error.context; if (c && c.json) code = (await c.json()).error || ''; } catch (e) {} return { error: code || 'failed' }; }
+      return { ok: true };
+    }
+  };
+
+  const status = async () => { const r = await sb.rpc('order_status_v2', { p_order: orderId }); return r.error ? { error: r.error } : { data: r.data }; };
+  const nextUrl = o => o.kind === 'package' ? `new.html?event=${o.event_id}&step=sent` : o.kind === 'invite_change' ? `host.html?event=${o.event_id}#changed` : `host.html?event=${o.event_id}`;
+  const retryUrl = o => o.kind === 'package' ? `new.html?event=${o.event_id}&step=pay` : o.kind === 'invite_change' ? `host.html?event=${o.event_id}#change` : `host.html?event=${o.event_id}`;
+  const head = () => `<div class="fl-top">${order && order.status === 'pending' ? `<button type="button" class="fl-back" id="pBack" aria-label="${esc(t.back)}"><i class="i i-chev"></i></button>` : ''}<p class="fl-title">${esc(order ? order.event_title || '' : '')}</p><button type="button" class="au-lang" id="pLang" lang="${lang === 'ar' ? 'en' : 'ar'}">${t.other}</button></div>`;
+  function shell(main, foot) {
+    $('#root').innerHTML = `<div class="scr">${head()}<div class="scr-main">${main}</div>${foot ? `<div class="scr-foot">${foot}</div>` : ''}</div>`;
+    $('#pLang').onclick = () => { lang = lang === 'ar' ? 'en' : 'ar'; try { localStorage.setItem('host-lang', lang); } catch (e) {} t = T[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; draw(); };
+    if ($('#pBack')) $('#pBack').onclick = () => { location.href = retryUrl(order); };
+    const h = $('#root h1'); if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+  }
+  function message(h, p, btn, href) {
+    shell(`<div class="centered"><h1 class="scr-h">${h}</h1><p class="scr-p">${p}</p></div>`, btn ? `<a class="btn primary block" href="${href}">${btn}</a>` : '');
+  }
+  function draw() {
+    document.title = App.brandTitle(t.title, lang);
+    if (!order) return;
+    const o = order, amt = App.kwd(o.amount_fils, lang);
+    if (o.status === 'paid') {
+      shell(`<div class="centered"><span class="done-mark"><i class="i i-check"></i></span><h1 class="scr-h">${t.paidH}</h1><p class="scr-p">${t.paidP[o.kind] || ''}</p></div>`, `<a class="btn primary block" id="pNext" href="${nextUrl(o)}">${t.next[o.kind] || t.home}</a>`);
+      return;
+    }
+    if (o.status === 'failed' || o.status === 'cancelled') {
+      shell(`<div class="centered"><span class="done-mark no"><i class="i i-x"></i></span><h1 class="scr-h">${t.failH}</h1><p class="scr-p">${t.failP}</p></div>`, `<a class="btn primary block" id="pAgain" href="${retryUrl(o)}">${t.again}</a>`);
+      return;
+    }
+    if (CONFIG.PAYMENT_MODE !== 'test') { shell(`<div class="centered"><h1 class="scr-h">${t.waitH}</h1><p class="scr-p">${t.waitP}</p></div>`); setTimeout(refresh, 4000); return; }
+    const what = (t.what[o.kind] || t.what.invite_change)(t.PK[o.package] || o.package || '');
+    shell(`<h1 class="scr-h">${t.title}</h1>
+      <div class="lines"><div class="line"><span class="l">${esc(what)}</span><span class="v">${amt}</span></div><div class="line tot"><span class="l">${t.total}</span><span class="v">${amt}</span></div></div>
+      <p class="sec-k">${t.payWith}</p><div class="lines" role="radiogroup" aria-label="${esc(t.payWith)}">${[['knet', t.knet, t.knetS], ['card', t.card, t.cardS]].map(([k, a, b]) => `<div class="line choice-line" role="radio" tabindex="0" data-m="${k}" aria-checked="${method === k}" style="cursor:pointer"><span class="l">${a}<br><span class="t-small">${b}</span></span><span class="radio" aria-hidden="true"></span></div>`).join('')}</div>
+      <p class="note-box">${t.testNote}</p>`,
+      `<button type="button" class="btn primary block" id="pPay">${t.pay(amt)}</button><button type="button" class="btn secondary block" id="pFail">${t.fail}</button>`);
+    document.querySelectorAll('[data-m]').forEach(c => { const pick = () => { method = c.dataset.m; draw(); }; c.onclick = pick; c.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); pick(); } }; });
+    $('#pPay').onclick = () => end('paid', $('#pPay'));
+    $('#pFail').onclick = () => end('failed', $('#pFail'));
+  }
+  async function end(outcome, btn) {
+    if (busy) return; busy = true; btn.setAttribute('aria-busy', 'true');
+    const r = await GATEWAY.finish(order.id, outcome);
+    busy = false;
+    if (r.error && r.error !== 'not_pending') { btn.removeAttribute('aria-busy'); App.toast(r.error === 'test_mode_off' ? t.offH : t.err); return; }
+    await refresh();
+  }
+  async function refresh() {
+    const r = await status();
+    if (r.error) { message(t.notYours, '', t.home, 'host.html'); return; }
+    order = r.data; if (order.method) method = order.method; draw();
+  }
+
+  document.title = App.brandTitle(t.title, lang);
+  if (!orderId) { message(t.noOrder, '', t.home, 'host.html'); return; }
+  SinaAuth.mount($('#root'), { audience: 'host', start: 'login', onLang: () => { lang = lang === 'ar' ? 'en' : 'ar'; try { localStorage.setItem('host-lang', lang); } catch (e) {} t = T[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; },
+    onReady: refresh });
+});
+</script>
+</body>
+</html>

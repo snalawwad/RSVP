@@ -13,12 +13,16 @@
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
 <script defer src="config.js"></script>
 <script defer src="core.js"></script>
+<script defer src="auth.js"></script>
 </head>
 <body class="app host">
-<div class="topbar"><a class="brand" href="host.html" aria-label="Home" data-i18n-aria="home"></a><span class="tb-title" id="tbTitle" dir="auto"></span><button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu"><i class="i i-menu"></i><span class="menu-l">Menu</span></button></div>
-<dialog class="sheet" id="menu" aria-labelledby="menuH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="menuH">Menu</h2><button class="sheet-x" data-close aria-label="Close"><i class="i i-x"></i></button></div><button class="btn ghost" id="lang" data-i18n="other">العربية</button><button class="btn ghost" id="out" hidden data-i18n="out">Log out</button></dialog>
+<div class="topbar"><button type="button" class="tb-back" id="tbBack" aria-label="Your events" data-i18n-aria="yourEvents"><i class="i i-chev"></i></button><a class="brand" href="host.html#events" aria-label="Home" data-i18n-aria="home"></a><span class="tb-title" id="tbTitle" dir="auto"></span><button class="menu-btn acct-btn" id="menuBtn" aria-expanded="false" aria-controls="menu"><i class="i i-person"></i><span class="acct-l" data-i18n="account">Account</span></button></div>
+<!-- 24b Account: name and phone, then Language · Colours · Help · Log out (laid out by core.js mountMenu) -->
+<dialog class="sheet" id="menu" aria-labelledby="menuH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="menuH">Account</h2><button class="sheet-x" data-close aria-label="Close"><i class="i i-x"></i></button></div><div class="menu-nav acct-rows" id="acctRows"></div><button class="btn ghost" id="lang" data-i18n="other">العربية</button><button class="btn ghost" id="out" hidden data-i18n="out">Log out</button></dialog>
 <main>
   <div id="auth"></div>
+  <!-- 24g Your events / 04 Home with no events yet -->
+  <section id="evHome" hidden></section>
   <section id="dash" hidden>
 
     <!-- ===== HOME: title, door alert, how many are coming, one next step ===== -->
@@ -29,6 +33,7 @@
         <p class="mast-k" id="mastK"></p>
       </header>
       <div id="homeAlert"></div>
+      <section id="after" hidden></section>
       <section class="panel sum" id="sum" hidden></section>
       <section class="panel next" id="next" aria-live="polite"></section>
       <section class="panel passes" id="passCard" hidden aria-labelledby="psH"></section>
@@ -60,7 +65,8 @@
           <a class="btn small secondary" id="ePreview" target="_blank" rel="noopener" href="#"><i class="i i-arch sm"></i><span data-i18n="seeGuest">See the guest page</span></a></div>
       </div>
 
-      <h2 class="sec-t" data-i18n="editH">Invite details</h2>
+      <div id="invMore"></div>
+      <h2 class="sec-t" id="editH" data-i18n="editH">Invite details</h2>
       <form id="editForm" onsubmit="return false" novalidate>
         <details class="grp" id="grp1"><summary><span class="grp-t"><b data-i18n="grp1">The occasion</b><small id="pv1" dir="auto"></small></span><i class="i i-chev"></i></summary><div class="grp-b"><div class="grid2">
           <div class="full"><label class="f" for="eTitle" data-i18n="evName">Event name</label><input type="text" id="eTitle" dir="auto"><p class="ferr" id="err-eTitle" hidden></p></div>
@@ -122,6 +128,8 @@
   <button role="tab" id="tab-invite" data-tab="invite" aria-controls="pg-invite" aria-selected="false"><i class="i i-env"></i><span data-i18n="tInvite">Invite</span></button>
   <button role="tab" id="tab-arrivals" data-tab="arrivals" aria-controls="pg-arrivals" aria-selected="false"><i class="i i-door"></i><span data-i18n="tArr">Arrivals</span></button>
 </nav>
+<!-- full screens over the event: 24k, 24l, 24m, 24h, 24i, 24j, 24f -->
+<div class="hscreen" id="hscreen" hidden role="dialog" aria-modal="true"></div>
 
 <!-- send one by one (invitations, reminders, change notices) -->
 <dialog class="sheet sendq" id="sendq" aria-labelledby="sqH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="sqH">Send the invitations</h2><button class="sheet-x" id="sqX" aria-label="Close" data-i18n-aria="close"><i class="i i-x"></i></button></div><div id="sqBody"></div></dialog>
@@ -376,6 +384,66 @@ document.addEventListener('DOMContentLoaded', function () {
         ['الباب يسألكم عن ضيف', 'إذا اللي على الباب يحتاج موافقتكم، يطلع لكم شريط أحمر بالرئيسية. اضغطوه واختاروا «إي، خلوهم يدخلون» أو «لا، ما يدخلون». وعندكم كم ثانية تتراجعون فيها عن الرفض.'],
         ['غيّرتوا الموعد أو المكان؟', 'بعد الحفظ نسألكم إذا تبون تبلغون الضيوف اللي وصلتهم الدعوة، واحد واحد على الواتساب.']] }
   };
+  // ---------- self-serve launch screens (Figma 04, 24g, 24e, 24c, 24k–24m, 24h–24j, 24f, 24b, 27, 27a) ----------
+  const PKN = { basic: ['Basic', 'الأساسية'], plus: ['Plus', 'بلس'], premium: ['Premium', 'بريميوم'] };
+  Object.assign(T.en, {
+    account: 'Account', yourEvents: 'Your events', hosting: 'Hosting', invitedTo: 'Invited to', newEvent: 'Create an event', hi: n => n ? `Hi ${n}` : 'Hello',
+    noEvYet: 'You don’t have any events yet.', how: 'How it works', howS: [['Add the details', 'Date, venue and who’s hosting'], ['Add your guests', 'Paste a list or upload Excel'], ['Share the invite', 'One link per guest. Send it any way you like'], ['Watch replies come in', 'And check people in on the night']],
+    draftX: 'Draft · pick up where you left off', notSentX: 'Not sent yet', evX: (g, c) => `${E(g, 'guest')} · ${c} coming`, cohostX: 'Co-host', doneX: 'Done',
+    meComing: n => `You’re coming · ${E(n)}`, meWait: 'Waiting for your reply', meNo: 'You can’t make it', meWent: 'You went',
+    nameL: 'Name', phoneL: 'Phone', emailL: 'Email', delAcct: 'Delete my account', helpUs: 'Help', waUs: 'WhatsApp us',
+    doneK: 'Done', aftCame: n => `${E(n)} came`, aftYes: n => `${E(n)} said yes`, aftP: y => `Out of ${E(y)} who said yes. Mabrook to you both.`, aftPno: 'Door check-in was off, so we can’t tell who came. Mabrook to you both.',
+    invSentL: 'Invites sent', saidYesL: 'Said yes', cameL: 'Came', cantL: 'Couldn’t make it', noReplyL: 'No reply', thanksB: 'Send a thank-you message', downloadB: 'Download guest list',
+    thanksTpl: 'Hello {name}, thank you for celebrating {event} with us. It meant a lot to have you there.', thanksNone: 'No one to thank on WhatsApp.', csvHead: ['Name', 'Phone', 'Group', 'Reply', 'People coming', 'Arrived', 'Their message'],
+    yourInvite: 'Your invite', howSent: 'How it was sent', sentWa: n => `On WhatsApp to ${E(n, 'guest')}`, sentSms: n => `By SMS to ${E(n, 'guest')}`, sentNone: 'Not sent yet',
+    yourPkg: 'Your package', pkgLeftT: (l, lim) => `${l} of ${lim} invites left`, usedT: n => `${n} used`, setByTeam: 'Set by our team',
+    changeNote: p => `Want to change something? The text, details or design: we make every change for you. ${p} each time.`, reqChange: 'Request a change',
+    reqsH: 'Your requests', reqSt: { awaiting_payment: 'Waiting for payment', requested: 'Requested', in_progress: 'Being made', done: 'Done', cancelled: 'Cancelled', draft_sent: 'Draft ready', approved: 'Approved' },
+    chgK: 'Changes', desK: 'Invite design', approveD: 'Approve the design', seeDraft: 'See the draft', payChg: 'Pay for the changes',
+    whatH: 'What would you like to do?', whatP: 'Pick one. You can come back for the other.', addMore: 'Add more people', addMoreS: n => `Invite more guests. ${n} invites left in your package.`,
+    changeInv: 'Change the invite', changeInvS: p => `Text, details or design. ${p} each time.`, whatGo: { more: 'Add more people', change: 'Change the invite' }, backL: 'Back', inviteTabL: 'Invite',
+    addSendInv: 'Add and send invite', invSentH: 'Invite sent', invSentP: (nm, l) => l == null ? `${nm} has their invite.` : `${nm} has their invite. ${l} invites left in your package.`, backInv: 'Back to the invite tab',
+    chH: 'Change the invite', chP: 'Your invites are already out. Tell us what to change, the text, details or design, and we’ll update it. Guests see the new version once you approve it.',
+    chWhat: 'What should we change?', chWhatPh: 'Change the time to 8 PM, and make the names bigger', chWord: 'New wording (optional)', chWordPh: 'Leave empty to keep the current text', chCol: 'Colours (optional)', chColPh: 'Burgundy and gold',
+    chPhotos: 'Add reference photos', chPhotosS: 'Optional. Designs you like', chPhotosN: n => `${n} photo${n === 1 ? '' : 's'} added`, ready1: 'Ready in 1 working day', chGo: p => `Review the payment · ${p}`, chNote: p => `Every change after sending is ${p}`, needWhat: 'Tell us what to change',
+    payH: 'Pay', chItem: 'Changes to your invite', total: 'Total', payWith: 'Pay with', knet: 'KNET', knetS: 'Kuwaiti debit cards', card: 'Credit card', cardS: 'Visa, Mastercard', payBtn: p => `Pay ${p}`,
+    payNote: 'Our designer starts right after payment', payOff: 'Payments aren’t switched on yet. Message us and we’ll make the change.', payErr: 'Couldn’t start the payment. Try again.',
+    paidChH: 'Paid. Changes requested', paidChP: 'Our designer will send the new version within a day. Guests keep seeing the current invite until you approve it.', chLine: p => `Changes · ${p} paid`, beingMade: d => `Being made · ready by ${d}`,
+    pkgH: 'Your package', paidW: 'paid', usedOf: (u, l) => `${u} of ${l} invites used`, doorL: 'Door check-in', incl: 'Included', notIncl: 'Not included', needMore: 'Need more?',
+    upPkg: { plus: 'Up to 150 invites, door check-in included', premium: 'Up to 400 invites, door check-in and design', door: 'Keep Basic, add staff at the door' }, doorOnly: 'Door check-in only',
+    upgradeB: (n, p) => `Upgrade to ${n} · ${p}`, upgradeMsg: (e, n) => `Hello, I’d like to upgrade “${e}” to ${n}.`, teamPkg: 'Our team set up this event for you. Message us if you need more.',
+    coH: 'You’re a co-host', coP: 'You see names and party sizes. Phone numbers and changes stay with the hosts.', loadErrRq: 'Couldn’t load your requests'
+  });
+  T.en.sqH.thanks = 'Send thank-you messages'; T.en.doneTo.thanks = nm => `Thank-you sent to ${nm}`; T.en.sqNone.thanks = 'No one to thank on WhatsApp.';
+  Object.assign(T.ar, {
+    account: 'الحساب', yourEvents: 'مناسباتكم', hosting: 'مناسباتكم أنتم', invitedTo: 'معزومين عليها', newEvent: 'سوّوا مناسبة', hi: n => n ? `هلا ${n}` : 'هلا والله',
+    noEvYet: 'ما عندكم مناسبات للحين.', how: 'شلون تمشي', howS: [['أضيفوا التفاصيل', 'الموعد والمكان وأهل المناسبة'], ['أضيفوا ضيوفكم', 'الصقوا قائمة أو ارفعوا إكسل'], ['أرسلوا الدعوة', 'رابط خاص لكل ضيف، أرسلوه بالطريقة اللي تبونها'], ['تابعوا الردود', 'وسجلوا وصول الضيوف ليلة المناسبة']],
+    draftX: 'مسودة · كمّلوا من وين ما وقفتوا', notSentX: 'ما انرسلت للحين', evX: (g, c) => `${A(g, 'guest')} · ${c} بيحضرون`, cohostX: 'مساعد بالتنظيم', doneX: 'انتهت',
+    meComing: n => `بتحضرون · ${A(n)}`, meWait: 'ننتظر ردكم', meNo: 'اعتذرتوا', meWent: 'حضرتوا',
+    nameL: 'الاسم', phoneL: 'التلفون', emailL: 'الإيميل', delAcct: 'احذفوا حسابي', helpUs: 'مساعدة', waUs: 'راسلونا واتساب',
+    doneK: 'انتهت', aftCame: n => `حضر ${A(n)}`, aftYes: n => `أكد ${A(n)}`, aftP: y => `من أصل ${A(y)} أكدوا. مبروك وعساها دوم الأفراح.`, aftPno: 'تسجيل الحضور عند الباب ما كان شغال، فما نعرف منو حضر. مبروك وعساها دوم الأفراح.',
+    invSentL: 'الدعوات المرسلة', saidYesL: 'أكدوا', cameL: 'حضروا', cantL: 'اعتذروا', noReplyL: 'ما ردوا', thanksB: 'أرسلوا رسالة شكر', downloadB: 'نزّلوا قائمة الضيوف',
+    thanksTpl: 'هلا {الاسم}، شكراً على حضوركم {المناسبة}، نورتونا وفرحتنا بوجودكم.', thanksNone: 'ما في أحد نشكره على الواتساب.', csvHead: ['الاسم', 'التلفون', 'المجموعة', 'الرد', 'عدد الحضور', 'وصلوا', 'رسالتهم'],
+    yourInvite: 'دعوتكم', howSent: 'شلون انرسلت', sentWa: n => `على الواتساب لـ${A(n, 'guest')}`, sentSms: n => `برسالة نصية لـ${A(n, 'guest')}`, sentNone: 'ما انرسلت للحين',
+    yourPkg: 'باقتكم', pkgLeftT: (l, lim) => `باقي ${l} من ${lim} دعوة`, usedT: n => `استخدمتوا ${n}`, setByTeam: 'رتّبها فريقنا',
+    changeNote: p => `تبون تغيرون شي؟ الكلام أو التفاصيل أو التصميم: نسوي لكم أي تعديل. ${p} كل مرة.`, reqChange: 'اطلبوا تعديل',
+    reqsH: 'طلباتكم', reqSt: { awaiting_payment: 'ننتظر الدفع', requested: 'وصلنا الطلب', in_progress: 'قاعدين نسويه', done: 'خلص', cancelled: 'انلغى', draft_sent: 'المسودة جاهزة', approved: 'وافقتوا عليه' },
+    chgK: 'تعديلات', desK: 'تصميم الدعوة', approveD: 'وافقوا على التصميم', seeDraft: 'شوفوا المسودة', payChg: 'ادفعوا للتعديلات',
+    whatH: 'شنو تبون تسوون؟', whatP: 'اختاروا وحدة، وتقدرون ترجعون للثانية.', addMore: 'أضيفوا ناس زيادة', addMoreS: n => `اعزموا ضيوف زيادة. باقي ${n} دعوة بباقتكم.`,
+    changeInv: 'غيّروا الدعوة', changeInvS: p => `الكلام أو التفاصيل أو التصميم. ${p} كل مرة.`, whatGo: { more: 'أضيفوا ناس زيادة', change: 'غيّروا الدعوة' }, backL: 'رجوع', inviteTabL: 'الدعوة',
+    addSendInv: 'أضيفوه وأرسلوا الدعوة', invSentH: 'انرسلت الدعوة', invSentP: (nm, l) => l == null ? `${nm} وصلتهم دعوتهم.` : `${nm} وصلتهم دعوتهم. باقي ${l} دعوة بباقتكم.`, backInv: 'ارجعوا للدعوة',
+    chH: 'غيّروا الدعوة', chP: 'دعواتكم انرسلت. قولوا لنا شنو نغير، الكلام أو التفاصيل أو التصميم، ونعدلها. الضيوف يشوفون النسخة الجديدة بعد ما توافقون عليها.',
+    chWhat: 'شنو نغير؟', chWhatPh: 'غيروا الوقت لـ8 بالليل، وكبّروا الأسماء', chWord: 'كلام جديد (اختياري)', chWordPh: 'خلوه فاضي إذا تبون نفس الكلام', chCol: 'الألوان (اختياري)', chColPh: 'عنابي وذهبي',
+    chPhotos: 'أضيفوا صور للفكرة', chPhotosS: 'اختياري. تصاميم عاجبتكم', chPhotosN: n => n === 1 ? 'انضافت صورة وحدة' : `انضافت ${n} صور`, ready1: 'تجهز خلال يوم عمل', chGo: p => `راجعوا الدفع · ${p}`, chNote: p => `أي تعديل بعد الإرسال بـ${p}`, needWhat: 'قولوا لنا شنو نغير',
+    payH: 'الدفع', chItem: 'تعديلات على دعوتكم', total: 'المجموع', payWith: 'ادفعوا بـ', knet: 'كي نت', knetS: 'بطاقات السحب الكويتية', card: 'بطاقة ائتمان', cardS: 'فيزا، ماستركارد', payBtn: p => `ادفعوا ${p}`,
+    payNote: 'المصممة تبدأ أول ما تدفعون', payOff: 'الدفع مو شغال للحين. راسلونا ونسوي لكم التعديل.', payErr: 'ما قدرنا نبدأ الدفع، جربوا مرة ثانية.',
+    paidChH: 'وصلنا الدفع، وطلبنا التعديل', paidChP: 'المصممة بترسل لكم النسخة الجديدة خلال يوم، والضيوف يشوفون الدعوة الحالية لين توافقون.', chLine: p => `تعديلات · دفعتوا ${p}`, beingMade: d => `قاعدين نسويها · جاهزة قبل ${d}`,
+    pkgH: 'باقتكم', paidW: 'مدفوعة', usedOf: (u, l) => `استخدمتوا ${u} من ${l} دعوة`, doorL: 'تسجيل الحضور عند الباب', incl: 'موجود', notIncl: 'مو موجود', needMore: 'تبون زيادة؟',
+    upPkg: { plus: 'لين 150 دعوة، مع تسجيل الحضور عند الباب', premium: 'لين 400 دعوة، مع الباب والتصميم', door: 'خلوا الأساسية، وأضيفوا موظفين عند الباب' }, doorOnly: 'تسجيل الحضور عند الباب بس',
+    upgradeB: (n, p) => `انتقلوا لـ${n} · ${p}`, upgradeMsg: (e, n) => `هلا، أبي أنقل «${e}» لباقة ${n}.`, teamPkg: 'فريقنا رتّب لكم هالمناسبة. راسلونا إذا تحتاجون زيادة.',
+    coH: 'أنتم مساعدين بالتنظيم', coP: 'تشوفون الأسماء وعدد الأشخاص. أرقام التلفون والتعديلات عند أهل المناسبة.', loadErrRq: 'ما قدرنا نحمّل طلباتكم'
+  });
+  T.ar.sqH.thanks = 'إرسال رسائل الشكر'; T.ar.doneTo.thanks = nm => `انرسل الشكر إلى ${nm}`; T.ar.sqNone.thanks = 'ما في أحد نشكره على الواتساب.';
   // the Arabic default message carries the time too (the shared default only has the date)
   const AR_DEFAULT = 'حياكم الله {الاسم}\n\nنتشرف بدعوتكم لحضور {المناسبة} يوم {التاريخ} الساعة {الوقت}.\n\nعدد الأشخاص: {العدد}\nلتأكيد الحضور أو الاعتذار:\n{الرابط}';
   const defTpl = l => l === 'en' ? App.DEFAULT_TEMPLATE_EN : AR_DEFAULT;
@@ -415,7 +483,9 @@ document.addEventListener('DOMContentLoaded', function () {
     $('#lang').setAttribute('lang', lang === 'ar' ? 'en' : 'ar');
     $('#nStepWrap').innerHTML = stepper('nStep', +$('#nSeats').value || 1, 1, MAXP, t.partyL); bindAddStep();
     renderToks();
-    if (noEv) showNoEvents();
+    if (profile) drawAccount();
+    if (!ev && profile) showEvents();
+    if (hs && ev) { const n = hs.name; if (n === 'what') screenWhat(); else if (n === 'addmore') screenAddMore(); else if (n === 'change') screenChange(); else if (n === 'paychange') screenPayChange(); else if (n === 'package') screenPackage(); else closeScreen(); }
     if (ev) { showMeta(); renderPub(); drawTpl(); render(); renderBulk(); renderEditTheme(shownChips); previews(); dirtyCheck(); if ($('#logBox').open) loadLog(); if ($('#sendq').open) drawQueue(); }
   }
   $('#lang').onclick = () => { lang = lang === 'ar' ? 'en' : 'ar'; ls.set('host-lang', lang); applyLang(); };
@@ -466,52 +536,147 @@ document.addEventListener('DOMContentLoaded', function () {
   function tbSync() { $('#tbTitle').classList.toggle('on', !$('#dash').hidden && (tab !== 'home' || !mastIn)); }
   if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => { mastIn = e.isIntersecting; tbSync(); }, { rootMargin: '-62px 0px 0px 0px' }).observe($('#mast'));
 
-  App.requireLogin($('#auth'), async (session) => {
-    myEmail = (session.user.email || '').toLowerCase();
-    $('#out').hidden = false; $('#out').onclick = App.signOut;
-    admin = !!(await sb.rpc('is_admin')).data;
-    v2 = await App.v2Ready();
+  // ---------- login (auth.js), then your events (24g) or straight into your one event ----------
+  let myPhone = '', myUid = '', profile = null, items = null, invites = [], coRole = false;
+  const isMine = m => !!((myEmail && (m.email || '').toLowerCase() === myEmail) || (myPhone && m.phone === myPhone) || (myUid && m.user_id === myUid));
+  const H = location.hash || '';
+  const newPkg = () => new URLSearchParams(H.replace(/^#new&?/, '')).get('package');
+  if (/^#new/.test(H) && newPkg()) ls.set('new-package', newPkg());
+  SinaAuth.mount($('#auth'), { audience: 'host', start: 'welcome', onLang: () => { lang = lang === 'ar' ? 'en' : 'ar'; ls.set('host-lang', lang); applyLang(); },
+    onReady: async (session, prof) => {
+      profile = prof || {};
+      myEmail = (session.user.email || '').toLowerCase(); myPhone = App.normPhone(session.user.phone || ''); myUid = session.user.id || '';
+      $('#out').hidden = false; $('#out').onclick = () => SinaAuth.signOut('host.html');
+      // the landing page's "Create your event" (host.html#new&package=plus): straight into the create flow
+      if (/^#new/.test(H)) { location.replace('new.html' + (newPkg() ? '?package=' + encodeURIComponent(newPkg()) : '')); return; }
+      admin = !!(await sb.rpc('is_admin')).data;
+      v2 = await App.v2Ready();
+      await loadEvents();
+      drawAccount();
+      const saved = new URLSearchParams(location.search).get('event');
+      const own = events.filter(e => e.status !== 'draft');
+      if (saved && events.some(e => e.id === saved)) return openEvent(saved);
+      if (H !== '#events' && own.length === 1 && events.length === 1 && !invites.length) return openEvent(own[0].id);
+      showEvents();
+    } });
+
+  async function loadEvents() {
+    // my_events_v2 (0007): every event I host, co-host or work the door for, with its counts. Older database: the tables, as before.
+    const r = await sb.rpc('my_events_v2');
+    items = r.error ? null : (Array.isArray(r.data) ? r.data : []);
     const { data: evs, error } = await sb.from('events').select('*').order('starts_at', { ascending: true });
     if (error) { toast(t.loadErrEv); return; }
     const { data: mem } = await sb.from('event_members').select('*');
     members = mem || [];
-    const mine = members.filter(m => m.email.toLowerCase() === myEmail);
-    const doorOnly = new Set(mine.filter(m => m.role === 'door').map(m => m.event_id));
-    events = (evs || []).filter(e => admin || !doorOnly.has(e.id));
-    if (!events.length) { noEv = admin ? 'admin' : doorOnly.size ? 'door' : 'none'; showNoEvents(); return; }
-    const saved = new URLSearchParams(location.search).get('event');
-    pick(events.find(e => e.id === saved) || events[0]);
-  });
+    const mine = members.filter(isMine);
+    const doorOnly = new Set(items ? items.filter(i => i.role === 'door').map(i => i.id) : mine.filter(m => m.role === 'door').map(m => m.event_id));
+    events = (evs || []).filter(e => admin || !doorOnly.has(e.id)).map(e => ({ ...e, _role: admin && !mine.some(m => m.event_id === e.id) ? 'admin' : 'host' }));
+    // co-hosts can't read the events table: their events come from my_events_v2
+    if (items) items.filter(i => i.role === 'cohost' && !events.some(e => e.id === i.id)).forEach(i => events.push({ ...i, _role: 'cohost' }));
+    noEv = !events.length ? (admin ? 'admin' : doorOnly.size ? 'door' : 'none') : null;
+    if (items) { const iv = await sb.rpc('my_invites_v2'); invites = iv.error ? [] : (iv.data || []); }
+  }
+  const itemOf = id => (items || []).find(i => i.id === id) || {};
+  const pkgOf = e => e && e.package ? (PKN[e.package] ? PKN[e.package][lang === 'ar' ? 1 : 0] : e.package) : null;
+  const hasDoor = e => !!e && (e.package === 'plus' || e.package === 'premium' || !!e.door_addon || !!itemOf(e.id).door);
+
+  // ---------- 24g Your events, or 04 Home with no events yet ----------
+  function showEvents() {
+    ev = null; document.body.classList.remove('in-event', 'cohost');
+    clearInterval(poll); if (channel) { sb.removeChannel(channel); channel = null; }
+    $('#dash').hidden = true; $('#tabs').hidden = true; $('#evHome').hidden = false;
+    if (location.search || location.hash !== '#events') history.replaceState(null, '', 'host.html#events');
+    $('#tbTitle').textContent = ''; document.title = App.brandTitle(t.yourEvents, lang);
+    if (noEv === 'door' || noEv === 'admin') { $('#evHome').innerHTML = ''; showNoEvents(); return; }
+    $('#auth').innerHTML = '';
+    const loc = lang === 'ar' ? 'ar-KW-u-nu-latn' : 'en-GB';
+    const tile = iso => iso ? `<span class="dtile"><small>${esc(new Date(iso).toLocaleDateString(loc, { timeZone: 'Asia/Kuwait', month: 'short' }))}</small><b>${esc(new Date(iso).toLocaleDateString('en-GB', { timeZone: 'Asia/Kuwait', day: '2-digit' }))}</b></span>` : `<span class="dtile"><b>·</b></span>`;
+    const card = e => {
+      const it = itemOf(e.id), c = it.counts || null, past = e.starts_at && daysTo(e.starts_at) < 0;
+      let x = '', cls = '';
+      if (e.status === 'draft') { x = t.draftX; cls = 'wait'; }
+      else if (e._role === 'cohost') x = t.cohostX;
+      else if (past) x = t.doneX;
+      else if (c) x = (c.invited || 0) ? t.evX(c.invited, c.yes_people || 0) : t.notSentX;
+      const sub = [e.venue, e.starts_at ? nb(fmtTime(e.starts_at, lang)) : ''].filter(Boolean).map(esc).join(' · ');
+      return `<button type="button" class="evc" data-ev="${e.id}">${tile(e.starts_at)}<span class="e-main"><span class="e-t" dir="auto">${App.ampTitle(lang === 'ar' && e.headline && isAr(e.headline) ? e.headline : e.title)}</span>${sub ? `<span class="e-s">${sub}</span>` : ''}${x ? `<span class="e-x ${cls}">${esc(x)}</span>` : ''}</span><i class="i i-chev"></i></button>`;
+    };
+    const inv = i => { const e = i.event || {}, st = i.past ? (i.status === 'yes' ? t.meWent : '') : i.status === 'yes' ? t.meComing(i.confirmed_count || i.seats || 1) : i.status === 'no' ? t.meNo : t.meWait;
+      return `<a class="evc" href="invite.html?t=${encodeURIComponent(i.token)}">${tile(e.starts_at)}<span class="e-main"><span class="e-t" dir="auto">${esc(e.title || '')}</span>${e.venue ? `<span class="e-s" dir="auto">${esc(e.venue)}</span>` : ''}${st ? `<span class="e-x${i.status === 'yes' ? ' ok' : i.status === 'pending' ? ' wait' : ''}">${esc(st)}</span>` : ''}</span><i class="i i-chev"></i></a>`; };
+    const name = (profile && profile.name || '').split(' ')[0];
+    const how = `<p class="sec-k" style="margin-top:14px">${t.how}</p><div class="mlist">${t.howS.map(([a, b], i) => `<div class="mrow"><span class="dtile" style="width:36px;min-height:36px;border-radius:50%"><b style="font-family:var(--body);font-size:var(--fs-s)">${i + 1}</b></span><span class="m-main"><span class="m-n">${a}</span><span class="m-s">${b}</span></span></div>`).join('')}</div>`;
+    const sorted = events.slice().sort((a, b) => (a.status === 'draft') - (b.status === 'draft') || String(a.starts_at || '9').localeCompare(String(b.starts_at || '9')));
+    const invH = invites.length ? `<p class="sec-k ev-sec">${t.invitedTo}</p>${invites.map(inv).join('')}` : '';
+    $('#evHome').innerHTML = events.length
+      ? `<h1 class="scr-h ev-hi">${t.yourEvents}</h1><p class="sec-k ev-sec">${t.hosting}</p>${sorted.map(card).join('')}${invH}<div style="height:16px"></div><button type="button" class="btn primary block" id="evNew"><i class="i i-plus"></i>${t.newEvent}</button>`
+      : `<h1 class="scr-h ev-hi">${esc(t.hi(name))}</h1><p class="scr-p" style="margin:0">${t.noEvYet}</p>${how}${invH}<div style="height:16px"></div><button type="button" class="btn primary block" id="evNew"><i class="i i-plus"></i>${t.newEvent}</button>`;
+    $('#evHome').querySelectorAll('[data-ev]').forEach(b => b.onclick = () => openEvent(b.dataset.ev));
+    $('#evNew').onclick = () => { location.href = 'new.html'; };
+    window.scrollTo(0, 0);
+  }
+  function openEvent(id) {
+    const e = events.find(x => x.id === id); if (!e) return showEvents();
+    if (e.status === 'draft' && e._role !== 'admin') { location.href = `new.html?event=${e.id}`; return; }
+    const hash = location.hash;
+    history.replaceState(null, '', `host.html?event=${e.id}${/^#change/.test(hash) ? hash : ''}`);
+    $('#evHome').hidden = true; document.body.classList.add('in-event');
+    pick(e);
+  }
+  $('#tbBack').onclick = () => { if (isDirty() && !confirm(t.leaveQ)) return; snap = null; closeScreen(); showEvents(); };
+
+  // ---------- 24b Account: name and phone on top of the standard Menu rows ----------
+  function drawAccount() {
+    const p = profile || {}, ph = p.phone || myPhone;
+    const rows = [[t.nameL, p.name], ph ? [t.phoneL, App.prettyPhone(ph)] : [t.emailL, p.email || myEmail]].filter(r => r[1]);
+    $('#acctRows').innerHTML = rows.map(([k, v]) => `<div class="menu-row"><span class="menu-k">${esc(k)}</span><span class="t-small" dir="ltr">${esc(v)}</span></div>`).join('');
+    relabel();
+  }
+  // core.js names the sheet "Menu" when it opens and on a language change; on this page it is the Account (Figma 24b)
+  function relabel() { $('#menuH').textContent = t.account; const l = $('#menuBtn .acct-l'); if (l) l.textContent = t.account; }
+  $('#menuBtn').addEventListener('click', () => setTimeout(relabel, 0));
+  new MutationObserver(() => setTimeout(relabel, 0)).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
 
   async function pick(e) {
     if (ev && ev.id !== e.id && isDirty() && !confirm(t.leaveQ)) return;
     flushRejects();
-    ev = e; guests = []; reqs = []; $('#dash').hidden = false; $('#tabs').hidden = false; side = 'all'; filter = 'all'; attFilter = 'all'; prev = null; fresh = new Map(); snap = null;
-    const m = members.find(x => x.event_id === ev.id && x.email.toLowerCase() === myEmail && x.role === 'host');
+    ev = e; guests = []; reqs = []; $('#dash').hidden = false; $('#tabs').hidden = false; side = 'all'; filter = 'all'; attFilter = 'all'; prev = null; fresh = new Map(); snap = null; myReqs = [];
+    coRole = e._role === 'cohost';
+    document.body.classList.toggle('cohost', coRole);
+    const m = members.find(x => x.event_id === ev.id && isMine(x) && x.role === 'host');
     mySide = !admin && m && m.side ? m.side : null;
-    $('#evlist').innerHTML = events.length > 1 ? events.map(x => `<button data-id="${x.id}" aria-current="${x.id === ev.id}">${bdi(x.title)}</button>`).join('') : '';
-    $('#evlist').querySelectorAll('button').forEach(b => b.onclick = () => pick(events.find(x => x.id === b.dataset.id)));
-    showMeta(); renderPub(); editing = null;
+    $('#evlist').innerHTML = '';
+    editing = null;
+    $('#tab-invite').hidden = coRole;
+    showMeta(); if (!coRole) renderPub();
     $('#rulesBox').hidden = !v2 || !!mySide;
     $('#logBox').hidden = !v2 || !!mySide; $('#logBox').open = false;
     $('#invLinks').innerHTML = admin ? `<a class="btn quiet" href="admin.html"><i class="i i-pen"></i>${t.admin}</a>` : '';
+    // a self-serve event (it has a package) changes its invite through a paid request (24h); events our team set up keep the form
+    const paidFlow = !!ev.package && !admin;
+    ['grp1', 'grp2', 'grp4'].forEach(id => { $('#' + id).hidden = paidFlow; });
     document.querySelectorAll('#editForm details').forEach(d => d.open = false);
-    fillEdit();
-    go(ss.get('host-tab-' + ev.id) || 'home');
+    if (!coRole) fillEdit();
+    let tb = ss.get('host-tab-' + ev.id) || 'home'; if (coRole && tb === 'invite') tb = 'home';
+    go(tb);
     flushPass(); passSt = null; passHold.clear();
-    await loadGuests(); loadReqs(); loadPass();
+    await loadGuests(); if (!coRole) { loadReqs(); loadPass(); loadRequests(); }
     if (channel) sb.removeChannel(channel);
-    live = false;
-    channel = sb.channel('guests-' + ev.id).on('postgres_changes', { event: '*', schema: 'public', table: 'guests', filter: `event_id=eq.${ev.id}` }, loadGuests)
+    live = false; channel = null;
+    if (!coRole) channel = sb.channel('guests-' + ev.id).on('postgres_changes', { event: '*', schema: 'public', table: 'guests', filter: `event_id=eq.${ev.id}` }, loadGuests)
       .subscribe(s => { live = s === 'SUBSCRIBED'; showMeta(); });
-    clearInterval(poll); poll = setInterval(() => { loadGuests(); loadReqs(); loadPass(); }, 20000);
+    clearInterval(poll); poll = setInterval(() => { loadGuests(); if (!coRole) { loadReqs(); loadPass(); } }, 20000);
+    if (location.hash === '#changed') { history.replaceState(null, '', `host.html?event=${ev.id}`); screenChanged(); }
+    else if (location.hash === '#change') { history.replaceState(null, '', `host.html?event=${ev.id}`); go('invite'); screenChange(); }
   }
 
   // ---------- guests: load + what changed since last time ----------
   async function loadGuests() {
-    const { data, error } = await sb.from('guests').select('*').eq('event_id', ev.id).order('created_at');
+    const id = ev.id;
+    // a co-host sees names, party sizes and replies only (cohost_guests_v2: no phone numbers, no links)
+    const { data, error } = coRole ? await sb.rpc('cohost_guests_v2', { p_event: id }) : await sb.from('guests').select('*').eq('event_id', id).order('created_at');
+    if (!ev || ev.id !== id) return;
     if (error) { toast(t.loadErrG); return; }
-    guests = data || [];
+    guests = coRole ? (data || []).map(g => ({ ...g, phone: null, token: null, source: 'list', sent_at: g.responded_at || null, checked_in_at: g.checked_in_count ? g.responded_at || ev.starts_at : null })) : (data || []);
     if (!prev) { const k = 'host-seen-' + ev.id, last = +ls.get(k) || 0; newSince = last ? guests.filter(g => g.responded_at && g.status !== 'pending' && !atDoor(g) && new Date(g.responded_at) > last).length : 0; ls.set(k, String(Date.now())); }
     diff();
     if (editing && $('#rows .ed')) { renderHome(); renderAtt(); renderInvite(); return; }   // don't wipe a change the host is in the middle of
@@ -570,7 +735,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function render() {
     renderSideUI();
-    renderHome(); renderReqs(); renderGuests(); renderAtt(); renderInvite(); renderPkg(); milestones();
+    renderHome(); renderReqs(); renderGuests(); renderAtt(); renderInvite(); renderPkg(); renderAfter(); renderInvMore(); milestones();
   }
 
   // ---------- HOME ----------
@@ -605,7 +770,9 @@ document.addEventListener('DOMContentLoaded', function () {
     return { k: 'done', p: t.nDoneP(s.people), b: t.nDoneB, icon: 'i-list', quiet: true, go: () => { filter = 'all'; side = 'all'; go('guests'); render(); } };
   }
   function renderNext() {
-    const n = nextStep(), box = $('#next');
+    const box = $('#next');
+    if (coRole) { box.dataset.k = 'cohost'; box.innerHTML = `<h2 class="next-h">${t.coH}</h2><p class="next-p">${t.coP}</p>`; return; }
+    const n = nextStep();
     box.dataset.k = n.k;
     box.innerHTML = `<h2 class="next-h">${t.nextK}</h2><p class="next-p">${n.p}</p>
       <button type="button" class="btn big block ${n.quiet ? 'secondary' : 'primary'}" id="nextGo"><i class="i ${n.icon}"></i>${n.b}</button>`
@@ -701,7 +868,8 @@ document.addEventListener('DOMContentLoaded', function () {
       ? `<div class="gr-banner"><div class="gb-t"><b>${t.toSendT(s.unsent.length)}</b><span>${t.toSendP}</span></div><button type="button" class="btn small ${editing ? 'secondary' : 'primary'}" id="sqStart"><i class="i i-whatsapp"></i>${t.nSendB(s.unsent.length)}</button></div>` : '';
     $('#rows').innerHTML = banner + (list.length ? list.map(rowHtml).join('') : `<p class="empty">${q ? t.noMatch : t.noneHere}</p>`);
     if (banner) $('#sqStart').onclick = () => startQueue('send', unsentOf(pool()).map(g => g.id));
-    $('#rows').querySelectorAll('[data-open]').forEach(b => b.onclick = () => {
+    if (coRole) $('#rows').querySelectorAll('[data-open]').forEach(b => { b.disabled = true; b.removeAttribute('aria-expanded'); const c = b.querySelector('.i-chev'); if (c) c.remove(); });
+    else $('#rows').querySelectorAll('[data-open]').forEach(b => b.onclick = () => {
       const id = b.dataset.open; editing = editing === id ? null : id; render();
       const nb2 = $(`#rows [data-open="${id}"]`); if (nb2) nb2.focus({ preventScroll: true });
     });
@@ -720,7 +888,7 @@ document.addEventListener('DOMContentLoaded', function () {
     else if (g.decline_reason) bits.push(`<bdi>“${esc(g.decline_reason)}”</bdi>`);
     const rd = g.status === 'pending' && g.sent_at && !g.checked_in_at ? remDays(g.id) : null;
     if (rd != null) bits.push(`<span class="rem">${t.remAgo(rd)}</span>`);
-    if (!g.phone) bits.push(atDoor(g) ? t.atDoor : t.viaLink);
+    if (!g.phone && !coRole) bits.push(atDoor(g) ? t.atDoor : t.viaLink);
     if (sideOf(g) && side === 'all' && !mySide) bits.push(bdi(sideOf(g)));
     let act = '';
     if (unsent) act = `<button type="button" class="btn small secondary gr-act" data-send="${g.id}"><i class="i i-whatsapp"></i>${t.send}</button>`;
@@ -991,13 +1159,14 @@ document.addEventListener('DOMContentLoaded', function () {
   // ---------- send one by one, with "Did you send it?" when she comes back from WhatsApp ----------
   // A guest is marked as sent (or reminded) only when the host says Yes. Opening WhatsApp alone changes nothing.
   let sq = null;
-  function startQueue(mode, ids) {
-    sq = { mode, ids: ids.filter(id => guests.some(g => g.id === id)), i: 0, done: new Set(), skipped: new Set(), asking: false };
+  function startQueue(mode, ids, after) {
+    sq = { mode, ids: ids.filter(id => guests.some(g => g.id === id)), i: 0, done: new Set(), skipped: new Set(), asking: false, after };
     drawQueue();
     App.openSheet($('#sendq'));
   }
   function msgFor(mode, g) {
     if (mode === 'remind') return fillTemplate(T[evLang()].remindTpl, ev, g);
+    if (mode === 'thanks') return fillTemplate(T[evLang()].thanksTpl, ev, g);
     if (mode === 'update') return fillTemplate(T[evLang()].updTpl(!!ev.venue), ev, g);
     // an older saved message without the reply link still sends the link, on its own line at the end
     let tpl = tplFor(ev); if (!hasLink(tpl)) tpl = tpl.replace(/\s+$/, '') + (evLang() === 'en' ? '\n{link}' : '\n{الرابط}');
@@ -1039,7 +1208,7 @@ document.addEventListener('DOMContentLoaded', function () {
           if (sq !== cur) return;
           cur.asking = false; cur.answered = false; cur.i++;
           // a single guest: close and say so; a list: straight on to the next guest
-          if (cur.ids.length === 1) { App.closeSheet($('#sendq')); toast(t.doneTo[cur.mode](g.name)); return; }
+          if (cur.ids.length === 1) { App.closeSheet($('#sendq')); if (cur.after) cur.after(g); else toast(t.doneTo[cur.mode](g.name)); return; }
           drawQueue();
         }, 650);
       };
@@ -1458,7 +1627,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const wa = (CONFIG.SUPPORT_WHATSAPP || '').replace(/\D/g, '');
     box.hidden = false; box.classList.toggle('low', low);
     box.innerHTML = `<p class="pkg-k">${t.pkgK}</p><div class="pkg-top"><b>${t.pkgLeft(left, lim)}</b><span>${t.pkgUsed(used)}</span></div><div class="pkg-bar"><i style="width:${lim ? Math.min(100, used / lim * 100) : 100}%"></i></div>`
-      + (low && wa.length >= 8 ? `<a href="https://wa.me/${wa}" target="_blank" rel="noopener"><i class="i i-whatsapp sm"></i>${t.pkgMore}</a>` : '');
+      + (low && wa.length >= 8 && !ev.package ? `<a href="https://wa.me/${wa}" target="_blank" rel="noopener"><i class="i i-whatsapp sm"></i>${t.pkgMore}</a>` : '')
+      + `<button type="button" class="btn quiet small pkg-open" id="pkgOpen">${t.yourPkg}<i class="i i-chev sm"></i></button>`;
+    $('#pkgOpen').onclick = screenPackage;
   }
 
   // ---------- add guests (a sheet) ----------
@@ -1544,6 +1715,196 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   $('#addGuest').onclick = () => addOne(false);
   $('#addSend').onclick = () => addOne(true);
+  // ======================================================================
+  // Self-serve launch screens (Figma Host 3 and Host 5). Each full screen draws into #hscreen over the event.
+  // ======================================================================
+  let myReqs = [], hs = null, prices = null;
+  const price = async code => { if (!prices) { const r = await sb.from('prices').select('*'); prices = Object.fromEntries(((r && r.data) || []).map(p => [p.code, p.price_fils])); } return prices[code] || ({ invite_change: 10000, design: 15000, door_addon: 10000 })[code]; };
+  const pastEvent = () => !!ev && ev.starts_at && daysTo(ev.starts_at) < 0;
+  const invitesLeft = () => ev && ev.invite_limit != null ? Math.max(0, ev.invite_limit - seats(guests)) : null;
+  const supportWa = () => { const w = String(CONFIG.SUPPORT_WHATSAPP || '').replace(/\D/g, ''); return w.length >= 8 ? w : ''; };
+
+  // ---------- 27 / 27a After the event ----------
+  function renderAfter() {
+    const box = $('#after'); if (!box || !ev) return;
+    const past = pastEvent() && guests.length;
+    box.hidden = !past; $('#sum').classList.toggle('after-hide', !!past); $('#next').classList.toggle('after-hide', !!past);
+    if (!past) { box.innerHTML = ''; return; }
+    const s = stats(guests), came = guests.reduce((a, g) => a + (g.checked_in_at ? (g.checked_in_count || g.seats || 1) : 0), 0);
+    const door = hasDoor(ev) || guests.some(g => g.checked_in_at);
+    const sent = guests.filter(g => g.sent_at || g.status !== 'pending').length, noP = s.no.reduce((a, g) => a + (g.seats || 1), 0);
+    const L = (l, v) => `<div class="line"><span class="l">${l}</span><span class="v">${v}</span></div>`;
+    box.innerHTML = `<p class="ov-k">${esc(shortDate(ev.starts_at))} · ${t.doneK}</p><h1 class="scr-h" id="aftH">${door ? t.aftCame(came) : t.aftYes(s.people)}</h1><p class="ov-p">${door ? t.aftP(s.people) : t.aftPno}</p>
+      <div class="lines">${L(t.invSentL, sent)}${L(t.saidYesL, cw(s.people))}${door ? L(t.cameL, cw(came)) : ''}${L(t.cantL, cw(noP))}${L(t.noReplyL, cw(s.pend.length, 'guest'))}</div>
+      <div class="after-act">${coRole ? '' : `<button type="button" class="btn primary block" id="aftThanks"><i class="i i-whatsapp"></i>${t.thanksB}</button>`}<button type="button" class="btn soft-plum block" id="aftCsv"><i class="i i-upload"></i>${t.downloadB}</button></div>`;
+    if ($('#aftThanks')) $('#aftThanks').onclick = () => { const ids = guests.filter(g => g.phone && (g.checked_in_at || g.status === 'yes')).map(g => g.id); startQueue('thanks', ids); };
+    $('#aftCsv').onclick = downloadList;
+  }
+  function downloadList() {
+    const K = t.K, rows = [t.csvHead].concat(guests.map(g => [g.name, coRole || !g.phone ? '' : showPhone(g.phone), sideOf(g) || '', K[g.status] || g.status, App.peopleComing(g), g.checked_in_at ? (g.checked_in_count || g.seats || 1) : 0, g.decline_reason || '']));
+    App.downloadCsv(`${String(ev.title || 'guests').replace(/[^\p{L}\p{N}]+/gu, '-')}-guests.csv`, rows);
+  }
+
+  // ---------- 24c Invite tab: how it was sent, your package, requests, Request a change ----------
+  async function loadRequests() {
+    if (!ev || coRole || !v2) return;
+    const id = ev.id, r = await sb.rpc('event_requests_v2', { p_event: id });
+    if (!ev || ev.id !== id) return;
+    myReqs = r.error ? [] : (r.data || []);
+    renderInvMore();
+  }
+  function renderInvMore() {
+    const box = $('#invMore'); if (!box || !ev || coRole) return;
+    const sent = guests.filter(g => g.sent_at), ch = ev.send_channel === 'sms' ? 'sms' : 'whatsapp';
+    const last = sent.map(g => g.sent_at).sort().pop();
+    const how = `<div class="icard"><p class="sec-k">${t.howSent}</p><div class="ic-row"><p class="ic-big">${sent.length ? (ch === 'sms' ? t.sentSms(sent.length) : t.sentWa(sent.length)) : t.sentNone}</p>${last ? `<span class="ic-end">${esc(shortDate(last))}</span>` : ''}</div></div>`;
+    const rq = myReqs.length ? `<p class="sec-k" style="margin:16px 0 0">${t.reqsH}</p><div>${myReqs.map(r => {
+      const k = r.kind === 'design' ? t.desK : t.chgK, st = t.reqSt[r.status] || r.status;
+      const act = r.kind === 'design' && r.status === 'draft_sent' ? `<div class="row" style="margin-top:8px">${r.draft_url ? `<a class="btn small secondary" href="${esc(r.draft_url)}" target="_blank" rel="noopener">${t.seeDraft}</a>` : ''}<button type="button" class="btn small primary" data-approve="${esc(r.id)}">${t.approveD}</button></div>`
+        : r.kind === 'change' && r.status === 'awaiting_payment' && r.order_id ? `<div class="row" style="margin-top:8px"><button type="button" class="btn small secondary" data-payorder="${esc(r.order_id)}">${t.payChg}</button></div>` : '';
+      return `<div class="reqline"><i class="i ${r.kind === 'design' ? 'i-sparkle' : 'i-pen'}"></i><div style="flex:1;min-width:0"><b dir="auto">${esc(k)}${r.what ? ' · ' + esc(String(r.what).slice(0, 60)) : ''}</b><span>${esc(st)} · ${esc(shortDate(r.created_at))}</span>${act}</div></div>`; }).join('')}</div>` : '';
+    const canChange = !!ev.package && !mySide && !pastEvent();
+    const unsent = stats(guests).unsent.length;
+    const pb0 = $('#pkgBox'); if (pb0 && box.contains(pb0)) $('#pubBox').after(pb0);   // keep the package card while redrawing
+    box.innerHTML = how + '<div id="pkgSlot"></div>' + rq + (canChange ? `<p class="t-small" style="margin:14px 0 10px">${esc(t.changeNote(App.kwd(10000, lang)))}</p><button type="button" class="btn ${unsent || isDirty() ? 'secondary' : 'primary'} block" id="reqChange"><i class="i i-pen"></i>${t.reqChange}</button>` : '');
+    const slot = $('#pkgSlot'), pb = $('#pkgBox'); if (slot && pb) slot.replaceWith(pb);
+    if ($('#reqChange')) $('#reqChange').onclick = screenWhat;
+    box.querySelectorAll('[data-payorder]').forEach(b => b.onclick = async () => { b.setAttribute('aria-busy', 'true'); const c = await App.checkout(b.dataset.payorder); b.removeAttribute('aria-busy'); toast(c.error === 'payments_not_connected' ? t.payOff : t.payErr); });
+    box.querySelectorAll('[data-approve]').forEach(b => b.onclick = async () => {
+      b.setAttribute('aria-busy', 'true');
+      const r = await sb.rpc('approve_design_v2', { p_request: b.dataset.approve, p_method: 'knet' });
+      if (r.error) { b.removeAttribute('aria-busy'); toast(t.cantSave(why(r.error))); return; }
+      const st = await sb.rpc('order_status_v2', { p_order: r.data });
+      if (st.data && st.data.status === 'paid') { b.removeAttribute('aria-busy'); toast(t.saved); loadRequests(); return; }
+      const c = await App.checkout(r.data); b.removeAttribute('aria-busy'); toast(c.error === 'payments_not_connected' ? t.payOff : t.payErr);
+    });
+  }
+
+  // ---------- full screens ----------
+  function screen(name, title, main, foot, back) {
+    hs = { name, back };
+    const el = $('#hscreen');
+    el.innerHTML = `<div class="scr"><div class="fl-top"><button type="button" class="fl-back" id="hsBack" aria-label="${esc(t.backL)}"><i class="i i-chev"></i></button><p class="fl-title">${esc(title)}</p></div><div class="scr-main">${main}</div>${foot ? `<div class="scr-foot">${foot}</div>` : ''}</div>`;
+    el.hidden = false; el.scrollTop = 0; document.body.style.overflow = 'hidden';
+    $('#hsBack').onclick = () => back ? back() : closeScreen();
+    const h = el.querySelector('h1'); if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+  }
+  function closeScreen() { const el = $('#hscreen'); if (!el || el.hidden) return; el.hidden = true; el.innerHTML = ''; hs = null; document.body.style.overflow = ''; }
+  const radioC = (id, on, title, sub, icon = '', extra = '') => `<div class="choice" role="radio" tabindex="0" data-c="${id}" aria-checked="${on}">${icon ? `<i class="i ${icon}"></i>` : ''}<span class="ch-main"><span class="ch-t">${title}</span>${sub ? `<span class="ch-s">${sub}</span>` : ''}</span><span class="radio" aria-hidden="true"></span>${extra}</div>`;
+  function bindRadios(root, on) { root.querySelectorAll('[role="radio"][data-c]').forEach(c => { const pick = e => { if (e && e.target.closest('.stepline')) return; on(c.dataset.c); }; c.onclick = pick; c.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); pick(); } }; }); }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && hs && !document.querySelector('dialog[open]')) closeScreen(); });
+
+  // 24k What would you like to do?
+  let whatPick = 'more';
+  function screenWhat() {
+    const left = invitesLeft();
+    screen('what', t.inviteTabL, `<h1 class="scr-h">${t.whatH}</h1><p class="scr-p">${t.whatP}</p><div class="choices" role="radiogroup">${radioC('more', whatPick === 'more', t.addMore, left == null ? '' : t.addMoreS(left), 'i-people')}${radioC('change', whatPick === 'change', t.changeInv, t.changeInvS(App.kwd(10000, lang)), 'i-pen')}</div>`,
+      `<button type="button" class="btn primary block" id="hsGo">${t.whatGo[whatPick]}</button>`);
+    bindRadios($('#hscreen'), k => { whatPick = k; screenWhat(); });
+    $('#hsGo').onclick = () => whatPick === 'more' ? screenAddMore() : screenChange();
+  }
+  // 24l Add more people
+  let am = null;
+  function screenAddMore() {
+    am = am || { name: '', phone: '', bring: false, extra: 1, side: mySide || '' };
+    const groups = [...new Set([...(lang === 'ar' ? ['أهل العروس', 'أهل المعرس', 'العائلة', 'الأصدقاء', 'الدوام'] : ['Bride’s side', 'Groom’s side', 'Family', 'Friends', 'Work']), ...sidesOf()])];
+    const st = `<div class="stepline"><span>${lang === 'ar' ? 'كم شخص زيادة بالكثير؟' : 'Up to how many more?'}</span><div class="stepper" id="amStep" role="group"><button type="button" data-d="-1" aria-label="${esc(t.less)}" ${am.extra <= 1 ? 'disabled' : ''}>−</button><output>${am.extra}</output><button type="button" data-d="1" aria-label="${esc(t.more)}" ${am.extra >= App.MAX_EXTRAS ? 'disabled' : ''}>+</button></div></div>`;
+    screen('addmore', t.inviteTabL, `<h1 class="scr-h">${t.addMore}</h1>
+      <div class="fld"><label class="f" for="amName">${t.name}</label><input type="text" id="amName" dir="auto" autocomplete="off" value="${esc(am.name)}"></div>
+      <div class="fld"><label class="f" for="amPhone">${lang === 'ar' ? 'رقم التلفون' : 'Phone number'}</label><input type="tel" id="amPhone" dir="ltr" inputmode="tel" placeholder="+965 9XXX XXXX" value="${esc(am.phone)}"></div>
+      <p class="sec-k">${lang === 'ar' ? 'يقدرون يجيبون أحد معاهم؟' : 'Can they bring people?'}</p><div class="choices" role="radiogroup">${radioC('one', !am.bring, lang === 'ar' ? 'بروحهم' : 'Just them', lang === 'ar' ? 'الدعوة لشخص واحد' : 'The invite is for one person')}${radioC('more', am.bring, lang === 'ar' ? 'يقدرون يجيبون أحد' : 'They can bring people', lang === 'ar' ? 'أنتم تحددون العدد' : 'You choose how many', '', am.bring ? st : '')}</div>
+      ${mySide ? '' : `<p class="sec-k">${lang === 'ar' ? 'المجموعة' : 'Group'}</p><div class="gchips">${groups.map(g => `<button type="button" class="gchip" data-side="${esc(g)}" aria-pressed="${am.side === g}">${bdi(g)}</button>`).join('')}</div>`}`,
+      `<button type="button" class="btn primary block" id="hsGo"><i class="i i-whatsapp"></i>${t.addSendInv}</button>`, screenWhat);
+    const keep = () => { am.name = $('#amName').value; am.phone = $('#amPhone').value; };
+    bindRadios($('#hscreen'), k => { keep(); am.bring = k === 'more'; screenAddMore(); });
+    $('#hscreen').querySelectorAll('#amStep [data-d]').forEach(b => b.onclick = e => { e.stopPropagation(); keep(); am.extra = Math.max(1, Math.min(App.MAX_EXTRAS, am.extra + +b.dataset.d)); screenAddMore(); });
+    $('#hscreen').querySelectorAll('[data-side]').forEach(b => b.onclick = () => { keep(); am.side = am.side === b.dataset.side ? '' : b.dataset.side; screenAddMore(); });
+    $('#hsGo').onclick = async () => {
+      keep();
+      const name = am.name.trim(), phone = normPhone(am.phone), n = am.bring ? 1 + am.extra : 1;
+      if (!name) { toast(t.typeName); $('#amName').focus(); return; }
+      if (phone.length < 10) { toast(t.short); $('#amPhone').focus(); return; }
+      if (ev.invite_limit != null && seats(guests) + n > ev.invite_limit) { toast(t.noPkg); return; }
+      const b = $('#hsGo'); b.setAttribute('aria-busy', 'true');
+      const { data, error } = await sb.from('guests').insert({ event_id: ev.id, name, phone, seats: n, side: mySide || am.side || null }).select().single();
+      b.removeAttribute('aria-busy');
+      if (error) { toast(error.code === '23505' ? t.dupNum : /limit/i.test(error.message || '') ? t.noPkg : t.addOneErr); return; }
+      selfIds.add(data.id); am = null; closeScreen(); await loadGuests();
+      startQueue('send', [data.id], g => screenInvSent(g));
+    };
+  }
+  // 24m Invite sent
+  function screenInvSent(g) {
+    screen('invsent', ev.headline || ev.title, `<div class="centered"><span class="done-mark"><i class="i i-check"></i></span><h1 class="scr-h">${t.invSentH}</h1><p class="scr-p">${esc(t.invSentP(g.name, invitesLeft()))}</p></div>`,
+      `<button type="button" class="btn primary block" id="hsGo">${t.backInv}</button>`, () => { closeScreen(); go('invite'); });
+    $('#hsGo').onclick = () => { closeScreen(); go('invite'); };
+  }
+  // 24h Change the invite
+  let chg = null;
+  async function screenChange() {
+    chg = chg || { what: '', word: '', col: '', photos: [] };
+    const p = App.kwd(await price('invite_change'), lang);
+    screen('change', t.inviteTabL, `<h1 class="scr-h">${t.chH}</h1><p class="scr-p">${t.chP}</p>
+      <div class="fld"><label class="f" for="chWhat">${t.chWhat}</label><textarea id="chWhat" rows="2" dir="auto" placeholder="${esc(t.chWhatPh)}">${esc(chg.what)}</textarea></div>
+      <div class="fld"><label class="f" for="chWord">${t.chWord}</label><input type="text" id="chWord" dir="auto" placeholder="${esc(t.chWordPh)}" value="${esc(chg.word)}"></div>
+      <div class="fld"><label class="f" for="chCol">${t.chCol}</label><input type="text" id="chCol" dir="auto" placeholder="${esc(t.chColPh)}" value="${esc(chg.col)}"></div>
+      <label class="line" style="cursor:pointer;position:relative"><i class="i i-upload"></i><span class="l">${t.chPhotos}<br><span class="t-small">${chg.photos.length ? t.chPhotosN(chg.photos.length) : t.chPhotosS}</span></span><input type="file" id="chFile" accept="image/*" multiple style="position:absolute;opacity:0;width:1px;height:1px"></label>
+      <div class="line"><span class="l t-small">${t.ready1}</span><span class="v" style="font-weight:600;font-size:var(--fs-b)">${p}</span></div>`,
+      `<button type="button" class="btn primary block" id="hsGo">${t.chGo(p)}</button><p class="foot-note">${t.chNote(p)}</p>`, () => { closeScreen(); });
+    const keep = () => { chg.what = $('#chWhat').value; chg.word = $('#chWord').value; chg.col = $('#chCol').value; };
+    $('#chFile').onchange = async e => {
+      keep(); const files = [...e.target.files].slice(0, 10); e.target.value = '';
+      for (const f of files) { try { const { blob } = await App.toJpeg(f); const path = `${ev.id}/ref-${Date.now()}.jpg`; const up = await sb.storage.from('cards').upload(path, blob, { contentType: 'image/jpeg' }); if (!up.error) chg.photos.push(sb.storage.from('cards').getPublicUrl(path).data.publicUrl); } catch (err) { why(err); } }
+      screenChange();
+    };
+    $('#hsGo').onclick = () => { keep(); if (!chg.what.trim()) { toast(t.needWhat); $('#chWhat').focus(); return; } screenPayChange(); };
+  }
+  // 24i Pay for changes
+  let payMethod = 'knet';
+  async function screenPayChange() {
+    const amt = await price('invite_change'), p = App.kwd(amt, lang);
+    screen('paychange', t.chH, `<h1 class="scr-h">${t.payH}</h1><div class="lines"><div class="line"><span class="l">${t.chItem}</span><span class="v">${p}</span></div><div class="line tot"><span class="l">${t.total}</span><span class="v">${p}</span></div></div>
+      <p class="sec-k">${t.payWith}</p><div class="lines" role="radiogroup">${[['knet', t.knet, t.knetS], ['card', t.card, t.cardS]].map(([k, a, b]) => `<div class="line" role="radio" tabindex="0" data-c="${k}" aria-checked="${payMethod === k}" style="cursor:pointer"><span class="l">${a}<br><span class="t-small">${b}</span></span><span class="radio" aria-hidden="true"></span></div>`).join('')}</div>`,
+      `<button type="button" class="btn primary block" id="hsGo">${t.payBtn(p)}</button><p class="foot-note">${t.payNote}</p>`, screenChange);
+    bindRadios($('#hscreen'), k => { payMethod = k; screenPayChange(); });
+    $('#hsGo').onclick = async () => {
+      const b = $('#hsGo'); b.setAttribute('aria-busy', 'true');
+      const r = await sb.rpc('request_change_v2', { p_event: ev.id, p_what: chg.what.trim(), p_wording: chg.word.trim() || null, p_colours: chg.col.trim() || null, p_photos: chg.photos, p_method: payMethod });
+      if (r.error) { b.removeAttribute('aria-busy'); toast(t.cantSave(why(r.error))); return; }
+      chg = null;
+      const c = await App.checkout(r.data.order_id);
+      b.removeAttribute('aria-busy'); toast(c.error === 'payments_not_connected' ? t.payOff : t.payErr); loadRequests();
+    };
+  }
+  // 24j Changes requested (back from a paid change)
+  async function screenChanged() {
+    const p = App.kwd(await price('invite_change'), lang), by = shortDate(new Date(Date.now() + 864e5).toISOString());
+    go('invite');
+    screen('changed', t.chH, `<h1 class="scr-h">${t.paidChH}</h1><p class="scr-p">${t.paidChP}</p><div class="lines"><div class="reqline"><i class="i i-clock"></i><div><b>${esc(t.chLine(p))}</b><span>${esc(t.beingMade(by))}</span></div></div></div>`,
+      `<button type="button" class="btn primary block" id="hsGo">${t.backInv}</button>`);
+    $('#hsGo').onclick = () => { closeScreen(); go('invite'); };
+    loadRequests();
+  }
+  // 24f Your package
+  async function screenPackage() {
+    const used = seats(guests), lim = ev.invite_limit, pk = ev.package, door = hasDoor(ev);
+    const L = (l, v, s = '') => `<div class="line"><span class="l">${l}${s ? `<br><span class="t-small">${s}</span>` : ''}</span><span class="v">${v}</span></div>`;
+    let more = '', foot = '';
+    if (pk && !mySide) {
+      const pr = { basic: 15000, plus: 35000, premium: 75000 }, wa = supportWa(), up = [];
+      if (pk === 'basic') up.push(['plus', PKN.plus[lang === 'ar' ? 1 : 0], t.upPkg.plus, pr.plus - pr.basic]);
+      if (pk !== 'premium') up.push(['premium', PKN.premium[lang === 'ar' ? 1 : 0], t.upPkg.premium, pr.premium - pr[pk]]);
+      if (pk === 'basic' && !door) up.push(['door', t.doorOnly, t.upPkg.door, await price('door_addon')]);
+      const link = n => wa ? `https://wa.me/${wa}?text=${encodeURIComponent(t.upgradeMsg(ev.title, n))}` : '';
+      more = up.length ? `<p class="sec-k">${t.needMore}</p><div class="lines">${up.map(([k, n, s, d]) => link(n) ? `<a class="line" href="${link(n)}" target="_blank" rel="noopener"><span class="l">${esc(n)}<br><span class="t-small">${esc(s)}</span></span><span class="v" style="color:var(--plum);font-weight:600">+${App.kwd(d, lang)}</span><i class="i i-chev"></i></a>` : L(esc(n), '+' + App.kwd(d, lang), esc(s))).join('')}</div>${wa ? '' : `<p class="t-small">${t.teamPkg}</p>`}` : '';
+      if (up.length && wa) foot = `<a class="btn primary block" href="${link(up[0][1])}" target="_blank" rel="noopener">${t.upgradeB(up[0][1], App.kwd(up[0][3], lang))}</a>`;
+    }
+    screen('package', t.inviteTabL, `<h1 class="scr-h">${t.pkgH}</h1>
+      <div class="icard"><div class="ic-row"><p class="ic-big" style="font-size:var(--fs-h)">${esc(pkgOf(ev) || t.setByTeam)}</p>${pk ? `<span class="ic-end">${App.kwd({ basic: 15000, plus: 35000, premium: 75000 }[pk] || 0, lang)} · ${t.paidW}</span>` : ''}</div>
+      ${lim != null ? `<p class="t-body" style="margin:8px 0 0">${esc(t.usedOf(used, lim))}</p><div class="pbar"><i style="width:${lim ? Math.min(100, used / lim * 100) : 100}%"></i></div>` : ''}</div>
+      <div class="lines">${L(t.doorL, door ? t.incl : t.notIncl)}</div>${pk ? more : `<p class="t-small">${t.teamPkg}</p>`}`, foot);
+  }
+
   applyLang();
 });
 </script>
