@@ -29,9 +29,11 @@ try {
   <div id="auth"></div>
   <section id="door" hidden>
     <header class="dmast" id="mast">
+      <div class="dkick"><p class="dk-t" id="kick"></p><span class="live" id="live" role="status"></span></div>
       <h1 class="dmast-t" id="title"></h1>
-      <span class="live" id="live" role="status"></span>
     </header>
+    <!-- the door isn't open for this event: a draft (not sent yet), or a package without door check-in -->
+    <div class="dgate" id="gate" hidden><i class="i i-arch dg-i" aria-hidden="true"></i><h2 class="dg-h" id="gateH"></h2><p class="dg-p" id="gateP"></p></div>
     <div class="dhead" id="dhead">
       <div class="dmeter" id="meter">
         <div class="dm-row">
@@ -59,7 +61,7 @@ try {
     <p class="sr" id="annLive" role="status"></p>
     <div id="result" aria-live="assertive"></div>
     <div class="dlist" id="list"></div>
-    <div class="dmore"><button class="btn quiet" id="unlisted" type="button"><i class="i i-bell"></i><span></span></button></div>
+    <div class="dmore"><button class="btn quiet" id="unlisted" type="button"><i class="i i-plus"></i><span></span></button></div>
     <section id="myReqs"></section>
     <div class="dlinks" id="dlinks" hidden></div>
   </section>
@@ -84,11 +86,14 @@ document.addEventListener('DOMContentLoaded', function () {
   const T = {
     en: { other: 'العربية', out: 'Log out', title: 'Door check-in', colours: 'Colours', hostDash: HE.page, events: 'Your events', switchEv: 'Switch event',
       live: 'Live', offline: 'Offline, retrying',
+      kick: d => d == null ? 'At the door' : 'At the door · ' + (d > 1 ? `${d} days to go` : d === 1 ? 'Tomorrow' : d === 0 ? 'Tonight' : 'Event over'),
+      draftH: 'This event isn’t ready yet', draftP: `${HE.cap} haven’t sent the invitations yet, so there’s no guest list at the door. It opens here once they send them.`,
+      noDoorH: 'Door check-in isn’t in this package', noDoorP: p => `The ${p} package has no door check-in, so there’s no guest list to check here. ${HE.cap} can add door check-in to their package.`,
       search: 'Find a guest by name or phone', searchPh: 'Guest name or phone', clear: 'Clear search',
       kbNum: 'Type a phone number', kbAbc: 'Type a name', kbAbcL: 'abc',
       meterL: (a, e) => e ? `of ${P(e)} in` : (a === 1 ? 'person in' : 'people in'),
       noReplyN: n => n === 1 ? '1 guest hasn’t replied' : `${G(n)} haven’t replied`,
-      waitChip: n => `Requests: ${n} waiting`, half: 'Half the guests are in', everyone: 'Everyone’s here',
+      waitChip: n => `${n} waiting for ${HE.plain}`, half: 'Half the guests are in', everyone: 'Everyone’s here',
       coming: 'Coming', declined: 'Can’t come', noReply: 'No reply',
       inLeft: (d, l) => `${P(d)} in · ${l} to come`, upTo: l => `up to ${P(l)}`,
       already: (n, tm) => `Already in · ${P(n)}${tm ? ' · ' + tm : ''}`, alreadyOld: 'Already checked in',
@@ -96,10 +101,10 @@ document.addEventListener('DOMContentLoaded', function () {
       howMany: 'How many now', less: 'One less', more: 'One more',
       checkInN: (n, left) => n >= left ? `Check in ${P(n)}` : `Check in ${n} of ${P(left)}`, checkInNow: n => `Check in ${P(n)} now`, askAbout: x => `Ask ${HE.plain} about ${ISO('+' + x)}`,
       busy: 'Checking in…', retry: 'Retry check-in',
-      askHost: `Ask ${HE.plain}`, unlisted: 'Ask about a guest not on the list',
+      askHost: `Ask ${HE.plain}`, unlisted: 'Someone not on the list',
       typeName: 'Type a name or phone number to check someone in.', awake: 'Screen stays on', justArrived: 'Just arrived', tapFind: 'Tap a name to find them again.',
       ambiguous: n => `${G(n)} with similar names. Check the phone number.`, similar: 'Close spellings', didYouMean: 'No exact match. Is it one of these?',
-      notFoundH: 'No exact match', noOne: q => `Nothing for “${q}”. Try the phone number or family name.`, notFoundOld: `Not on the list. Check with ${HE.plain}.`,
+      notFoundH: 'Not on the list', noOne: q => `No one called “${q}”. Try the phone number or family name.`, notFoundOld: `Not on the list. Check with ${HE.plain}.`,
       band: (nm, n) => `${nm}: ${P(n)} in`, bandLeft: l => `${l} still to come`, hadDeclined: 'had said they can’t come', noReplySub: 'hadn’t replied',
       undo: 'Undo', undoNo: `Wrong person? Tell ${HE.plain} to fix it.`, undoing: 'Undoing…', undone: nm => `Check-in undone: ${nm}`,
       undoLate: `Too late to undo here. Tell ${HE.plain} to fix it.`, undoNotYours: `That was checked in on another phone. Tell ${HE.plain}.`, undoNothing: 'Nothing to undo.',
@@ -131,6 +136,9 @@ document.addEventListener('DOMContentLoaded', function () {
       ] },
     ar: { other: 'English', out: 'تسجيل خروج', title: 'شاشة الباب', colours: 'الألوان', hostDash: HA.page, events: 'مناسباتكم', switchEv: 'تغيير المناسبة',
       live: 'متصل', offline: 'ما في نت',
+      kick: d => d == null ? 'شاشة الباب' : 'شاشة الباب · ' + (d > 2 ? `المناسبة بعد ${d} ${d <= 10 ? 'أيام' : 'يوم'}` : d === 2 ? 'المناسبة بعد يومين' : d === 1 ? 'المناسبة باجر' : d === 0 ? 'المناسبة الليلة' : 'المناسبة خلصت'),
+      draftH: 'المناسبة للحين مو جاهزة', draftP: 'أهل المناسبة للحين ما أرسلوا الدعوات، فما في قائمة ضيوف على الباب. بتفتح هني أول ما يرسلونها.',
+      noDoorH: 'تسجيل الوصول على الباب مو ضمن الباقة', noDoorP: p => `الباقة ${p} ما فيها تسجيل وصول على الباب، فما في قائمة ضيوف تشيكون عليها هني. أهل المناسبة يقدرون يضيفونه لباقتهم.`,
       search: 'دوّروا بالاسم أو الرقم', searchPh: 'اسم الضيف أو رقمه', clear: 'مسح البحث',
       kbNum: 'كتابة رقم التلفون', kbAbc: 'كتابة الاسم', kbAbcL: 'أ ب ت',
       meterL: (a, e) => (a === 0 ? 'ما وصل أحد للحين' : a === 1 ? 'وصل' : 'وصلوا') + (e ? ` من أصل ${P(e)}` : ''),
@@ -143,10 +151,10 @@ document.addEventListener('DOMContentLoaded', function () {
       howMany: 'كم شخص الحين', less: 'واحد أقل', more: 'واحد زيادة',
       checkInN: (n, left) => n >= left ? `سجّلوا وصول ${P(n)}` : `سجّلوا وصول ${n} من ${P(left)}`, checkInNow: n => `سجّلوا وصول ${P(n)} الحين`, askAbout: x => `اسألوا ${HA.plain} عن ${ISO('+' + x)}`,
       busy: 'لحظة…', retry: 'حاولوا مرة ثانية',
-      askHost: `اسألوا ${HA.plain}`, unlisted: 'اسألوا عن ضيف مو بالقائمة',
+      askHost: `اسألوا ${HA.plain}`, unlisted: 'ضيف مو بالقائمة',
       typeName: 'اكتبوا اسم الضيف أو رقمه عشان تسجلون وصوله.', awake: 'الشاشة ما بتطفي', justArrived: 'وصلوا توّهم', tapFind: 'اضغطوا على أي اسم عشان ترجعون له.',
       ambiguous: n => `${G(n)} بأسماء متشابهة. تأكدوا من الرقم.`, similar: 'أسماء قريبة', didYouMean: 'ما لقينا الاسم بالضبط. يمكن واحد من هذول؟',
-      notFoundH: 'ما لقينا الاسم', noOne: q => `مو بالقائمة باسم «${q}». جرّبوا رقم التلفون أو اسم العائلة.`, notFoundOld: 'مو بالقائمة. اسألوا أهل المناسبة.',
+      notFoundH: 'مو بالقائمة', noOne: q => `ما في أحد باسم «${q}». جرّبوا رقم التلفون أو اسم العائلة.`, notFoundOld: 'مو بالقائمة. اسألوا أهل المناسبة.',
       band: (nm, n) => `${nm}: وصل ${P(n)}`, bandLeft: l => `باقي ${P(l)}`, hadDeclined: 'كانوا معتذرين', noReplySub: 'ما كانوا رادّين',
       undo: 'تراجع', undoNo: 'غلط بالاسم؟ قولوا لأهل المناسبة يعدّلونه.', undoing: 'لحظة…', undone: nm => `انلغى تسجيل وصول ${nm}`,
       undoLate: 'فات وقت التراجع من هني. قولوا لأهل المناسبة يعدّلونه.', undoNotYours: 'وصولهم انسجّل من تلفون ثاني. قولوا لأهل المناسبة.', undoNothing: 'ما في شي نتراجع عنه.',
@@ -187,6 +195,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const seenReq = new Map(); let reqsLoaded = false, answers = [];
   let recent = [], prevPct = null;
   let canHost = false;               // the host dashboard link only for people who can use it
+  let gate = null;                   // 'draft' | 'nodoor' when the door isn't open for this event
+  let pkgs = {};                     // packages by code (supabase/migrations/0007), for the no-door message
   let undoOk = null;                 // null = not known yet, false = the database has no undo yet (003 not run)
   let passOk = null;                 // null = not known yet, false = no door passes yet (supabase/migrations/0005 not run)
   let scanStream = null, scanTimer = null, scanDet = null, scanBusy = false, scanLast = { s: '', at: 0, final: false }, scanCanvas = null, scanMsgT = null, scanGen = 0;
@@ -199,6 +209,9 @@ document.addEventListener('DOMContentLoaded', function () {
   const allowed = g => g.status === 'yes' ? (g.confirmed_count || g.seats) : g.status === 'pending' ? g.seats : 0;
   const leftOf = g => Math.max(0, allowed(g) - (g.checked_in_count || 0));
   const MAX_OVER = 6;
+  // Sama's monogram: the guest's initial in a small arch. English only (Arabic gets no single-letter initials);
+  // a name that doesn't start with a Latin letter gets the arch without a letter.
+  const mono = (name, tone) => lang === 'ar' ? '' : `<span class="dmono tone-${tone || 'ok'}" aria-hidden="true">${esc((String(name || '').trim().match(/^[A-Za-z]/) || [''])[0].toUpperCase())}</span>`;
   const tmHtml = iso => iso ? `<bdi class="tm">${esc(App.fmtTime(new Date(iso).toISOString(), lang))}</bdi>` : '';
   const ss = { get(k) { try { return JSON.parse(sessionStorage.getItem(k) || 'null'); } catch (e) { return null; } }, set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
 
@@ -218,6 +231,7 @@ document.addEventListener('DOMContentLoaded', function () {
     $('#scanBtn span').textContent = t.scan; $('#scanH').textContent = t.scanH; $('#scanX').setAttribute('aria-label', t.closeScan);
     $('#scanSearch span').textContent = t.searchInstead; if (!$('#scan').open) scanMsg(t.scanHint);
     drawKb(); drawLinks(); $('#annLive').textContent = '';
+    if (ev && gate) drawGate();
     if (ev) { drawMast(); setLive(online && Date.now() - lastOk < 30000); renderList(); drawReqs(); drawAnswers(); drawBand(); if (exPrefill) { keepForm(); renderForm(); } }
   }
   $('#lang').onclick = () => { lang = lang === 'ar' ? 'en' : 'ar'; try { localStorage.setItem('door-lang', lang); } catch (e) {} applyLang(); };
@@ -273,8 +287,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const [adm, mem] = await Promise.all([sb.rpc('is_admin'), sb.from('event_members').select('role, email')]);
       canHost = !!(adm && adm.data) || ((mem && mem.data) || []).some(m => m.role === 'host' && (!me || String(m.email || '').toLowerCase() === me));
     } catch (e) { canHost = false; }
-    const { data } = await sb.from('events').select('id, title, starts_at').order('starts_at');
-    events = data || [];
+    events = await loadEvents();
     drawLinks();
     if (!events.length) { $('#auth').innerHTML = `<div class="login-wrap"><div class="login box"><h2>${t.noEventsH}</h2><p class="sub">${t.noEvents}</p></div></div>`; return; }
     probeUndo(); const passProbe = probePass();
@@ -285,6 +298,50 @@ document.addEventListener('DOMContentLoaded', function () {
     keepAwake();
     Promise.all([passProbe, first]).then(usePending);     // door.html#p=<key>: opened from a pass scanned with the phone's own camera
   });
+
+  // The event list. With supabase/migrations/0007 each event also says whether it is still a draft and which
+  // package it has (Basic has no door check-in unless the add-on was bought). Before 0007 those columns don't
+  // exist: ask again without them, and the door works exactly as before.
+  async function loadEvents() {
+    let r; try { r = await sb.from('events').select('id, title, starts_at, status, package, door_addon').order('starts_at'); } catch (e) { r = { error: e }; }
+    if (r.error) { try { r = await sb.from('events').select('id, title, starts_at').order('starts_at'); } catch (e) { r = { data: [] }; } }
+    const list = r.data || [];
+    if (list.some(x => x.package)) {
+      try { const p = await sb.from('packages').select('code, name_en, name_ar, door_included'); (p.data || []).forEach(x => { pkgs[x.code] = x; }); } catch (e) {}
+    }
+    return list;
+  }
+  // Is the door open for this event? Old events (no package) always are.
+  function gateOf(e) {
+    if (!e) return null;
+    if (e.status === 'draft') return 'draft';
+    if (e.package && !e.door_addon) {
+      const p = pkgs[e.package];
+      if (p ? !p.door_included : e.package === 'basic') return 'nodoor';
+    }
+    return null;
+  }
+  function pkgName(code) { const p = pkgs[code] || {}; return (lang === 'ar' ? p.name_ar : p.name_en) || ({ basic: lang === 'ar' ? 'الأساسية' : 'Basic' })[code] || code; }
+  function drawGate() {
+    $('#gateH').textContent = gate === 'draft' ? t.draftH : t.noDoorH;
+    $('#gateP').textContent = gate === 'draft' ? t.draftP : t.noDoorP(pkgName(ev.package));
+  }
+  function setGate(g) {
+    gate = g || null;
+    $('#door').classList.toggle('gated', !!gate); $('#gate').hidden = !gate;
+    if (gate) { drawGate(); $('#list').innerHTML = ''; $('#result').innerHTML = ''; setLive(true); }
+    drawScanBtn();
+  }
+  // while the door is closed, look at the event again now and then: it opens by itself once it's sent / paid
+  async function recheckGate() {
+    if (!ev || !gate) return;
+    let r; try { r = await sb.from('events').select('id, title, starts_at, status, package, door_addon').eq('id', ev.id).maybeSingle(); } catch (e) { return; }
+    if (r.error || !r.data || !ev || r.data.id !== ev.id) return;
+    Object.assign(ev, r.data);
+    if (r.data.package && !pkgs[r.data.package]) { try { const p = await sb.from('packages').select('code, name_en, name_ar, door_included'); (p.data || []).forEach(x => { pkgs[x.code] = x; }); } catch (e) {} }
+    const g = gateOf(ev);
+    if (!g) { setGate(null); pick(ev); } else if (g !== gate) setGate(g);
+  }
 
   // Is Undo installed (migrations/003)? A call for a guest that can't exist changes nothing.
   async function probeUndo() {
@@ -305,7 +362,7 @@ document.addEventListener('DOMContentLoaded', function () {
     else passOk = true;
     drawScanBtn();
   }
-  function drawScanBtn() { $('#scanBtn').hidden = !(v2 && passOk === true && ev); }
+  function drawScanBtn() { $('#scanBtn').hidden = !(v2 && passOk === true && ev && !gate); }
 
   async function pick(e) {
     ev = e; try { localStorage.setItem('door-ev', e.id); } catch (x) {}
@@ -313,14 +370,16 @@ document.addEventListener('DOMContentLoaded', function () {
     list = []; reqs = []; seenReq.clear(); reqsLoaded = false; answers = []; announced.clear(); showAllAns = false; prevPct = null; failedId = null;
     if (band) { band.close(); band = null; bandInfo = null; }
     recent = ss.get('door-recent-' + ev.id) || [];
-    $('#unlisted').hidden = !v2; drawScanBtn();
+    $('#unlisted').hidden = !v2; setGate(gateOf(e));
     drawMast(); drawLinks(); drawAnswers(); drawReqs();
+    if (gate) { schedule(); return; }
     await loadList(); await loadReqs(); schedule();
   }
 
   function drawMast() {
     if (!ev) return;
     $('#title').innerHTML = '<bdi>' + App.ampTitle(ev.title) + '</bdi>'; $('#tbTitle').textContent = ev.title;
+    $('#kick').textContent = t.kick(ev.starts_at ? daysTo(ev.starts_at) : null);
   }
   // days until the event (Kuwait dates); 0 on the night
   const daysTo = iso => { if (!iso) return 0; const day = d => new Date(new Date(d).getTime() + 3 * 3600e3).toISOString().slice(0, 10); return Math.round((new Date(day(iso)) - new Date(day(new Date()))) / 864e5); };
@@ -328,10 +387,10 @@ document.addEventListener('DOMContentLoaded', function () {
   // ---------- refresh: every 15s, every 5s while the door waits for the host ----------
   function schedule() {
     clearTimeout(pollT);
-    const fast = reqs.some(r => r.status === 'pending');
-    pollT = setTimeout(async () => { await refresh(); schedule(); }, fast ? 5000 : 15000);
+    const fast = !gate && reqs.some(r => r.status === 'pending');
+    pollT = setTimeout(async () => { await refresh(); schedule(); }, gate ? 30000 : fast ? 5000 : 15000);
   }
-  const refresh = async () => { if (!ev) return; if (v2 && passOk === null) probePass(); await loadList(); await loadReqs(); };
+  const refresh = async () => { if (!ev) return; if (gate) return recheckGate(); if (v2 && passOk === null) probePass(); await loadList(); await loadReqs(); };
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { refresh().then(schedule); keepAwake(); } });
   window.addEventListener('online', () => { online = true; refresh().then(schedule); });
   window.addEventListener('offline', () => { online = false; setLive(false); });
@@ -356,6 +415,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!ev || ev.id !== id) return;
     const { data, error } = r;
     if (error && v2 && App.missingFn(error)) { dropV2(); return loadList(); }
+    if (error && /NOT_READY/.test(error.message || '')) { ev.status = 'draft'; setGate('draft'); return; }
     if (error) { setLive(false); if (!list.length) toast(t.err); return; }
     setLive(true);
     list = (data || []).map(g => ({ ...g, checked_in_count: g.checked_in_count ?? (g.checked_in_at ? g.seats : 0) }));
@@ -380,8 +440,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const noneAr = lang === 'ar' && !arrived;            // "ما وصل أحد للحين", no bare 0 in front of it
     $('#mIn').hidden = noneAr;
     $('#meter').setAttribute('aria-label', noneAr ? t.meterL(0, expected) : `${arrived} ${t.meterL(arrived, expected)}`);
-    const when = ev ? t.when(daysTo(ev.starts_at)) : '';
-    $('#mS').textContent = [noReply ? t.noReplyN(noReply) : '', when].filter(Boolean).join(' · ');
+    $('#mS').textContent = noReply ? t.noReplyN(noReply) : '';
     // quiet milestones: half in, everyone in (once per event, per session)
     if (prevPct !== null && expected) for (const m of [50, 100]) {
       const k = `door-ms-${ev.id}-${m}`;
@@ -481,14 +540,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const g = h.g, st = stateOf(g), done = g.checked_in_count || 0, left = leftOf(g), al = allowed(g);
     const phone = g.phone ? `<span class="d-ph num" dir="ltr">${h.phone ? markUp(showPhone(g.phone), (() => { const s = showPhone(g.phone), i = s.indexOf(h.phone); return i < 0 ? [] : [[i, i + h.phone.length]]; })()) : esc(showPhone(g.phone))}</span>` : '';
     const side = g.side ? `<bdi class="d-side">${esc(g.side)}</bdi>` : '';
-    const top = `<div class="d-top"><b class="d-name"><bdi>${markUp(g.name, h.ranges)}</bdi></b>${phone}</div>`
+    const top = `<div class="d-top">${mono(g.name, g.status === 'pending' ? 'wait' : g.status === 'no' ? 'no' : 'ok')}<b class="d-name"><bdi>${markUp(g.name, h.ranges)}</bdi></b>${phone}</div>`
       + (h.code && g.pass_code ? `<p class="d-pass"><i class="i i-qr sm" aria-hidden="true"></i><span>${t.passTag(`<bdi dir="ltr" class="num">${esc(App.passCode(g.pass_code))}</bdi>`)}</span></p>` : '');
     const rq = v2 && lastReq(g), rqLine = rq ? `<p class="d-req t-tone tone-${rq.status === 'approved' ? 'ok' : rq.status === 'rejected' ? 'no' : 'wait'}">${esc(t.reqLine[rq.status](rq.people))}</p>` : '';
     // already in: an amber card that says when, never a check-in button
     if (st === 'all') {
       const n = v2 ? done : g.seats;
       const ask = v2 ? `<div class="door-act one"><button class="btn secondary big block" type="button" data-ask="${g.id}">${esc(t.askAbout(extraAsk[g.id] || 1))}</button></div>` : '';
-      return `<article class="drow st-all panel tone-wait" data-id="${g.id}">${top}<p class="d-already t-tone">${v2 ? t.already(n, tmHtml(g.checked_in_at)) : esc(t.alreadyOld) + (g.checked_in_at ? ' · ' + tmHtml(g.checked_in_at) : '')}</p>
+      return `<article class="drow st-all panel tone-wait${lang === 'ar' ? '' : ' wm'}" data-id="${g.id}">${top}<p class="d-already t-tone">${v2 ? t.already(n, tmHtml(g.checked_in_at)) : esc(t.alreadyOld) + (g.checked_in_at ? ' · ' + tmHtml(g.checked_in_at) : '')}</p>
         ${v2 ? `<p class="d-sub"><span>${esc(t.invited(g.seats, g.confirmed_count, g.status))}</span>${side ? `<span class="nw">· ${side}</span>` : ''}</p>` : ''}${rqLine}${ask}</article>`;
     }
     let tag, line = '';
@@ -500,7 +559,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!v2) act = `<div class="door-act one">${ciBtn(g, t.checkInN(g.seats, g.seats))}</div>`;
     else if (st === 'no') act = `<div class="door-act one"><button class="btn secondary big block" type="button" data-ask="${g.id}">${esc(t.askHost)}</button></div>`;
     else act = actHtml(g);
-    return `<article class="drow st-${st}" data-id="${g.id}">${top}
+    return `<article class="drow st-${st}${lang === 'ar' ? '' : ' wm'}" data-id="${g.id}">${top}
       <p class="d-sub"><span class="tag tone-${tag}">${esc(tagTxt)}</span>${line ? `<span class="d-count">${line}</span>` : ''}${side}</p>
       ${g.status === 'no' && g.decline_reason ? `<p class="gi-why">${t.reason}: “<bdi>${esc(g.decline_reason)}</bdi>”</p>` : ''}${rqLine}
       ${act}</article>`;
@@ -563,9 +622,9 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   function idleHtml() {
     // each row finds the guest again; a check-in made on this phone in the last 10 minutes can be undone from here too
-    const recRow = (r, i) => `<div class="row rrow"><button type="button" class="rr-find row-link" data-recent="${esc(r.name)}"><span class="row-main"><b class="t-name"><bdi>${esc(r.name)}</bdi></b><span class="t-small">${esc(P(r.n))}</span></span><span class="row-end t-small num">${tmHtml(r.at)}</span></button>${canUndoRec(r) ? `<button type="button" class="btn secondary rr-undo" data-undo-rec="${i}" aria-label="${esc(t.undo + ': ' + r.name)}">${esc(t.undo)}</button>` : ''}</div>`;
+    const recRow = (r, i) => `<div class="row rrow"><button type="button" class="rr-find row-link" data-recent="${esc(r.name)}">${mono(r.name)}<span class="row-main"><b class="t-name"><bdi>${esc(r.name)}</bdi></b><span class="t-small">${esc(P(r.n))}</span></span><span class="row-end t-small num">${tmHtml(r.at)}</span></button>${canUndoRec(r) ? `<button type="button" class="btn secondary rr-undo" data-undo-rec="${i}" aria-label="${esc(t.undo + ': ' + r.name)}">${esc(t.undo)}</button>` : ''}</div>`;
     const rec = recent.length ? `<h2 class="eyebrow d-cap">${t.justArrived}</h2><div class="rowlist rlist">${recent.map(recRow).join('')}</div><p class="help d-tip">${t.tapFind}</p>` : '';
-    return rec + `<div class="didle"><p>${t.typeName}</p>${wakeOn ? `<p class="d-awake"><i class="i i-moon sm"></i>${t.awake}</p>` : ''}</div>`;
+    return rec + `<div class="didle"><i class="i i-arch di-arch" aria-hidden="true"></i><p>${t.typeName}</p>${wakeOn ? `<p class="d-awake"><i class="i i-moon sm"></i>${t.awake}</p>` : ''}</div>`;
   }
   const canUndoRec = r => !!r.u && v2 && undoOk === true && Date.now() - r.at < UNDO_MS;
   // a notice that waits for "Close" (over the limit, not on the list) goes once the next name is typed
@@ -957,7 +1016,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const wasOpen = !!(box.querySelector('details') && box.querySelector('details').open);
     const lbl = { pending: t.pending, approved: t.approved, rejected: t.rejected }, tone = { pending: 'wait', approved: 'ok', rejected: 'no' };
     const mins = iso => Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60000));
-    const row = r => `<div class="row rq"><div class="row-main"><b class="t-name"><bdi>${esc(r.name)}</bdi></b><span class="rq-s"><span>${esc(P(r.people))}</span>${r.note ? `<bdi>${esc(r.note)}</bdi>` : ''}${r.created_at ? `<span class="num">${esc(t.ago(mins(r.created_at)))}</span>` : ''}</span></div><span class="row-end"><span class="tag tone-${tone[r.status]}">${lbl[r.status]}${r.status === 'pending' ? '<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>' : ''}</span></span></div>`;
+    const row = r => `<div class="row rq">${mono(r.name, tone[r.status])}<div class="row-main"><b class="t-name"><bdi>${esc(r.name)}</bdi></b><span class="rq-s"><span>${esc(P(r.people))}</span>${r.note ? `<bdi>${esc(r.note)}</bdi>` : ''}${r.created_at ? `<span class="num">${esc(t.ago(mins(r.created_at)))}</span>` : ''}</span></div><span class="row-end"><span class="tag tone-${tone[r.status]}">${lbl[r.status]}${r.status === 'pending' ? '<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>' : ''}</span></span></div>`;
     const pend = reqs.filter(r => r.status === 'pending'), done = reqs.filter(r => r.status !== 'pending');
     box.innerHTML = `<h2 class="eyebrow d-cap">${t.reqs}</h2>`
       + (pend.length ? `<div class="rowlist rlist">${pend.slice(0, 30).map(row).join('')}</div>` : '')
