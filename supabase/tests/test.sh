@@ -1,6 +1,6 @@
 #!/bin/sh
 # Start a throwaway Postgres in a temp folder, run every file in supabase/migrations, run the checks, stop it.
-# Then the checks for the WhatsApp door-pass code (functions/_shared/pass.ts; Node 22.18+ reads .ts files).
+# Then the checks for the server-function code (door passes, payments, WhatsApp login codes, invites) (functions/_shared/pass.ts; Node 22.18+ reads .ts files).
 set -e
 cd "$(dirname "$0")"
 B=node_modules/@embedded-postgres/darwin-arm64/native/bin
@@ -11,3 +11,4 @@ D=$(mktemp -d)
 trap '"$B/pg_ctl" -D "$D" -m fast stop >/dev/null; rm -rf "$D"' EXIT
 node run.js
 node pass_unit.mjs
+node self_serve_unit.mjs
