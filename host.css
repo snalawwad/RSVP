@@ -208,7 +208,7 @@ html[lang="ar"] .sq-name.lat{line-height:1.3}
 .inv-frame{position:relative;width:96px;height:126px;border-radius:var(--r-m);overflow:hidden;border:1px solid var(--line);background:var(--surface)}
 .inv-frame img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
 .inv-mini{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px}
-.inv-mini b{font-family:var(--display);font-weight:600;font-size:var(--fs-b);line-height:1.25;overflow-wrap:anywhere}
+.inv-mini b{font-family:var(--display);font-weight:600;font-size:var(--fs-s);line-height:1.3;overflow-wrap:break-word;hyphens:none;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .inv-meta .inv-line{font-family:var(--display);font-weight:600;font-size:var(--fs-name);line-height:1.35;margin:0 0 4px;color:var(--ink);overflow-wrap:anywhere}
 html[lang="ar"] .inv-meta .inv-line{line-height:1.6}
 html[lang="ar"] .inv-meta .inv-line.lat{line-height:1.35}
