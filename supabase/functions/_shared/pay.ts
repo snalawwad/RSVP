@@ -2,8 +2,8 @@
 // The price is never taken from the app: start_checkout_v2 (0007_self_serve.sql) works it out and
 // stores it on the order; these functions only move an existing order along.
 // Rules: never log a login token; only order ids reach the logs.
-import type { Env, Log, Rpc } from './pass.ts';
-import { scrub } from './pass.ts';
+import type { Env, Log, Rpc } from './base.ts';
+import { scrub } from './base.ts';
 
 export const DEFAULT_SITE = 'https://snalawwad.github.io/RSVP';
 export type PayMode = 'off' | 'test';

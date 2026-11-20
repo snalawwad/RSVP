@@ -10,10 +10,8 @@ export const GRAPH_VERSION = 'v21.0';
 export const DEFAULT_TEMPLATE = 'sina_door_pass';
 
 export type Mode = 'off' | 'mock' | 'live';
-export type Env = Record<string, string | undefined>;
-export type RpcResult = { data: unknown; error: { message: string } | null };
-export type Rpc = (fn: string, args: Record<string, unknown>) => Promise<RpcResult>;
-export type Log = (msg: string, fields?: Record<string, unknown>) => void;
+import type { Env, RpcResult, Rpc, Log } from './base.ts';
+export type { Env, RpcResult, Rpc, Log } from './base.ts';
 
 /** One guest claimed by public.pass_send_claim. */
 export interface Claim {
@@ -86,14 +84,8 @@ export function maskToken(t: unknown): string {
 }
 
 /** Hide anything in free text that could be a phone, token or key (for logs and stored errors). */
-export function scrub(text: unknown, max = 200): string {
-  return String(text ?? '')
-    .replace(/[A-Za-z0-9_-]{20,}/g, '…')
-    .replace(/\+?\d[\d\s-]{5,}\d/g, '…')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, max);
-}
+export { scrub } from './base.ts';
+import { scrub } from './base.ts';
 
 // ---------------------------------------------------------------- dates
 /**
