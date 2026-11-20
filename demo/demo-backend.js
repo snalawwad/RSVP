@@ -4,11 +4,12 @@
 (function () {
   'use strict';
   var API = 'https://mock.supabase.test';
-  var PGLITE = 'https://cdn.jsdelivr.net/npm/@electric-sql/pglite@0.5.17/dist/';
+  var PGLITE = null;   // set below: our own copy (Safari won't load its add-ons from another site)
   var DB_NAME = 'idb://sina-demo-v1', FLAG = 'sina-demo-v1-ready';
   var HERE = (document.currentScript && document.currentScript.src) || location.href;
   var BASE = HERE.replace(/[^/]*$/, '');                       // …/RSVP/demo/
   var DEMO_EMAIL = 'host@sina.test';
+  PGLITE = BASE + 'pglite/';
 
   // ---------- tokens (same shape the real server gives) ----------
   function b64uEnc(o) { return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
