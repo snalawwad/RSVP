@@ -1,0 +1,18 @@
+// ======================================================================
+// Fill these in once (see README step 3). The publishable key is safe to share:
+// the database rules decide what each person can see.
+// ======================================================================
+window.CONFIG = {
+  SUPABASE_URL: 'https://mock.supabase.test',
+  SUPABASE_ANON_KEY: 'demo',
+  SITE_URL: 'https://snalawwad.github.io/RSVP/demo/web',   // where invite.html lives, no slash at the end
+  BRAND: 'سنة',                                 // business name in Arabic (Sina, as Kuwaitis say "year")
+  BRAND_EN: 'Sina',
+  SUPPORT_WHATSAPP: '965XXXXXXXX',              // your business WhatsApp, digits only (placeholder = hidden)
+  SUPPORT_EMAIL: '',                            // support email for privacy/support pages (empty = hidden)
+  INSTAGRAM_URL: '',                            // the website footer's Instagram link (empty = hidden)
+  WHATSAPP_AUTO: false,                         // true once door passes go out on WhatsApp automatically (supabase/WHATSAPP_SETUP.md)
+  LOGIN_PHONE: false,                           // true once the WhatsApp login code (Auth "Send SMS hook") is switched on; until then people log in with an email code
+  LOGIN_CODE_LENGTH: 6,                         // digits in the login code (Supabase Auth setting)
+  PAYMENT_MODE: 'test'                          // 'test' = the test gateway on pay.html; a real gateway replaces it later
+};

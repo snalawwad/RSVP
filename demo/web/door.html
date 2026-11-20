@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head><script src="/RSVP/demo/demo-backend.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Demo · Door check-in · Sina</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="door.css">
+<script>
+// Colour mode: the staff member's own choice wins. If they never chose, the door goes dark at night (Kuwait time).
+try {
+  var th = localStorage.getItem('ui-theme');
+  if (!th) { var h = (new Date().getUTCHours() + 3) % 24; th = (h >= 17 || h < 5) ? 'dark' : 'light'; }
+  document.documentElement.dataset.theme = th;
+  if (localStorage.getItem('door-lang') === 'ar') { document.documentElement.lang = 'ar'; document.documentElement.dir = 'rtl'; }
+} catch (e) { document.documentElement.dataset.theme = 'auto'; }
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script defer src="config.js"></script>
+<script defer src="core.js"></script>
+</head>
+<body class="app door">
+<div class="topbar" id="topbar"><a class="brand" href="door.html" aria-label="Door check-in"></a><span class="tb-title" id="tbTitle"></span><button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu"><i class="i i-menu"></i><span class="menu-l">Menu</span></button></div>
+<dialog class="sheet" id="menu" aria-labelledby="menuH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="menuH">Menu</h2><button class="sheet-x" data-close aria-label="Close"><i class="i i-x"></i></button></div><div class="menu-row"><span data-i18n="colours">Colours</span><span class="themesw" id="themeSw"></span></div><button class="btn ghost" id="lang">العربية</button><button class="btn ghost" id="out" hidden>Log out</button></dialog>
+<main>
+  <div id="auth"></div>
+  <section id="door" hidden>
+    <header class="dmast" id="mast">
+      <div class="dkick"><p class="dk-t" id="kick"></p><span class="live" id="live" role="status"></span></div>
+      <h1 class="dmast-t" id="title"></h1>
+    </header>
+    <!-- the door isn't open for this event: a draft (not sent yet), or a package without door check-in -->
+    <div class="dgate" id="gate" hidden><i class="i i-arch dg-i" aria-hidden="true"></i><h2 class="dg-h" id="gateH"></h2><p class="dg-p" id="gateP"></p></div>
+    <div class="dhead" id="dhead">
+      <div class="dmeter" id="meter">
+        <div class="dm-row">
+          <p class="dm-n"><b id="mIn" class="num">0</b><span class="dm-l" id="mL"></span></p>
+          <button class="dm-wait" id="waitChip" type="button" hidden><span class="dot tone-wait" aria-hidden="true"></span><span id="waitL"></span><i class="i i-chev sm" aria-hidden="true"></i></button>
+        </div>
+        <div class="dm-row2" id="mRow2">
+          <p class="dm-s" id="mS"></p>
+        </div>
+        <div class="dm-bar" id="mBarBox" aria-hidden="true"><i id="mBar"></i></div>
+      </div>
+      <div class="dsearch-row">
+        <div class="searchbox dsearch">
+          <label class="sr" for="q" id="qLbl"></label>
+          <i class="i i-search" aria-hidden="true"></i>
+          <input type="search" id="q" dir="auto" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" enterkeyhint="search">
+          <button class="qx" id="qx" type="button" hidden><i class="i i-x"></i></button>
+        </div>
+        <button class="kb" id="kb" type="button" aria-pressed="false">123</button>
+      </div>
+      <button class="btn secondary block dscan" id="scanBtn" type="button" hidden><i class="i i-qr" aria-hidden="true"></i><span></span></button>
+      <div class="undo-slot" id="undoSlot"></div>
+    </div>
+    <div id="answers"></div>
+    <p class="sr" id="annLive" role="status"></p>
+    <div id="result" aria-live="assertive"></div>
+    <div class="dlist" id="list"></div>
+    <div class="dmore"><button class="btn quiet" id="unlisted" type="button"><i class="i i-plus"></i><span></span></button></div>
+    <section id="myReqs"></section>
+    <div class="dlinks" id="dlinks" hidden></div>
+  </section>
+</main>
+<dialog class="sheet" id="ask" aria-labelledby="askH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="askH"></h2><button class="sheet-x" data-close type="button"><i class="i i-x"></i></button></div><div id="askBody"></div></dialog>
+<dialog class="scan" id="scan" aria-labelledby="scanH">
+  <video id="scanV" muted playsinline autoplay aria-hidden="true"></video>
+  <div class="scan-frame" aria-hidden="true"></div>
+  <div class="scan-top"><h2 class="scan-h" id="scanH"></h2><button class="scan-x" id="scanX" type="button"><i class="i i-x"></i></button></div>
+  <div class="scan-foot"><p class="scan-msg" id="scanMsg" role="status"></p><button class="btn secondary block" id="scanSearch" type="button"><i class="i i-search" aria-hidden="true"></i><span></span></button></div>
+</dialog>
+<dialog class="sheet" id="evSheet" aria-labelledby="evH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="evH"></h2><button class="sheet-x" data-close type="button"><i class="i i-x"></i></button></div><div class="rowlist evpick" id="evList"></div></dialog>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const { sb, $, esc, toast, showPhone } = App;
+  // Every number carries its word. "person" = one head; "guest" = one invitation.
+  const P = (n, l) => App.countWord(n, 'person', l || lang);
+  const G = (n, l) => App.countWord(n, 'guest', l || lang);
+  const ISO = s => `⁦${s}⁩`;      // keep "+2" in one piece inside Arabic
+  // one term for the hosts on every page: "the hosts" / "أهل المناسبة" (App.hostWord)
+  const HE = App.HOSTS.en, HA = App.HOSTS.ar;
+  const T = {
+    en: { other: 'العربية', out: 'Log out', title: 'Door check-in', colours: 'Colours', hostDash: HE.page, events: 'Your events', switchEv: 'Switch event',
+      live: 'Live', offline: 'Offline, retrying',
+      kick: d => d == null ? 'At the door' : 'At the door · ' + (d > 1 ? `${d} days to go` : d === 1 ? 'Tomorrow' : d === 0 ? 'Tonight' : 'Event over'),
+      draftH: 'This event isn’t ready yet', draftP: `${HE.cap} haven’t sent the invitations yet, so there’s no guest list at the door. It opens here once they send them.`,
+      noDoorH: 'Door check-in isn’t in this package', noDoorP: p => `The ${p} package has no door check-in, so there’s no guest list to check here. ${HE.cap} can add door check-in to their package.`,
+      search: 'Find a guest by name or phone', searchPh: 'Guest name or phone', clear: 'Clear search',
+      kbNum: 'Type a phone number', kbAbc: 'Type a name', kbAbcL: 'abc',
+      meterL: (a, e) => e ? `of ${P(e)} in` : (a === 1 ? 'person in' : 'people in'),
+      noReplyN: n => n === 1 ? '1 guest hasn’t replied' : `${G(n)} haven’t replied`,
+      waitChip: n => `${n} waiting for ${HE.plain}`, half: 'Half the guests are in', everyone: 'Everyone’s here',
+      coming: 'Coming', declined: 'Can’t come', noReply: 'No reply',
+      inLeft: (d, l) => `${P(d)} in · ${l} to come`, upTo: l => `up to ${P(l)}`,
+      already: (n, tm) => `Already in · ${P(n)}${tm ? ' · ' + tm : ''}`, alreadyOld: 'Already checked in',
+      invited: (s, c, st) => `Invited ${P(s)}` + (st === 'yes' && c && c !== s ? ` · said yes for ${P(c)}` : st === 'pending' ? ' · no reply' : ''),
+      howMany: 'How many now', less: 'One less', more: 'One more',
+      checkInN: (n, left) => n >= left ? `Check in ${P(n)}` : `Check in ${n} of ${P(left)}`, checkInNow: n => `Check in ${P(n)} now`, askAbout: x => `Ask ${HE.plain} about ${ISO('+' + x)}`,
+      busy: 'Checking in…', retry: 'Retry check-in',
+      askHost: `Ask ${HE.plain}`, unlisted: 'Someone not on the list',
+      typeName: 'Type a name or phone number to check someone in.', awake: 'Screen stays on', justArrived: 'Just arrived', tapFind: 'Tap a name to find them again.',
+      ambiguous: n => `${G(n)} with similar names. Check the phone number.`, similar: 'Close spellings', didYouMean: 'No exact match. Is it one of these?',
+      notFoundH: 'Not on the list', noOne: q => `No one called “${q}”. Try the phone number or family name.`, notFoundOld: `Not on the list. Check with ${HE.plain}.`,
+      band: (nm, n) => `${nm}: ${P(n)} in`, bandLeft: l => `${l} still to come`, hadDeclined: 'had said they can’t come', noReplySub: 'hadn’t replied',
+      undo: 'Undo', undoNo: `Wrong person? Tell ${HE.plain} to fix it.`, undoing: 'Undoing…', undone: nm => `Check-in undone: ${nm}`,
+      undoLate: `Too late to undo here. Tell ${HE.plain} to fix it.`, undoNotYours: `That was checked in on another phone. Tell ${HE.plain}.`, undoNothing: 'Nothing to undo.',
+      undoFail: `Couldn’t undo here. Tell ${HE.plain} to fix it.`, alreadyK: () => 'Already in', alreadyNow: n => `${P(n)} already in on this invite. No need to check them in again.`,
+      overK: 'Over the limit', over: l => `Only ${P(l)} more can come in on this invite`, overNone: 'No more places on this invite', close: 'Close', closeNote: 'Close this notice',
+      askH: `Ask ${HE.plain}`, allowedLine: (a, d) => `Allowed ${P(a)} · ${P(d)} in`, name: 'Name', count: 'How many people', reasonL: 'Why', reasons: ['Extra family', 'Not on the list', 'Invited by phone', 'Child'],
+      otherNote: 'Other note (optional)', send: n => `Send ${HE.to} · ${P(n)}`, needName: 'Type their name first', sent: 'Sent. The hosts’ answer will show at the top.',
+      reqs: `Your requests ${HE.to}`, pending: 'Waiting', approved: 'Approved', rejected: 'Not approved', answered: n => `Answered requests (${n})`,
+      reqLine: { pending: n => `Asked ${HE.plain} about ${P(n)} more · waiting`, approved: n => `${HE.cap} said yes to ${P(n)} more (already counted)`, rejected: n => `${HE.cap} said no to ${P(n)} more` },
+      ago: m => m < 1 ? 'just now' : m < 60 ? `${m} min ago` : `${Math.floor(m / 60)} h ago`,
+      okBanner: (nm, p) => `${HE.cap} approved: let ${nm} in (${p})`, okBannerSub: 'Already counted. No need to check them in again.', noBanner: nm => `${HE.cap} said no: ${nm}`, noBannerSub: 'Please let the guest know kindly.', dismiss: 'Hide this answer',
+      err: 'Couldn’t do that. Check your connection and try again.', noEvents: 'This email isn’t linked to any event right now.', noEventsH: 'No events', reason: 'Reason',
+      digitsHint: 'Type at least 4 digits of the number', bigN: '7 or more', moreAns: n => `Show ${n} more ${n === 1 ? 'answer' : 'answers'}`,
+      when: d => d === 0 ? '' : d < 0 ? 'This event has passed' : d === 1 ? 'The event is tomorrow' : `The event is in ${d} days`,
+      scan: 'Scan pass', scanH: 'Scan a door pass', scanHint: 'Point the camera at the QR code on the guest’s phone.', scanChecking: 'Checking the pass…',
+      passWrong: 'This pass isn’t for this event', passWrongSub: 'Ask for their name and search for it.', notPass: 'That QR code isn’t a door pass',
+      camDenied: 'The camera is blocked. Allow it in your browser settings, or search by name.', noCamera: 'Couldn’t open the camera. Search by name instead.',
+      searchInstead: 'Search by name', closeScan: 'Close the camera', passTag: c => `Pass ${c}`, codeHint: 'Type the 4 digits after SN-',
+      passNoDb: 'This door can’t read passes yet. Search by name.',
+      scanRefused: 'This phone can’t check guests in for this event any more', scanRefusedSub: 'Ask the hosts to add you again.',
+      helpPass: ' With a door pass, tap “Scan pass” and point the camera at the QR code on their phone, or type the 4 digits after SN-.',
+      help: [
+        ['Checking someone in', 'Type part of their name, or at least 4 digits of their phone number. Tap the big button: it says how many people go in.'],
+        ['Two guests with the same name', 'When two or more guests have similar names, in Arabic or English letters, a line above the cards says so. Check the phone number before you tap. Someone who is already in shows first, in amber, with the time they came.'],
+        ['Undoing a check-in', 'The green band shows your latest check-in, with Undo, for 2 minutes or until the next check-in. Under “Just arrived”, each check-in made on this phone keeps its own Undo for 10 minutes. After that, tell the hosts.'],
+        ['More people than allowed', 'Tap + to the real number. Check in the people allowed now, then tap “Ask the hosts about +1” for the rest. The hosts’ answer shows at the top of this screen.'],
+        ['Someone not on the list', 'Try the phone number or the family name first. If they’re still not there, tap “Ask the hosts”.'],
+        ['Phone numbers', 'Tap 123 next to the search box for the number keyboard, and abc to go back to letters.']
+      ] },
+    ar: { other: 'English', out: 'تسجيل خروج', title: 'شاشة الباب', colours: 'الألوان', hostDash: HA.page, events: 'مناسباتكم', switchEv: 'تغيير المناسبة',
+      live: 'متصل', offline: 'ما في نت',
+      kick: d => d == null ? 'شاشة الباب' : 'شاشة الباب · ' + (d > 2 ? `المناسبة بعد ${d} ${d <= 10 ? 'أيام' : 'يوم'}` : d === 2 ? 'المناسبة بعد يومين' : d === 1 ? 'المناسبة باجر' : d === 0 ? 'المناسبة الليلة' : 'المناسبة خلصت'),
+      draftH: 'المناسبة للحين مو جاهزة', draftP: 'أهل المناسبة للحين ما أرسلوا الدعوات، فما في قائمة ضيوف على الباب. بتفتح هني أول ما يرسلونها.',
+      noDoorH: 'تسجيل الوصول على الباب مو ضمن الباقة', noDoorP: p => `الباقة ${p} ما فيها تسجيل وصول على الباب، فما في قائمة ضيوف تشيكون عليها هني. أهل المناسبة يقدرون يضيفونه لباقتهم.`,
+      search: 'دوّروا بالاسم أو الرقم', searchPh: 'اسم الضيف أو رقمه', clear: 'مسح البحث',
+      kbNum: 'كتابة رقم التلفون', kbAbc: 'كتابة الاسم', kbAbcL: 'أ ب ت',
+      meterL: (a, e) => (a === 0 ? 'ما وصل أحد للحين' : a === 1 ? 'وصل' : 'وصلوا') + (e ? ` من أصل ${P(e)}` : ''),
+      noReplyN: n => n === 1 ? 'ضيف واحد ما ردّ' : `${G(n)} ما ردّوا`,
+      waitChip: n => `طلباتكم: ${n} بالانتظار`, half: 'نص الضيوف وصلوا', everyone: 'كل الضيوف وصلوا',
+      coming: 'بيحضرون', declined: 'اعتذروا', noReply: 'ما ردّوا',
+      inLeft: (d, l) => `وصل ${P(d)} · باقي ${P(l)}`, upTo: l => `مسموح ${P(l)}`,
+      already: (n, tm) => `${n === 1 ? 'وصل' : 'وصلوا'} من قبل · ${P(n)}${tm ? ' · ' + tm : ''}`, alreadyOld: 'وصلوا من قبل',
+      invited: (s, c, st) => { const p = P(s); return `الدعوة ${/^\d/.test(p) ? 'لـ' : 'ل'}${p}` + (st === 'yes' && c && c !== s ? ` · أكّدوا ${P(c)}` : st === 'pending' ? ' · ما ردّوا' : ''); },
+      howMany: 'كم شخص الحين', less: 'واحد أقل', more: 'واحد زيادة',
+      checkInN: (n, left) => n >= left ? `سجّلوا وصول ${P(n)}` : `سجّلوا وصول ${n} من ${P(left)}`, checkInNow: n => `سجّلوا وصول ${P(n)} الحين`, askAbout: x => `اسألوا ${HA.plain} عن ${ISO('+' + x)}`,
+      busy: 'لحظة…', retry: 'حاولوا مرة ثانية',
+      askHost: `اسألوا ${HA.plain}`, unlisted: 'ضيف مو بالقائمة',
+      typeName: 'اكتبوا اسم الضيف أو رقمه عشان تسجلون وصوله.', awake: 'الشاشة ما بتطفي', justArrived: 'وصلوا توّهم', tapFind: 'اضغطوا على أي اسم عشان ترجعون له.',
+      ambiguous: n => `${G(n)} بأسماء متشابهة. تأكدوا من الرقم.`, similar: 'أسماء قريبة', didYouMean: 'ما لقينا الاسم بالضبط. يمكن واحد من هذول؟',
+      notFoundH: 'مو بالقائمة', noOne: q => `ما في أحد باسم «${q}». جرّبوا رقم التلفون أو اسم العائلة.`, notFoundOld: 'مو بالقائمة. اسألوا أهل المناسبة.',
+      band: (nm, n) => `${nm}: وصل ${P(n)}`, bandLeft: l => `باقي ${P(l)}`, hadDeclined: 'كانوا معتذرين', noReplySub: 'ما كانوا رادّين',
+      undo: 'تراجع', undoNo: 'غلط بالاسم؟ قولوا لأهل المناسبة يعدّلونه.', undoing: 'لحظة…', undone: nm => `انلغى تسجيل وصول ${nm}`,
+      undoLate: 'فات وقت التراجع من هني. قولوا لأهل المناسبة يعدّلونه.', undoNotYours: 'وصولهم انسجّل من تلفون ثاني. قولوا لأهل المناسبة.', undoNothing: 'ما في شي نتراجع عنه.',
+      undoFail: 'ما قدرنا نتراجع من هني. قولوا لأهل المناسبة يعدّلونه.', alreadyK: n => n === 1 ? 'وصل من قبل' : 'وصلوا من قبل', alreadyNow: n => n === 1 ? 'شخص واحد وصل من قبل على هالدعوة. لا تسجلون وصوله مرة ثانية.' : `${P(n)} وصلوا من قبل على هالدعوة. لا تسجلون وصولهم مرة ثانية.`,
+      overK: 'أكثر من المسموح', over: l => `باقي ${P(l)} بس على هالدعوة`, overNone: 'الدعوة مكتملة', close: 'إغلاق', closeNote: 'إغلاق التنبيه',
+      askH: `اسألوا ${HA.plain}`, allowedLine: (a, d) => `${a ? `مسموح ${P(a)}` : 'ما لهم مكان على الدعوة'} · ${d ? `وصل ${P(d)}` : 'ما وصل أحد'}`, name: 'الاسم', count: 'كم شخص', reasonL: 'السبب', reasons: ['أهل زيادة', 'مو بالقائمة', 'معزومين بالتلفون', 'ياهل'],
+      otherNote: 'ملاحظة (اختياري)', send: n => `أرسلوا ${HA.to} · ${P(n)}`, needName: 'اكتبوا الاسم أول', sent: 'انرسل. ردّ أهل المناسبة بيطلع فوق.',
+      reqs: `طلباتكم ${HA.to}`, pending: 'بالانتظار', approved: 'وافقوا', rejected: 'ما وافقوا', answered: n => `طلبات انردّ عليها (${n})`,
+      reqLine: { pending: n => `سألتوا أهل المناسبة عن ${P(n)} زيادة · بالانتظار`, approved: n => `أهل المناسبة وافقوا على ${P(n)} زيادة (انحسبوا)`, rejected: n => `أهل المناسبة ما وافقوا على ${P(n)} زيادة` },
+      ago: m => m < 1 ? 'توّه' : m === 1 ? 'قبل دقيقة' : m === 2 ? 'قبل دقيقتين' : m <= 10 ? `قبل ${m} دقايق` : m < 60 ? `قبل ${m} دقيقة` : `قبل ${App.arN(Math.floor(m / 60), 'ساعة', 'ساعتين', 'ساعات', 'ساعة')}`,
+      okBanner: (nm, p) => `أهل المناسبة وافقوا: دخّلوا ${nm} (${p})`, okBannerSub: 'انحسبوا، لا تسجلون وصولهم مرة ثانية.', noBanner: nm => `أهل المناسبة ما وافقوا: ${nm}`, noBannerSub: 'بلّغوهم بلطف.', dismiss: 'إخفاء الرد',
+      err: 'ما مشى. شيكوا على النت وحاولوا مرة ثانية.', noEvents: 'هالإيميل مو مربوط بأي مناسبة.', noEventsH: 'ما في مناسبات', reason: 'السبب',
+      digitsHint: 'اكتبوا 4 أرقام أو أكثر', bigN: '7 أو أكثر', moreAns: n => `شوفوا باقي الردود (${n})`,
+      when: d => d === 0 ? '' : d < 0 ? 'هالمناسبة خلصت' : d === 1 ? 'المناسبة باجر' : d === 2 ? 'المناسبة بعد يومين' : d <= 10 ? `المناسبة بعد ${d} أيام` : `المناسبة بعد ${d} يوم`,
+      scan: 'امسحوا بطاقة الحضور', scanH: 'امسحوا بطاقة الحضور', scanHint: 'وجّهوا الكاميرا على الكود اللي بتلفون الضيف.', scanChecking: 'لحظة، نشيّك على البطاقة…',
+      passWrong: 'هالبطاقة مو لهالمناسبة', passWrongSub: 'اسألوهم عن اسمهم ودوّروا عليه.', notPass: 'هذا الكود مو بطاقة حضور',
+      camDenied: 'الكاميرا مقفولة. اسمحوا لها من إعدادات المتصفح، أو دوّروا بالاسم.', noCamera: 'ما قدرنا نفتح الكاميرا. دوّروا بالاسم.',
+      searchInstead: 'دوّروا بالاسم', closeScan: 'سكّروا الكاميرا', passTag: c => `بطاقة ${c}`, codeHint: 'اكتبوا الأرقام الأربعة اللي على البطاقة',
+      passNoDb: 'هالشاشة للحين ما تقرا بطاقات الحضور. دوّروا بالاسم.',
+      scanRefused: 'هالجهاز ما يقدر يسجّل وصول ضيوف هالمناسبة بعد الحين', scanRefusedSub: 'اطلبوا من أهل المناسبة يضيفونكم مرة ثانية.',
+      helpPass: ' وإذا معاهم بطاقة الحضور، اضغطوا «امسحوا بطاقة الحضور» ووجّهوا الكاميرا على الكود اللي بتلفونهم، أو اكتبوا الأرقام الأربعة اللي على البطاقة.',
+      help: [
+        ['تسجيل وصول ضيف', 'اكتبوا جزء من اسمه، أو 4 أرقام أو أكثر من رقم تلفونه. بعدين اضغطوا الزر الكبير، ومكتوب عليه كم شخص بتسجلون وصوله.'],
+        ['ضيفين بنفس الاسم', 'إذا فيه ضيفين أو أكثر بأسماء متشابهة، بالعربي أو بالإنجليزي، يطلع لكم سطر فوق الأسماء ينبهكم. تأكدوا من رقم التلفون قبل لا تضغطون. واللي وصل من قبل يطلع أول، باللون الأصفر ومعاه وقت وصوله.'],
+        ['التراجع عن تسجيل الوصول', 'الشريط الأخضر يبيّن آخر وصول سجلتوه، ومعاه زر «تراجع»، لمدة دقيقتين أو لين تسجلون الوصول اللي بعده. وتحت «وصلوا توّهم» كل وصول سجلتوه من هالتلفون يبقى له «تراجع» لمدة 10 دقايق. بعدها قولوا لأهل المناسبة.'],
+        ['عددهم أكثر من المسموح', 'زيدوا العدد بزر + للعدد الصح. سجّلوا وصول المسموح لهم الحين، وبعدين اضغطوا «اسألوا أهل المناسبة عن +1» للباقين. ردّهم يطلع فوق بهالشاشة.'],
+        ['ضيف مو بالقائمة', 'جرّبوا رقم التلفون أو اسم العائلة أول. وإذا بعده مو موجود، اضغطوا «اسألوا أهل المناسبة».'],
+        ['أرقام التلفون', 'اضغطوا 123 جنب البحث عشان تطلع لوحة الأرقام، و«أ ب ت» عشان ترجعون للحروف.']
+      ] }
+  };
+  let lang = 'en'; try { lang = localStorage.getItem('door-lang') === 'ar' ? 'ar' : 'en'; } catch (e) {}
+  let t = T[lang];
+  let events = [], ev = null, list = [], reqs = [], v2 = false, busy = false, pollT = null, exPrefill = null;
+  const typed = {};            // head counts the door has chosen, kept across refreshes
+  const extraAsk = {};         // extra people still to ask the host about, after "Check in N now"
+  let lastTouch = 0, renderLater = null, busyId = null, failedId = null;
+  let lastOk = 0, online = true, wakeOn = false, wake = null;
+  const seenReq = new Map(); let reqsLoaded = false, answers = [];
+  let recent = [], prevPct = null;
+  let canHost = false;               // the host dashboard link only for people who can use it
+  let gate = null;                   // 'draft' | 'nodoor' when the door isn't open for this event
+  let pkgs = {};                     // packages by code (supabase/migrations/0007), for the no-door message
+  let undoOk = null;                 // null = not known yet, false = the database has no undo yet (003 not run)
+  let passOk = null;                 // null = not known yet, false = no door passes yet (supabase/migrations/0005 not run)
+  let scanStream = null, scanTimer = null, scanDet = null, scanBusy = false, scanLast = { s: '', at: 0, final: false }, scanCanvas = null, scanMsgT = null, scanGen = 0;
+  let band = null, bandInfo = null, numMode = false;
+  const announced = new Set(); let showAllAns = false;
+  const MAX_ASK = 20, ANS_SHOWN = 2, BAND_MS = 120000, UNDO_MS = 600000, ZERO = '00000000-0000-0000-0000-000000000000';
+  takeHashKey();               // door.html#p=<key>: keep the pass for after login, and take it out of the address bar
+
+  // ---------- small helpers ----------
+  const allowed = g => g.status === 'yes' ? (g.confirmed_count || g.seats) : g.status === 'pending' ? g.seats : 0;
+  const leftOf = g => Math.max(0, allowed(g) - (g.checked_in_count || 0));
+  const MAX_OVER = 6;
+  // Sama's monogram: the guest's initial in a small arch. English only (Arabic gets no single-letter initials);
+  // a name that doesn't start with a Latin letter gets the arch without a letter.
+  const mono = (name, tone) => lang === 'ar' ? '' : `<span class="dmono tone-${tone || 'ok'}" aria-hidden="true">${esc((String(name || '').trim().match(/^[A-Za-z]/) || [''])[0].toUpperCase())}</span>`;
+  const tmHtml = iso => iso ? `<bdi class="tm">${esc(App.fmtTime(new Date(iso).toISOString(), lang))}</bdi>` : '';
+  const ss = { get(k) { try { return JSON.parse(sessionStorage.getItem(k) || 'null'); } catch (e) { return null; } }, set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+
+  // the upgraded functions went missing (e.g. undone): carry on the old way
+  function dropV2() { v2 = false; undoOk = false; passOk = false; drawScanBtn(); $('#unlisted').hidden = true; exPrefill = null; renderForm(); reqs = []; drawReqs(); drawMeter(); drawBand(); }
+
+  // ---------- language ----------
+  function applyLang() {
+    t = T[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    document.title = App.brandTitle(t.title, lang);
+    $('#lang').textContent = t.other; $('#lang').setAttribute('lang', lang === 'ar' ? 'en' : 'ar'); $('#out').textContent = t.out;
+    document.querySelectorAll('[data-i18n]').forEach(el => { if (typeof t[el.dataset.i18n] === 'string') el.textContent = t[el.dataset.i18n]; });
+    $('#qLbl').textContent = t.search; $('#q').placeholder = t.searchPh; $('#qx').setAttribute('aria-label', t.clear);
+    $('#unlisted span').textContent = t.unlisted;
+    $('#ask .sheet-x').setAttribute('aria-label', t.close); $('#askH').textContent = t.askH;
+    $('#evSheet .sheet-x').setAttribute('aria-label', t.close); $('#evH').textContent = t.events;
+    $('#scanBtn span').textContent = t.scan; $('#scanH').textContent = t.scanH; $('#scanX').setAttribute('aria-label', t.closeScan);
+    $('#scanSearch span').textContent = t.searchInstead; if (!$('#scan').open) scanMsg(t.scanHint);
+    drawKb(); drawLinks(); $('#annLive').textContent = '';
+    if (ev && gate) drawGate();
+    if (ev) { drawMast(); setLive(online && Date.now() - lastOk < 30000); renderList(); drawReqs(); drawAnswers(); drawBand(); if (exPrefill) { keepForm(); renderForm(); } }
+  }
+  $('#lang').onclick = () => { lang = lang === 'ar' ? 'en' : 'ar'; try { localStorage.setItem('door-lang', lang); } catch (e) {} applyLang(); };
+  // with door passes, the first Help item also says how to scan one
+  App.setHelp(l => passOk ? T[l].help.map((h, i) => i ? h : [h[0], h[1] + T[l].helpPass]) : T[l].help);
+
+  // links that used to sit in the menu now live on the page: the event switch, and the host dashboard (hosts only)
+  function drawLinks() {
+    const brand = document.querySelector('.topbar .brand');
+    brand.setAttribute('href', canHost ? 'host.html' : 'door.html'); brand.setAttribute('aria-label', canHost ? t.hostDash : t.title);
+    const L = $('#dlinks');
+    L.hidden = !(canHost || events.length > 1);
+    L.innerHTML = (events.length > 1 ? `<button class="btn quiet" type="button" id="evSw"><i class="i i-calendar"></i><span>${esc(t.switchEv)}</span></button>` : '')
+      + (canHost ? `<a class="btn quiet" href="host.html" id="hostLink"><i class="i i-home"></i><span>${esc(t.hostDash)}</span></a>` : '');
+    if ($('#evSw')) $('#evSw').onclick = openEvents;
+  }
+  function openEvents() {
+    const d = iso => iso ? new Date(iso).toLocaleDateString(lang === 'ar' ? 'ar-KW-u-nu-latn' : 'en-GB', { timeZone: 'Asia/Kuwait', day: 'numeric', month: 'short' }) : '';
+    $('#evList').innerHTML = events.map(x => `<button type="button" class="row" data-ev="${esc(x.id)}" aria-current="${!!ev && x.id === ev.id}"><span class="row-main"><bdi class="t-name">${esc(x.title)}</bdi></span><span class="row-end t-small">${esc(d(x.starts_at))}${ev && x.id === ev.id ? '<i class="i i-check"></i>' : ''}</span></button>`).join('');
+    $('#evList').querySelectorAll('[data-ev]').forEach(b => b.onclick = () => { App.closeSheet($('#evSheet')); const e = events.find(x => x.id === b.dataset.ev); if (e && e !== ev) pick(e); });
+    App.openSheet($('#evSheet'));
+  }
+
+  // the "123" key: switches the phone keyboard to numbers for a phone search, and back
+  function drawKb() {
+    const b = $('#kb');
+    b.textContent = numMode ? t.kbAbcL : '123'; b.setAttribute('aria-pressed', String(numMode)); b.setAttribute('aria-label', numMode ? t.kbAbc : t.kbNum);
+    b.setAttribute('lang', numMode ? lang : 'en');
+  }
+  $('#kb').onclick = () => {
+    numMode = !numMode; const q = $('#q');
+    q.setAttribute('inputmode', numMode ? 'tel' : 'text'); q.setAttribute('autocapitalize', numMode ? 'off' : 'words');
+    drawKb(); App.vibrate(8);
+    // the keyboard only changes when the box is focused again; do it inside the tap (iOS ignores a later focus())
+    q.blur(); q.focus();
+  };
+  // tapping the key must not take the focus away from the search box (that would close the keyboard)
+  $('#kb').addEventListener('mousedown', e => e.preventDefault());
+  applyLang();
+
+  // The topbar shows the event's name once the masthead scrolls away (or is tucked away while typing)
+  const tbH = () => { const h = $('#topbar').offsetHeight; document.body.style.setProperty('--dtb', h + 'px'); return h; };
+  tbH(); window.addEventListener('resize', tbH);
+  if ('IntersectionObserver' in window) new IntersectionObserver(es => es.forEach(e => $('#tbTitle').classList.toggle('on', !e.isIntersecting && !$('#door').hidden)), { rootMargin: `-${tbH()}px 0px 0px 0px` }).observe($('#mast'));
+
+  // ---------- login, events ----------
+  App.requireLogin($('#auth'), async (session) => {
+    $('#out').hidden = false; $('#out').onclick = App.signOut;
+    v2 = await App.v2Ready();
+    // door-only staff don't get a link to a dashboard that would only send them back here
+    try {
+      const me = String((session && session.user && session.user.email) || '').toLowerCase();
+      const [adm, mem] = await Promise.all([sb.rpc('is_admin'), sb.from('event_members').select('role, email')]);
+      canHost = !!(adm && adm.data) || ((mem && mem.data) || []).some(m => m.role === 'host' && (!me || String(m.email || '').toLowerCase() === me));
+    } catch (e) { canHost = false; }
+    events = await loadEvents();
+    drawLinks();
+    if (!events.length) { $('#auth').innerHTML = `<div class="login-wrap"><div class="login box"><h2>${t.noEventsH}</h2><p class="sub">${t.noEvents}</p></div></div>`; return; }
+    probeUndo(); const passProbe = probePass();
+    let keep = null; try { keep = localStorage.getItem('door-ev'); } catch (e) {}
+    const today = new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10);
+    const kwDay = iso => new Date(new Date(iso).getTime() + 3 * 3600e3).toISOString().slice(0, 10);
+    const first = pick(events.find(x => x.id === keep) || events.find(x => x.starts_at && kwDay(x.starts_at) >= today) || events[events.length - 1]);
+    keepAwake();
+    Promise.all([passProbe, first]).then(usePending);     // door.html#p=<key>: opened from a pass scanned with the phone's own camera
+  });
+
+  // The event list. With supabase/migrations/0007 each event also says whether it is still a draft and which
+  // package it has (Basic has no door check-in unless the add-on was bought). Before 0007 those columns don't
+  // exist: ask again without them, and the door works exactly as before.
+  async function loadEvents() {
+    let r; try { r = await sb.from('events').select('id, title, starts_at, status, package, door_addon').order('starts_at'); } catch (e) { r = { error: e }; }
+    if (r.error) { try { r = await sb.from('events').select('id, title, starts_at').order('starts_at'); } catch (e) { r = { data: [] }; } }
+    const list = r.data || [];
+    if (list.some(x => x.package)) {
+      try { const p = await sb.from('packages').select('code, name_en, name_ar, door_included'); (p.data || []).forEach(x => { pkgs[x.code] = x; }); } catch (e) {}
+    }
+    return list;
+  }
+  // Is the door open for this event? Old events (no package) always are.
+  function gateOf(e) {
+    if (!e) return null;
+    if (e.status === 'draft') return 'draft';
+    if (e.package && !e.door_addon) {
+      const p = pkgs[e.package];
+      if (p ? !p.door_included : e.package === 'basic') return 'nodoor';
+    }
+    return null;
+  }
+  function pkgName(code) { const p = pkgs[code] || {}; return (lang === 'ar' ? p.name_ar : p.name_en) || ({ basic: lang === 'ar' ? 'الأساسية' : 'Basic' })[code] || code; }
+  function drawGate() {
+    $('#gateH').textContent = gate === 'draft' ? t.draftH : t.noDoorH;
+    $('#gateP').textContent = gate === 'draft' ? t.draftP : t.noDoorP(pkgName(ev.package));
+  }
+  function setGate(g) {
+    gate = g || null;
+    $('#door').classList.toggle('gated', !!gate); $('#gate').hidden = !gate;
+    if (gate) { drawGate(); $('#list').innerHTML = ''; $('#result').innerHTML = ''; setLive(true); }
+    drawScanBtn();
+  }
+  // while the door is closed, look at the event again now and then: it opens by itself once it's sent / paid
+  async function recheckGate() {
+    if (!ev || !gate) return;
+    let r; try { r = await sb.from('events').select('id, title, starts_at, status, package, door_addon').eq('id', ev.id).maybeSingle(); } catch (e) { return; }
+    if (r.error || !r.data || !ev || r.data.id !== ev.id) return;
+    Object.assign(ev, r.data);
+    if (r.data.package && !pkgs[r.data.package]) { try { const p = await sb.from('packages').select('code, name_en, name_ar, door_included'); (p.data || []).forEach(x => { pkgs[x.code] = x; }); } catch (e) {} }
+    const g = gateOf(ev);
+    if (!g) { setGate(null); pick(ev); } else if (g !== gate) setGate(g);
+  }
+
+  // Is Undo installed (migrations/003)? A call for a guest that can't exist changes nothing.
+  async function probeUndo() {
+    if (!v2) { undoOk = false; return; }
+    let r; try { r = await sb.rpc('undo_check_in_v2', { p_guest: ZERO, p_people: 1 }); } catch (e) { return; }
+    if (r.error && App.missingFn(r.error)) undoOk = false;
+    else if (!r.error) undoOk = true;
+    drawBand(); if (ev && !$('#q').value.trim()) renderList();
+  }
+
+  // Are door passes installed (supabase/migrations/0005)? Asking about an event that can't exist is refused
+  // ("Not allowed", or no such event) and writes nothing; a missing function means no passes yet.
+  async function probePass() {
+    if (!v2) { passOk = false; drawScanBtn(); return; }
+    let r; try { r = await sb.rpc('door_pass_lookup_v2', { p_event: ZERO, p_key: '' }); } catch (e) { return; }
+    if (r.error && App.missingFn(r.error)) passOk = false;
+    else if (r.error && !r.error.code) return;        // no answer (venue Wi-Fi): ask again on the next refresh
+    else passOk = true;
+    drawScanBtn();
+  }
+  function drawScanBtn() { $('#scanBtn').hidden = !(v2 && passOk === true && ev && !gate); }
+
+  async function pick(e) {
+    ev = e; try { localStorage.setItem('door-ev', e.id); } catch (x) {}
+    $('#door').hidden = false; $('#result').innerHTML = ''; exPrefill = null; renderForm();
+    list = []; reqs = []; seenReq.clear(); reqsLoaded = false; answers = []; announced.clear(); showAllAns = false; prevPct = null; failedId = null;
+    if (band) { band.close(); band = null; bandInfo = null; }
+    recent = ss.get('door-recent-' + ev.id) || [];
+    $('#unlisted').hidden = !v2; setGate(gateOf(e));
+    drawMast(); drawLinks(); drawAnswers(); drawReqs();
+    if (gate) { schedule(); return; }
+    await loadList(); await loadReqs(); schedule();
+  }
+
+  function drawMast() {
+    if (!ev) return;
+    $('#title').innerHTML = '<bdi>' + App.ampTitle(ev.title) + '</bdi>'; $('#tbTitle').textContent = ev.title;
+    $('#kick').textContent = t.kick(ev.starts_at ? daysTo(ev.starts_at) : null);
+  }
+  // days until the event (Kuwait dates); 0 on the night
+  const daysTo = iso => { if (!iso) return 0; const day = d => new Date(new Date(d).getTime() + 3 * 3600e3).toISOString().slice(0, 10); return Math.round((new Date(day(iso)) - new Date(day(new Date()))) / 864e5); };
+
+  // ---------- refresh: every 15s, every 5s while the door waits for the host ----------
+  function schedule() {
+    clearTimeout(pollT);
+    const fast = !gate && reqs.some(r => r.status === 'pending');
+    pollT = setTimeout(async () => { await refresh(); schedule(); }, gate ? 30000 : fast ? 5000 : 15000);
+  }
+  const refresh = async () => { if (!ev) return; if (gate) return recheckGate(); if (v2 && passOk === null) probePass(); await loadList(); await loadReqs(); };
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { refresh().then(schedule); keepAwake(); } });
+  window.addEventListener('online', () => { online = true; refresh().then(schedule); });
+  window.addEventListener('offline', () => { online = false; setLive(false); });
+  setInterval(() => { if (ev && lastOk && Date.now() - lastOk > 30000) setLive(false); }, 5000);
+
+  function setLive(on) {
+    if (on) lastOk = Date.now();
+    const el = $('#live'); el.className = on ? 'live' : 'live off'; el.textContent = on ? t.live : t.offline;
+  }
+
+  // keep the phone awake between guests
+  async function keepAwake() {
+    if (!('wakeLock' in navigator) || document.visibilityState !== 'visible' || (wake && !wake.released)) return;
+    try { wake = await navigator.wakeLock.request('screen'); wakeOn = true; wake.addEventListener('release', () => { wakeOn = false; }); } catch (e) { wakeOn = false; }
+    if (ev && !$('#q').value.trim()) renderList();
+  }
+
+  async function loadList() {
+    if (!ev) return;
+    const id = ev.id; let r;
+    try { r = v2 ? await sb.rpc('door_list_v2', { p_event: id }) : await sb.rpc('door_list', { p_event: id }); } catch (e) { r = { error: { message: String(e) } }; }
+    if (!ev || ev.id !== id) return;
+    const { data, error } = r;
+    if (error && v2 && App.missingFn(error)) { dropV2(); return loadList(); }
+    if (error && /NOT_READY/.test(error.message || '')) { ev.status = 'draft'; setGate('draft'); return; }
+    if (error) { setLive(false); if (!list.length) toast(t.err); return; }
+    setLive(true);
+    list = (data || []).map(g => ({ ...g, checked_in_count: g.checked_in_count ?? (g.checked_in_at ? g.seats : 0) }));
+    drawMeter();
+    // don't redraw under the door's thumb right after they tapped the stepper
+    const wait = 4000 - (Date.now() - lastTouch);
+    clearTimeout(renderLater);
+    if (wait > 0) { renderLater = setTimeout(renderList, wait); return; }
+    renderList();
+  }
+
+  // ---------- the meter: "8 of 18 people in", and who hasn't replied (they can still come in) ----------
+  function drawMeter() {
+    const arrived = list.reduce((a, g) => a + (g.checked_in_count || 0), 0);
+    // anyone who came in counts as expected too (a no-reply guest who turns up), so it never reads "22 of 18"
+    const expected = list.reduce((a, g) => a + Math.max(App.peopleComing(g), g.checked_in_count || 0), 0);
+    const noReply = list.filter(g => g.status === 'pending').length;
+    App.countUp($('#mIn'), arrived);
+    $('#mL').textContent = t.meterL(arrived, expected);
+    const pct = expected ? Math.min(100, arrived / expected * 100) : 0;
+    $('#mBar').style.width = pct + '%';
+    const noneAr = lang === 'ar' && !arrived;            // "ما وصل أحد للحين", no bare 0 in front of it
+    $('#mIn').hidden = noneAr;
+    $('#meter').setAttribute('aria-label', noneAr ? t.meterL(0, expected) : `${arrived} ${t.meterL(arrived, expected)}`);
+    $('#mS').textContent = noReply ? t.noReplyN(noReply) : '';
+    // quiet milestones: half in, everyone in (once per event, per session)
+    if (prevPct !== null && expected) for (const m of [50, 100]) {
+      const k = `door-ms-${ev.id}-${m}`;
+      if (prevPct < m && pct >= m && !ss.get(k)) { ss.set(k, 1); celebrate(m === 100 ? t.everyone : t.half); }
+    }
+    if (list.length) prevPct = pct;
+    const pend = v2 ? reqs.filter(r => r.status === 'pending').length : 0;
+    $('#waitChip').hidden = !pend; $('#waitL').textContent = t.waitChip(pend);
+    $('#mRow2').hidden = !$('#mS').textContent;
+  }
+  function celebrate(msg) { toast(msg); }
+  $('#waitChip').onclick = () => {
+    const s = $('#myReqs'); if (!s) return;
+    const y = s.getBoundingClientRect().top + window.scrollY - $('#topbar').offsetHeight - $('#dhead').offsetHeight - 8;
+    window.scrollTo({ top: Math.max(0, y), behavior: App.reducedMotion() ? 'auto' : 'smooth' });
+  };
+
+  // ---------- search: best name match first (App.nameScore: spellings, Arabic ↔ Latin), phone by 4+ digits ----------
+  const FOLD = { 'أ': 'ا', 'إ': 'ا', 'آ': 'ا', 'ٱ': 'ا', 'ة': 'ه', 'ى': 'ي', 'ؤ': 'و', 'ئ': 'ي' };
+  // normalised text plus, for each character, where it came from in the original (for <mark>)
+  function nmap(s) {
+    s = String(s || ''); let n = ''; const map = [];
+    for (let i = 0; i < s.length; i++) {
+      let c = s[i];
+      if (/[ً-ْـ]/.test(c)) continue;          // Arabic diacritics and tatweel
+      c = FOLD[c] || c.toLowerCase();
+      if (/[\s\-_.'’‘`ʼ,()]/.test(c)) c = ' ';
+      if (c === ' ' && (!n || n.endsWith(' '))) continue;
+      for (const ch of c) { n += ch; map.push(i); }
+    }
+    if (n.endsWith(' ')) { n = n.slice(0, -1); map.pop(); }
+    return { n, map };
+  }
+  const squash = m => { let n = '', map = []; for (let i = 0; i < m.n.length; i++) if (m.n[i] !== ' ') { n += m.n[i]; map.push(m.map[i]); } return { n, map }; };
+  const stripAl = tk => { const s = tk.replace(/^(al|el|ال)/, ''); return s !== tk && s.length >= 3 ? s : null; };
+  // letter-for-letter match: used to highlight the typed letters, and as a last resort when nothing else matches
+  function matchName(name, tokens) {
+    const a = nmap(name), b = squash(a), ranges = [];
+    for (const tk of tokens) {
+      let i = a.n.indexOf(tk), m = a, len = tk.length;
+      if (i < 0) { i = b.n.indexOf(tk); m = b; }
+      if (i < 0) { const s = stripAl(tk); if (s) { i = a.n.indexOf(s); m = a; len = s.length; } }
+      if (i < 0) return null;
+      ranges.push([m.map[i], m.map[i + len - 1] + 1]);
+    }
+    return { ranges };
+  }
+  function markUp(s, ranges) {
+    s = String(s || ''); if (!ranges || !ranges.length) return esc(s);
+    const r = ranges.slice().sort((x, y) => x[0] - y[0]), out = []; let at = 0;
+    for (const [a0, b0] of r) { const a = Math.max(a0, at); if (b0 <= a) continue; out.push(esc(s.slice(at, a)), '<mark>', esc(s.slice(a, b0)), '</mark>'); at = b0; }
+    out.push(esc(s.slice(at))); return out.join('');
+  }
+  const isDigits = q => !/[^\d\s+\-()٠-٩۰-۹]/.test(q);
+  // a door pass code: 4 digits, or "SN-4821" as printed on the pass (any dash or space, Arabic digits too)
+  const codeQ = q => { const m = App.asciiDigits(q).trim().match(/^(sn[\s\-‐–]*)?(\d{4})$/i); return m ? { code: m[2], sn: !!m[1] } : null; };
+  const codePart = q => /^sn([\s\-‐–]+\d{0,3}|\d{1,3})$/i.test(App.asciiDigits(q).trim());
+  // score bands from App.nameScore: 5 same name · 4 starts with · 3 word starts · 2 inside · 1 other spelling/script · 0 close
+  const tierOf = s => s >= 100 ? 5 : s >= 80 ? 4 : s >= 60 ? 3 : s >= 45 ? 2 : s >= 30 ? 1 : 0;
+  function search(q) {
+    const cq = codeQ(q);
+    if (cq) {
+      // the pass code first; 4 bare digits may also be part of a phone number
+      const byCode = list.filter(g => g.pass_code === cq.code).map(g => ({ g, score: 120, tier: 6, code: true, phone: '' }));
+      if (cq.sn) return byCode;
+      return byCode.concat(list.filter(g => g.pass_code !== cq.code && (g.phone || '').includes(cq.code)).map(g => ({ g, score: 100, tier: 5, phone: cq.code })));
+    }
+    if (isDigits(q)) {
+      const qd = App.asciiDigits(q).replace(/\D/g, '');
+      return qd.length >= 4 ? list.filter(g => (g.phone || '').includes(qd)).map(g => ({ g, score: 100, tier: 5, phone: qd })) : [];
+    }
+    const tokens = nmap(q).n.split(' ').filter(Boolean);
+    let hits = App.searchNames(list, q).map(({ item, score }) => ({ g: item, score, tier: tierOf(score), ranges: (matchName(item.name, tokens) || {}).ranges }));
+    // last resort: the old letter-for-letter match, shown as a close spelling
+    if (!hits.length) hits = list.map(g => ({ g, m: matchName(g.name, tokens) })).filter(x => x.m).map(x => ({ g: x.g, score: 1, tier: 0, ranges: x.m.ranges }));
+    return hits;
+  }
+
+  // ---------- rows ----------
+  const ORDER = { open: 0, part: 1, wait: 2, no: 3, all: 4 };
+  function stateOf(g) {
+    if (!v2) return g.checked_in_at ? 'all' : g.status === 'no' ? 'no' : g.status === 'pending' ? 'wait' : 'open';
+    const done = g.checked_in_count || 0, left = leftOf(g);
+    if (left > 0) return g.status === 'pending' ? 'wait' : done ? 'part' : 'open';
+    return done ? 'all' : 'no';
+  }
+  const curN = g => { const left = leftOf(g); return Math.max(1, Math.min(left + MAX_OVER, typed[g.id] || left || 1)); };
+  const lastReq = g => reqs.find(r => r.guest_id === g.id);     // newest first
+  function actHtml(g) {
+    const left = leftOf(g), n = curN(g);
+    const stepper = `<div class="stepper" dir="ltr" role="group" aria-label="${esc(t.howMany)}"><button type="button" data-dec aria-label="${esc(t.less)}" ${n <= 1 ? 'disabled' : ''}>−</button><output id="n-${g.id}" aria-live="polite">${n}</output><button type="button" data-inc aria-label="${esc(t.more)}" ${n >= left + MAX_OVER ? 'disabled' : ''}>+</button></div>`;
+    // over the allowance: check in the people allowed now, and ask the host about the rest
+    if (n > left) return `<div class="door-act">${stepper}${ciBtn(g, t.checkInNow(left))}</div><div class="door-act one"><button class="btn secondary big block" type="button" data-askx="${g.id}">${esc(t.askAbout(n - left))}</button></div>`;
+    return `<div class="door-act">${stepper}${ciBtn(g, t.checkInN(n, left))}</div>`;
+  }
+  function rowHtml(h) {
+    const g = h.g, st = stateOf(g), done = g.checked_in_count || 0, left = leftOf(g), al = allowed(g);
+    const phone = g.phone ? `<span class="d-ph num" dir="ltr">${h.phone ? markUp(showPhone(g.phone), (() => { const s = showPhone(g.phone), i = s.indexOf(h.phone); return i < 0 ? [] : [[i, i + h.phone.length]]; })()) : esc(showPhone(g.phone))}</span>` : '';
+    const side = g.side ? `<bdi class="d-side">${esc(g.side)}</bdi>` : '';
+    const top = `<div class="d-top">${mono(g.name, g.status === 'pending' ? 'wait' : g.status === 'no' ? 'no' : 'ok')}<b class="d-name"><bdi>${markUp(g.name, h.ranges)}</bdi></b>${phone}</div>`
+      + (h.code && g.pass_code ? `<p class="d-pass"><i class="i i-qr sm" aria-hidden="true"></i><span>${t.passTag(`<bdi dir="ltr" class="num">${esc(App.passCode(g.pass_code))}</bdi>`)}</span></p>` : '');
+    const rq = v2 && lastReq(g), rqLine = rq ? `<p class="d-req t-tone tone-${rq.status === 'approved' ? 'ok' : rq.status === 'rejected' ? 'no' : 'wait'}">${esc(t.reqLine[rq.status](rq.people))}</p>` : '';
+    // already in: an amber card that says when, never a check-in button
+    if (st === 'all') {
+      const n = v2 ? done : g.seats;
+      const ask = v2 ? `<div class="door-act one"><button class="btn secondary big block" type="button" data-ask="${g.id}">${esc(t.askAbout(extraAsk[g.id] || 1))}</button></div>` : '';
+      return `<article class="drow st-all panel tone-wait${lang === 'ar' ? '' : ' wm'}" data-id="${g.id}">${top}<p class="d-already t-tone">${v2 ? t.already(n, tmHtml(g.checked_in_at)) : esc(t.alreadyOld) + (g.checked_in_at ? ' · ' + tmHtml(g.checked_in_at) : '')}</p>
+        ${v2 ? `<p class="d-sub"><span>${esc(t.invited(g.seats, g.confirmed_count, g.status))}</span>${side ? `<span class="nw">· ${side}</span>` : ''}</p>` : ''}${rqLine}${ask}</article>`;
+    }
+    let tag, line = '';
+    if (!v2) { tag = g.status === 'no' ? 'no' : g.status === 'pending' ? 'wait' : 'ok'; line = esc(P(g.seats)); }
+    else if (st === 'no') tag = 'no';
+    else { tag = st === 'wait' ? 'wait' : 'ok'; line = esc(done ? t.inLeft(done, left) : st === 'wait' ? t.upTo(left) : P(left)); }
+    const tagTxt = { ok: t.coming, wait: t.noReply, no: t.declined }[tag];
+    let act;
+    if (!v2) act = `<div class="door-act one">${ciBtn(g, t.checkInN(g.seats, g.seats))}</div>`;
+    else if (st === 'no') act = `<div class="door-act one"><button class="btn secondary big block" type="button" data-ask="${g.id}">${esc(t.askHost)}</button></div>`;
+    else act = actHtml(g);
+    return `<article class="drow st-${st}${lang === 'ar' ? '' : ' wm'}" data-id="${g.id}">${top}
+      <p class="d-sub"><span class="tag tone-${tag}">${esc(tagTxt)}</span>${line ? `<span class="d-count">${line}</span>` : ''}${side}</p>
+      ${g.status === 'no' && g.decline_reason ? `<p class="gi-why">${t.reason}: “<bdi>${esc(g.decline_reason)}</bdi>”</p>` : ''}${rqLine}
+      ${act}</article>`;
+  }
+  // One filled (primary) button per screen: the first card's Check-in. The other cards' Check-in buttons are
+  // outlined, and while a notice with its own main button is up, every card's button is outlined.
+  function onePrimary() {
+    let first = !$('#result .btn.primary');
+    $('#list').querySelectorAll('[data-in]').forEach(b => { b.classList.toggle('primary', first); b.classList.toggle('secondary', !first); first = false; });
+  }
+  function ciBtn(g, label) {
+    const b = busyId === g.id, f = failedId === g.id;
+    return `<button class="btn primary big ci${f ? ' retry' : ''}" type="button" data-in="${g.id}" ${b ? 'aria-busy="true"' : ''}>${b ? t.busy : f ? t.retry : esc(label)}</button>`;
+  }
+
+  function renderList() {
+    clearTimeout(renderLater);
+    drawMeter();
+    const raw = $('#q').value, q = raw.trim();
+    $('#qx').hidden = !raw;
+    // while a name is being typed the head tucks the title and meter away so results sit right under the search
+    $('#door').classList.toggle('typing', !!q);
+    $('.dmore').hidden = false;
+    const L = $('#list'); L.classList.toggle('is-busy', !!busyId);
+    if (!ev) { L.innerHTML = ''; return; }
+    if (!q) { for (const k of Object.keys(typed)) delete typed[k]; L.innerHTML = idleHtml(); return; }
+    // a phone number needs 4 digits: fewer is a quiet hint, not "not on the list"
+    if (isDigits(q) && App.asciiDigits(q).replace(/\D/g, '').length < 4) { L.innerHTML = `<div class="didle dhint"><p>${t.digitsHint}</p></div>`; return; }
+    if (codePart(q)) { L.innerHTML = `<div class="didle dhint"><p>${esc(t.codeHint)}</p></div>`; return; }
+    const hits = search(q);
+    if (hits.length) {
+      const top = Math.max(...hits.map(h => h.tier)), phoneQ = isDigits(q) || !!codeQ(q);
+      // "similar": every real match once 2+ letters are typed, in either script (مريم also finds Mariam); for a
+      // phone, a whole number (8+ digits). Anyone from that set who is already inside comes first (amber, no
+      // check-in button), so a similar not-yet-in name never sits on top of them. Phone numbers are unique
+      // per event, so a phone search never gets the "similar names" line; nor does a single letter.
+      const letters = phoneQ ? 0 : nmap(q).n.replace(/ /g, '').length;
+      const sim = phoneQ ? (hits[0].phone.length >= 8 ? hits : []) : letters >= 2 ? hits.filter(h => h.tier >= 1) : hits.filter(h => h.tier === top && top >= 1);
+      const simSet = new Set(sim);
+      const inFirst = h => simSet.has(h) && stateOf(h.g) === 'all' ? 0 : 1;
+      hits.sort((a, b) => inFirst(a) - inFirst(b) || b.tier - a.tier || ORDER[stateOf(a.g)] - ORDER[stateOf(b.g)] || b.score - a.score || a.g.name.localeCompare(b.g.name));
+      const shown = hits.slice(0, 30);
+      // forget a head count chosen for a guest who is no longer on screen (so it can't come back stale)
+      const onScreen = new Set(shown.map(h => h.g.id));
+      for (const k of Object.keys(typed)) if (!onScreen.has(k)) delete typed[k];
+      let html = '';
+      if (top === 0) html += `<p class="dnote">${esc(t.didYouMean)}</p>`;
+      else if (sim.length > 1 && letters >= 2) html += `<p class="dnote tone-wait" role="status"><span class="dot tone-wait" aria-hidden="true"></span>${esc(t.ambiguous(sim.length))}</p>`;
+      let divided = top === 0;
+      for (const h of shown) {
+        if (!divided && h.tier === 0) { html += `<p class="dnote">${esc(t.similar)}</p>`; divided = true; }
+        html += rowHtml(h);
+      }
+      L.innerHTML = html; onePrimary(); return;
+    }
+    $('.dmore').hidden = v2;          // the not-found card already offers "Ask the host"
+    L.innerHTML = v2
+      ? `<div class="dnf"><p class="dnf-h">${t.notFoundH}</p><p class="dnf-s">${t.noOne(`<bdi>${esc(q)}</bdi>`)}</p><button class="btn primary big block" type="button" id="askQ"><i class="i i-bell"></i><span>${t.askHost}</span></button></div>`
+      : `<div class="dnf"><p class="dnf-h">${t.notFoundH}</p><p class="dnf-s">${t.notFoundOld}</p></div>`;
+  }
+  function idleHtml() {
+    // each row finds the guest again; a check-in made on this phone in the last 10 minutes can be undone from here too
+    const recRow = (r, i) => `<div class="row rrow"><button type="button" class="rr-find row-link" data-recent="${esc(r.name)}">${mono(r.name)}<span class="row-main"><b class="t-name"><bdi>${esc(r.name)}</bdi></b><span class="t-small">${esc(P(r.n))}</span></span><span class="row-end t-small num">${tmHtml(r.at)}</span></button>${canUndoRec(r) ? `<button type="button" class="btn secondary rr-undo" data-undo-rec="${i}" aria-label="${esc(t.undo + ': ' + r.name)}">${esc(t.undo)}</button>` : ''}</div>`;
+    const rec = recent.length ? `<h2 class="eyebrow d-cap">${t.justArrived}</h2><div class="rowlist rlist">${recent.map(recRow).join('')}</div><p class="help d-tip">${t.tapFind}</p>` : '';
+    return rec + `<div class="didle"><i class="i i-arch di-arch" aria-hidden="true"></i><p>${t.typeName}</p>${wakeOn ? `<p class="d-awake"><i class="i i-moon sm"></i>${t.awake}</p>` : ''}</div>`;
+  }
+  const canUndoRec = r => !!r.u && v2 && undoOk === true && Date.now() - r.at < UNDO_MS;
+  // a notice that waits for "Close" (over the limit, not on the list) goes once the next name is typed
+  const clearStaticCard = () => { $('#result').innerHTML = ''; onePrimary(); };
+  $('#q').addEventListener('input', () => { clearStaticCard(); renderList(); });
+  $('#q').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); if (e.key === 'Escape') { e.target.value = ''; renderList(); } });
+  $('#qx').onclick = () => { $('#q').value = ''; renderList(); $('#q').focus(); };
+
+  // one listener for every row action
+  $('#list').addEventListener('click', e => {
+    const row = e.target.closest('.drow'), g = row && list.find(x => x.id === row.dataset.id);
+    const step = e.target.closest('[data-inc],[data-dec]');
+    if (step && g) {
+      const left = leftOf(g), n = Math.max(1, Math.min(left + MAX_OVER, curN(g) + (step.hasAttribute('data-inc') ? 1 : -1)));
+      const wasOver = curN(g) > left;
+      typed[g.id] = n; lastTouch = Date.now(); if (failedId === g.id) failedId = null;
+      App.vibrate(8);
+      if (wasOver !== n > left) { const cq = codeQ($('#q').value); row.outerHTML = rowHtml({ g, code: !!cq && g.pass_code === cq.code, ranges: matchName(g.name, nmap($('#q').value).n.split(' ').filter(Boolean))?.ranges }); onePrimary(); return; }
+      row.querySelector('output').textContent = n;
+      row.querySelector('[data-dec]').disabled = n <= 1; row.querySelector('[data-inc]').disabled = n >= left + MAX_OVER;
+      const b = row.querySelector('[data-in]'); b.textContent = n > left ? t.checkInNow(left) : t.checkInN(n, left); b.classList.remove('retry');
+      const ax = row.querySelector('[data-askx]'); if (ax) ax.textContent = t.askAbout(n - left);
+      return;
+    }
+    const ci = e.target.closest('[data-in]');
+    if (ci && g) {
+      if (!v2) { checkIn(g.id); return; }
+      const left = leftOf(g), n = curN(g);
+      if (n > left) checkIn(g.id, left, n - left); else checkIn(g.id, n);
+      return;
+    }
+    const ax = e.target.closest('[data-askx]');
+    if (ax && g) { openAsk({ guest: g.id, name: g.name, people: Math.min(MAX_OVER, curN(g) - leftOf(g)) }); return; }
+    const ask = e.target.closest('[data-ask]');
+    if (ask && g) { openAsk({ guest: g.id, name: g.name, people: extraAsk[g.id] || 1 }); return; }
+    const ur = e.target.closest('[data-undo-rec]');
+    if (ur) { const r = recent[+ur.dataset.undoRec]; if (r && canUndoRec(r)) undoCheckIn({ id: r.id, name: r.name, n: r.n, at: r.at, q: r.q, undo: true }); return; }
+    const rec = e.target.closest('[data-recent]');
+    if (rec) { $('#q').value = rec.dataset.recent; renderList(); return; }
+    if (e.target.closest('#askQ')) openAsk({ guest: null, name: $('#q').value.trim(), people: 1 });
+  });
+
+  // ---------- check in ----------
+  // n: how many now; extra: people over the allowance still to ask the host about (keeps the guest on screen)
+  async function checkIn(id, n, extra) {
+    if (busy) return;
+    const g = list.find(x => x.id === id); if (!g) return;
+    clearStaticCard();
+    busy = true; busyId = id; failedId = null; renderList();
+    const before = g.checked_in_count || 0, wasIn = !!g.checked_in_at;
+    if (v2) n = n || curN(g);
+    let r;
+    try {
+      if (v2) {
+        r = await sb.rpc('check_in_v2', { p_guest: id, p_people: n });
+        if (r.error && App.missingFn(r.error)) { busy = false; busyId = null; dropV2(); loadList(); toast(t.err); return; }
+      } else r = await sb.rpc('check_in_guest', { p_guest: id });
+    } catch (e) { r = { error: { message: String(e) } }; }
+    if (r.error && !r.error.code) {
+      // no answer at all (venue Wi-Fi): the server may have saved it before the line dropped. Look again
+      // before offering "Try again", so a second tap never counts the same people twice.
+      await loadList();
+      const f = list.find(x => x.id === id);
+      if (f && (v2 ? (f.checked_in_count || 0) >= before + n : !wasIn && !!f.checked_in_at)) {
+        busy = false; busyId = null; delete typed[id];
+        if (v2 && extra) extraAsk[id] = extra;
+        welcome({ id, name: f.name, n: v2 ? n : f.seats, left: v2 ? leftOf(f) : 0, status: f.status, at: Date.now(), undo: v2 }, !!extra);
+        return;
+      }
+    }
+    busy = false; busyId = null;
+    if (r.error) { failedId = id; if (!r.error.code && Date.now() - lastOk > 3000) setLive(false); renderList(); toast(t.err); return; }
+    delete typed[id];
+    const d = r.data || {};
+    if (d.ok && v2) { g.checked_in_count = d.arrived; g.checked_in_at = g.checked_in_at || new Date().toISOString(); if (extra) extraAsk[id] = extra; }
+    else if (d.ok) g.checked_in_at = g.checked_in_at || new Date().toISOString();
+    show(d, g, !!extra); loadList();
+  }
+
+  // a notice in the page (not fixed to the bottom, where the keyboard would cover it)
+  function notice(tone, title, name, sub, buttons) {
+    $('#result').innerHTML = `<div class="dnotice panel tone-${tone}" id="arrive"><p class="dn-k t-tone">${esc(title)}</p><b class="t-name"><bdi>${esc(name)}</bdi></b>${sub ? `<p class="dn-s">${esc(sub)}</p>` : ''}${buttons ? `<div class="dn-row">${buttons}</div>` : ''}</div>`;
+    $('#result').querySelectorAll('[data-x]').forEach(b => b.onclick = clearStaticCard);
+    onePrimary();
+  }
+  function welcome(info, keep) {
+    App.vibrate(25);
+    info.q = $('#q').value;                    // the search that found them, for Undo
+    recent = [{ name: info.name, n: info.n, at: info.at, id: info.id, q: info.q, u: !!info.undo }].concat(recent.filter(r => r.id !== info.id)).slice(0, 6);
+    if (ev) ss.set('door-recent-' + ev.id, recent);
+    showBand(info);
+    if (keep) { renderList(); return; }       // stays on screen, ready for "Ask host about +1"
+    $('#q').value = ''; renderList(); $('#q').focus();
+  }
+  function show(r, g, keep) {
+    if (v2) {
+      // everyone on the invite is already in (another door, or a retry after a lost answer): say so plainly,
+      // not "over the limit", so nobody asks the host for "extra" people who are really the same people
+      if (!r.ok && r.reason === 'over' && !r.left && r.allowed > 0 && (r.arrived || 0) >= r.allowed) {
+        if (g) g.checked_in_count = r.arrived;
+        notice('wait', t.alreadyK(r.arrived), r.name, t.alreadyNow(r.arrived), `<button class="btn secondary" type="button" data-x>${t.closeNote}</button>`);
+        renderList();
+        return;
+      }
+      if (!r.ok && r.reason === 'over') {
+        notice('wait', t.overK, r.name, r.left ? t.over(r.left) : t.overNone,
+          (r.left ? `<button class="btn primary" type="button" id="inNow">${esc(t.checkInNow(r.left))}</button>` : '') + `<button class="btn ${r.left ? 'secondary' : 'primary'}" type="button" id="askNow">${t.askHost}</button><button class="btn quiet" type="button" data-x>${t.closeNote}</button>`);
+        if ($('#inNow')) $('#inNow').onclick = () => { clearStaticCard(); checkIn(g.id, r.left); };
+        $('#askNow').onclick = () => { clearStaticCard(); openAsk({ guest: g.id, name: g.name, people: 1 }); };
+        return;
+      }
+      if (!r.ok) { notice('no', t.notFoundH, g ? g.name : '', '', `<button class="btn secondary" type="button" data-x>${t.closeNote}</button>`); return; }
+      welcome({ id: g.id, name: r.name, n: r.people, left: r.left, status: r.status, at: Date.now(), undo: true }, keep);
+      return;
+    }
+    if (!r.ok) { notice('no', t.notFoundH, g ? g.name : '', t.notFoundOld, `<button class="btn secondary" type="button" data-x>${t.closeNote}</button>`); return; }
+    if (r.already) { notice('wait', t.alreadyOld, r.name, P(r.seats), `<button class="btn secondary" type="button" data-x>${t.closeNote}</button>`); return; }
+    welcome({ id: g.id, name: r.name, n: r.seats, left: 0, status: r.status, at: Date.now(), undo: false }, false);
+  }
+
+  // ---------- the green band after a check-in: stays until the next one (or 2 minutes), with Undo ----------
+  function showBand(info) {
+    if (band) band.close();
+    bandInfo = info;
+    band = App.undoBand({ text: '', undoLabel: t.undo, onUndo: () => undoCheckIn(info), ms: BAND_MS, tone: 'ok', mount: $('#undoSlot') });
+    const b = band; setTimeout(() => { if (band === b && !b.el.isConnected) { band = null; bandInfo = null; } }, BAND_MS + 50);
+    drawBand();
+  }
+  function drawBand() {
+    if (!band || !bandInfo || !band.el.isConnected) return;
+    const i = bandInfo, el = band.el, canUndo = i.undo && v2 && undoOk !== false;
+    const note = i.status === 'no' ? t.hadDeclined : i.status === 'pending' ? t.noReplySub : '';
+    const sub = [i.left ? t.bandLeft(i.left) : '', note].filter(Boolean).map(esc).concat(tmHtml(i.at)).join(' · ');
+    el.querySelector('.ub-t').innerHTML = `<b>${t.band(`<bdi>${esc(i.name)}</bdi>`, i.n)}</b><span class="ub-s">${sub}</span>${canUndo ? '' : `<span class="ub-s ub-hint">${esc(t.undoNo)}</span>`}`;
+    const u = el.querySelector('.ub-undo'); u.textContent = t.undo; u.hidden = !canUndo;
+  }
+  // a short band with no Undo (the result of an undo)
+  function infoBand(tone, html, ms) {
+    if (band) band.close(); bandInfo = null;
+    band = App.undoBand({ text: '', ms, tone, mount: $('#undoSlot') });
+    band.el.querySelector('.ub-t').innerHTML = html; band.el.querySelector('.ub-undo').hidden = true;
+  }
+  async function undoCheckIn(info) {
+    if (band) band.close();            // Undo from a "Just arrived" row: the band of a later check-in goes too
+    band = null; bandInfo = null;
+    infoBand('wait', `<b>${esc(t.undoing)}</b>`, 0);
+    let r; try { r = await sb.rpc('undo_check_in_v2', { p_guest: info.id, p_people: info.n }); } catch (e) { r = { error: { message: String(e) } }; }
+    if (r.error && App.missingFn(r.error)) { undoOk = false; showBand({ ...info }); return; }
+    // this check-in can't be undone from the door any more: take Undo off its "Just arrived" row too
+    const noMore = () => { recent.forEach(x => { if (x.id === info.id && x.at === info.at) x.u = false; }); if (ev) ss.set('door-recent-' + ev.id, recent); if (!$('#q').value.trim()) renderList(); };
+    if (r.error && r.error.code) {
+      // the server said no (e.g. this phone's door access has ended): retrying won't help
+      noMore();
+      infoBand('no', `<b>${t.band(`<bdi>${esc(info.name)}</bdi>`, info.n)}</b><span class="ub-s">${esc(t.undoFail)}</span>`, 15000);
+      return;
+    }
+    if (r.error) { toast(t.err); showBand(info); return; }
+    const d = r.data || {};
+    if (!d.ok) {
+      const why = d.reason === 'too_late' ? t.undoLate : d.reason === 'not_yours' ? t.undoNotYours : t.undoNothing;
+      noMore();
+      infoBand('no', `<b>${t.band(`<bdi>${esc(info.name)}</bdi>`, info.n)}</b><span class="ub-s">${esc(why)}</span>`, 15000);
+      return;
+    }
+    App.vibrate([20, 40, 20]);
+    const g = list.find(x => x.id === info.id);
+    if (g) { g.checked_in_count = d.arrived; if (!d.arrived) g.checked_in_at = null; }
+    recent = recent.filter(x => !(x.id === info.id && x.at === info.at)); if (ev) ss.set('door-recent-' + ev.id, recent);
+    infoBand('wait', `<b>${t.undone(`<bdi>${esc(info.name)}</bdi>`)}</b>`, 8000);
+    // back to the search that found them, so the right guest is one tap away
+    if (info.q != null && !$('#q').value) $('#q').value = info.q;
+    renderList(); loadList();
+  }
+
+  // ---------- door passes (supabase/migrations/0005): scan the QR on the guest's phone ----------
+  // The QR holds <site>/door.html#p=<key>. A hit opens that guest's card, the same card a search shows
+  // (already in, over the limit, Ask the hosts all work as usual). The key is never shown or kept in the page.
+  async function lookupPass(evId, key) {
+    let r; try { r = await sb.rpc('door_pass_lookup_v2', { p_event: evId, p_key: key }); } catch (e) { r = { error: { message: String(e) } }; }
+    if (r.error && App.missingFn(r.error)) { passOk = false; drawScanBtn(); }
+    return r;
+  }
+  function openPassGuest(row, tapped) {
+    const g = { ...row, checked_in_count: row.checked_in_count ?? (row.checked_in_at ? row.seats : 0) };
+    const i = list.findIndex(x => x.id === g.id);
+    if (i >= 0) list[i] = { ...list[i], ...g }; else list.push(g);       // added since the last refresh
+    clearStaticCard();
+    $('#q').value = g.pass_code ? App.passCode(g.pass_code) : g.name;    // the code finds exactly this guest
+    renderList(); if (tapped) App.vibrate(25);          // no buzz on a page that just opened (browsers block it)
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+  function scanMsg(s, tone) {
+    clearTimeout(scanMsgT);
+    const m = $('#scanMsg'); m.textContent = s || ''; m.className = 'scan-msg' + (tone ? ' tone-' + tone : '');
+    // a "not this event" message goes back to the hint after a while; the camera keeps looking meanwhile
+    if (tone === 'no' && scanStream) scanMsgT = setTimeout(() => { if (scanStream) scanMsg(t.scanHint); }, 5000);
+  }
+  function stopCam() {
+    clearTimeout(scanTimer); clearTimeout(scanMsgT);
+    if (scanStream) scanStream.getTracks().forEach(x => x.stop());
+    scanStream = null; const v = $('#scanV'); if (v) v.srcObject = null;
+  }
+  // no camera, or it was refused: say so, and offer the search
+  function scanFail(msg) { stopCam(); $('#scan').classList.add('nocam'); scanMsg(msg, 'no'); $('#scanSearch').classList.replace('secondary', 'primary'); $('#scanSearch').focus(); }
+  function closeScan() { const d = $('#scan'); if (d.open) d.close(); }
+  async function openScan() {
+    if (!ev || passOk !== true) return;
+    const d = $('#scan');
+    d.classList.remove('nocam'); $('#scanSearch').classList.replace('primary', 'secondary'); scanMsg(t.scanHint);
+    scanLast = { s: '', at: 0, final: false }; scanBusy = false;
+    if (!d.open) d.showModal();
+    const my = ++scanGen;      // a close (or a newer open) while the camera permission is still being asked makes this one stale
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { scanFail(t.noCamera); return; }
+    let s;
+    try { s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false }); }
+    catch (e) { if (my === scanGen && d.open) scanFail(/NotAllowed|Security|Permission/i.test((e && e.name) || '') ? t.camDenied : t.noCamera); return; }
+    if (!d.open || my !== scanGen) { s.getTracks().forEach(x => x.stop()); return; }
+    scanStream = s; const v = $('#scanV'); v.srcObject = s; try { await v.play(); } catch (e) {}
+    // the phone's own QR reader where there is one (Android Chrome); else the vendored jsQR (iPhone)
+    if (!scanDet && 'BarcodeDetector' in window) {
+      try { const f = window.BarcodeDetector.getSupportedFormats ? await window.BarcodeDetector.getSupportedFormats() : ['qr_code']; if (f.includes('qr_code')) scanDet = new window.BarcodeDetector({ formats: ['qr_code'] }); } catch (e) {}
+    }
+    if (!scanDet && !window.jsQR) { try { await App.loadScript('vendor/jsqr/jsQR.js'); } catch (e) { if (my === scanGen) scanFail(t.err); return; } }
+    if (my === scanGen && scanStream === s) nextFrame();
+  }
+  const SCAN_AGAIN = 2500;
+  function nextFrame() { clearTimeout(scanTimer); scanTimer = setTimeout(readFrame, 150); }
+  async function readFrame() {
+    const v = $('#scanV');
+    if (!$('#scan').open || !scanStream) return;
+    if (scanBusy || v.readyState < 2 || !v.videoWidth) { nextFrame(); return; }
+    let text = null;
+    try {
+      if (scanDet) { const c = await scanDet.detect(v); text = c && c[0] && c[0].rawValue; }
+      else {
+        const w = Math.min(720, v.videoWidth), h = Math.round(v.videoHeight * w / v.videoWidth);
+        scanCanvas = scanCanvas || document.createElement('canvas'); scanCanvas.width = w; scanCanvas.height = h;
+        const cx = scanCanvas.getContext('2d', { willReadFrequently: true }); cx.drawImage(v, 0, 0, w, h);
+        const r = window.jsQR(cx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'dontInvert' });
+        text = r && r.data;
+      }
+    } catch (e) {}
+    if (text) await onScan(text);
+    if (scanStream) nextFrame();
+  }
+  async function onScan(text) {
+    // The same code still in front of the camera: a final answer (not a pass, another event's pass) stays
+    // as it is while the code stays in view, and is only asked again once it has been away for 2.5 s;
+    // after an error (no signal) it is tried again 2.5 s later, not on every frame.
+    if (text === scanLast.s && Date.now() - scanLast.at < SCAN_AGAIN) { if (scanLast.final) scanLast.at = Date.now(); return; }
+    scanLast = { s: text, at: Date.now(), final: true };
+    const key = App.passKeyOf(text);
+    if (!key) { scanMsg(t.notPass, 'no'); App.vibrate([20, 40, 20]); return; }
+    scanBusy = true; scanMsg(t.scanChecking);
+    const r = await lookupPass(ev.id, key);
+    scanBusy = false;
+    if (!$('#scan').open) return;
+    if (r.error && App.missingFn(r.error)) { closeScan(); toast(t.passNoDb); return; }
+    if (r.error && r.error.code && /not allowed/i.test(r.error.message || '')) {     // door access ended mid-shift: retrying won't help
+      closeScan(); notice('no', t.scanRefused, '', t.scanRefusedSub, `<button class="btn secondary" type="button" data-x>${t.closeNote}</button>`); App.vibrate([20, 40, 20]); return;
+    }
+    if (r.error) { scanLast = { s: text, at: Date.now(), final: false }; scanMsg(t.err, 'no'); return; }
+    if (!r.data) { scanMsg(t.passWrong, 'no'); App.vibrate([20, 40, 20]); return; }
+    closeScan(); openPassGuest(r.data, true);
+  }
+  $('#scanBtn').onclick = openScan;
+  $('#scanX').onclick = closeScan;
+  $('#scanSearch').onclick = () => { closeScan(); $('#q').focus(); };
+  $('#scan').addEventListener('close', () => { scanGen++; stopCam(); scanBusy = false; });
+
+  // door.html#p=<key>: a pass scanned with the phone's own camera. Kept for 15 minutes (through a login)
+  // and used once the event is loaded; if it belongs to another of this phone's events, that event opens.
+  function takeHashKey() {
+    const m = location.hash.match(/[#&]p=([A-Za-z0-9_-]{22,64})/);
+    if (!m) return false;
+    try { localStorage.setItem('door-pass', JSON.stringify({ k: m[1], at: Date.now() })); } catch (e) {}
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+    return true;
+  }
+  function pendingKey() {
+    try { const p = JSON.parse(localStorage.getItem('door-pass') || 'null'); localStorage.removeItem('door-pass'); if (p && Date.now() - p.at < 15 * 60e3) return p.k; } catch (e) {}
+    return null;
+  }
+  async function usePending() {
+    if (!ev) return;
+    const key = pendingKey(); if (!key) return;
+    if (passOk === null) await probePass();
+    const close = `<button class="btn secondary" type="button" data-x>${t.closeNote}</button>`;
+    if (passOk !== true) { notice('no', t.passNoDb, '', '', close); return; }
+    let r = await lookupPass(ev.id, key);
+    if (r.error) { toast(t.err); return; }
+    if (!r.data) for (const e of events) {
+      if (e.id === ev.id) continue;
+      const x = await lookupPass(e.id, key);
+      if (!x.error && x.data) { await pick(e); r = x; break; }
+    }
+    if (!r.data) { notice('no', t.passWrong, '', t.passWrongSub, close); return; }
+    openPassGuest(r.data);
+  }
+  window.addEventListener('hashchange', () => { if (takeHashKey() && ev) usePending(); });
+
+  // ---------- asking the host (unlisted guests, extra people) ----------
+  $('#unlisted').onclick = () => openAsk({ guest: null, name: $('#q').value.trim(), people: 1 });
+  function openAsk(p) {
+    exPrefill = { reason: null, note: '', ...p, people: Math.max(1, Math.min(MAX_ASK, p.people || 1)) };
+    renderForm();
+    App.openSheet($('#ask'));
+    if (!exPrefill.guest && !exPrefill.name && $('#xName')) $('#xName').focus();
+  }
+  $('#ask').addEventListener('close', () => { exPrefill = null; $('#askBody').innerHTML = ''; });
+  function keepForm() { if (!exPrefill) return; if ($('#xName')) exPrefill.name = $('#xName').value; if ($('#xNote')) exPrefill.note = $('#xNote').value; }
+  function renderForm() {
+    const d = $('#ask');
+    if (!exPrefill) { if (d.open) d.close(); $('#askBody').innerHTML = ''; return; }
+    const p = exPrefill, g = p.guest ? list.find(x => x.id === p.guest) : null;
+    $('#askBody').innerHTML = `
+      ${p.guest ? `<div class="ask-who"><b class="t-name"><bdi>${esc(p.name)}</bdi></b>${g ? `<span class="t-small">${esc(t.allowedLine(allowed(g), g.checked_in_count || 0))}</span>` : ''}</div>`
+        : `<label class="f" for="xName">${t.name}</label><input type="text" id="xName" dir="auto" maxlength="120" autocomplete="off" value="${esc(p.name)}">`}
+      <p class="f-cap" id="xNL">${t.count}</p>
+      <div class="pchips" role="group" aria-labelledby="xNL">${[1, 2, 3, 4, 5, 6].map(n => `<button type="button" class="num" data-n="${n}" aria-pressed="${n === p.people}">${n}</button>`).join('')}<button type="button" class="num big" data-big aria-pressed="${p.people > 6}" aria-label="${esc(t.bigN)}"><span dir="ltr">7+</span></button></div>
+      <div class="pbig" id="xBig" ${p.people > 6 ? '' : 'hidden'}><div class="stepper" dir="ltr" role="group" aria-label="${esc(t.count)}"><button type="button" data-bd aria-label="${esc(t.less)}">−</button><output class="num" id="xBigN" aria-live="polite">${Math.max(7, p.people)}</output><button type="button" data-bi aria-label="${esc(t.more)}">+</button></div></div>
+      <p class="f-cap" id="xRL">${t.reasonL}</p>
+      <div class="fchips rchips" role="group" aria-labelledby="xRL">${t.reasons.map((r, i) => `<button type="button" class="fchip" data-r="${i}" aria-pressed="${p.reason === i}">${r}</button>`).join('')}</div>
+      <label class="f" for="xNote">${t.otherNote}</label><input type="text" id="xNote" dir="auto" maxlength="400" autocomplete="off" value="${esc(p.note)}">
+      <button class="btn primary big block xsend" type="button" id="xSend"><i class="i i-bell"></i><span>${esc(t.send(p.people))}</span></button>`;
+    const setPeople = n => {
+      p.people = Math.max(1, Math.min(MAX_ASK, n));
+      $('#askBody').querySelectorAll('[data-n]').forEach(x => x.setAttribute('aria-pressed', +x.dataset.n === p.people));
+      $('[data-big]').setAttribute('aria-pressed', p.people > 6);
+      $('#xBig').hidden = p.people <= 6;
+      if (p.people > 6) { $('#xBigN').textContent = p.people; $('[data-bd]').disabled = p.people <= 7; $('[data-bi]').disabled = p.people >= MAX_ASK; }
+      $('#xSend span').textContent = t.send(p.people);
+    };
+    setPeople(p.people);
+    $('#askBody').querySelectorAll('[data-n]').forEach(b => b.onclick = () => setPeople(+b.dataset.n));
+    $('[data-big]').onclick = () => { if (p.people <= 6) { setPeople(7); App.vibrate(8); } };
+    $('[data-bd]').onclick = () => { setPeople(p.people - 1 < 7 ? 7 : p.people - 1); App.vibrate(8); };
+    $('[data-bi]').onclick = () => { setPeople(p.people + 1); App.vibrate(8); };
+    $('#askBody').querySelectorAll('[data-r]').forEach(b => b.onclick = () => { p.reason = p.reason === +b.dataset.r ? null : +b.dataset.r; $('#askBody').querySelectorAll('[data-r]').forEach(x => x.setAttribute('aria-pressed', p.reason === +x.dataset.r)); });
+    $('#xSend').onclick = async () => {
+      keepForm();
+      const name = String(p.name || '').trim(), n = Math.min(MAX_ASK, Math.max(1, p.people || 1));
+      if (!name) { toast(t.needName); if ($('#xName')) $('#xName').focus(); return; }
+      if (busy) return; busy = true; $('#xSend').setAttribute('aria-busy', 'true');
+      const note = [p.reason != null ? t.reasons[p.reason] : '', String(p.note || '').trim()].filter(Boolean).join(' · ') || null;
+      let r; try { r = await sb.rpc('request_exception_v2', { p_event: ev.id, p_guest: p.guest, p_name: name, p_people: n, p_note: note }); } catch (e) { r = { error: { message: String(e) } }; }
+      busy = false; if ($('#xSend')) $('#xSend').removeAttribute('aria-busy');
+      if (r.error) { toast(t.err); return; }
+      // the stepper goes back to the number still allowed; nothing left to ask about
+      if (p.guest) { delete typed[p.guest]; delete extraAsk[p.guest]; }
+      exPrefill = null; renderForm(); toast(t.sent); clearStaticCard();
+      $('#q').value = ''; renderList();
+      await loadReqs(); schedule();
+    };
+  }
+
+  // ---------- requests and the host's answers ----------
+  async function loadReqs() {
+    if (!v2 || !ev) { reqs = []; drawReqs(); return; }
+    const id = ev.id; let r;
+    try { r = await sb.rpc('list_exceptions_v2', { p_event: id }); } catch (e) { return; }
+    if (r.error || !ev || ev.id !== id) return;
+    reqs = r.data || [];
+    let decided = false;
+    for (const x of reqs) {
+      if (reqsLoaded && seenReq.get(x.id) === 'pending' && x.status !== 'pending') { answers.unshift({ id: x.id, status: x.status, name: x.name, people: x.people }); decided = true; }
+      seenReq.set(x.id, x.status);
+    }
+    reqsLoaded = true;
+    if (decided) { App.vibrate([30, 60, 30]); drawAnswers(); loadList(); }
+    drawReqs(); drawMeter();
+  }
+  // The host's answers sit just under the search; the newest two show, the rest fold up. While a name is
+  // typed only the newest one stays (compact), so an answer is never hidden at the moment the door is busy.
+  // Screen readers hear each answer once, through #annLive, not again on every redraw.
+  function drawAnswers() {
+    const fresh = answers.filter(a => !announced.has(a.id));
+    fresh.forEach(a => announced.add(a.id));
+    if (fresh.length) $('#annLive').textContent = fresh.map(a => (a.status === 'approved' ? t.okBanner(a.name, P(a.people)) + '. ' + t.okBannerSub : t.noBanner(a.name) + '. ' + t.noBannerSub)).join(' ');
+    const shown = showAllAns ? answers : answers.slice(0, ANS_SHOWN), rest = answers.length - shown.length;
+    $('#answers').innerHTML = shown.map(a => `<div class="answer panel tone-${a.status === 'approved' ? 'ok' : 'no'}"><i class="i ${a.status === 'approved' ? 'i-check' : 'i-x'} t-tone"></i><div class="an-m"><b>${a.status === 'approved' ? t.okBanner(`<bdi class="nb">${esc(a.name)}</bdi>`, esc(P(a.people))) : t.noBanner(`<bdi class="nb">${esc(a.name)}</bdi>`)}</b><span>${a.status === 'approved' ? t.okBannerSub : t.noBannerSub}</span></div><button class="an-x" type="button" data-dismiss="${esc(a.id)}" aria-label="${t.dismiss}"><i class="i i-x"></i></button></div>`).join('')
+      + (rest > 0 ? `<button class="btn quiet an-more" type="button" id="ansMore"><i class="i i-chev sm"></i><span>${esc(t.moreAns(rest))}</span></button>` : '');
+    $('#answers').querySelectorAll('[data-dismiss]').forEach(b => b.onclick = () => { answers = answers.filter(a => a.id !== b.dataset.dismiss); if (answers.length <= ANS_SHOWN) showAllAns = false; drawAnswers(); });
+    if ($('#ansMore')) $('#ansMore').onclick = () => { showAllAns = true; drawAnswers(); };
+  }
+  function drawReqs() {
+    const box = $('#myReqs');
+    if (!v2 || !reqs.length) { box.innerHTML = ''; return; }
+    const wasOpen = !!(box.querySelector('details') && box.querySelector('details').open);
+    const lbl = { pending: t.pending, approved: t.approved, rejected: t.rejected }, tone = { pending: 'wait', approved: 'ok', rejected: 'no' };
+    const mins = iso => Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60000));
+    const row = r => `<div class="row rq">${mono(r.name, tone[r.status])}<div class="row-main"><b class="t-name"><bdi>${esc(r.name)}</bdi></b><span class="rq-s"><span>${esc(P(r.people))}</span>${r.note ? `<bdi>${esc(r.note)}</bdi>` : ''}${r.created_at ? `<span class="num">${esc(t.ago(mins(r.created_at)))}</span>` : ''}</span></div><span class="row-end"><span class="tag tone-${tone[r.status]}">${lbl[r.status]}${r.status === 'pending' ? '<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>' : ''}</span></span></div>`;
+    const pend = reqs.filter(r => r.status === 'pending'), done = reqs.filter(r => r.status !== 'pending');
+    box.innerHTML = `<h2 class="eyebrow d-cap">${t.reqs}</h2>`
+      + (pend.length ? `<div class="rowlist rlist">${pend.slice(0, 30).map(row).join('')}</div>` : '')
+      + (done.length ? `<details class="rdone"${wasOpen || !pend.length ? ' open' : ''}><summary>${t.answered(done.length)}<i class="i i-chev sm"></i></summary><div class="rowlist rlist">${done.slice(0, 30).map(row).join('')}</div></details>` : '');
+  }
+});
+</script>
+</body>
+</html>

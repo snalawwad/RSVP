@@ -1,4 +1,4 @@
-// Colours mode: light · dark · auto (follows the phone: dark, else light; the default). Cream stays for anyone who
+// Colours mode: light · dark · auto (follows the phone: dark, else light). Light is the default, like the website. Cream stays for anyone who
 // picked it before. Saved on this phone.
 // Also tells components whether the phone asks for less motion.
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
@@ -21,7 +21,7 @@ const Ctx = createContext<ThemeCtx | null>(null);
 
 function savedPref(): ThemePref {
   const v = kv.get(KEYS.theme);
-  return v === 'cream' || v === 'light' || v === 'dark' || v === 'auto' ? v : 'auto';
+  return v === 'cream' || v === 'light' || v === 'dark' || v === 'auto' ? v : 'light';   // light until someone picks otherwise (matches the website)
 }
 
 export function useReduceMotionSetting() {

@@ -1,0 +1,4 @@
+/* Privacy, support, terms and account-deletion pages: the public website's look (site.css, Figma W01/W02).
+   Kept as its own file because delete-account.html links it; it brings the fonts and site.css with it. */
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600&family=Fraunces:opsz,wght@9..144,600&family=Noto+Kufi+Arabic:wght@400;600&family=Noto+Naskh+Arabic:wght@600&display=swap");
+@import url("site.css");

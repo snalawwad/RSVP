@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><script src="/RSVP/demo/demo-backend.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Demo · دعوة</title>
+<link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sina">
+<meta property="og:title" content="دعوة · You’re invited">
+<meta property="og:description" content="افتحوا الدعوة وردّوا بضغطة · Open your invite and reply in a tap">
+<meta property="og:image" content="https://snalawwad.github.io/RSVP/assets/brand/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://snalawwad.github.io/RSVP/assets/brand/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://hexnxpufurftldpfcukd.supabase.co" crossorigin><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="invite.css">
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script defer src="config.js"></script>
+<script defer src="core.js"></script>
+</head>
+<body>
+<p class="demo" id="demoBar" hidden></p>
+<header class="top">
+  <a class="brand" href="index.html"><span class="arch" aria-hidden="true"></span><span id="brandName">سنة</span></a>
+  <button type="button" class="lang" id="langBtn" hidden></button>
+</header>
+<main id="inv" aria-live="polite"><div class="msg"><p class="sub">جاري فتح الدعوة… Opening your invite…</p></div></main>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const { sb, $, esc, applyTheme, themeVars, mix, lum, appleCalUrl, isAppleTouch } = App;
+  const params = new URLSearchParams(location.search);
+  const DEMO = params.get('demo') === '1';
+  const eventCode = DEMO ? null : params.get('e');
+  let token = DEMO ? null : (params.get('t') || (eventCode ? null : location.hash.slice(1)));
+  const KEY = eventCode ? 'rsvp-token-' + eventCode : null;
+  if (KEY && !token) { try { token = localStorage.getItem(KEY); } catch (e) {} }
+  const main = $('#inv');
+  const wide = matchMedia('(min-width:960px)');
+  let inv = null, pub = null, lang = 'ar', view = 'main', lastView = '', busy = false;
+  const draft = { name: '', reason: '', extras: 0, choice: '' };
+
+  // ---------------------------------------------------------------- words
+  const AR_D = n => Number(n).toLocaleString('ar-KW', { useGrouping: false });
+  const arCount = (n, one, two, few, many) => n === 1 ? one : n === 2 ? two : (n % 100 >= 3 && n % 100 <= 10) ? `${AR_D(n)} ${few}` : `${AR_D(n)} ${many}`;
+  const L = {
+    en: {
+      yes: 'I’ll be there', no: 'Can’t make it', willYou: 'Will you be there?',
+      lineSolo: n => `${n}, this invite is just for you.`, lineN: (n, k) => `${n}, this invite is for ${k} people.`, by: d => `Please reply by ${d}.`,
+      people: n => `${n} ${n === 1 ? 'person' : 'people'}`, more: n => `Up to ${n} more ${n === 1 ? 'person' : 'people'}`,
+      addCal: 'Add to calendar', added: 'Added', map: 'Directions', replyBy: d => `Please reply by ${d}`, anyTime: 'You can change your reply any time', once: 'Your reply can’t be changed after you send it',
+      days: n => n < 0 ? 'This event has passed' : n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : `In ${n} days`,
+      who: 'Who’s coming?', coming: 'Coming', bringing: 'Bringing anyone?', fewer: 'One fewer person', plus: 'One more person',
+      send: 'Send reply', until: d => `You can change this until ${d}`,
+      yourName: 'Your name', namePh: 'Your full name', nameReq: 'Please type your full name first',
+      told: 'Got it. We’ve told the hosts.', addNote: 'Add a note (optional)', notePh: 'A few words for the hosts', sendNote: 'Send note', afterAll: 'I can come after all', noteSent: 'Your note was sent',
+      declineQ: 'Can’t make it?',
+      seeYou: (w, n) => `See you ${w}${n ? ', ' + n : ''}.`, tonight: 'tonight', tomorrow: 'tomorrow', there: 'there', onThe: d => `on the ${d}`,
+      yourReply: 'Your reply', comingN: k => `Coming · ${k}`, cant: 'Can’t make it',
+      change: 'Change my reply', plans: 'Plans changed? You can tell the hosts any time, even on the day.', changeUntil: d => `You can change your reply until ${d}.`,
+      locked: 'Replies for this event can’t be changed', closedNow: 'Replies for this event are closed',
+      acctQ: 'Have an account?', acct: 'See all your invites',
+      thanks: 'Thanks for letting us know.', miss: 'We’ll miss you.',
+      changeH: 'Change your reply', now: s => `Right now: ${s}`,
+      still: 'I’m still coming', stillN: 'Change how many are coming', stillOne: 'Keep my place', cantNow: 'I can’t make it anymore', cantNowSub: 'Something came up',
+      canCome: 'I can come after all', canComeSub: 'Tell the hosts you’re coming', stillCant: 'I still can’t make it', stillCantSub: 'Update your message',
+      msgHosts: 'Message to the hosts (optional)', update: 'Update my reply', pickOne: 'Choose one first', back: 'Back', yourInvite: 'Your invite', backInvite: 'Back to my invite',
+      updatedH: 'We’ve told the hosts.', updatedSub: s => `Your reply is now ${s}. If things change again, you can update it from your invite.`, yourMsg: 'Your message',
+      closed: 'Replies are closed', closedSub: 'If you have a question, please contact the hosts.', linkClosed: 'This invitation link is closed',
+      notReady: 'This invite isn’t ready yet', notReadySub: 'The hosts are still preparing it. Please open your link again later.',
+      notFound: 'Invitation not found', notFoundSub: 'Please check the link you received on WhatsApp.', partial: 'This link is incomplete. Please open the link you received on WhatsApp.',
+      saveErr: 'Your reply wasn’t saved. Please try again.', rsvpClosed: 'RSVPs are now closed', changesLocked: 'Replies for this event can’t be changed',
+      help: 'Need help?', helpLink: 'Message us on WhatsApp', sentWith: b => `Sent with ${b}`,
+      passH: 'Door pass', passCap: 'Show this at the door. A screenshot works if there’s no signal.', passQr: 'Door pass QR code', passCodeL: 'Pass code',
+      soonDayBefore: 'We’ll send your door pass on WhatsApp the day before.', soonSameDay: 'We’ll send your door pass on WhatsApp on the day.', soonBefore: 'We’ll send your door pass on WhatsApp before the event.',
+      soonHere: (d, tm) => `You can also see it on this page from ${d} at ${tm}.`,
+      calH: 'Add to calendar', apple: 'Apple Calendar', google: 'Google Calendar', outlook: 'Outlook', file: 'Download calendar file', fileSub: '.ics, works with any calendar', close: 'Close', addedTo: x => `Added to ${x}`,
+      demo: 'Example invite. Nothing you tap here is sent.', demoBack: b => `Back to ${b}`, invitation: 'Invitation', switchTo: 'العربية', switchLbl: 'Show this page in Arabic'
+    },
+    ar: {
+      yes: 'تأكيد الحضور', no: 'اعتذار', willYou: 'بتحضرون؟',
+      lineSolo: n => `${n}، هالدعوة خاصة لكم.`, lineN: (n, k) => `${n}، هالدعوة ${k === 2 ? 'لشخصين' : 'لـ' + arCount(k, 'شخص واحد', 'شخصين', 'أشخاص', 'شخص')}.`, by: d => `ردّوا علينا قبل ${d}.`,
+      people: n => arCount(n, 'شخص واحد', 'شخصين', 'أشخاص', 'شخص'), more: n => `حتى ${arCount(n, 'شخص واحد', 'شخصين', 'أشخاص', 'شخص')} زيادة`,
+      addCal: 'أضيفوها للتقويم', added: 'انضافت', map: 'اللوكيشن', replyBy: d => `ردّوا علينا قبل ${d}`, anyTime: 'تقدرون تغيّرون ردّكم أي وقت', once: 'ما تقدرون تغيّرون الرد بعد ما ترسلونه',
+      days: n => n < 0 ? 'انتهت المناسبة' : n === 0 ? 'اليوم' : n === 1 ? 'باجر' : `باقي ${arCount(n, 'يوم', 'يومين', 'أيام', 'يوم')}`,
+      who: 'مين بيحضر؟', coming: 'حضور', bringing: 'معاكم أحد؟', fewer: 'شخص أقل', plus: 'شخص زيادة',
+      send: 'إرسال الرد', until: d => `تقدرون تغيّرون الرد لين ${d}`,
+      yourName: 'اسمكم', namePh: 'اكتبوا اسمكم الكامل', nameReq: 'اكتبوا اسمكم الكامل أول',
+      told: 'وصلنا ردّكم، وبلّغنا أهل المناسبة.', addNote: 'أضيفوا ملاحظة (اختياري)', notePh: 'كلمتين لأهل المناسبة', sendNote: 'إرسال الملاحظة', afterAll: 'أقدر أحضر', noteSent: 'وصلت ملاحظتكم',
+      declineQ: 'ما تقدرون تحضرون؟',
+      seeYou: (w, n) => `نشوفكم ${w}${n ? '، ' + n : ''}.`, tonight: 'الليلة', tomorrow: 'باجر', there: 'هناك', onThe: d => `يوم ${d}`,
+      yourReply: 'ردّكم', comingN: k => `حضور · ${k}`, cant: 'اعتذار',
+      change: 'تغيير الرد', plans: 'تغيّرت ظروفكم؟ تقدرون تبلّغون أهل المناسبة أي وقت، حتى يوم المناسبة.', changeUntil: d => `تقدرون تغيّرون ردّكم لين ${d}.`,
+      locked: 'ما يمكن تغيير الرد لهذه المناسبة', closedNow: 'انتهى وقت الردود لهذه المناسبة',
+      acctQ: 'عندكم حساب؟', acct: 'شوفوا كل دعواتكم',
+      thanks: 'شكراً على ردّكم.', miss: 'نتمنى نشوفكم بالأفراح دوم.',
+      changeH: 'تغيير الرد', now: s => `ردّكم الحالي: ${s}`,
+      still: 'بحضر', stillN: 'غيّروا عدد الحضور', stillOne: 'خلّوا مكاني محجوز', cantNow: 'ما أقدر أحضر', cantNowSub: 'صار عندي ظرف',
+      canCome: 'أقدر أحضر', canComeSub: 'بلّغوا أهل المناسبة إنكم بتحضرون', stillCant: 'للحين ما أقدر أحضر', stillCantSub: 'عدّلوا رسالتكم',
+      msgHosts: 'رسالة لأهل المناسبة (اختياري)', update: 'تحديث الرد', pickOne: 'اختاروا واحد أول', back: 'رجوع', yourInvite: 'دعوتكم', backInvite: 'رجوع للدعوة',
+      updatedH: 'بلّغنا أهل المناسبة.', updatedSub: s => `ردّكم الحين: ${s}. وإذا تغيّرت الظروف، تقدرون تحدّثونه من دعوتكم.`, yourMsg: 'رسالتكم',
+      closed: 'انتهى وقت تأكيد الحضور', closedSub: 'للاستفسار تواصلوا مع أهل المناسبة.', linkClosed: 'رابط الدعوة مغلق حالياً',
+      notReady: 'الدعوة مو جاهزة للحين', notReadySub: 'أهل المناسبة يجهّزونها. افتحوا الرابط مرة ثانية بعدين.',
+      notFound: 'الدعوة غير موجودة', notFoundSub: 'تأكدوا من الرابط اللي وصلكم على الواتساب.', partial: 'الرابط ناقص. افتحوا الرابط اللي وصلكم على الواتساب.',
+      saveErr: 'ما قدرنا نحفظ الرد، حاولوا مرة ثانية', rsvpClosed: 'انتهى وقت تأكيد الحضور', changesLocked: 'ما يمكن تغيير الرد لهذه المناسبة',
+      help: 'تحتاجون مساعدة؟', helpLink: 'راسلونا على الواتساب', sentWith: b => `أُرسلت مع ${b}`,
+      passH: 'بطاقة الحضور', passCap: 'وروا هالبطاقة عند الباب. وإذا ما في نت، صورة الشاشة تكفي.', passQr: 'كود بطاقة الحضور', passCodeL: 'رقم البطاقة',
+      soonDayBefore: 'بنرسل لكم بطاقة الحضور على الواتساب قبل المناسبة بيوم.', soonSameDay: 'بنرسل لكم بطاقة الحضور على الواتساب يوم المناسبة.', soonBefore: 'بنرسل لكم بطاقة الحضور على الواتساب قبل المناسبة.',
+      soonHere: (d, tm) => `وتقدرون تشوفونها بهالصفحة من يوم ${d} الساعة ${tm}.`,
+      calH: 'أضيفوها للتقويم', apple: 'تقويم آبل', google: 'تقويم قوقل', outlook: 'أوتلوك', file: 'تنزيل ملف التقويم', fileSub: 'ملف ics يشتغل مع أي تقويم', close: 'إغلاق', addedTo: x => `انضافت إلى ${x}`,
+      demo: 'دعوة تجريبية. ما ينرسل شي من هالصفحة.', demoBack: b => `رجوع إلى ${b}`, invitation: 'دعوة', switchTo: 'English', switchLbl: 'Show this page in English'
+    }
+  };
+  let t = L.ar;
+  const BRAND = () => App.BRAND[lang] || App.BRAND.en;
+
+  // ---------------------------------------------------------------- icons (Figma 20×20 line icons)
+  const svg = (d, extra = '') => `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"${extra}>${d}</svg>`;
+  const I = {
+    cal: svg('<rect x="2.92" y="4.17" width="14.17" height="12.92" rx="2.08"/><path d="M2.92 8.33h14.17M6.67 2.5v3.33M13.33 2.5v3.33"/>'),
+    door: svg('<path d="M5 17.5V4.17c0-.92.75-1.67 1.67-1.67h6.66c.92 0 1.67.75 1.67 1.67V17.5M2.5 17.5h15M11.67 10h.01"/>'),
+    clock: svg('<circle cx="10" cy="10" r="7.5"/><path d="M10 5.83V10l2.92 1.67"/>'),
+    people: svg('<circle cx="7.5" cy="6.67" r="2.92"/><path d="M2.5 16.67c.42-2.5 2.5-4.17 5-4.17s4.58 1.67 5 4.17M13.33 4a2.92 2.92 0 0 1 0 5.5M15 12.75c1.25.5 2.17 2 2.5 3.92"/>'),
+    pen: svg('<path d="M13.33 3.33l3.34 3.34L7.5 15.83H4.17V12.5z"/>'),
+    check: svg('<path d="M4.17 10.42l3.75 3.75 7.91-7.92"/>'),
+    back: svg('<path d="M12.5 15l-5-5 5-5"/>'),
+    chev: svg('<path d="M7.5 5l5 5-5 5"/>', ' class="chev"'),
+    x: svg('<path d="M5 5l10 10M15 5L5 15"/>'),
+    dl: svg('<path d="M10 3.33v9.17M6.25 8.75L10 12.5l3.75-3.75M3.33 15.83h13.34"/>'),
+    ticket: svg('<path d="M3.33 6.25c0-.69.56-1.25 1.25-1.25h10.84c.69 0 1.25.56 1.25 1.25v2.08a1.67 1.67 0 0 0 0 3.34v2.08c0 .69-.56 1.25-1.25 1.25H4.58c-.69 0-1.25-.56-1.25-1.25v-2.08a1.67 1.67 0 0 0 0-3.34z"/><path d="M11.67 5.42v9.16" stroke-dasharray="1.4 1.6"/>')
+  };
+
+  // ---------------------------------------------------------------- dates (Kuwait time, page language)
+  const TZ = 'Asia/Kuwait';
+  const loc = () => lang === 'en' ? 'en-GB' : 'ar-KW';
+  const kwDay = iso => new Date(new Date(iso).getTime() + 3 * 3600e3).toISOString().slice(0, 10);
+  const daysTo = iso => Math.round((new Date(kwDay(iso)) - new Date(kwDay(new Date().toISOString()))) / 864e5);
+  const dayMonth = iso => new Date(iso).toLocaleDateString(loc(), { timeZone: TZ, day: 'numeric', month: 'long' });
+  const shortDay = iso => new Date(iso).toLocaleDateString(lang === 'en' ? 'en-GB' : 'ar-KW', { timeZone: TZ, day: 'numeric', month: 'short' });
+  const time = iso => App.fmtTime(iso, lang);
+  const longDate = iso => new Date(iso).toLocaleDateString(loc(), { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' }).replace(/,(?= \d)/, '');
+  const dateTime = iso => longDate(iso) + (lang === 'en' ? ', ' : '، ') + time(iso);
+  function seeWhen(e) {
+    if (!e.starts_at) return t.there;
+    const n = daysTo(e.starts_at);
+    if (n === 0) return t.tonight; if (n === 1) return t.tomorrow;
+    if (lang === 'en') { const d = +new Date(e.starts_at).toLocaleDateString('en-GB', { timeZone: TZ, day: 'numeric' }); const s = d % 10 === 1 && d !== 11 ? 'st' : d % 10 === 2 && d !== 12 ? 'nd' : d % 10 === 3 && d !== 13 ? 'rd' : 'th'; return t.onThe(d + s); }
+    return t.onThe(dayMonth(e.starts_at));
+  }
+
+  // ---------------------------------------------------------------- state helpers
+  const E = () => inv.event || {};
+  const isOpen = () => E().rsvp_open !== false;
+  const canChange = () => E().allow_changes !== false;
+  const canCount = () => !eventCode && inv.seats > 1 && (DEMO || 'confirmed_count' in inv);
+  const hasPass = () => inv.status === 'yes' && !!(inv.pass && inv.pass.key && inv.pass.code);
+  const passSoon = () => inv.status === 'yes' && !hasPass() && 'pass_at' in inv;
+  const coming = () => inv.confirmed_count || inv.seats || 1;
+  const firstName = () => String(inv.name || '').trim().split(/\s+/)[0] || '';
+  const statusText = () => inv.status === 'yes' ? t.comingN(t.people(coming())) : t.cant;
+  const calKey = () => 'sina-cal-' + (DEMO ? 'demo' : (token || eventCode || ''));
+  const calAdded = () => { try { return !!localStorage.getItem(calKey()); } catch (e) { return false; } };
+
+  // ---------------------------------------------------------------- theme
+  const contrast = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+  function setTheme(e) {
+    const accent = /^#[0-9a-f]{6}$/i.test(e.theme_accent || '') ? e.theme_accent : '#5B0F1D';
+    const paper = /^#[0-9a-f]{6}$/i.test(e.theme_paper || '') ? e.theme_paper : '#FFFFFF';
+    const own = !!e.card_image_url, s = document.body.style;
+    document.body.classList.toggle('own', own);
+    if (own) {
+      const surface = mix(paper, '#FBF3E8', .55), v = themeVars(accent, surface);
+      Object.keys(v).forEach(k => s.setProperty(k, v[k]));
+      s.setProperty('--bg', mix(accent, '#000000', .55)); s.setProperty('--surface', surface);
+      s.setProperty('--ink', v['--t-ink']); s.setProperty('--muted', v['--t-muted']); s.setProperty('--line', v['--t-line']); s.setProperty('--line-strong', v['--t-frame2']);
+      s.setProperty('--acc', v['--t-accent']); s.setProperty('--acc-ink', v['--t-accent-ink']);
+      s.setProperty('--soft', mix(v['--t-accent'], surface, .84)); s.setProperty('--soft-ink', v['--t-ink']);
+    } else {
+      applyTheme(document.body, accent, paper);
+      let acc = accent; for (let i = 0; i < 12 && contrast(acc, '#FDFDFD') < 4.6; i++) acc = mix(acc, '#000000', .15);
+      s.setProperty('--acc', acc); s.setProperty('--acc-ink', lum(acc) > .45 ? '#1A1A1A' : '#FDFDFD');
+      s.setProperty('--soft', mix(acc, '#FFFFFF', .88)); s.setProperty('--soft-ink', acc);
+      // the card's small print stays readable (AA) on light or dark paper
+      const v = themeVars(accent, paper); let m = v['--t-muted'];
+      for (let i = 0; i < 10 && contrast(m, paper) < 4.6; i++) m = mix(m, v['--t-ink'], .25);
+      s.setProperty('--t-muted', m);
+    }
+    const cs = getComputedStyle(document.body), accNow = cs.getPropertyValue('--acc').trim(), softNow = cs.getPropertyValue('--soft').trim();
+    if (/^#/.test(accNow)) s.setProperty('--acc-hv', mix(accNow, lum(accNow) > .45 ? '#FFFFFF' : '#000000', .14));
+    if (/^#/.test(softNow)) s.setProperty('--soft-hv', mix(softNow, accNow || '#5B0F1D', .1));
+    if (own) { let m = s.getPropertyValue('--muted'); const surf = s.getPropertyValue('--surface');
+      for (let i = 0; i < 10 && contrast(m, surf) < 4.6; i++) m = mix(m, s.getPropertyValue('--ink'), .25);
+      s.setProperty('--muted', m); }
+    const meta = document.querySelector('meta[name="theme-color"]') || document.head.appendChild(Object.assign(document.createElement('meta'), { name: 'theme-color' }));
+    meta.content = getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#FDFDFD';
+  }
+  function setLang(l) {
+    lang = l === 'en' ? 'en' : 'ar'; t = L[lang];
+    document.documentElement.lang = lang; document.documentElement.dir = lang === 'en' ? 'ltr' : 'rtl';
+    $('#brandName').textContent = BRAND();
+    const b = $('#langBtn'); b.textContent = t.switchTo; b.lang = lang === 'en' ? 'ar' : 'en'; b.setAttribute('aria-label', t.switchLbl);
+    if (DEMO) { const d = $('#demoBar'); d.hidden = false; d.innerHTML = `<span>${t.demo}</span><a href="index.html?lang=${lang}">${esc(t.demoBack(BRAND()))}</a>`; }
+  }
+  function message(title, sub) {
+    setLang(lang); document.body.classList.remove('own');
+    main.innerHTML = `<div class="msg"><h1 class="msg-h" tabindex="-1">${esc(title)}</h1>${sub ? `<p class="sub">${esc(sub)}</p>` : ''}</div>`;
+    document.body.style.setProperty('--bar-h', '0px');
+  }
+
+  // ---------------------------------------------------------------- load
+  async function load() {
+    $('#langBtn').onclick = () => { setLang(lang === 'en' ? 'ar' : 'en'); if (inv) render(); else message(t.notFound, t.notFoundSub); };
+    if (DEMO) { inv = demoInvite(); setLang(params.get('lang') || ((navigator.language || '').startsWith('ar') ? 'ar' : 'en')); $('#langBtn').hidden = false; document.title = t.invitation + ' · ' + BRAND(); setTheme(E()); render(); return; }
+    const hint = params.get('lang');
+    if (!sb) { message('الموقع قيد الإعداد', 'This site is being set up.'); return; }
+    if (eventCode) {
+      const r = await App.rpc2('get_event_public_v2', { p_code: eventCode }, 'get_event_public', { p_code: eventCode });
+      if (r.data && r.data.closed) return closedLink(r.data.closed, hint);
+      if (r.error || !r.data) { setLang(hint || 'ar'); message(t.notFound, t.notFoundSub); return; }
+      pub = r.data;
+      if (token) { const g = await App.rpc2('get_invite_v2', { p_token: token }, 'get_invite', { p_token: token }); if (!g.error && g.data && !g.data.closed) inv = g.data; else token = null; }
+      if (!inv) inv = { name: '', seats: 1, status: 'pending', token: null, event: pub };
+    } else {
+      if (!token) { setLang(hint || 'ar'); message(t.partial); return; }
+      const { data, error } = await App.rpc2('get_invite_v2', { p_token: token }, 'get_invite', { p_token: token });
+      if (data && data.closed) return closedLink(data.closed, hint);
+      if (error || !data) { setLang(hint || 'ar'); message(t.notFound, t.notFoundSub); return; }
+      inv = data;
+    }
+    setLang(hint || (E().lang === 'en' ? 'en' : 'ar')); $('#langBtn').hidden = false;
+    document.title = E().headline || E().title || t.invitation;
+    draft.name = inv.name || ''; draft.reason = inv.decline_reason || '';
+    setTheme(E()); render();
+  }
+  function closedLink(kind, hint) {
+    setLang(hint || ((navigator.language || '').startsWith('en') ? 'en' : 'ar'));
+    if (kind === 'not_ready') message(t.notReady, t.notReadySub); else message(t.linkClosed);
+    const h = main.querySelector('h1'); if (h) h.dataset.state = kind;
+  }
+
+  // ---------------------------------------------------------------- the demo (no network, sample data)
+  function demoInvite() {
+    const ar = (params.get('lang') || ((navigator.language || '').startsWith('ar') ? 'ar' : 'en')) === 'ar';
+    const start = new Date(Date.now() + 32 * 864e5); start.setUTCHours(16, 0, 0, 0);
+    const by = new Date(Date.now() + 15 * 864e5); by.setUTCHours(20, 59, 0, 0);
+    return { name: ar ? 'ريم بهبهاني' : 'Reem Behbehani', seats: 3, status: 'pending', token: null, confirmed_count: null, decline_reason: null,
+      event: { lang: ar ? 'ar' : 'en', title: ar ? 'خطوبة سارة ومحمد' : 'Sara and Mohammad’s engagement', invite_line: ar ? 'عائلة الغانم وعائلة العوّاد' : 'The Al Ghanim and Al Awwad families',
+        headline: ar ? 'سارة ومحمد' : 'Sara & Mohammad', starts_at: start.toISOString(), venue: ar ? 'قاعة الحمرا، شرق' : 'Al Hamra Hall, Sharq', map_url: 'https://maps.google.com/?q=29.3759,47.9774',
+        rsvp_deadline: by.toISOString(), rsvp_open: true, allow_changes: true, theme_accent: '#5B0F1D', theme_paper: '#FFFFFF', public_link_enabled: true } };
+  }
+
+  // ---------------------------------------------------------------- saving a reply
+  function errText(err) {
+    const m = (err && err.message) || '';
+    if (/RSVP_CLOSED/.test(m)) return t.rsvpClosed;
+    if (/CHANGES_LOCKED/.test(m)) return t.changesLocked;
+    if (/LINK_CLOSED/.test(m)) return t.linkClosed;
+    if (/NOT_READY|not_ready/i.test(m)) return t.notReady;
+    if (/NAME_REQUIRED/.test(m)) return t.nameReq;
+    return t.saveErr;
+  }
+  async function send(status, count, reason) {
+    if (busy) return false;
+    busy = true; main.querySelectorAll('.bar .btn').forEach(b => b.setAttribute('aria-disabled', 'true'));
+    try {
+      if (DEMO) {
+        await new Promise(r => setTimeout(r, 250));
+        inv = { ...inv, status, confirmed_count: status === 'yes' ? Math.max(1, Math.min(inv.seats, count || 1)) : 0, decline_reason: status === 'no' ? (reason || null) : null,
+          pass: status === 'yes' ? { key: 'demo', code: '4821' } : null };
+        return true;
+      }
+      if (eventCode) {
+        const nm = (draft.name || inv.name || '').trim();
+        const args = { p_code: eventCode, p_name: nm, p_status: status, p_reason: reason || null, p_token: token };
+        const r = await App.rpc2('public_rsvp_v2', args, 'public_rsvp', args);
+        if (r.error || !r.data || r.data.closed) { App.toast(r.data && r.data.closed ? t.notReady : errText(r.error)); return false; }
+        inv = r.data; token = inv.token; try { localStorage.setItem(KEY, token); } catch (e) {}
+        return true;
+      }
+      const r = await App.rpc2('respond_v2', { p_token: token, p_status: status, p_count: count || null, p_reason: reason || null },
+        'respond', { p_token: token, p_status: status, p_reason: reason || null });
+      if (r.error || !r.data) { App.toast(errText(r.error)); return false; }
+      inv = r.data; return true;
+    } finally {
+      busy = false; main.querySelectorAll('.bar .btn').forEach(b => b.removeAttribute('aria-disabled'));
+    }
+  }
+
+  // ---------------------------------------------------------------- parts
+  function cardHtml(small) {
+    const e = E();
+    if (e.card_image_url) {
+      const spot = (e.map_url && e.map_spot) ? String(e.map_spot).split(',').map(Number) : null;
+      const link = spot && spot.length === 4 && spot.every(n => isFinite(n)) ? `<a class="hero-map" href="${esc(e.map_url)}" target="_blank" rel="noopener" aria-label="${t.map}" style="left:${spot[0]}%;top:${spot[1]}%;width:${spot[2]}%;height:${spot[3]}%"></a>` : '';
+      return `<div class="hero-wrap"><img class="hero" src="${esc(e.card_image_url)}" alt="${esc(e.headline || e.title || t.invitation)}">${link}</div>`;
+    }
+    const nl = /[؀-ۿ]/.test(e.headline || e.title || '') ? 'ar' : 'en';
+    return `<section class="icard${small ? ' small' : ''}" aria-label="${t.invitation}"><span class="arch" aria-hidden="true"></span>
+      ${e.invite_line ? `<p class="fam">${esc(e.invite_line)}</p>` : ''}
+      <p class="names" lang="${nl}">${esc(e.headline || e.title || '')}</p></section>`;
+  }
+  function lineText() {
+    const e = E(), parts = [];
+    if (inv.name) parts.push(inv.seats > 1 ? t.lineN(esc(firstName()), inv.seats) : t.lineSolo(esc(firstName())));
+    if (e.rsvp_deadline && inv.status === 'pending') parts.push(t.by(esc(dayMonth(e.rsvp_deadline))));
+    return parts.join(' ');
+  }
+  function rowsHtml(withReplyBy) {
+    const e = E(), out = [];
+    if (e.starts_at) {
+      const added = calAdded();
+      out.push(`<div class="row">${I.cal}<div class="tx"><b>${esc(dateTime(e.starts_at))}</b><span>${esc(t.days(daysTo(e.starts_at)))}</span></div>
+        <button type="button" class="act${added ? ' done' : ''}" data-act="cal">${added ? `${t.added} ${I.check.replace('<svg', '<svg width="16" height="16"')}` : t.addCal}</button></div>`);
+    }
+    if (e.venue || e.map_url) out.push(`<div class="row">${I.door}<div class="tx"><b>${esc(e.venue || t.map)}</b></div>${e.map_url ? `<a class="act" href="${esc(e.map_url)}" target="_blank" rel="noopener">${t.map}</a>` : ''}</div>`);
+    if (withReplyBy && e.rsvp_deadline) out.push(`<div class="row">${I.clock}<div class="tx"><b>${esc(t.replyBy(dayMonth(e.rsvp_deadline)))}</b><span>${canChange() ? t.anyTime : t.once}</span></div></div>`);
+    return out.length ? `<div class="rows">${out.join('')}</div>` : '';
+  }
+  const noteHtml = () => { const n = String(E().note || '').trim(); return n ? `<p class="note">${esc(n)}</p>` : ''; };
+  const head = (title, sub, back) => `<div class="head">${back ? `<button type="button" class="back" data-act="${back}">${I.back}<span>${t.yourInvite}</span></button>` : ''}<h1 id="h" tabindex="-1">${title}</h1>${sub ? `<p class="sub">${sub}</p>` : ''}</div>`;
+  const bar = (btns, cap, extra = '') => `<div class="bar"><div class="btns">${btns}</div>${extra}${cap ? `<p class="cap">${cap}</p>` : ''}</div>`;
+  const btn = (act, label, soft, extra = '') => `<button type="button" class="btn${soft ? ' soft' : ''}" data-act="${act}"${extra}><span>${label}</span></button>`;
+  function replyHtml() {
+    const yes = inv.status === 'yes';
+    const sub = yes ? esc(inv.name || '') : (inv.decline_reason ? `“${esc(inv.decline_reason)}”` : '');
+    return `<section class="reply" aria-labelledby="replyH"><h2 class="lbl" id="replyH">${t.yourReply}</h2>
+      <div class="reply-card">${I.people}<div class="tx"><b>${esc(statusText())}</b>${sub ? `<span>${sub}</span>` : ''}</div></div></section>`;
+  }
+  function changeCap() {
+    if (!isOpen()) return t.closedNow;
+    if (!canChange()) return t.locked;
+    return E().rsvp_deadline ? t.changeUntil(esc(dayMonth(E().rsvp_deadline))) : t.plans;
+  }
+  const changeBar = () => isOpen() && canChange() ? bar(btn('change', t.change, true), changeCap()) : `<p class="sub cap-only">${changeCap()}</p>`;
+  const acctHtml = () => DEMO ? '' : `<p class="acct">${t.acctQ} <a href="me.html">${t.acct}</a></p>`;
+  function passHtml() {
+    const e = E();
+    const day = e.starts_at ? new Date(e.starts_at).toLocaleDateString(lang === 'en' ? 'en-GB' : 'ar-KW', { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short' }) : '';
+    const when = [day && (day + (lang === 'en' ? ', ' : '، ') + time(e.starts_at)), e.venue].filter(Boolean).join(' · ');
+    const code = App.passCode(inv.pass.code);
+    return `<section class="dpass" aria-labelledby="passH">
+      <h2 class="dpass-h" id="passH">${t.passH}</h2>
+      <div class="dpass-card">
+        <div class="dpass-top"><p class="dpass-ev">${esc(e.headline || e.title || '')}</p>${when ? `<p class="dpass-when">${esc(when)}</p>` : ''}</div>
+        <div class="dpass-body">
+          <div class="dpass-qr" id="passQr" role="img" aria-label="${t.passQr}" data-key="${esc(inv.pass.key)}"></div>
+          <div class="dpass-holder"><div class="dpass-who"><b>${esc(inv.name || '')}</b><span>${esc(t.people(coming()))}</span></div>
+            <bdi class="dpass-code" dir="ltr" aria-label="${t.passCodeL}: ${esc(code)}">${esc(code)}</bdi></div>
+        </div>
+      </div>
+      <p class="dpass-cap">${t.passCap}</p>
+    </section>`;
+  }
+  function soonHtml() {
+    const e = E(), at = inv.pass_at, gap = at && e.starts_at ? Math.round((new Date(kwDay(e.starts_at)) - new Date(kwDay(at))) / 864e5) : null;
+    const lead = gap === 1 ? t.soonDayBefore : gap === 0 ? t.soonSameDay : t.soonBefore;
+    const day = at ? new Date(at).toLocaleDateString(lang === 'en' ? 'en-GB' : 'ar-KW', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' }) : '';
+    return `<div class="dpass-soon" id="passSoon">${I.ticket}<div><p class="dps-t">${lead}</p>${at ? `<p class="dps-s">${esc(t.soonHere(day, time(at)))}</p>` : ''}</div></div>`;
+  }
+  function footHtml() {
+    const wa = CONFIG.SUPPORT_WHATSAPP && /^\d{8,15}$/.test(CONFIG.SUPPORT_WHATSAPP) ? `<p class="help">${t.help} <a href="https://wa.me/${esc(CONFIG.SUPPORT_WHATSAPP)}">${t.helpLink}</a></p>` : '';
+    return `${wa}<p class="sent"><a href="index.html">${esc(t.sentWith(BRAND()))}</a></p>`;
+  }
+
+  // ---------------------------------------------------------------- views
+  // Each view lists its parts for a phone (m) and for a wide screen (l = left column, r = the reply panel).
+  function build(P) {
+    const e = E(); Object.assign(P, { card: cardHtml(), details: rowsHtml(inv.status === 'pending' && isOpen()), note: noteHtml() });
+    const name = firstName();
+    if (view === 'count') {
+      const max = inv.seats - 1, ex = Math.max(0, Math.min(max, draft.extras));
+      P.head = head(t.who, '', 'main');
+      P.form = `<div class="who"><div class="tx"><b>${esc(inv.name || '')}</b><span>${t.coming}</span></div>${I.check}</div>
+        <div class="stepper-row"><div class="tx"><b>${t.bringing}</b><span>${t.more(max)}</span></div>
+          <div class="stepper" role="group" aria-label="${t.bringing}"><button type="button" data-act="dec" aria-label="${t.fewer}"${ex <= 0 ? ' disabled' : ''}>−</button><output id="exN" aria-live="polite">${lang === 'ar' ? AR_D(ex) : ex}</output><button type="button" data-act="inc" aria-label="${t.plus}"${ex >= max ? ' disabled' : ''}>+</button></div></div>`;
+      P.bar = bar(btn('sendYes', t.send), e.rsvp_deadline && canChange() ? t.until(esc(dayMonth(e.rsvp_deadline))) : '');
+      return { m: ['head', 'form', 'bar'], l: ['card', 'details'], r: ['head', 'form', 'bar'] };
+    }
+    if (view === 'link') {
+      const yes = draft.choice !== 'no';
+      P.head = head(yes ? t.who : t.declineQ, '', 'main');
+      P.form = `<div class="field"><label for="gname">${t.yourName}</label><input id="gname" dir="auto" type="text" autocomplete="name" placeholder="${t.namePh}" value="${esc(draft.name)}"></div>
+        ${yes ? '' : `<div class="field"><label for="reason">${t.addNote}</label><textarea id="reason" dir="auto" rows="3" placeholder="${t.notePh}">${esc(draft.reason)}</textarea></div>`}`;
+      P.bar = bar(btn(yes ? 'linkYes' : 'linkNo', t.send));
+      return { m: ['head', 'form', 'bar'], l: ['card', 'details'], r: ['head', 'form', 'bar'] };
+    }
+    if (view === 'note') {   // G01a: the reply is saved; a note is optional
+      P.head = head(t.told);
+      P.form = `<div class="field"><label for="reason">${t.addNote}</label><textarea id="reason" dir="auto" rows="3" placeholder="${t.notePh}">${esc(draft.reason)}</textarea></div>`;
+      P.bar = bar(btn('sendNote', t.sendNote), '', isOpen() && canChange() ? `<button type="button" class="tlink" data-act="afterAll">${t.afterAll}</button>` : '');
+      return { m: ['head', 'form', 'bar'], l: ['card', 'details'], r: ['head', 'form', 'bar'] };
+    }
+    if (view === 'decline') {   // a reply that can't be changed later: confirm first
+      P.head = head(t.declineQ, t.once, 'main');
+      P.form = `<div class="field"><label for="reason">${t.addNote}</label><textarea id="reason" dir="auto" rows="3" placeholder="${t.notePh}">${esc(draft.reason)}</textarea></div>`;
+      P.bar = bar(btn('sendNo', t.send));
+      return { m: ['head', 'form', 'bar'], l: ['card', 'details'], r: ['head', 'form', 'bar'] };
+    }
+    if (view === 'change') {   // G12
+      const yes = inv.status === 'yes', c = draft.choice;
+      const opt = (v, b, s) => `<label class="choice"><span class="tx"><b>${b}</b><span>${s}</span></span><input type="radio" name="chg" value="${v}"${c === v ? ' checked' : ''}></label>`;
+      P.head = head(t.changeH, esc(t.now(statusText())), 'main');
+      P.form = `<div class="choices" role="radiogroup" aria-labelledby="h">${yes
+        ? opt('yes', t.still, inv.seats > 1 && canCount() ? t.stillN : t.stillOne) + opt('no', t.cantNow, t.cantNowSub)
+        : opt('yes', t.canCome, t.canComeSub) + opt('no', t.stillCant, t.stillCantSub)}</div>
+        <div class="field" id="msgF"${c === 'no' ? '' : ' hidden'}><label for="reason">${t.msgHosts}</label><textarea id="reason" dir="auto" rows="3" placeholder="${t.notePh}">${esc(draft.reason)}</textarea></div>`;
+      P.bar = bar(btn('doChange', t.update));
+      return { m: ['head', 'form', 'bar'], l: ['card', 'details'], r: ['head', 'form', 'bar'] };
+    }
+    if (view === 'updated') {   // G13
+      P.head = head(t.updatedH, esc(t.updatedSub(statusText())));
+      P.form = `<div class="rows"><div class="row">${I.people}<div class="tx"><b>${esc(statusText())}</b></div></div>${inv.status === 'no' && inv.decline_reason ? `<div class="row">${I.pen}<div class="tx"><b>“${esc(inv.decline_reason)}”</b><span>${t.yourMsg}</span></div></div>` : ''}</div>`;
+      P.bar = bar(btn('main', t.backInvite));
+      return { m: ['head', 'form', 'bar'], l: ['card', 'details'], r: ['head', 'form', 'bar'] };
+    }
+    // ---- main: depends on the reply
+    if (inv.status === 'yes') {   // G05 / G07 / G11
+      P.head = head(esc(t.seeYou(seeWhen(e), name)));
+      P.reply = replyHtml(); P.pass = hasPass() ? passHtml() : passSoon() ? soonHtml() : '';
+      P.acct = acctHtml(); P.bar = changeBar();
+      return { m: ['head', 'card', 'details', 'note', 'reply', 'pass', 'acct', 'bar'], l: ['card', 'details', 'note'], r: ['head', 'reply', 'pass', 'acct', 'bar'] };
+    }
+    if (inv.status === 'no') {
+      P.head = head(t.thanks, t.miss);
+      P.reply = replyHtml(); P.bar = changeBar();
+      return { m: ['head', 'card', 'details', 'reply', 'bar'], l: ['card', 'details', 'note'], r: ['head', 'reply', 'bar'] };
+    }
+    if (!isOpen()) {
+      P.head = head(t.closed, t.closedSub);
+      return { m: ['card', 'head', 'details', 'note'], l: ['card', 'details', 'note'], r: ['head'] };
+    }
+    if (eventCode && e.public_link_enabled === false && !inv.token) {
+      P.head = head(t.linkClosed);
+      return { m: ['card', 'head', 'details'], l: ['card', 'details'], r: ['head'] };
+    }
+    // pending (G01 / G06 / W03)
+    const line = lineText();
+    P.line = line ? `<p class="line">${line}</p>` : '';
+    P.head = head(t.willYou);
+    P.bar = bar(btn('yes', t.yes) + btn('no', t.no, true));
+    return { m: ['card', line ? 'line' : 'head', 'details', 'note', 'bar'], l: ['card', 'details', 'note'], r: ['head', 'line', 'bar'] };
+  }
+
+  // ---------------------------------------------------------------- render
+  let changing = false;
+  function render() {
+    const P = {}, spec = build(P), own = !!E().card_image_url;
+    const pick = keys => keys.map(k => P[k] || '').join('');
+    let html;
+    if (wide.matches) {
+      let left = spec.l, right = spec.r;
+      if (own) {   // own design: the image alone on the left, everything else in the paper panel
+        const extra = left.filter(k => k !== 'card' && !right.includes(k)), at = right.indexOf('head') + 1;
+        right = [...right.slice(0, at), ...extra, ...right.slice(at)]; left = ['card'];
+      }
+      html = `<div class="col-l">${pick(left)}</div><div class="col-r"><section class="panel side">${pick(right)}</section></div>`;
+    } else if (own) {
+      html = (spec.m.includes('card') ? P.card : '') + `<section class="panel paper">${pick(spec.m.filter(k => k !== 'card'))}</section>`;
+    } else html = pick(spec.m);
+    main.innerHTML = html + `<div class="ifoot">${footHtml()}</div>`;
+    main.dataset.view = view; main.dataset.status = inv.status;
+    const b = main.querySelector('.bar');
+    document.body.style.setProperty('--bar-h', (!wide.matches && b ? b.offsetHeight : 0) + 'px');
+    if (lastView && view !== lastView) { window.scrollTo(0, 0); const h = $('#h'); if (h) h.focus({ preventScroll: true }); }
+    lastView = view;
+    drawPass(); watchRelease();
+  }
+  wide.addEventListener('change', () => { if (inv) render(); });
+
+  // ---------------------------------------------------------------- actions
+  async function goYes(after) {
+    if (canCount()) { draft.extras = Math.max(0, (inv.status === 'yes' ? coming() : inv.seats) - 1); view = 'count'; render(); return; }
+    if (await send('yes', 1)) { view = after; changing = false; render(); }
+  }
+  main.addEventListener('click', async ev => {
+    const el = ev.target.closest('[data-act]'); if (!el || el.getAttribute('aria-disabled') === 'true' || busy) return;
+    const a = el.dataset.act;
+    if (a === 'main') { view = 'main'; changing = false; render(); }
+    else if (a === 'cal') openCal();
+    else if (a === 'yes') { if (eventCode) { draft.choice = 'yes'; view = 'link'; render(); } else goYes('main'); }
+    else if (a === 'no') {
+      if (eventCode) { draft.choice = 'no'; view = 'link'; render(); }
+      else if (canChange()) { if (await send('no', null, null)) { draft.reason = ''; view = 'note'; render(); } }
+      else { view = 'decline'; render(); }
+    }
+    else if (a === 'dec' || a === 'inc') {
+      draft.extras = Math.max(0, Math.min(inv.seats - 1, draft.extras + (a === 'inc' ? 1 : -1))); render();
+      const same = main.querySelector(`[data-act="${a}"]`), other = main.querySelector(`[data-act="${a === 'inc' ? 'dec' : 'inc'}"]`);
+      (same && !same.disabled ? same : other).focus();
+    }
+    else if (a === 'sendYes') { if (await send('yes', 1 + draft.extras)) { view = changing ? 'updated' : 'main'; changing = false; render(); } }
+    else if (a === 'linkYes' || a === 'linkNo') {
+      if (draft.name.trim().length < 2) { App.toast(t.nameReq); const n = $('#gname'); if (n) n.focus(); return; }
+      if (await send(a === 'linkYes' ? 'yes' : 'no', 1, draft.reason.trim())) { view = changing ? 'updated' : 'main'; changing = false; render(); }
+    }
+    else if (a === 'sendNote') { if (await send('no', null, draft.reason.trim())) { if (draft.reason.trim()) App.toast(t.noteSent); view = 'main'; render(); } }
+    else if (a === 'afterAll') { changing = false; goYes('main'); }
+    else if (a === 'sendNo') { if (await send('no', null, draft.reason.trim())) { view = 'main'; render(); } }
+    else if (a === 'change') { draft.choice = ''; draft.reason = inv.decline_reason || ''; view = 'change'; render(); }
+    else if (a === 'doChange') {
+      if (!draft.choice) { App.toast(t.pickOne); const r = main.querySelector('input[name="chg"]'); if (r) r.focus(); return; }
+      changing = true;
+      if (draft.choice === 'yes') goYes('updated');
+      else if (await send('no', null, draft.reason.trim())) { view = 'updated'; changing = false; render(); }
+    }
+  });
+  main.addEventListener('input', ev => { if (ev.target.id === 'gname') draft.name = ev.target.value; if (ev.target.id === 'reason') draft.reason = ev.target.value; });
+  main.addEventListener('change', ev => {
+    if (ev.target.name !== 'chg') return;
+    draft.choice = ev.target.value; const f = $('#msgF'); if (f) f.hidden = draft.choice !== 'no';
+  });
+
+  // ---------------------------------------------------------------- add to calendar (G11b / G11c)
+  function openCal() {
+    const e = E(); if (!e.starts_at) return;
+    let d = $('#calSheet');
+    if (!d) { d = document.createElement('dialog'); d.id = 'calSheet'; d.className = 'sheet'; d.setAttribute('aria-labelledby', 'calH'); document.body.appendChild(d); d.addEventListener('click', ev => { if (ev.target === d) d.close(); }); }
+    const day = new Date(e.starts_at).toLocaleDateString(loc(), { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'long' }).replace(/,(?= \d)/, '');
+    const sub = [day + (lang === 'en' ? ', ' : '، ') + time(e.starts_at), e.venue].filter(Boolean).join(' · ');
+    const end = e.ends_at || new Date(new Date(e.starts_at).getTime() + 4 * 3600e3).toISOString();
+    const outlook = 'https://outlook.live.com/calendar/0/deeplink/compose?' + new URLSearchParams({ path: '/calendar/action/compose', rru: 'addevent', subject: e.headline || e.title || '', startdt: e.starts_at, enddt: end, location: e.venue || '' });
+    const file = URL.createObjectURL(new Blob([App.icsText(e)], { type: 'text/calendar;charset=utf-8' }));
+    const opt = (k, href, icon, label, s, attrs) => `<a class="opt" data-cal="${k}" href="${href}"${attrs}>${icon}<span class="tx"><b>${label}</b>${s ? `<span>${s}</span>` : ''}</span>${I.chev}</a>`;
+    d.innerHTML = `<div class="grab" aria-hidden="true"></div><div class="sh-head"><div><h2 id="calH">${t.calH}</h2><p>${esc(sub)}</p></div><button type="button" class="x" data-x aria-label="${t.close}">${I.x}</button></div>
+      ${opt('apple', appleCalUrl(e), I.cal, t.apple, '', isAppleTouch() ? '' : ' download="sina-event.ics"')}
+      ${opt('google', esc(App.calLink(e)), I.cal, t.google, '', ' target="_blank" rel="noopener"')}
+      ${opt('outlook', esc(outlook), I.cal, t.outlook, '', ' target="_blank" rel="noopener"')}
+      ${opt('file', file, I.dl, t.file, t.fileSub, ' download="sina-event.ics"')}`;
+    d.querySelector('[data-x]').onclick = () => d.close();
+    d.querySelectorAll('[data-cal]').forEach(a => a.addEventListener('click', () => {
+      const k = a.dataset.cal, nm = { apple: t.apple, google: t.google, outlook: t.outlook, file: '' }[k];
+      try { localStorage.setItem(calKey(), k); } catch (err) {}
+      setTimeout(() => { d.close(); render(); if (nm) App.toast(t.addedTo(nm)); const c = main.querySelector('[data-act="cal"]'); if (c) c.focus(); }, 60);
+    }));
+    d.showModal();
+  }
+
+  // ---------------------------------------------------------------- door pass (supabase/migrations/0005, released per 0006)
+  // the page is still open when the pass comes out (within the next day): fetch it then
+  let relTimer = null, relTries = 0;
+  function watchRelease() {
+    clearTimeout(relTimer);
+    if (DEMO || !passSoon() || !inv.pass_at || !inv.token || relTries >= 5) return;
+    const ms = new Date(inv.pass_at) - Date.now();
+    if (ms > 864e5) return;
+    relTimer = setTimeout(async () => {
+      relTries++;
+      const r = await App.rpc2('get_invite_v2', { p_token: inv.token }, 'get_invite', { p_token: inv.token });
+      if (!r.error && r.data && !r.data.closed && view === 'main') { inv = r.data; render(); }
+    }, Math.max(relTries ? 60000 : 1000, ms + 3000));
+  }
+  // The QR: drawn here from the vendored library (no CDN), black on white with a 4-module quiet zone,
+  // error correction M, whole pixels per module so it stays sharp for a camera at night.
+  function drawPass() {
+    const box = $('#passQr'); if (!box) return;
+    const link = DEMO ? App.passLink('DEMO-not-a-real-pass') : App.passLink(box.dataset.key);
+    App.loadScript('vendor/qrcode-generator/qrcode.js').then(() => {
+      if (!box.isConnected) return;
+      const q = window.qrcode(0, 'M'); q.addData(link, 'Byte'); q.make();
+      const n = q.getModuleCount(), quiet = 4, N = n + quiet * 2;
+      let d = '';
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+        if (!q.isDark(r, c)) continue;
+        let w = 1; while (c + w < n && q.isDark(r, c + w)) w++;
+        d += `M${c + quiet} ${r + quiet}h${w}v1h-${w}z`; c += w - 1;
+      }
+      const inner = box.parentElement ? box.parentElement.clientWidth - 32 : 0;     // .dpass-body has 16px padding each side
+      const room = Math.min(232, inner > 0 ? inner : 232);
+      const px = N * Math.max(3, Math.floor(room / N));
+      box.style.width = px + 'px'; box.style.height = '';
+      box.dataset.px = px;
+      box.innerHTML = `<svg viewBox="0 0 ${N} ${N}" width="${px}" height="${px}" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect width="${N}" height="${N}" fill="#FFFFFF"/><path d="${d}" fill="#000000"/></svg>`;
+      box.dataset.ready = '1';
+    }).catch(() => { box.classList.add('off'); });
+  }
+  // a phone turned sideways (or a narrower window): redraw the QR if its whole-pixel size would change
+  let passResizeT = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(passResizeT);
+    passResizeT = setTimeout(() => {
+      const b = main.querySelector('.bar'); document.body.style.setProperty('--bar-h', (!wide.matches && b ? b.offsetHeight : 0) + 'px');
+      const box = $('#passQr'); if (!box || !box.dataset.ready || !box.parentElement) return;
+      const svgEl = box.querySelector('svg'), N = svgEl ? +String(svgEl.getAttribute('viewBox')).split(' ')[2] || 0 : 0;
+      const inner = box.parentElement.clientWidth - 32; if (!N || inner <= 0) return;
+      if (N * Math.max(3, Math.floor(Math.min(232, inner) / N)) !== +box.dataset.px) drawPass();
+    }, 150);
+  });
+
+  load();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head><script src="/RSVP/demo/demo-backend.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Demo · New event · Sina</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=DM+Sans:wght@400;500;600&family=Noto+Naskh+Arabic:wght@500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="host.css">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('ui-theme')||'light';var l=localStorage.getItem('host-lang')==='ar'?'ar':'en';document.documentElement.lang=l;document.documentElement.dir=l==='ar'?'rtl':'ltr'}catch(e){}</script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script defer src="config.js"></script>
+<script defer src="core.js"></script>
+<script defer src="auth.js"></script>
+</head>
+<body class="app host flow">
+<!-- Figma Host 2 "Create the event and send invites": 06–13, P1, P1a, S1, P2. Draft saved as you go (create_event_v2, update_event_v2). -->
+<main id="root" aria-live="polite"></main>
+<dialog class="sheet" id="sheet" aria-labelledby="shH"><div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="shH"></h2><button class="sheet-x" data-close aria-label="Close"><i class="i i-x"></i></button></div><div id="shBody"></div></dialog>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const { sb, esc } = App, $ = s => document.querySelector(s);
+  const bdi = s => `<bdi>${esc(s)}</bdi>`;
+  let lang = document.documentElement.lang === 'ar' ? 'ar' : 'en';
+  const ls = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
+  const cw = (n, k) => App.countWord(n, k, lang);
+  const PKG_NAME = { basic: ['Basic', 'الأساسية'], plus: ['Plus', 'بلس'], premium: ['Premium', 'بريميوم'] };
+  const pkgName = c => (PKG_NAME[c] || [c, c])[lang === 'ar' ? 1 : 0];
+  const COLOURS = [['#5B0F1D', 'Burgundy', 'عنابي'], ['#9C7A3C', 'Gold', 'ذهبي'], ['#5E6B3A', 'Olive', 'زيتي'], ['#1F3A5F', 'Navy', 'كحلي'], ['#B8646E', 'Rose', 'وردي'], ['#1A1A1A', 'Black', 'أسود']];
+  const GROUPS = { en: ['Bride’s side', 'Groom’s side', 'Family', 'Friends', 'Work'], ar: ['أهل العروس', 'أهل المعرس', 'العائلة', 'الأصدقاء', 'الدوام'] };
+  const T = {
+    en: {
+      title: 'New event', other: 'العربية', rail: ['Details', 'Team', 'Design', 'Guests', 'Send'], back: 'Back', railL: 'Steps',
+      nameH: 'Name your event', nameP: 'Guests see this at the top of their invite.', evName: 'Event name', evNamePh: 'e.g. Sara & Mohammad engagement',
+      hostBy: 'Hosted by', hostByPh: 'e.g. The Al Awwad and Al Ghanim families', celeb: 'Celebrating', celebPh: 'e.g. Engagement', preview: 'Preview',
+      prevHost: 'Hosted by', prevName: 'Your event name', nameHint: 'You’ll pick the design in step 3. Our team can also design it for you.', saveName: 'Save the name',
+      whenH: 'When is it?', starts: 'Starts', ends: 'Ends (optional)', startPh: 'Start time', replyBy: 'Guests reply by (optional)', saveWhen: 'Save the date', prevM: 'Previous month', nextM: 'Next month',
+      whereH: 'Where is it?', venue: 'Venue', venuePh: 'e.g. Al Hamra Hall, Sharq', hall: 'Hall or room (optional)', hallPh: 'e.g. Main ballroom', map: 'Google Maps link (optional)',
+      sep: 'Separate entrances for men and women', sepNote: 'Separate entrances for men and women.', savePlace: 'Save the place',
+      teamH: 'Your team', owner: 'Owner', you: 'You', cohost: 'Co-host', door: 'Door staff', joined: 'Joined', invited: 'Added', addCohost: 'Add co-host', addDoor: 'Add door staff',
+      cohostNote: 'A co-host can only see names and party sizes. They can’t see phone numbers or edit the list.', doorNote: 'Door staff check guests in on the night, on their own phone.',
+      saveTeam: 'Save the team', previewGuest: 'Preview as a guest', mName: 'Name', mPhone: 'Phone number', mAdd: r => r === 'door' ? 'Add door staff' : 'Add co-host', remove: 'Remove', removeL: n => `Remove ${n}`,
+      designH: 'Design', style: 'Style', language: 'Language', cover: 'Cover photo', none: 'None', saveDesign: 'Save the design',
+      STY: { classic: 'Classic', modern: 'Modern', minimal: 'Minimal' }, styleH: 'Pick a style', styleP: 'You can change it any time before you send.', colour: 'Colour', saveStyle: 'Save the style',
+      langH: 'Invite language', langP: 'The language guests see when they open the link.', en: 'English', ar: 'Arabic', saveLang: 'Save the language',
+      coverH: 'Add a cover', coverP: 'It shows at the top of the invite.', upOwn: 'Upload my own design', upOwnS: 'PDF, PNG or JPG of your card or a photo',
+      askUs: 'Ask us to design it', askUsS: p => `Our designer makes one for you. ${p}`, noCover: 'No cover photo', noCoverS: 'Just the text invite', coverGo: { upload: 'Upload my design', ask: 'Describe my design', none: 'Use the text invite' },
+      upH: 'Upload your design', upP: 'Your invite card or a photo. PDF, PNG or JPG, up to 10 MB.', choose: 'Choose a file', chooseS: 'From Files, iCloud or Google Drive', uploaded: 'Uploaded', looks: 'How it looks on the invite', useDesign: 'Use this design', uploading: 'Uploading…', upErr: 'Couldn’t upload that file. Try a JPG photo.', tooBig: 'That file is bigger than 10 MB.',
+      askH: 'Ask us to design it', askP: 'Tell us what you have in mind. Our designer will send you a first draft.', idea: 'What would you like?', ideaPh: 'Soft and elegant, our initials, a gold arch',
+      wording: 'Wording on the invite (optional)', colours: 'Colours (optional)', coloursPh: 'Burgundy and gold', ready2: 'Ready in 2 working days', sendReq: 'Send request', payLater: 'You only pay when you approve the design',
+      needIdea: 'Tell us what you’d like', sentH: 'Request sent', sentP: 'Our designer will message you within a day. Keep setting up your event in the meantime.', beingMade: 'Being designed', backDesign: 'Back to design',
+      guestsH: 'Guests', paste: 'Paste list', upXls: 'Upload Excel', searchPh: 'Name or number', noGuests: 'No guests yet. Paste a list or upload an Excel file to add them.', addOne: 'Add a guest',
+      seatsW: n => n === 1 ? '1 seat' : `${n} seats`, showAll: n => `Show all ${n}`, saveGuests: 'Save the guest list', needGuest: 'Add at least one guest to continue', gFoot: (g, p) => `${cw(g, 'guest')} · ${cw(p, 'person')}`,
+      addH: 'Add a guest', editH: 'Edit guest', gName: 'Name', gPhone: 'Phone number', bring: 'Can they bring people?', justThem: 'Just them', justThemS: 'The invite is for one person',
+      canBring: 'They can bring people', canBringS: 'You choose how many', upTo: 'Up to how many more?', less: 'Fewer', more: 'More', group: 'Group', saveGuest: 'Save guest', removeGuest: 'Remove guest',
+      typeName: 'Type the guest’s name', short: 'That phone number looks too short', dup: 'That number is already on the list', addErr: 'Couldn’t save that guest. Try again.',
+      pasteH: 'Paste a list', pasteP: 'One guest per line, with their name and number.', pastePh: 'Dana Alanjeri 55771754\nHuda Alsaleh 99619992', check: 'Check names', found: n => `Found ${cw(n, 'guest')}:`, addN: n => `Add ${cw(n, 'guest')}`,
+      badL: 'We couldn’t read a name and number on these lines:', fileErr: 'Couldn’t read that file', fileNone: 'No names and numbers found in that file', added: n => `Added ${cw(n, 'guest')}`,
+      pkgH: 'Pick a package', pkgP: n => `You’ve added ${cw(n, 'person')} so far. Pick the package that fits.`, upToN: n => `Up to ${n} invites`, doorNo: 'Door check-in not included', doorYes: 'Door check-in included', doorDesign: 'Door check-in and design included',
+      tooSmall: (n, lim) => `Up to ${lim} invites. You have ${n}, so it doesn’t fit.`, addDoorT: 'Add door check-in', addDoorS: p => `Staff check guests in at the entrance. +${p}`, doorInc: 'Door check-in', doorIncS: 'Included with this package.',
+      choosePkg: (n, p) => `Choose ${n} · ${p}`, pickPkg: 'Pick a package',
+      sendH: 'How should we send them?', sendK: 'We send each guest their own invite', wa: 'We send them on WhatsApp', waS: b => `From the ${b} number`, sms: 'We send them by SMS', smsS: 'A text message to each guest',
+      byHandNote: 'Until our WhatsApp number is connected, you send each invite from your own WhatsApp, one tap per guest.', msg: 'Message', tplHint: '{name} becomes each guest’s name. We add their own link for you.', saveSend: 'Save how we send',
+      revH: 'Review and send', rEvent: 'Event', rWhen: 'When', rWhere: 'Where', rGuests: 'Guests', rReply: 'Reply by', rPkg: 'Package', rDoor: 'Door check-in', rSend: 'Send by', rMsg: 'Message',
+      on: 'On', off: 'Off', waW: 'WhatsApp', smsW: 'SMS', choosePay: 'Choose how to pay', notSet: 'Not set', guestsV: (g, p) => `${cw(g, 'guest')}, ${cw(p, 'person')}`,
+      payH: 'Pay', total: 'Total', payWith: 'Pay with', knet: 'KNET', knetS: 'Kuwaiti debit cards', card: 'Credit card', cardS: 'Visa, Mastercard', notAdded: 'Not added', included: 'Included',
+      payBtn: p => `Pay ${p}`, payNote: 'Your invite links are ready right after payment', payOff: 'Payments aren’t switched on yet. Message us and we’ll finish setting up your event.', payErr: 'Couldn’t start the payment. Try again.',
+      sentReadyH: 'Your invites are ready', sentReadyP: n => `Your ${cw(n, 'guest')} have their own invite links. Send them from your event page, one tap per guest.`,
+      sentAutoH: 'Your invites are on their way', sentAutoP: n => `We’re sending ${cw(n, 'guest')} their invites on WhatsApp now. You’ll see every reply on your event page.`,
+      doorLinkT: 'Door link ready', doorLinkS: 'Your door staff use it to check guests in on the night', openEvent: 'Open my event', waitPayH: 'Waiting for payment', waitPayP: 'We haven’t received the payment for this event yet.', payAgain: 'Pay for the event',
+      saved: 'Saved', saveErr: 'Couldn’t save. Check your connection and try again.', notYours: 'This event isn’t one of yours.', loadErr: 'Couldn’t load the event', previewH: 'Preview as a guest', sampleNote: 'This is how a guest sees the top of their invite.',
+      evNameReq: 'Give the event a name'
+    },
+    ar: {
+      title: 'مناسبة جديدة', other: 'English', rail: ['التفاصيل', 'الفريق', 'التصميم', 'الضيوف', 'الإرسال'], back: 'رجوع', railL: 'الخطوات',
+      nameH: 'سمّوا مناسبتكم', nameP: 'الضيوف يشوفون هالاسم فوق بدعوتهم.', evName: 'اسم المناسبة', evNamePh: 'مثلاً: ملكة سارة ومحمد',
+      hostBy: 'أهل المناسبة', hostByPh: 'مثلاً: عائلة العوض وعائلة الغانم', celeb: 'المناسبة', celebPh: 'مثلاً: ملكة', preview: 'شكلها',
+      prevHost: 'أهل المناسبة', prevName: 'اسم مناسبتكم', nameHint: 'بتختارون التصميم بالخطوة 3، وفريقنا يقدر يصممها لكم بعد.', saveName: 'احفظوا الاسم',
+      whenH: 'متى المناسبة؟', starts: 'تبدأ', ends: 'تخلص (اختياري)', startPh: 'وقت البداية', replyBy: 'آخر موعد لرد الضيوف (اختياري)', saveWhen: 'احفظوا الموعد', prevM: 'الشهر اللي قبل', nextM: 'الشهر الجاي',
+      whereH: 'وين المناسبة؟', venue: 'المكان', venuePh: 'مثلاً: قاعة الحمرا، شرق', hall: 'القاعة أو الصالة (اختياري)', hallPh: 'مثلاً: القاعة الكبيرة', map: 'لوكيشن قوقل ماب (اختياري)',
+      sep: 'مداخل منفصلة للرجال والحريم', sepNote: 'مداخل منفصلة للرجال والحريم.', savePlace: 'احفظوا المكان',
+      teamH: 'فريقكم', owner: 'صاحب الحساب', you: 'أنتم', cohost: 'مساعد', door: 'على الباب', joined: 'دخل', invited: 'انضاف', addCohost: 'أضيفوا مساعد', addDoor: 'أضيفوا أحد على الباب',
+      cohostNote: 'المساعد يشوف الأسماء وعدد الأشخاص بس، وما يشوف أرقام التلفون ولا يقدر يعدّل القائمة.', doorNote: 'اللي على الباب يسجلون وصول الضيوف ليلة المناسبة من تلفوناتهم.',
+      saveTeam: 'احفظوا الفريق', previewGuest: 'شوفوها مثل الضيف', mName: 'الاسم', mPhone: 'رقم التلفون', mAdd: r => r === 'door' ? 'أضيفوه على الباب' : 'أضيفوه مساعد', remove: 'حذف', removeL: n => `حذف ${n}`,
+      designH: 'التصميم', style: 'الشكل', language: 'اللغة', cover: 'صورة الغلاف', none: 'بدون', saveDesign: 'احفظوا التصميم',
+      STY: { classic: 'كلاسيكي', modern: 'عصري', minimal: 'بسيط' }, styleH: 'اختاروا الشكل', styleP: 'تقدرون تغيرونه أي وقت قبل الإرسال.', colour: 'اللون', saveStyle: 'احفظوا الشكل',
+      langH: 'لغة الدعوة', langP: 'اللغة اللي يشوفها الضيوف لما يفتحون الرابط.', en: 'الإنجليزي', ar: 'العربي', saveLang: 'احفظوا اللغة',
+      coverH: 'أضيفوا غلاف', coverP: 'يطلع فوق بالدعوة.', upOwn: 'ارفعوا تصميمكم', upOwnS: 'ملف PDF أو PNG أو JPG للكرت أو صورة',
+      askUs: 'خلونا نصممها لكم', askUsS: p => `المصممة عندنا تسوي لكم وحدة. ${p}`, noCover: 'بدون صورة غلاف', noCoverS: 'الدعوة بالكلام بس', coverGo: { upload: 'ارفعوا تصميمكم', ask: 'وصفوا التصميم', none: 'استخدموا الدعوة بالكلام' },
+      upH: 'ارفعوا تصميمكم', upP: 'كرت الدعوة أو صورة. PDF أو PNG أو JPG، لين 10 ميقا.', choose: 'اختاروا ملف', chooseS: 'من الملفات أو iCloud أو Google Drive', uploaded: 'انرفع', looks: 'شكله بالدعوة', useDesign: 'استخدموا هالتصميم', uploading: 'قاعدين نرفع…', upErr: 'ما قدرنا نرفع الملف، جربوا صورة JPG.', tooBig: 'الملف أكبر من 10 ميقا.',
+      askH: 'خلونا نصممها لكم', askP: 'قولوا لنا شنو في بالكم، والمصممة ترسل لكم أول نسخة.', idea: 'شنو تبون؟', ideaPh: 'ناعم وراقي، حروفنا الأولى، وقوس ذهبي',
+      wording: 'الكلام اللي بالدعوة (اختياري)', colours: 'الألوان (اختياري)', coloursPh: 'عنابي وذهبي', ready2: 'تجهز خلال يومين عمل', sendReq: 'أرسلوا الطلب', payLater: 'ما تدفعون إلا لما توافقون على التصميم',
+      needIdea: 'قولوا لنا شنو تبون', sentH: 'وصلنا طلبكم', sentP: 'المصممة بتراسلكم خلال يوم، وكمّلوا ترتيب مناسبتكم لين ذاك الوقت.', beingMade: 'قاعدين نصممها', backDesign: 'ارجعوا للتصميم',
+      guestsH: 'الضيوف', paste: 'الصقوا قائمة', upXls: 'ارفعوا إكسل', searchPh: 'الاسم أو الرقم', noGuests: 'ما في ضيوف للحين. الصقوا قائمة أو ارفعوا ملف إكسل.', addOne: 'أضيفوا ضيف',
+      seatsW: n => n === 1 ? 'شخص واحد' : App.countWord(n, 'person', 'ar'), showAll: n => `اعرضوا الكل (${n})`, saveGuests: 'احفظوا قائمة الضيوف', needGuest: 'أضيفوا ضيف واحد على الأقل عشان تكمّلون', gFoot: (g, p) => `${cw(g, 'guest')} · ${cw(p, 'person')}`,
+      addH: 'أضيفوا ضيف', editH: 'تعديل الضيف', gName: 'الاسم', gPhone: 'رقم التلفون', bring: 'يقدرون يجيبون أحد معاهم؟', justThem: 'بروحهم', justThemS: 'الدعوة لشخص واحد',
+      canBring: 'يقدرون يجيبون أحد', canBringS: 'أنتم تحددون العدد', upTo: 'كم شخص زيادة بالكثير؟', less: 'أقل', more: 'أكثر', group: 'المجموعة', saveGuest: 'احفظوا الضيف', removeGuest: 'احذفوا الضيف',
+      typeName: 'اكتبوا اسم الضيف', short: 'رقم التلفون ناقص', dup: 'هالرقم موجود بالقائمة من قبل', addErr: 'ما قدرنا نحفظ الضيف، جربوا مرة ثانية.',
+      pasteH: 'الصقوا قائمة', pasteP: 'كل ضيف بسطر، مع اسمه ورقمه.', pastePh: 'دانة العنجري 55771754\nهدى الصالح 99619992', check: 'راجعوا الأسماء', found: n => `لقينا ${cw(n, 'guest')}:`, addN: n => `أضيفوا ${cw(n, 'guest')}`,
+      badL: 'هالأسطر ما قدرنا نقرا منها اسم ورقم:', fileErr: 'ما قدرنا نقرا الملف', fileNone: 'ما لقينا أسماء وأرقام بالملف', added: n => `ضفنا ${cw(n, 'guest')}`,
+      pkgH: 'اختاروا الباقة', pkgP: n => `ضفتوا ${cw(n, 'person')} للحين. اختاروا الباقة اللي تناسبكم.`, upToN: n => `لين ${n} دعوة`, doorNo: 'بدون تسجيل الحضور عند الباب', doorYes: 'مع تسجيل الحضور عند الباب', doorDesign: 'مع تسجيل الحضور عند الباب والتصميم',
+      tooSmall: (n, lim) => `لين ${lim} دعوة، وعندكم ${n}، فما تكفي.`, addDoorT: 'أضيفوا تسجيل الحضور عند الباب', addDoorS: p => `موظفين يسجلون وصول الضيوف عند المدخل. +${p}`, doorInc: 'تسجيل الحضور عند الباب', doorIncS: 'موجود مع هالباقة.',
+      choosePkg: (n, p) => `اختاروا ${n} · ${p}`, pickPkg: 'اختاروا الباقة',
+      sendH: 'شلون نرسلها؟', sendK: 'نرسل لكل ضيف دعوته الخاصة', wa: 'نرسلها على الواتساب', waS: b => `من رقم ${b}`, sms: 'نرسلها برسالة نصية', smsS: 'رسالة نصية لكل ضيف',
+      byHandNote: 'لين ما ينربط رقمنا على الواتساب، ترسلون كل دعوة من واتسابكم، بضغطة وحدة لكل ضيف.', msg: 'الرسالة', tplHint: '{الاسم} يصير اسم كل ضيف، ونضيف رابطه الخاص بنفسنا.', saveSend: 'احفظوا طريقة الإرسال',
+      revH: 'راجعوا وأرسلوا', rEvent: 'المناسبة', rWhen: 'الموعد', rWhere: 'المكان', rGuests: 'الضيوف', rReply: 'آخر موعد للرد', rPkg: 'الباقة', rDoor: 'تسجيل الحضور عند الباب', rSend: 'الإرسال', rMsg: 'الرسالة',
+      on: 'موجود', off: 'لا', waW: 'الواتساب', smsW: 'رسالة نصية', choosePay: 'اختاروا طريقة الدفع', notSet: 'ما تحدد', guestsV: (g, p) => `${cw(g, 'guest')}، ${cw(p, 'person')}`,
+      payH: 'الدفع', total: 'المجموع', payWith: 'ادفعوا بـ', knet: 'كي نت', knetS: 'بطاقات السحب الكويتية', card: 'بطاقة ائتمان', cardS: 'فيزا، ماستركارد', notAdded: 'ما انضاف', included: 'موجود',
+      payBtn: p => `ادفعوا ${p}`, payNote: 'روابط الدعوات تجهز أول ما تدفعون', payOff: 'الدفع مو شغال للحين. راسلونا ونكمّل لكم ترتيب المناسبة.', payErr: 'ما قدرنا نبدأ الدفع، جربوا مرة ثانية.',
+      sentReadyH: 'دعواتكم جاهزة', sentReadyP: n => `${cw(n, 'guest')} عندهم روابط دعوات خاصة. أرسلوها من صفحة مناسبتكم، بضغطة وحدة لكل ضيف.`,
+      sentAutoH: 'دعواتكم بالطريق', sentAutoP: n => `قاعدين نرسل الدعوات لـ${cw(n, 'guest')} على الواتساب، وبتشوفون كل رد بصفحة مناسبتكم.`,
+      doorLinkT: 'رابط الباب جاهز', doorLinkS: 'اللي على الباب يسجلون فيه وصول الضيوف ليلة المناسبة', openEvent: 'افتحوا مناسبتكم', waitPayH: 'ننتظر الدفع', waitPayP: 'ما وصلنا الدفع لهالمناسبة للحين.', payAgain: 'ادفعوا للمناسبة',
+      saved: 'انحفظ', saveErr: 'ما قدرنا نحفظ. شيّكوا النت وجربوا مرة ثانية.', notYours: 'هالمناسبة مو من مناسباتكم.', loadErr: 'ما قدرنا نحمّل المناسبة', previewH: 'شوفوها مثل الضيف', sampleNote: 'هذا شكل بداية الدعوة عند الضيف.',
+      evNameReq: 'اكتبوا اسم المناسبة'
+    }
+  };
+  let t = T[lang];
+
+  // ---------- state ----------
+  const qs = new URLSearchParams(location.search);
+  let PK = null, ev = null, members = [], guests = [], me = null, screen = 'name', quotes = {}, sel = { pkg: null, door: false, method: 'knet' }, draft = {}, editG = null, gq = '', showAllG = false, designReq = null, pendingFile = null;
+  const STEP_OF = { name: 0, when: 0, where: 0, team: 1, design: 2, style: 2, language: 2, cover: 2, upload: 2, ask: 2, asked: 2, guests: 3, guest: 3, package: 4, send: 4, review: 4, pay: 4 };
+  const RAIL_TO = ['name', 'team', 'design', 'guests', 'package'];
+  const SUB = { style: 'design', language: 'design', cover: 'design', upload: 'cover', ask: 'cover', asked: 'design', guest: 'guests' };
+  const BACK = { when: 'name', where: 'when', team: 'where', design: 'team', guests: 'design', package: 'guests', send: 'package', review: 'send', pay: 'review' };
+  const kwDate = iso => iso ? App.isoToKw(iso) : { date: '', time: '' };
+  const seatsOf = () => guests.reduce((a, g) => a + (g.seats || 1), 0);
+  const fmtShort = iso => new Date(iso).toLocaleDateString(lang === 'ar' ? 'ar-KW-u-nu-latn' : 'en-GB', { timeZone: 'Asia/Kuwait', day: 'numeric', month: 'short' });
+
+  function why(err) { const m = String((err && err.message) || ''); try { console.warn('new: failed', err); } catch (e) {} return m; }
+  async function rpc(name, args) { const r = await sb.rpc(name, args); if (r.error) why(r.error); return r; }
+
+  // ---------- load / create the draft ----------
+  async function load(id) {
+    const { data, error } = await sb.from('events').select('*').eq('id', id).maybeSingle();
+    if (error || !data) { App.toast(error ? t.loadErr : t.notYours); setTimeout(() => location.replace('host.html'), 1200); return false; }
+    ev = data;
+    sel.pkg = ev.package || sel.pkg; sel.door = !!ev.door_addon;
+    const [g, m] = await Promise.all([sb.from('guests').select('*').eq('event_id', ev.id).order('created_at'), rpc('list_members_v2', { p_event: ev.id })]);
+    guests = g.data || []; members = Array.isArray(m.data) ? m.data : [];
+    try { designReq = JSON.parse(ls.get('new-design-' + ev.id) || 'null'); } catch (e) { designReq = null; }
+    return true;
+  }
+  async function save(patch) {
+    if (!ev) {
+      const { data: id, error } = await rpc('create_event_v2', { p: { ...patch, lang: patch.lang || lang } });
+      if (error) { App.toast(t.saveErr); return false; }
+      if (!(await load(id))) return false;
+      history.replaceState(null, '', `new.html?event=${id}`);
+      ls.set('sina-last-draft', id);
+      return true;
+    }
+    const { data, error } = await rpc('update_event_v2', { p_event: ev.id, p: patch });
+    if (error) { App.toast(t.saveErr); return false; }
+    ev = { ...ev, ...data };
+    return true;
+  }
+  function go(s, push = true) {
+    screen = s;
+    if (ev) { ls.set('new-step-' + ev.id, s); if (push) history.replaceState(null, '', `new.html?event=${ev.id}&step=${s}`); }
+    draw();
+    window.scrollTo(0, 0);
+    const h = $('#root h1'); if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+  }
+  // where a draft left off: the saved step, else the first thing that's missing
+  function resumeAt() {
+    const saved = qs.get('step') || ls.get('new-step-' + ev.id);
+    if (saved && (saved in STEP_OF || saved === 'sent')) return saved;
+    if (!ev.starts_at) return 'when';
+    if (!ev.venue) return 'where';
+    if (!guests.length) return 'guests';
+    return 'package';
+  }
+
+  // ---------- frame: back row, rail, content, footer ----------
+  function frame(body, foot, opts = {}) {
+    const step = STEP_OF[screen], sub = !!SUB[screen];
+    const head = `<div class="fl-top"><button type="button" class="fl-back" id="flBack" aria-label="${esc(t.back)}"><i class="i i-chev"></i></button><p class="fl-title">${esc(opts.title || (ev && ev.title && step > 0 ? ev.title : t.title))}</p><button type="button" class="au-lang" id="flLang" lang="${lang === 'ar' ? 'en' : 'ar'}">${t.other}</button></div>`;
+    const done = i => !!ev && (i === 0 ? !!(ev.title && ev.starts_at && ev.venue) : i === 1 ? STEP_OF[screen] > 1 || !!ls.get('new-team-' + ev.id) : i === 2 ? STEP_OF[screen] > 2 || !!ev.design_style : i === 3 ? guests.length > 0 && STEP_OF[screen] > 3 : false);
+    const rail = sub ? '' : `<div role="group" aria-label="${esc(t.railL)}"><ol class="rail">${t.rail.map((l, i) => `<li><button type="button" data-rail="${i}" class="${done(i) ? 'done' : ''}" ${i === step ? 'aria-current="step"' : ''} ${!ev || (i > step && !done(i - 1)) ? 'disabled' : ''}><b>0${i + 1}</b><span>${l}</span></button></li>`).join('')}</ol></div>`;
+    $('#root').innerHTML = `<div class="scr">${head}${rail}<div class="scr-main">${body}</div>${foot ? `<div class="scr-foot">${foot}</div>` : ''}</div>`;
+    $('#flBack').onclick = back;
+    $('#flLang').onclick = () => { lang = lang === 'ar' ? 'en' : 'ar'; ls.set('host-lang', lang); applyLang(); };
+    document.querySelectorAll('[data-rail]').forEach(b => b.onclick = () => go(RAIL_TO[+b.dataset.rail]));
+  }
+  function back() {
+    if (SUB[screen]) return go(SUB[screen]);
+    if (BACK[screen]) return go(BACK[screen]);
+    location.href = 'host.html' + (ev ? '#events' : '');
+  }
+  const choice = (id, on, title, sub, end = '', icon = '', extra = '', dis = false) => `<div class="choice${extra ? ' has-body' : ''}" role="radio" tabindex="0" data-c="${esc(id)}" aria-checked="${on}" ${dis ? 'aria-disabled="true"' : ''}>${icon ? `<i class="i ${icon}"></i>` : ''}<span class="ch-main"><span class="ch-t">${title}</span>${sub ? `<span class="ch-s">${sub}</span>` : ''}</span>${end ? `<span class="ch-end">${end}</span>` : ''}<span class="radio" aria-hidden="true"></span>${extra}</div>`;
+  function bindChoices(on) {
+    document.querySelectorAll('.choice[data-c]').forEach(c => {
+      const pick = e => { if (e && e.target.closest('.stepline')) return; if (c.getAttribute('aria-disabled') === 'true') { const w = c.querySelector('.ch-why'); if (w) App.toast(w.textContent); return; } on(c.dataset.c); };
+      c.onclick = pick; c.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); pick(); } };
+    });
+  }
+  const field = (id, label, val, attrs = '') => `<div class="fld"><label class="f" for="${id}">${esc(label)}</label><input id="${id}" value="${esc(val || '')}" ${attrs}></div>`;
+  const foot = (id, label, ok = true, note = '', alt = '') => `<button type="button" class="btn primary block" id="${id}" ${ok ? '' : 'disabled'}>${label}</button>${alt}${note ? `<p class="foot-note">${note}</p>` : ''}`;
+  const themeStyle = () => { const v = App.themeVars(ev && ev.theme_accent || draft.accent || '#5B0F1D', ev && ev.theme_paper || '#FBF6EF'); return Object.entries(v).map(([k, x]) => `${k}:${x}`).join(';'); };
+
+  function card(o = {}) {
+    const e = { ...(ev || {}), ...o }, st = e.design_style || 'classic', tl = e.headline || e.title;
+    const when = e.starts_at ? `${App.fmtDate(e.starts_at, e.lang || lang)} · ${App.fmtTime(e.starts_at, e.lang || lang)}` : '';
+    if (e.card_image_url && !o.noImg) return `<div class="prev-card" style="${themeStyle()}"><img class="pc-img" src="${esc(e.card_image_url)}" alt=""></div>`;
+    return `<div class="prev-card st-${st}${tl ? '' : ' blank'}${o.big ? ' big' : ''}" style="${themeStyle()}">${o.mark ? '<span class="pc-mark" aria-hidden="true"></span>' : ''}
+      <p class="pc-k" dir="auto">${esc(e.invite_line || t.prevHost)}</p><p class="pc-t" dir="auto">${App.ampTitle(tl || t.prevName)}</p>${e.event_type && e.event_type !== 'wedding' ? `<p class="pc-s" dir="auto">${esc(e.event_type)}</p>` : ''}
+      ${when ? `<p class="pc-w">${esc(when)}</p>` : ''}${e.venue && o.withVenue ? `<p class="pc-s" dir="auto">${esc(e.venue)}</p>` : ''}</div>`;
+  }
+
+  // ---------- 06 Name ----------
+  function drawName() {
+    const v = { title: ev ? ev.headline || ev.title : (draft.title || ''), by: ev ? ev.invite_line || '' : draft.by || '', what: ev && ev.event_type !== 'wedding' ? ev.event_type : draft.what || '' };
+    frame(`<h1 class="scr-h">${t.nameH}</h1><p class="scr-p">${t.nameP}</p>
+      ${field('fTitle', t.evName, v.title, `type="text" dir="auto" placeholder="${esc(t.evNamePh)}" autocomplete="off"`)}
+      ${field('fBy', t.hostBy, v.by, `type="text" dir="auto" placeholder="${esc(t.hostByPh)}" autocomplete="off"`)}
+      ${field('fWhat', t.celeb, v.what, `type="text" dir="auto" placeholder="${esc(t.celebPh)}" autocomplete="off"`)}
+      <p class="sec-k">${t.preview}</p><div id="pv"></div><p class="hint"><i class="i i-sparkle sm"></i><span>${t.nameHint}</span></p>`, foot('goNext', t.saveName, !!v.title.trim()));
+    const pv = () => { draft = { ...draft, title: $('#fTitle').value, by: $('#fBy').value, what: $('#fWhat').value }; $('#pv').innerHTML = card({ headline: draft.title.trim(), title: draft.title.trim(), invite_line: draft.by.trim(), event_type: draft.what.trim() || 'wedding', starts_at: null, card_image_url: null }); $('#goNext').disabled = !draft.title.trim(); };
+    ['fTitle', 'fBy', 'fWhat'].forEach(id => $('#' + id).oninput = pv); pv();
+    $('#goNext').onclick = async () => {
+      const ttl = $('#fTitle').value.trim(); if (!ttl) { App.toast(t.evNameReq); return; }
+      const b = $('#goNext'); b.setAttribute('aria-busy', 'true');
+      const ok = await save({ title: ttl, headline: ttl, invite_line: $('#fBy').value.trim(), event_type: $('#fWhat').value.trim() || 'wedding' });
+      b.removeAttribute('aria-busy'); if (ok) go('when');
+    };
+  }
+
+  // ---------- 07 When: a month calendar, start and end time, reply-by date ----------
+  let calMonth = null;
+  function drawWhen() {
+    const s = kwDate(ev.starts_at), en = kwDate(ev.ends_at), rb = kwDate(ev.rsvp_deadline);
+    draft.date = draft.date || s.date; draft.time = draft.time != null ? draft.time : s.time; draft.end = draft.end != null ? draft.end : en.time; draft.reply = draft.reply != null ? draft.reply : rb.date;
+    const today = App.isoToKw(new Date().toISOString()).date;
+    if (!calMonth) calMonth = (draft.date || today).slice(0, 7);
+    const [Y, M] = calMonth.split('-').map(Number), first = new Date(Date.UTC(Y, M - 1, 1)), days = new Date(Date.UTC(Y, M, 0)).getUTCDate();
+    const loc = lang === 'ar' ? 'ar-KW-u-nu-latn' : 'en-GB';
+    const mName = first.toLocaleDateString(loc, { month: 'long', year: 'numeric', timeZone: 'UTC' });
+    const wd = [...Array(7)].map((_, i) => new Date(Date.UTC(2026, 10, 1 + i)).toLocaleDateString(loc, { weekday: 'narrow', timeZone: 'UTC' }));
+    let cells = wd.map(w => `<span class="wd" aria-hidden="true">${w}</span>`).join('') + '<span></span>'.repeat(first.getUTCDay());
+    for (let d = 1; d <= days; d++) { const iso = `${calMonth}-${String(d).padStart(2, '0')}`; cells += `<button type="button" data-d="${iso}" aria-pressed="${iso === draft.date}" ${iso < today ? 'disabled' : ''} aria-label="${esc(new Date(iso + 'T12:00:00Z').toLocaleDateString(loc, { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }))}">${d}</button>`; }
+    frame(`<h1 class="scr-h">${t.whenH}</h1>
+      <div class="cal"><div class="cal-top" role="group" aria-label="${esc(mName)}"><p class="cal-m">${esc(mName)}</p><button type="button" class="cal-nav prev" id="calP" aria-label="${esc(t.prevM)}"><i class="i i-chev sm"></i></button><button type="button" class="cal-nav next" id="calN" aria-label="${esc(t.nextM)}"><i class="i i-chev sm"></i></button></div><div class="cal-g" role="group" aria-label="${esc(mName)}">${cells}</div></div>
+      <div class="two">${field('fTime', t.starts, draft.time, 'type="time"')}${field('fEnd', t.ends, draft.end, 'type="time"')}</div>
+      ${field('fReply', t.replyBy, draft.reply, `type="date" min="${today}"`)}`, foot('goNext', t.saveWhen, !!(draft.date && draft.time)));
+    const ok = () => { $('#goNext').disabled = !(draft.date && draft.time); };
+    document.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { draft.date = b.dataset.d; document.querySelectorAll('[data-d]').forEach(x => x.setAttribute('aria-pressed', x === b)); ok(); });
+    const shift = n => { const d = new Date(Date.UTC(Y, M - 1 + n, 1)); calMonth = d.toISOString().slice(0, 7); drawWhen(); };
+    $('#calP').onclick = () => shift(-1); $('#calN').onclick = () => shift(1);
+    $('#calP').disabled = calMonth <= today.slice(0, 7);
+    $('#fTime').oninput = e => { draft.time = e.target.value; ok(); }; $('#fEnd').oninput = e => { draft.end = e.target.value; }; $('#fReply').oninput = e => { draft.reply = e.target.value; };
+    $('#goNext').onclick = async () => {
+      const st = App.kwToIso(draft.date, draft.time); let end = draft.end ? App.kwToIso(draft.date, draft.end) : '';
+      if (end && end < st) end = new Date(new Date(end).getTime() + 864e5).toISOString();
+      const b = $('#goNext'); b.setAttribute('aria-busy', 'true');
+      const r = await save({ starts_at: st, ends_at: end, rsvp_deadline: draft.reply ? App.kwToIso(draft.reply, '23:59') : '' });
+      b.removeAttribute('aria-busy'); if (r) { draft = {}; go('where'); }
+    };
+  }
+
+  // ---------- 08 Where ----------
+  function drawWhere() {
+    const parts = String(ev.venue || '').split(' · ');
+    const sepOn = String(ev.note || '').includes(T.en.sepNote) || String(ev.note || '').includes(T.ar.sepNote);
+    frame(`<h1 class="scr-h">${t.whereH}</h1>
+      <div class="searchbox"><i class="i i-search"></i><input type="search" id="fVenue" dir="auto" aria-label="${esc(t.venue)}" placeholder="${esc(t.venuePh)}" value="${esc(parts[0] || '')}" autocomplete="off"></div>
+      ${field('fHall', t.hall, parts.slice(1).join(' · '), `type="text" dir="auto" placeholder="${esc(t.hallPh)}"`)}
+      ${field('fMap', t.map, ev.map_url, 'type="url" dir="ltr" placeholder="https://maps.app.goo.gl/…"')}
+      <label class="check-row"><span>${t.sep}</span><input type="checkbox" id="fSep" ${sepOn ? 'checked' : ''}></label>`, foot('goNext', t.savePlace, !!parts[0]));
+    $('#fVenue').oninput = () => { $('#goNext').disabled = !$('#fVenue').value.trim(); };
+    $('#goNext').onclick = async () => {
+      const v = $('#fVenue').value.trim(), hall = $('#fHall').value.trim(); if (!v) return;
+      let note = String(ev.note || '').split('\n').filter(l => l.trim() !== T.en.sepNote && l.trim() !== T.ar.sepNote).join('\n').trim();
+      if ($('#fSep').checked) note = (note ? note + '\n' : '') + T[ev.lang === 'en' ? 'en' : 'ar'].sepNote;
+      const b = $('#goNext'); b.setAttribute('aria-busy', 'true');
+      const r = await save({ venue: hall ? `${v} · ${hall}` : v, map_url: $('#fMap').value.trim(), note });
+      b.removeAttribute('aria-busy'); if (r) go('team');
+    };
+  }
+
+  // ---------- 09 Team ----------
+  const isMe = m => !!(m.is_me || m.me);
+  function drawTeam() {
+    const roleW = r => r === 'host' ? t.owner : r === 'door' ? t.door : t.cohost;
+    const rows = members.map(m => `<div class="mrow"><span class="m-main"><span class="m-n" dir="auto">${esc(isMe(m) && me && me.name ? me.name : m.name || (m.phone ? App.prettyPhone(m.phone) : m.email) || '')}</span><span class="m-s">${roleW(m.role)}${m.phone && m.name ? ` · <span dir="ltr">${esc(App.prettyPhone(m.phone))}</span>` : ''}</span></span>
+      ${isMe(m) ? `<span class="m-end">${t.you}</span>` : m.role === 'host' ? '' : `<button type="button" class="btn quiet small" data-rm="${esc(m.id)}" aria-label="${esc(t.removeL(m.name || m.phone || ''))}"><i class="i i-trash sm"></i></button>`}</div>`).join('');
+    frame(`<h1 class="scr-h">${t.teamH}</h1><div class="mlist">${rows}</div>
+      <button type="button" class="btn quiet addline" id="addCo"><i class="i i-plus"></i>${t.addCohost}</button>
+      <button type="button" class="btn quiet addline" id="addDoor"><i class="i i-plus"></i>${t.addDoor}</button>
+      <p class="t-small">${t.cohostNote}</p><p class="t-small">${t.doorNote}</p>`,
+      foot('goNext', t.saveTeam, true, '', `<button type="button" class="btn quiet block" id="pvGuest">${t.previewGuest}</button>`));
+    $('#addCo').onclick = () => memberSheet('cohost'); $('#addDoor').onclick = () => memberSheet('door');
+    document.querySelectorAll('[data-rm]').forEach(b => b.onclick = async () => { const r = await rpc('remove_member_v2', { p_member: b.dataset.rm }); if (r.error) { App.toast(t.saveErr); return; } await reloadMembers(); drawTeam(); });
+    $('#pvGuest').onclick = previewGuest;
+    $('#goNext').onclick = () => { ls.set('new-team-' + ev.id, '1'); go('design'); };
+  }
+  async function reloadMembers() { const m = await rpc('list_members_v2', { p_event: ev.id }); members = Array.isArray(m.data) ? m.data : members; }
+  function memberSheet(role) {
+    sheet(role === 'door' ? t.addDoor : t.addCohost, `${field('mName', t.mName, '', 'type="text" dir="auto" autocomplete="off"')}<div style="height:12px"></div>${field('mPhone', t.mPhone, '', 'type="tel" dir="ltr" inputmode="tel" placeholder="+965 9XXX XXXX"')}
+      <p class="t-small">${role === 'door' ? t.doorNote : t.cohostNote}</p><button type="button" class="btn primary block" id="mGo">${t.mAdd(role)}</button>`);
+    $('#mGo').onclick = async () => {
+      const phone = App.normPhone($('#mPhone').value); if (phone.length < 10) { App.toast(t.short); $('#mPhone').focus(); return; }
+      const b = $('#mGo'); b.setAttribute('aria-busy', 'true');
+      const r = await rpc('add_member_v2', { p_event: ev.id, p_name: $('#mName').value.trim(), p_phone: phone, p_email: null, p_role: role });
+      b.removeAttribute('aria-busy'); if (r.error) { App.toast(t.saveErr); return; }
+      App.closeSheet($('#sheet')); await reloadMembers(); drawTeam();
+    };
+  }
+
+  // ---------- 10 Design and its sub-screens ----------
+  function drawDesign() {
+    const cov = ev.card_image_url ? t.uploaded : designReq ? t.beingMade : t.none;
+    frame(`<h1 class="scr-h">${t.designH}</h1>${card({ big: true, mark: true, withVenue: true })}
+      <div class="lines"><button type="button" class="line" data-sub="style"><span class="l">${t.style}</span><span class="v">${t.STY[ev.design_style || 'classic']}</span><i class="i i-chev"></i></button>
+      <button type="button" class="line" data-sub="language"><span class="l">${t.language}</span><span class="v">${ev.lang === 'en' ? t.en : t.ar}</span><i class="i i-chev"></i></button>
+      <button type="button" class="line" data-sub="cover"><span class="l">${t.cover}</span><span class="v">${cov}</span><i class="i i-chev"></i></button></div>`,
+      foot('goNext', t.saveDesign, true, '', `<button type="button" class="btn quiet block" id="pvGuest">${t.previewGuest}</button>`));
+    document.querySelectorAll('[data-sub]').forEach(b => b.onclick = () => go(b.dataset.sub));
+    $('#pvGuest').onclick = previewGuest;
+    $('#goNext').onclick = async () => { if (!ev.design_style) await save({ design_style: 'classic' }); go('guests'); };
+  }
+  function drawStyle() {
+    draft.style = draft.style || ev.design_style || 'classic'; draft.accent = draft.accent || ev.theme_accent;
+    const cur = COLOURS.find(c => c[0].toLowerCase() === String(draft.accent || '').toLowerCase());
+    frame(`<h1 class="scr-h">${t.styleH}</h1><p class="scr-p">${t.styleP}</p><div class="choices">${['classic', 'modern', 'minimal'].map(k => choice(k, draft.style === k, t.STY[k], '', '', '', `<div class="ch-body" style="flex-basis:100%">${card({ design_style: k, theme_accent: draft.accent, noImg: true })}</div>`)).join('')}</div>
+      <div class="sw-row"><p class="sec-k">${t.colour}</p><p class="sec-k" style="color:var(--ink)">${cur ? cur[lang === 'ar' ? 2 : 1] : ''}</p></div>
+      <div class="swatches" role="group" aria-label="${esc(t.colour)}">${COLOURS.map(c => `<button type="button" class="swatch" data-col="${c[0]}" aria-pressed="${!!cur && cur[0] === c[0]}" aria-label="${esc(c[lang === 'ar' ? 2 : 1])}"><span style="background:${c[0]}"></span></button>`).join('')}</div>`,
+      foot('goNext', t.saveStyle), { title: t.style });
+    bindChoices(k => { draft.style = k; drawStyle(); });
+    document.querySelectorAll('[data-col]').forEach(b => b.onclick = () => { draft.accent = b.dataset.col; drawStyle(); });
+    $('#goNext').onclick = async () => { if (await save({ design_style: draft.style, theme_accent: draft.accent || ev.theme_accent })) { draft = {}; go('design'); } };
+  }
+  function drawLanguage() {
+    draft.lang = draft.lang || ev.lang || lang;
+    frame(`<h1 class="scr-h">${t.langH}</h1><p class="scr-p">${t.langP}</p><div class="choices">${choice('en', draft.lang === 'en', t.en, '')}${choice('ar', draft.lang === 'ar', t.ar, '')}</div>`, foot('goNext', t.saveLang), { title: t.language });
+    bindChoices(k => { draft.lang = k; drawLanguage(); });
+    $('#goNext').onclick = async () => { if (await save({ lang: draft.lang })) { draft = {}; go('design'); } };
+  }
+  function drawCover() {
+    draft.cover = draft.cover || (ev.card_image_url ? 'upload' : designReq ? 'ask' : 'upload');
+    frame(`<h1 class="scr-h">${t.coverH}</h1><p class="scr-p">${t.coverP}</p><div class="choices">
+      ${choice('upload', draft.cover === 'upload', t.upOwn, t.upOwnS, '', 'i-upload')}${choice('ask', draft.cover === 'ask', t.askUs, t.askUsS(lang === 'ar' ? `من ${App.kwd(15000, 'ar')}` : `From ${App.kwd(15000, 'en')}`), '', 'i-sparkle')}${choice('none', draft.cover === 'none', t.noCover, t.noCoverS)}</div>`,
+      foot('goNext', t.coverGo[draft.cover]), { title: t.cover });
+    bindChoices(k => { draft.cover = k; drawCover(); });
+    $('#goNext').onclick = async () => {
+      if (draft.cover === 'upload') return go('upload');
+      if (draft.cover === 'ask') return go('ask');
+      if (ev.card_image_url && !(await save({ card_image_url: '' }))) return;
+      draft = {}; go('design');
+    };
+  }
+  function drawUpload() {
+    const f = pendingFile;
+    frame(`<h1 class="scr-h">${t.upH}</h1><p class="scr-p">${t.upP}</p>
+      <label class="upbox"><input type="file" id="fFile" accept="image/*,.pdf"><i class="i i-upload"></i><span>${t.choose}</span><small>${t.chooseS}</small></label>
+      ${ev.card_image_url || f ? `<p class="sec-k">${t.uploaded}</p><div class="infocard"><i class="i i-check"></i><div><b dir="auto">${esc(f ? f.name : (ev.card_image_url || '').split('/').pop())}</b>${f ? `<span>${(f.size / 1048576).toFixed(1)} MB</span>` : ''}</div></div><p class="sec-k">${t.looks}</p>${card()}` : ''}`,
+      foot('goNext', t.useDesign, !!ev.card_image_url), { title: t.cover });
+    $('#fFile').onchange = async e => {
+      const file = e.target.files[0]; e.target.value = ''; if (!file) return;
+      if (file.size > 10 * 1048576) { App.toast(t.tooBig); return; }
+      App.toast(t.uploading);
+      try { const { url, pal } = await App.uploadCard(ev.id, file); pendingFile = file; await save({ card_image_url: url, theme_accent: pal.accent, theme_paper: pal.paper }); drawUpload(); }
+      catch (err) { why(err); App.toast(t.upErr); }
+    };
+    $('#goNext').onclick = () => { pendingFile = null; draft = {}; go('design'); };
+  }
+  function drawAsk() {
+    frame(`<h1 class="scr-h">${t.askH}</h1><p class="scr-p">${t.askP}</p>
+      ${field('dIdea', t.idea, draft.idea, `type="text" dir="auto" placeholder="${esc(t.ideaPh)}"`)}
+      <div class="fld"><label class="f" for="dWord">${t.wording}</label><textarea id="dWord" rows="2" dir="auto">${esc(draft.word || '')}</textarea></div>
+      ${field('dCol', t.colours, draft.col, `type="text" dir="auto" placeholder="${esc(t.coloursPh)}"`)}
+      <div class="line"><span class="l t-small">${t.ready2}</span><span class="v" style="font-weight:600;font-size:var(--fs-b)">${App.kwd(15000, lang)}</span></div>`,
+      foot('goNext', t.sendReq, true, t.payLater), { title: t.cover });
+    $('#goNext').onclick = async () => {
+      const idea = $('#dIdea').value.trim(); if (!idea) { App.toast(t.needIdea); $('#dIdea').focus(); return; }
+      const b = $('#goNext'); b.setAttribute('aria-busy', 'true');
+      const r = await rpc('request_design_v2', { p_event: ev.id, p_idea: idea, p_wording: $('#dWord').value.trim() || null, p_colours: $('#dCol').value.trim() || null, p_photos: [] });
+      b.removeAttribute('aria-busy'); if (r.error) { App.toast(t.saveErr); return; }
+      designReq = { id: r.data, at: Date.now() }; ls.set('new-design-' + ev.id, JSON.stringify(designReq)); draft = {}; go('asked');
+    };
+  }
+  function drawAsked() {
+    const by = fmtShort(new Date(Date.now() + 2 * 864e5).toISOString());
+    frame(`<h1 class="scr-h">${t.sentH}</h1><p class="scr-p">${t.sentP}</p><div class="reqline"><i class="i i-clock"></i><div><b>${t.cover}</b><span>${t.beingMade} · ${lang === 'ar' ? 'جاهزة قبل ' + esc(by) : 'ready by ' + esc(by)}</span></div></div>`,
+      foot('goNext', t.backDesign), { title: t.cover });
+    $('#goNext').onclick = () => go('design');
+  }
+
+  // ---------- 11 Guests ----------
+  function drawGuests() {
+    const q = gq.trim(), qd = App.asciiDigits(q).replace(/\D/g, '');
+    let list = guests.slice().reverse();
+    if (q) { const byName = App.searchNames(guests, q).map(x => x.item); list = byName.concat(qd.length >= 3 ? guests.filter(g => (g.phone || '').includes(qd) && !byName.includes(g)) : []); }
+    const shown = q || showAllG ? list : list.slice(0, 5);
+    const sub = g => [t.seatsW(g.seats || 1), g.side].filter(Boolean).map(esc).join(' · ');
+    frame(`<div class="headrow"><h1 class="scr-h">${t.guestsH}</h1><span class="cnt">${guests.length}</span></div>
+      <div class="toolrow"><button type="button" class="btn pillsoft" id="gPaste"><i class="i i-list sm"></i>${t.paste}</button><label class="btn pillsoft" style="position:relative"><input type="file" id="gFile" accept=".xlsx,.xls,.csv,.docx" style="position:absolute;opacity:0;width:1px;height:1px"><i class="i i-upload sm"></i>${t.upXls}</label></div>
+      <div class="searchbox"><i class="i i-search"></i><input type="search" id="gQ" dir="auto" placeholder="${esc(t.searchPh)}" aria-label="${esc(t.searchPh)}" value="${esc(gq)}"></div>
+      ${guests.length ? `<div class="mlist">${shown.map(g => `<button type="button" class="mrow" data-g="${g.id}"><span class="m-main"><span class="m-n" dir="auto">${esc(g.name)}</span><span class="m-s">${sub(g)}</span></span><i class="i i-chev"></i></button>`).join('')}</div>
+        ${!q && !showAllG && list.length > 5 ? `<button type="button" class="btn quiet addline" id="gAll">${t.showAll(list.length)}</button>` : ''}` : `<p class="t-body">${t.noGuests}</p>`}
+      <button type="button" class="btn secondary" id="gAdd"><i class="i i-plus"></i>${t.addOne}</button>`,
+      foot('goNext', t.saveGuests, guests.length > 0, guests.length ? t.gFoot(guests.length, seatsOf()) : t.needGuest));
+    $('#gQ').oninput = e => { gq = e.target.value; const pos = e.target.selectionStart; drawGuests(); const i = $('#gQ'); i.focus(); try { i.setSelectionRange(pos, pos); } catch (er) {} };
+    document.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { editG = guests.find(g => g.id === b.dataset.g); go('guest'); });
+    if ($('#gAll')) $('#gAll').onclick = () => { showAllG = true; drawGuests(); };
+    $('#gAdd').onclick = () => { editG = null; go('guest'); };
+    $('#gPaste').onclick = pasteSheet;
+    $('#gFile').onchange = async e => {
+      const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+      try { const r = await App.parseGuestFile(f); if (!r.rows.length) { App.toast(t.fileNone); return; } pasteSheet(null, r); } catch (err) { why(err); App.toast(t.fileErr); }
+    };
+    $('#goNext').onclick = () => go('package');
+  }
+  function pasteSheet(_, pre) {
+    let parsed = pre || null;
+    const body = () => `<p class="t-small" style="margin:0 0 10px">${t.pasteP}</p><textarea id="pText" rows="6" dir="auto" placeholder="${esc(t.pastePh)}"></textarea>
+      <div style="margin:10px 0"><button type="button" class="btn secondary" id="pCheck">${t.check}</button></div><div id="pOut"></div>`;
+    sheet(t.pasteH, body());
+    const show = () => {
+      if (!parsed) return;
+      $('#pOut').innerHTML = (parsed.rows.length ? `<p class="t-body">${t.found(parsed.rows.length)}</p><div class="mlist">${parsed.rows.map(g => `<div class="mrow"><span class="m-main"><span class="m-n" dir="auto">${esc(g.name)}</span><span class="m-s"><span dir="ltr">${esc(App.prettyPhone(g.phone))}</span> · ${esc(t.seatsW(g.seats))}</span></span></div>`).join('')}</div>` : '')
+        + (parsed.bad.length ? `<div class="panel flat tone-wait badl"><p class="t-tone">${t.badL}</p><ul>${parsed.bad.slice(0, 30).map(l => `<li><bdi>${esc(l)}</bdi></li>`).join('')}</ul></div>` : '')
+        + (parsed.rows.length ? `<button type="button" class="btn primary block" id="pAdd" style="margin-top:12px">${t.addN(parsed.rows.length)}</button>` : '');
+      if ($('#pAdd')) $('#pAdd').onclick = async () => {
+        const seen = new Set(guests.map(g => g.phone)), rows = parsed.rows.filter(g => !seen.has(g.phone) && seen.add(g.phone)).map(g => ({ ...g, event_id: ev.id }));
+        const { data, error } = await sb.from('guests').upsert(rows, { onConflict: 'event_id,phone', ignoreDuplicates: true }).select('*');
+        if (error) { why(error); App.toast(t.addErr); return; }
+        guests = guests.concat(data || []); App.closeSheet($('#sheet')); App.toast(t.added((data || []).length)); drawGuests();
+      };
+    };
+    $('#pCheck').onclick = () => { parsed = App.parseGuestLines($('#pText').value.split(/\n/)); if (!parsed.rows.length && !parsed.bad.length) return; show(); };
+    show();
+  }
+  function drawGuest() {
+    const g = editG || {}, extra = Math.max(0, (g.seats || 1) - 1);
+    if (draft.gExtra == null) { draft.gExtra = extra; draft.gBring = extra > 0; draft.gSide = g.side || ''; }
+    const groups = [...new Set([...GROUPS[lang], ...guests.map(x => x.side).filter(Boolean)])];
+    const stepper = `<div class="stepline"><span>${t.upTo}</span><div class="stepper" id="gStep" role="group" aria-label="${esc(t.upTo)}"><button type="button" data-d="-1" aria-label="${esc(t.less)}" ${draft.gExtra <= 1 ? 'disabled' : ''}>−</button><output aria-live="polite">${Math.max(1, draft.gExtra)}</output><button type="button" data-d="1" aria-label="${esc(t.more)}" ${draft.gExtra >= App.MAX_EXTRAS ? 'disabled' : ''}>+</button></div></div>`;
+    frame(`<h1 class="scr-h">${editG ? t.editH : t.addH}</h1>
+      ${field('gName', t.gName, draft.gName != null ? draft.gName : g.name, 'type="text" dir="auto" autocomplete="off"')}
+      ${field('gPhone', t.gPhone, draft.gPhone != null ? draft.gPhone : (g.phone ? App.prettyPhone(g.phone) : ''), 'type="tel" dir="ltr" inputmode="tel" placeholder="+965 9XXX XXXX" autocomplete="off"')}
+      <p class="sec-k">${t.bring}</p><div class="choices" role="radiogroup" aria-label="${esc(t.bring)}">${choice('one', !draft.gBring, t.justThem, t.justThemS)}${choice('more', draft.gBring, t.canBring, t.canBringS, '', '', draft.gBring ? stepper : '')}</div>
+      <p class="sec-k">${t.group}</p><div class="gchips" role="group" aria-label="${esc(t.group)}">${groups.map(s => `<button type="button" class="gchip" data-side="${esc(s)}" aria-pressed="${draft.gSide === s}">${bdi(s)}</button>`).join('')}</div>`,
+      foot('gSave', t.saveGuest, true, '', editG ? `<button type="button" class="btn danger block" id="gDel">${t.removeGuest}</button>` : ''), { title: t.guestsH });
+    const keep = () => { draft.gName = $('#gName').value; draft.gPhone = $('#gPhone').value; };
+    bindChoices(k => { keep(); draft.gBring = k === 'more'; if (draft.gBring && draft.gExtra < 1) draft.gExtra = 1; drawGuest(); });
+    document.querySelectorAll('#gStep [data-d]').forEach(b => b.onclick = e => { e.stopPropagation(); keep(); draft.gExtra = Math.max(1, Math.min(App.MAX_EXTRAS, draft.gExtra + +b.dataset.d)); drawGuest(); });
+    document.querySelectorAll('[data-side]').forEach(b => b.onclick = () => { keep(); draft.gSide = draft.gSide === b.dataset.side ? '' : b.dataset.side; drawGuest(); });
+    $('#gSave').onclick = async () => {
+      keep();
+      const name = draft.gName.trim(), phone = App.normPhone(draft.gPhone), seats = draft.gBring ? 1 + draft.gExtra : 1;
+      if (!name) { App.toast(t.typeName); $('#gName').focus(); return; }
+      if (phone.length < 10) { App.toast(t.short); $('#gPhone').focus(); return; }
+      const row = { name, phone, seats, side: draft.gSide || null };
+      const b = $('#gSave'); b.setAttribute('aria-busy', 'true');
+      const r = editG ? await sb.from('guests').update(row).eq('id', editG.id).select('*').single() : await sb.from('guests').insert({ ...row, event_id: ev.id }).select('*').single();
+      b.removeAttribute('aria-busy');
+      if (r.error) { why(r.error); App.toast(r.error.code === '23505' ? t.dup : t.addErr); return; }
+      guests = editG ? guests.map(x => x.id === editG.id ? r.data : x) : guests.concat(r.data);
+      draft = {}; editG = null; go('guests');
+    };
+    if ($('#gDel')) $('#gDel').onclick = async () => {
+      const { error } = await sb.from('guests').delete().eq('id', editG.id);
+      if (error) { App.toast(t.saveErr); return; }
+      guests = guests.filter(x => x.id !== editG.id); draft = {}; editG = null; go('guests');
+    };
+  }
+
+  // ---------- P1 / P1a Pick a package ----------
+  async function loadQuotes(door) {
+    const out = {};
+    if (!PK) { const r = await sb.from('packages').select('*'); PK = Object.fromEntries((r.data || []).map(p => [p.code, p])); }
+    await Promise.all(['basic', 'plus', 'premium'].map(async k => { const r = await rpc('quote_v2', { p_event: ev.id, p_package: k, p_door: k === 'basic' ? !!door : false }); if (!r.error && r.data) out[k] = { ...r.data, door_included: PK[k] ? !!PK[k].door_included : k !== 'basic' }; }));
+    quotes = out; return out;
+  }
+  async function drawPackage() {
+    if (!Object.keys(quotes).length) { frame(`<h1 class="scr-h">${t.pkgH}</h1><p class="scr-p">…</p>`, ''); await loadQuotes(sel.door); }
+    const want = qs.get('package') || ls.get('new-package');
+    if (!sel.pkg && want && quotes[want] && quotes[want].fits) sel.pkg = want;
+    if (sel.pkg && quotes[sel.pkg] && !quotes[sel.pkg].fits) sel.pkg = null;
+    if (!sel.pkg) sel.pkg = ['basic', 'plus', 'premium'].find(k => quotes[k] && quotes[k].fits) || null;
+    const n = (quotes.basic || quotes.plus || {}).guest_count ?? seatsOf();
+    const base = k => ((quotes[k] || {}).items || []).find(i => i.kind === 'package') || {};
+    const doorIt = q => (q.items || []).find(i => i.kind === 'door_addon');
+    const DS = { basic: t.doorNo, plus: t.doorYes, premium: t.doorDesign };
+    const rows = ['basic', 'plus', 'premium'].filter(k => quotes[k]).map(k => { const q = quotes[k], lim = q.invite_limit;
+      return choice(k, sel.pkg === k, pkgName(k), `${lim ? t.upToN(lim) + '<br>' : ''}${DS[k]}${q.fits ? '' : `</span><span class="ch-why">${t.tooSmall(n, lim)}`}`, App.kwd(base(k).amount_fils, lang), '', '', !q.fits); }).join('');
+    const incl = sel.pkg && quotes[sel.pkg] && quotes[sel.pkg].door_included;
+    const addonP = App.kwd(10000, lang);
+    const doorRow = !sel.pkg ? '' : incl ? `<div class="line"><i class="i i-door"></i><span class="l"><b style="font-weight:500">${t.doorInc}</b><br><span class="t-small">${t.doorIncS}</span></span><i class="i i-check"></i></div>`
+      : `<label class="check-row line"><i class="i i-door"></i><span class="l">${t.addDoorT}<br><span class="t-small">${t.addDoorS(addonP)}</span></span><input type="checkbox" id="pDoor" ${sel.door ? 'checked' : ''}></label>`;
+    const tot = sel.pkg ? quotes[sel.pkg].total_fils : 0;
+    frame(`<h1 class="scr-h">${t.pkgH}</h1><p class="scr-p">${t.pkgP(n)}</p><div class="choices" role="radiogroup" aria-label="${esc(t.pkgH)}">${rows}</div>${doorRow}`,
+      foot('goNext', sel.pkg ? t.choosePkg(pkgName(sel.pkg), App.kwd(tot, lang)) : t.pickPkg, !!sel.pkg));
+    bindChoices(k => { sel.pkg = k; if (quotes[k].door_included) sel.door = false; drawPackage(); });
+    if ($('#pDoor')) $('#pDoor').onchange = async e => { sel.door = e.target.checked; await loadQuotes(sel.door); drawPackage(); };
+    $('#goNext').onclick = async () => { if (await save({ package: sel.pkg, door_addon: !!sel.door && !quotes[sel.pkg].door_included })) { ls.set('new-package', sel.pkg); go('send'); } };
+  }
+
+  // ---------- S1 How we send ----------
+  const AR_DEFAULT = 'حياكم الله {الاسم}\n\nنتشرف بدعوتكم لحضور {المناسبة} يوم {التاريخ} الساعة {الوقت}.\n\nلتأكيد الحضور أو الاعتذار:\n{الرابط}';
+  const tplOf = e => e.message_template || (e.lang === 'en' ? App.DEFAULT_TEMPLATE_EN : AR_DEFAULT);
+  function drawSend() {
+    draft.ch = draft.ch || (ev.send_channel === 'sms' ? 'sms' : 'whatsapp');
+    draft.tpl = draft.tpl != null ? draft.tpl : tplOf(ev);
+    const tok = ev.lang === 'en' ? T.en.tplHint : T.ar.tplHint;
+    frame(`<h1 class="scr-h">${t.sendH}</h1><p class="sec-k">${t.sendK}</p>
+      <div class="lines" role="radiogroup" aria-label="${esc(t.sendH)}">${['whatsapp', 'sms'].map(k => `<div class="line choice-line" role="radio" tabindex="0" data-c="${k}" aria-checked="${draft.ch === k}" style="cursor:pointer"><i class="i ${k === 'sms' ? 'i-env' : 'i-whatsapp'}"></i><span class="l">${k === 'sms' ? t.sms : t.wa}<br><span class="t-small">${k === 'sms' ? t.smsS : t.waS(App.BRAND[lang])}</span></span><span class="radio" aria-hidden="true"></span></div>`).join('')}</div>
+      ${CONFIG.WHATSAPP_AUTO ? '' : `<p class="note-box">${t.byHandNote}</p>`}
+      <div class="fld"><label class="f" for="sTpl">${t.msg}</label><textarea id="sTpl" rows="5" dir="auto">${esc(draft.tpl)}</textarea><p class="help" dir="auto">${esc(tok)}</p></div>`, foot('goNext', t.saveSend));
+    document.querySelectorAll('.choice-line').forEach(c => { const pick = () => { draft.tpl = $('#sTpl').value; draft.ch = c.dataset.c; drawSend(); }; c.onclick = pick; c.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); pick(); } }; });
+    $('#sTpl').oninput = e => { draft.tpl = e.target.value; };
+    $('#goNext').onclick = async () => {
+      const tpl = $('#sTpl').value.trim();
+      const patch = { send_channel: draft.ch };
+      if (tpl && tpl !== tplOf({ lang: ev.lang })) patch.message_template = tpl;
+      if (await save(patch)) { draft = {}; go('review'); }
+    };
+  }
+
+  // ---------- 12 Review and send ----------
+  function drawReview() {
+    const q = quotes[ev.package] || {}, inc = q.door_included;
+    const when = ev.starts_at ? `${fmtShort(ev.starts_at)}, ${App.fmtTime(ev.starts_at, lang)}` : t.notSet;
+    const L = (l, v, cls = '') => `<div class="line"><span class="l">${l}</span><span class="v ${cls}" dir="auto">${v}</span></div>`;
+    frame(`<h1 class="scr-h">${t.revH}</h1><div class="lines">
+      ${L(t.rEvent, esc(ev.headline || ev.title))}${L(t.rWhen, esc(when))}${L(t.rWhere, esc(ev.venue || t.notSet))}${L(t.rGuests, esc(t.guestsV(guests.length, seatsOf())))}
+      ${L(t.rReply, esc(ev.rsvp_deadline ? fmtShort(ev.rsvp_deadline) : t.notSet))}${L(t.rPkg, esc(ev.package ? `${pkgName(ev.package)} · ${App.kwd((q.items || [{}])[0].amount_fils, lang)}` : t.notSet))}
+      ${L(t.rDoor, inc || ev.door_addon ? t.on : t.off)}${L(t.rSend, ev.send_channel === 'sms' ? t.smsW : t.waW)}${L(t.rMsg, esc(App.fillTemplate(tplOf(ev), ev, { name: ev.lang === 'en' ? 'Dana' : 'دانة', seats: 2, token: 'preview' }).replace(/\s+/g, ' ')))}</div>`,
+      foot('goNext', t.choosePay, !!ev.package, '', `<button type="button" class="btn quiet block" id="pvGuest">${t.previewGuest}</button>`));
+    $('#pvGuest').onclick = previewGuest;
+    $('#goNext').onclick = () => go('pay');
+  }
+  async function previewGuest() {
+    const r = await rpc('preview_invite_v2', { p_event: ev.id });
+    const inv = r.data || { event: ev, name: lang === 'ar' ? 'دانة' : 'Dana' };
+    const e = { ...ev, ...(inv.event || {}) };
+    sheet(t.previewH, `<p class="t-small" style="margin:0 0 12px">${t.sampleNote}</p>${card({ ...e, big: true, mark: true, withVenue: true })}<p class="t-body" style="margin:14px 0 0" dir="auto">${esc(e.lang === 'en' ? `Dear ${inv.name},` : `حياكم الله ${inv.name}`)}</p>`);
+  }
+
+  // ---------- P2 Pay ----------
+  async function drawPay() {
+    if (!quotes[ev.package]) await loadQuotes(ev.door_addon);
+    const q = quotes[ev.package] || { items: [], total_fils: 0 };
+    const pk = (q.items || []).find(i => i.kind === 'package') || {}, dr = (q.items || []).find(i => i.kind === 'door_addon');
+    const L = (l, v, cls = '') => `<div class="line ${cls}"><span class="l">${l}</span><span class="v">${v}</span></div>`;
+    frame(`<h1 class="scr-h">${t.payH}</h1><div class="lines">${L(`${esc(pkgName(ev.package))}`, App.kwd(pk.amount_fils, lang))}${L(t.rDoor, q.door_included ? t.included : dr ? App.kwd(dr.amount_fils, lang) : t.notAdded)}${L(t.total, App.kwd(q.total_fils, lang), 'tot')}</div>
+      <p class="sec-k">${t.payWith}</p><div class="lines" role="radiogroup" aria-label="${esc(t.payWith)}">${[['knet', t.knet, t.knetS], ['card', t.card, t.cardS]].map(([k, a, b]) => `<div class="line choice-line" role="radio" tabindex="0" data-c="${k}" aria-checked="${sel.method === k}" style="cursor:pointer"><span class="l">${a}<br><span class="t-small">${b}</span></span><span class="radio" aria-hidden="true"></span></div>`).join('')}</div>`,
+      foot('goPay', t.payBtn(App.kwd(q.total_fils, lang)), true, t.payNote));
+    document.querySelectorAll('.choice-line').forEach(c => { const pick = () => { sel.method = c.dataset.c; drawPay(); }; c.onclick = pick; c.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); pick(); } }; });
+    $('#goPay').onclick = async () => {
+      const b = $('#goPay'); b.setAttribute('aria-busy', 'true');
+      const r = await rpc('start_checkout_v2', { p_event: ev.id, p_package: ev.package, p_door: !!ev.door_addon, p_method: sel.method });
+      if (r.error) { b.removeAttribute('aria-busy'); App.toast(t.payErr); return; }
+      ls.set('new-step-' + ev.id, 'pay');
+      const c = await App.checkout(r.data);
+      b.removeAttribute('aria-busy');
+      App.toast(c.error === 'payments_not_connected' ? t.payOff : t.payErr);
+    };
+  }
+
+  // ---------- 13 / 13a Sent ----------
+  function drawSent() {
+    if (ev.status === 'draft') {
+      $('#root').innerHTML = `<div class="scr"><div class="fl-top"><p class="fl-title">${esc(ev.headline || ev.title)}</p></div><div class="scr-main centered"><h1 class="scr-h">${t.waitPayH}</h1><p class="scr-p">${t.waitPayP}</p></div><div class="scr-foot">${foot('goNext', t.payAgain)}</div></div>`;
+      $('#goNext').onclick = () => go('pay'); return;
+    }
+    const door = !!(quotes[ev.package] && quotes[ev.package].door_included) || ev.door_addon || ev.package === 'plus' || ev.package === 'premium';
+    const auto = !!CONFIG.WHATSAPP_AUTO && ev.send_channel === 'whatsapp';
+    $('#root').innerHTML = `<div class="scr"><div class="fl-top"><p class="fl-title">${esc(ev.headline || ev.title)}</p></div>
+      <div class="scr-main centered"><span class="done-mark"><i class="i i-check"></i></span><h1 class="scr-h">${auto ? t.sentAutoH : t.sentReadyH}</h1><p class="scr-p">${(auto ? t.sentAutoP : t.sentReadyP)(guests.length)}</p>
+      ${door ? `<div class="infocard"><i class="i i-door"></i><div><b>${t.doorLinkT}</b><span>${t.doorLinkS}</span></div></div>` : ''}</div>
+      <div class="scr-foot">${foot('goNext', t.openEvent)}</div></div>`;
+    $('#goNext').onclick = () => { location.href = `host.html?event=${ev.id}`; };
+    ls.set('new-step-' + ev.id, 'sent');
+  }
+
+  // ---------- sheet ----------
+  function sheet(h, body) { $('#shH').textContent = h; $('#shBody').innerHTML = body; $('#sheet .sheet-x').setAttribute('aria-label', lang === 'ar' ? 'إغلاق' : 'Close'); App.openSheet($('#sheet')); }
+
+  const DRAW = { name: drawName, when: drawWhen, where: drawWhere, team: drawTeam, design: drawDesign, style: drawStyle, language: drawLanguage, cover: drawCover, upload: drawUpload, ask: drawAsk, asked: drawAsked,
+    guests: drawGuests, guest: drawGuest, package: drawPackage, send: drawSend, review: drawReview, pay: drawPay, sent: drawSent };
+  function draw() { if (!ev && screen !== 'name') screen = 'name'; (DRAW[screen] || drawName)(); }
+  function applyLang() { t = T[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; document.title = App.brandTitle(t.title, lang); draw(); }
+
+  document.title = App.brandTitle(t.title, lang);
+  SinaAuth.mount($('#root'), { audience: 'host', start: qs.get('package') ? 'signup' : 'welcome', onLang: () => { lang = lang === 'ar' ? 'en' : 'ar'; ls.set('host-lang', lang); t = T[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; },
+    onReady: async (session, prof) => {
+      me = prof;
+      if (qs.get('package')) ls.set('new-package', qs.get('package'));
+      const id = qs.get('event');
+      if (id) {
+        if (!(await load(id))) return;
+        if (ev.status !== 'draft' && qs.get('step') !== 'sent') { location.replace(`host.html?event=${ev.id}`); return; }
+        screen = ev.status !== 'draft' ? 'sent' : resumeAt();
+      }
+      draw();
+    } });
+});
+</script>
+</body>
+</html>

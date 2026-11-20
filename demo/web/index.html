@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head><script src="/RSVP/demo/demo-backend.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+  // Login links from the email (magic link / code) land on the site root: hand them to the dashboard untouched.
+  (function () {
+    var h = location.hash, s = location.search;
+    if (/access_token=|refresh_token=|error_description=|[#&]type=(magiclink|recovery|signup|invite|email)/.test(h) || /[?&](code|token_hash|token|type)=/.test(s))
+      location.replace('host.html' + s + h);
+    // language before first paint: ?lang=, then the visitor's choice, then the browser (Arabic for Arabic browsers)
+    var q = (s.match(/[?&]lang=(ar|en)/) || [])[1], saved = null;
+    try { saved = localStorage.getItem('sina-lang'); } catch (e) {}
+    var lang = q || saved || (/^ar\b/i.test(navigator.language || '') ? 'ar' : 'en');
+    document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  })();
+</script>
+<title>Demo · Sina · Invitations for every gathering in Kuwait</title>
+<meta name="description" content="Make your invite, and we send it to every guest on WhatsApp or by SMS. Watch the replies come in. On the night, our team checks every guest in at the door.">
+<link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+<meta name="theme-color" content="#FDFDFD">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sina">
+<meta property="og:title" content="Sina · Invite your guests. Know who’s coming.">
+<meta property="og:description" content="Invitations on WhatsApp, live replies and door check-in for every gathering in Kuwait.">
+<meta property="og:url" content="https://snalawwad.github.io/RSVP/">
+<meta property="og:image" content="https://snalawwad.github.io/RSVP/assets/brand/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Sina, سنة, with the arch mark">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sina · Invite your guests. Know who’s coming.">
+<meta name="twitter:description" content="Invitations on WhatsApp, live replies and door check-in for every gathering in Kuwait.">
+<meta name="twitter:image" content="https://snalawwad.github.io/RSVP/assets/brand/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600&family=Fraunces:opsz,wght@9..144,600&family=Noto+Kufi+Arabic:wght@400;600&family=Noto+Naskh+Arabic:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<script defer src="config.js"></script>
+</head>
+<body>
+<a class="skip" href="#main"><span data-l="en">Skip to content</span><span data-l="ar" lang="ar">انتقل للمحتوى</span></a>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span data-l="en" class="brand-en">Sina</span><span data-l="ar" lang="ar" class="brand-ar">سنة</span></a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#how"><span data-l="en">How it works</span><span data-l="ar" lang="ar">كيف تشتغل</span></a>
+      <a href="#packages"><span data-l="en">Packages</span><span data-l="ar" lang="ar">الباقات</span></a>
+      <a href="#questions"><span data-l="en">Questions</span><span data-l="ar" lang="ar">أسئلة</span></a>
+    </nav>
+    <div class="acts">
+      <button type="button" class="lang" id="langBtn"><span data-l="en" lang="ar">العربية</span><span data-l="ar" lang="en">English</span></button>
+      <a class="btn sm text" href="host.html"><span data-l="en">Log in</span><span data-l="ar" lang="ar">تسجيل الدخول</span></a>
+      <a class="btn sm" href="host.html#new"><span data-l="en">Create an event</span><span data-l="ar" lang="ar">سوّوا مناسبة</span></a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" aria-labelledby="heroH">
+    <div class="wrap">
+      <div class="hero-text">
+        <p class="kicker"><span data-l="en">Invites for every gathering in Kuwait</span><span data-l="ar" lang="ar">دعوات لكل مناسبة في الكويت</span></p>
+        <h1 id="heroH"><span data-l="en">Invite your guests. Know who’s coming.</span><span data-l="ar" lang="ar">ادعوا ضيوفكم، واعرفوا مين بيحضر.</span></h1>
+        <p class="lead"><span data-l="en">Make your invite, and we send it to every guest on WhatsApp or by SMS. Watch the replies come in. On the night, our team checks every guest in at the door.</span><span data-l="ar" lang="ar">سوّوا دعوتكم، واحنا نرسلها لكل ضيف على الواتساب أو برسالة نصية. تابعوا الردود أول بأول، وليلة المناسبة فريقنا يسجّل حضور الضيوف على الباب.</span></p>
+        <div class="ctas">
+          <a class="btn" href="host.html#new"><span data-l="en">Create your event</span><span data-l="ar" lang="ar">سوّوا مناسبتكم</span></a>
+          <a class="btn soft" id="demoLink" href="invite.html?demo=1"><span data-l="en">See an example invite</span><span data-l="ar" lang="ar">شوفوا دعوة تجريبية</span></a>
+        </div>
+        <p class="small"><span data-l="en">No app needed for your guests. They just open the link.</span><span data-l="ar" lang="ar">ضيوفكم ما يحتاجون تطبيق، بس يفتحون الرابط.</span></p>
+      </div>
+      <div class="phone-panel" aria-hidden="true">
+        <div class="phone-scale">
+          <div class="phone">
+            <div class="ph-status"><span>9:41</span><i><b></b><b></b></i></div>
+            <div class="ph-head"><span data-l="en">Sina</span><span data-l="ar">سنة</span></div>
+            <div class="ph-main">
+              <div class="ph-card">
+                <span class="f"><span data-l="en">The Al Ghanim and Al Awwad families</span><span data-l="ar">عائلة الغانم وعائلة العوّاد</span></span>
+                <span class="n"><span data-l="en">Sara &amp; Mohammad</span><span data-l="ar">سارة ومحمد</span></span>
+                <span class="l"><span data-l="en">invite you to celebrate their engagement</span><span data-l="ar">يتشرفون بدعوتكم لحفل الخطوبة</span></span>
+              </div>
+              <p class="ph-line"><span data-l="en">Reem, this invite is for 2 people. Please reply by 4 December.</span><span data-l="ar">ريم، هالدعوة لشخصين. ردّوا علينا قبل ٤ ديسمبر.</span></p>
+              <div class="ph-rows">
+                <div class="ph-row"><svg viewBox="0 0 20 20" fill="none" stroke="#26181A" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"><rect x="2.92" y="4.17" width="14.17" height="12.92" rx="2.08"/><path d="M2.92 8.33h14.17M6.67 2.5v3.33M13.33 2.5v3.33"/></svg><span><span data-l="en">Friday 18 December, 7:00 PM</span><span data-l="ar">الجمعة ١٨ ديسمبر، ٧:٠٠ م</span></span></div>
+                <div class="ph-row"><svg viewBox="0 0 20 20" fill="none" stroke="#26181A" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17.5V4.17c0-.92.75-1.67 1.67-1.67h6.66c.92 0 1.67.75 1.67 1.67V17.5M2.5 17.5h15M11.67 10h.01"/></svg><span><span data-l="en">Al Hamra Hall, Sharq</span><span data-l="ar">قاعة الحمرا، شرق</span></span><em><span data-l="en">Directions</span><span data-l="ar">اللوكيشن</span></em></div>
+              </div>
+            </div>
+            <div class="ph-foot"><b><span data-l="en">I’ll be there</span><span data-l="ar">تأكيد الحضور</span></b><b><span data-l="en">Can’t make it</span><span data-l="ar">اعتذار</span></b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="how" aria-labelledby="howH">
+    <div class="wrap">
+      <h2 id="howH"><span data-l="en">How it works</span><span data-l="ar" lang="ar">كيف تشتغل</span></h2>
+      <ol class="steps">
+        <li><span class="num"><span data-l="en">01</span><span data-l="ar">٠١</span></span><h3><span data-l="en">Create your event</span><span data-l="ar" lang="ar">سوّوا مناسبتكم</span></h3><p><span data-l="en">Name, date, place and the people hosting with you.</span><span data-l="ar" lang="ar">الاسم والتاريخ والمكان، واللي يستضيفون معكم.</span></p></li>
+        <li><span class="num"><span data-l="en">02</span><span data-l="ar">٠٢</span></span><h3><span data-l="en">Pick a design</span><span data-l="ar" lang="ar">اختاروا التصميم</span></h3><p><span data-l="en">Choose a style and colour, upload your own, or ask us to design it.</span><span data-l="ar" lang="ar">اختاروا الستايل واللون، أو ارفعوا تصميمكم، أو خلّونا نصممه لكم.</span></p></li>
+        <li><span class="num"><span data-l="en">03</span><span data-l="ar">٠٣</span></span><h3><span data-l="en">We send it</span><span data-l="ar" lang="ar">نرسلها عنكم</span></h3><p><span data-l="en">Choose WhatsApp or SMS and write your message. We send each guest their own invite.</span><span data-l="ar" lang="ar">اختاروا الواتساب أو الرسائل النصية واكتبوا رسالتكم، ونرسل لكل ضيف دعوته الخاصة.</span></p></li>
+        <li><span class="num"><span data-l="en">04</span><span data-l="ar">٠٤</span></span><h3><span data-l="en">Follow replies</span><span data-l="ar" lang="ar">تابعوا الردود</span></h3><p><span data-l="en">See who’s coming and how many they’re bringing, live.</span><span data-l="ar" lang="ar">شوفوا مين بيحضر وكم شخص معاه، أول بأول.</span></p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="sec" id="night" aria-labelledby="nightH">
+    <div class="wrap split">
+      <div class="say">
+        <p class="kicker"><span data-l="en">On the night</span><span data-l="ar" lang="ar">ليلة المناسبة</span></p>
+        <h2 id="nightH"><span data-l="en">We’re at the door, so you can enjoy your night.</span><span data-l="ar" lang="ar">احنا على الباب، عشان تستانسون بليلتكم.</span></h2>
+        <p class="lead"><span data-l="en">Our staff check each guest in by name. You see arrivals live on your phone, and no one gets in without an invite.</span><span data-l="ar" lang="ar">فريقنا يسجّل حضور كل ضيف بالاسم. وتشوفون الواصلين أول بأول من تلفونكم، وما يدخل أحد بدون دعوة.</span></p>
+      </div>
+      <ul class="points">
+        <li><svg viewBox="0 0 16 16" fill="none" stroke="#5B0F1D" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.33 8.33l3 3L12.67 5"/></svg><div><b><span data-l="en">Guest list at the door</span><span data-l="ar" lang="ar">قائمة الضيوف على الباب</span></b><span><span data-l="en">Names and party sizes, ready before guests arrive.</span><span data-l="ar" lang="ar">الأسماء وعدد كل مجموعة، جاهزة قبل وصول الضيوف.</span></span></div></li>
+        <li><svg viewBox="0 0 16 16" fill="none" stroke="#5B0F1D" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.33 8.33l3 3L12.67 5"/></svg><div><b><span data-l="en">Live arrivals</span><span data-l="ar" lang="ar">الواصلين أول بأول</span></b><span><span data-l="en">See who’s in and who’s still on the way.</span><span data-l="ar" lang="ar">شوفوا مين وصل ومين بالطريق.</span></span></div></li>
+        <li><svg viewBox="0 0 16 16" fill="none" stroke="#5B0F1D" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.33 8.33l3 3L12.67 5"/></svg><div><b><span data-l="en">Included in Plus and Premium</span><span data-l="ar" lang="ar">مع باقة بلس وبريميوم</span></b><span><span data-l="en">Or add it to Basic for 10 KWD.</span><span data-l="ar" lang="ar">أو أضيفوها لباقة بيسك بـ ١٠ د.ك.</span></span></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="sec cream" id="packages" aria-labelledby="pkH">
+    <div class="wrap">
+      <div class="pk-head">
+        <h2 id="pkH"><span data-l="en">Packages</span><span data-l="ar" lang="ar">الباقات</span></h2>
+        <p class="lead"><span data-l="en">Pay once per event, when you send. Prices in Kuwaiti dinar.</span><span data-l="ar" lang="ar">تدفعون مرة وحدة لكل مناسبة، وقت الإرسال. الأسعار بالدينار الكويتي.</span></p>
+      </div>
+      <div class="cards">
+        <article class="pk" aria-labelledby="pkBasic">
+          <div class="t"><b id="pkBasic"><span data-l="en">Basic</span><span data-l="ar" lang="ar">بيسك</span></b></div>
+          <div class="price"><span data-l="en">15 KWD</span><span data-l="ar" lang="ar">١٥ د.ك</span></div>
+          <ul>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="#5B0F1D" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.33 8.33l3 3L12.67 5"/></svg><span><span data-l="en">Up to 50 invites</span><span data-l="ar" lang="ar">حتى ٥٠ دعوة</span></span></li>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="#5B0F1D" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.33 8.33l3 3L12.67 5"/></svg><span><span data-l="en">WhatsApp and SMS sharing</span><span data-l="ar" lang="ar">إرسال على الواتساب والرسائل النصية</span></span></li>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="#5B0F1D" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.33 8.33l3 3L12.67 5"/></svg><span><span data-l="en">Door check-in +10 KWD</span><span data-l="ar" lang="ar">تسجيل الحضور على الباب +١٠ د.ك</span></span></li>
+          </ul>
+          <a class="btn soft" href="host.html#new&amp;package=basic"><span data-l="en">Choose Basic</span><span data-l="ar" lang="ar">اختاروا بيسك</span></a>
+        </article>
+        <article class="pk top" aria-labelledby="pkPlus">
+          <div class="t"><b id="pkPlus"><span data-l="en">Plus</span><span data-l="ar" lang="ar">بلس</span></b><em><span data-l="en">Most picked</span><span data-l="ar" lang="ar">الأكثر طلباً</span></em></div>
+          <div class="price"><span data-l="en">35 KWD</span><span data-l="ar" lang="ar">٣٥ د.ك</span></div>
+          <ul>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="#5B0F1D" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.33 8.33l3 3L12.67 5"/></svg><span><span data-l="en">Up to 150 invites</span><span data-l="ar" lang="ar">حتى ١٥٠ دعوة</span></span></li>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="#5B0F1D" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.33 8.33l3 3L12.67 5"/></svg><span><span data-l="en">WhatsApp and SMS sharing</span><span data-l="ar" lang="ar">إرسال على الواتساب والرسائل النصية</span></span></li>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="#5B0F1D" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.33 8.33l3 3L12.67 5"/></svg><span><span data-l="en">Door check-in included</span><span data-l="ar" lang="ar">تسجيل الحضور على الباب مشمول</span></span></li>
+          </ul>
+          <a class="btn" href="host.html#new&amp;package=plus"><span data-l="en">Choose Plus</span><span data-l="ar" lang="ar">اختاروا بلس</span></a>
+        </article>
+        <article class="pk" aria-labelledby="pkPremium">
+          <div class="t"><b id="pkPremium"><span data-l="en">Premium</span><span data-l="ar" lang="ar">بريميوم</span></b></div>
+          <div class="price"><span data-l="en">75 KWD</span><span data-l="ar" lang="ar">٧٥ د.ك</span></div>
+          <ul>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="#5B0F1D" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.33 8.33l3 3L12.67 5"/></svg><span><span data-l="en">Up to 400 invites</span><span data-l="ar" lang="ar">حتى ٤٠٠ دعوة</span></span></li>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="#5B0F1D" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.33 8.33l3 3L12.67 5"/></svg><span><span data-l="en">Door check-in included</span><span data-l="ar" lang="ar">تسجيل الحضور على الباب مشمول</span></span></li>
+            <li><svg viewBox="0 0 16 16" fill="none" stroke="#5B0F1D" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.33 8.33l3 3L12.67 5"/></svg><span><span data-l="en">Design made by our team</span><span data-l="ar" lang="ar">تصميم من فريقنا</span></span></li>
+          </ul>
+          <a class="btn soft" href="host.html#new&amp;package=premium"><span data-l="en">Choose Premium</span><span data-l="ar" lang="ar">اختاروا بريميوم</span></a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="questions" aria-labelledby="qH">
+    <div class="wrap">
+      <h2 id="qH"><span data-l="en">Questions</span><span data-l="ar" lang="ar">أسئلة</span></h2>
+      <div class="qa">
+        <div><h3><span data-l="en">Do my guests need an app?</span><span data-l="ar" lang="ar">ضيوفي يحتاجون تطبيق؟</span></h3><p><span data-l="en">No. They open your link in any browser and reply in a few taps.</span><span data-l="ar" lang="ar">لا. يفتحون رابطكم من أي متصفح ويردّون بكم ضغطة.</span></p></div>
+        <div><h3><span data-l="en">Can guests bring someone?</span><span data-l="ar" lang="ar">يقدر الضيف يجيب أحد معاه؟</span></h3><p><span data-l="en">You decide for each guest. Some come alone, some can bring people.</span><span data-l="ar" lang="ar">انتوا تحددون لكل ضيف. بعضهم يجي بروحه، وبعضهم يقدر يجيب ناس معاه.</span></p></div>
+        <div><h3><span data-l="en">Can I change the invite after sending?</span><span data-l="ar" lang="ar">أقدر أغيّر الدعوة بعد الإرسال؟</span></h3><p><span data-l="en">Yes. Tell us what to change, the text, details or design, and we update it for you. 10 KWD each time.</span><span data-l="ar" lang="ar">إي. قولوا لنا شنو تبون تغيّرون، النص أو التفاصيل أو التصميم، واحنا نعدّله لكم. ١٠ د.ك لكل تعديل.</span></p></div>
+        <div><h3><span data-l="en">Is it in Arabic too?</span><span data-l="ar" lang="ar">الدعوة تكون بالعربي؟</span></h3><p><span data-l="en">Yes. Invites can be in English, Arabic, or both.</span><span data-l="ar" lang="ar">إي. الدعوة تكون بالعربي أو بالإنجليزي أو بالاثنين.</span></p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="bandH">
+    <div class="wrap">
+      <h2 id="bandH"><span data-l="en">Your guest list, sorted.</span><span data-l="ar" lang="ar">قائمة ضيوفكم، مرتبة.</span></h2>
+      <p><span data-l="en">Set up your event in a few minutes. Pay only when you send.</span><span data-l="ar" lang="ar">جهّزوا مناسبتكم بدقايق، وادفعوا بس وقت الإرسال.</span></p>
+      <a class="btn soft" href="host.html#new"><span data-l="en">Create your event</span><span data-l="ar" lang="ar">سوّوا مناسبتكم</span></a>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span data-l="en" class="brand-en">Sina</span><span data-l="ar" lang="ar" class="brand-ar">سنة</span></a>
+    <nav aria-label="Footer">
+      <a id="igLink" href="" target="_blank" rel="noopener" hidden><span data-l="en">Instagram</span><span data-l="ar" lang="ar">إنستغرام</span></a>
+      <a id="waLink" href="" target="_blank" rel="noopener" hidden><span data-l="en">WhatsApp us</span><span data-l="ar" lang="ar">راسلونا على الواتساب</span></a>
+      <a href="terms.html"><span data-l="en">Terms</span><span data-l="ar" lang="ar">الشروط</span></a>
+      <a href="privacy.html"><span data-l="en">Privacy</span><span data-l="ar" lang="ar">الخصوصية</span></a>
+      <span><span data-l="en">© <span class="yr">2026</span> <span class="brand-en">Sina</span></span><span data-l="ar" lang="ar">© <span class="yr-ar">٢٠٢٦</span> <span class="brand-ar">سنة</span></span></span>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var html = document.documentElement;
+  var T = {
+    en: { title: 'Sina · Invitations for every gathering in Kuwait', lang: 'Language: العربية', nav: 'Sections', foot: 'Footer' },
+    ar: { title: 'سنة · دعوات لكل مناسبة في الكويت', lang: 'اللغة: English', nav: 'الأقسام', foot: 'روابط' }
+  };
+  function apply(lang) {
+    html.lang = lang; html.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    document.title = T[lang].title;
+    document.getElementById('langBtn').setAttribute('aria-label', T[lang].lang);
+    document.querySelector('.nav').setAttribute('aria-label', T[lang].nav);
+    document.querySelector('footer nav').setAttribute('aria-label', T[lang].foot);
+    document.getElementById('demoLink').href = 'invite.html?demo=1&lang=' + lang;
+  }
+  document.getElementById('langBtn').addEventListener('click', function () {
+    var lang = html.lang === 'ar' ? 'en' : 'ar';
+    try { localStorage.setItem('sina-lang', lang); } catch (e) {}
+    apply(lang);
+  });
+  apply(html.lang === 'ar' ? 'ar' : 'en');
+  var y = new Date().getFullYear();
+  document.querySelectorAll('.yr').forEach(function (e) { e.textContent = y; });
+  document.querySelectorAll('.yr-ar').forEach(function (e) { e.textContent = y.toLocaleString('ar-KW', { useGrouping: false }); });
+  // config.js (deferred): brand names, WhatsApp and Instagram, shown only once they are real
+  window.addEventListener('DOMContentLoaded', function () {
+    var C = window.CONFIG || {};
+    if (C.BRAND_EN) document.querySelectorAll('.brand-en').forEach(function (e) { e.textContent = C.BRAND_EN; });
+    if (C.BRAND) document.querySelectorAll('.brand-ar').forEach(function (e) { e.textContent = C.BRAND; });
+    var wa = /^\d{8,15}$/.test(C.SUPPORT_WHATSAPP || '') ? C.SUPPORT_WHATSAPP : '';
+    if (wa) { var w = document.getElementById('waLink'); w.href = 'https://wa.me/' + wa; w.hidden = false; }
+    var ig = /^https:\/\/(www\.)?instagram\.com\/[\w.]+\/?$/.test(C.INSTAGRAM_URL || '') ? C.INSTAGRAM_URL : '';
+    if (ig) { var i = document.getElementById('igLink'); i.href = ig; i.hidden = false; }
+  });
+})();
+</script>
+</body>
+</html>
