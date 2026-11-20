@@ -152,7 +152,8 @@
       const v = App.asciiDigits(inp.value).replace(/\D/g, '').slice(0, LEN);
       s.code = v; if (s.err === 'wrong') s.err = null;
       paintBoxes();
-      if (v.length === LEN) $('auGo').focus({ preventScroll: true });
+      // all digits in: log in straight away (once per code, so a wrong code isn't re-sent until it's changed)
+      if (v.length === LEN && v !== s.lastTried) { s.lastTried = v; $('auGo').focus({ preventScroll: true }); verify(); }
     };
     inp.onkeydown = e => { if (e.key === 'Enter' && s.code.length === LEN) verify(); };
     $('auGo').onclick = verify;

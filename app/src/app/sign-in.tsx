@@ -181,7 +181,7 @@ export default function SignIn() {
           {step === 'code' ? (
             <View style={{ gap: space[3] }}>
               <CodeBoxes ref={boxes} value={code} label={t.login.code} bad={codeErr === 'wrong'} testID="code"
-                onChange={(v) => { setCode(v); if (codeErr === 'wrong') setCodeErr(''); }} onDone={() => undefined} />
+                onChange={(v) => { setCode(v); if (codeErr === 'wrong') setCodeErr(''); if (v.length === 6 && !busy) verify(v); }} onDone={() => undefined} />
               {codeErr === 'wrong' ? (
                 <View style={{ gap: space[1] }}>
                   <Txt v="small" tone="no" accessibilityRole="alert" testID="code-wrong">{A.wrong}</Txt>
