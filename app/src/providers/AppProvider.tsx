@@ -63,8 +63,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [sessionLoaded, setSessionLoaded] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    supabase.auth.getSession().then(async ({ data }) => {
+      let s = data.session;
+      // Demo builds only (sample-data server, never the real one): sign in by themselves, no login screen.
+      const demo = process.env.EXPO_PUBLIC_DEMO_LOGIN;
+      if (!s && demo) {
+        const r = await supabase.auth.verifyOtp({ email: demo, token: '123456', type: 'email' }).catch(() => null);
+        s = r?.data?.session ?? null;
+      }
+      setSession(s);
       setSessionLoaded(true);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
