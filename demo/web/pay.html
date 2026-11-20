@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
   };
   let t = T[lang];
   const orderId = new URLSearchParams(location.search).get('order');
-  let order = null, method = 'knet', busy = false;
+  let order = null, method = 'knet', busy = false, doorFils = null;
 
   // ---------- the gateway: the only part a real payment provider replaces ----------
   const GATEWAY = {
@@ -86,7 +86,9 @@ document.addEventListener('DOMContentLoaded', function () {
     if (CONFIG.PAYMENT_MODE !== 'test') { shell(`<div class="centered"><h1 class="scr-h">${t.waitH}</h1><p class="scr-p">${t.waitP}</p></div>`); setTimeout(refresh, 4000); return; }
     const what = (t.what[o.kind] || t.what.invite_change)(t.PK[o.package] || o.package || '');
     shell(`<h1 class="scr-h">${t.title}</h1>
-      <div class="lines"><div class="line"><span class="l">${esc(what)}</span><span class="v">${amt}</span></div><div class="line tot"><span class="l">${t.total}</span><span class="v">${amt}</span></div></div>
+      <div class="lines">${o.kind === 'package' && o.door && doorFils > 0 && o.amount_fils > doorFils
+        ? `<div class="line"><span class="l">${esc(what)}</span><span class="v">${App.kwd(o.amount_fils - doorFils, lang)}</span></div><div class="line"><span class="l">${esc(t.what.door_addon())}</span><span class="v">${App.kwd(doorFils, lang)}</span></div>`
+        : `<div class="line"><span class="l">${esc(what)}</span><span class="v">${amt}</span></div>`}<div class="line tot"><span class="l">${t.total}</span><span class="v">${amt}</span></div></div>
       <p class="sec-k">${t.payWith}</p><div class="lines" role="radiogroup" aria-label="${esc(t.payWith)}">${[['knet', t.knet, t.knetS], ['card', t.card, t.cardS]].map(([k, a, b]) => `<div class="line choice-line" role="radio" tabindex="0" data-m="${k}" aria-checked="${method === k}" style="cursor:pointer"><span class="l">${a}<br><span class="t-small">${b}</span></span><span class="radio" aria-hidden="true"></span></div>`).join('')}</div>
       <p class="note-box">${t.testNote}</p>`,
       `<button type="button" class="btn primary block" id="pPay">${t.pay(amt)}</button><button type="button" class="btn secondary block" id="pFail">${t.fail}</button>`);
@@ -104,7 +106,11 @@ document.addEventListener('DOMContentLoaded', function () {
   async function refresh() {
     const r = await status();
     if (r.error) { message(t.notYours, '', t.home, 'host.html'); return; }
-    order = r.data; if (order.method) method = order.method; draw();
+    order = r.data; if (order.method) method = order.method;
+    if (order.kind === 'package' && order.door && doorFils == null) {   // show the door as its own line, as in the design (P2)
+      try { const d = await sb.from('prices').select('price_fils').eq('code', 'door_addon').single(); doorFils = d.data ? d.data.price_fils : 0; } catch (e) { doorFils = 0; }
+    }
+    draw();
   }
 
   document.title = App.brandTitle(t.title, lang);

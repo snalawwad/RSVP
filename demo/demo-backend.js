@@ -38,7 +38,7 @@
   var ready = (async function () {
     var mod = await import(PGLITE + 'index.js');
     var crypto_ = await import(PGLITE + 'contrib/pgcrypto.js');
-    var opts = { extensions: { pgcrypto: crypto_.pgcrypto }, relaxedDurability: true };
+    var opts = { extensions: { pgcrypto: crypto_.pgcrypto }, relaxedDurability: false };   // save every change before the next page opens
     var fresh = true; try { fresh = !localStorage.getItem(FLAG); } catch (e) {}
     if (fresh) {
       var res = await fetch(BASE + 'demo-db.tar.gz');
