@@ -76,7 +76,7 @@ function WhenField({ kind, label, value, onChange, testID }: { kind: 'date' | 't
 
 /** How the invite will look (Sama 10 Design card): host line, name in the chosen colour, when, where. */
 function Preview({ title, by, kind, date, time, venue, style, accent, evLang }: {
-  title: string; by: string; kind: string; date: string; time: string; venue: string; style: Style; accent: string; evLang: Lang;
+  title: string; by: string; /** the occasion as shown (a type's name, or what they typed for Other) */ kind: string; date: string; time: string; venue: string; style: Style; accent: string; evLang: Lang;
 }) {
   const { c, t } = useApp();
   const A = t.a;
@@ -90,7 +90,7 @@ function Preview({ title, by, kind, date, time, venue, style, accent, evLang }: 
       <Txt v="small" style={{ color: '#625350', textAlign: style === 'modern' ? 'auto' : 'center' }}>{by.trim() || A.rqPrevBy}</Txt>
       <Txt v="title" style={{ color: style === 'minimal' ? '#2A1B1D' : accent, textAlign: style === 'modern' ? 'auto' : 'center', fontSize: style === 'minimal' ? 26 : 32, lineHeight: style === 'minimal' ? 34 : 40,
         fontFamily: style === 'modern' ? (ar ? fonts.arDisplayBold : fonts.sansBold) : ar ? fonts.arDisplay : fonts.display, opacity: title.trim() ? 1 : 0.45 }}>{name}</Txt>
-      {kind ? <Txt v="small" style={{ color: '#625350' }}>{A.rqTypes[kind]}</Txt> : null}
+      {kind ? <Txt v="small" style={{ color: '#625350' }}>{kind}</Txt> : null}
       {when ? <Txt v="small" style={{ color: accent, fontWeight: '600', textAlign: style === 'modern' ? 'auto' : 'center' }}>{when}</Txt> : null}
       {venue.trim() ? <Txt v="small" style={{ color: '#625350' }}>{venue.trim()}</Txt> : null}
     </View>
@@ -104,6 +104,7 @@ export default function NewEvent() {
   const [title, setTitle] = useState('');
   const [by, setBy] = useState('');
   const [kind, setKind] = useState<string>('wedding');
+  const [other, setOther] = useState('');   // "Other": the occasion in their own words
   const [date, setDate] = useState('');
   const [time, setTime] = useState('20:00');
   const [replyBy, setReplyBy] = useState('');
@@ -133,9 +134,9 @@ export default function NewEvent() {
 
   const phone = digits(contact);
   // the "add the …" message goes away as soon as the missing thing is filled in
-  useEffect(() => { setErr(''); }, [title, date, contact, step]);
-  const can: Record<Step, boolean> = { name: title.trim().length > 0, when: !!date, where: true, design: true, guests: true, review: phone.length >= 8 };
-  const need: Record<Step, string> = { name: A.rqNeedName, when: A.rqNeedDate, where: '', design: '', guests: '', review: A.rqNeedPhone };
+  useEffect(() => { setErr(''); }, [title, other, date, contact, step]);
+  const can: Record<Step, boolean> = { name: title.trim().length > 0 && (kind !== 'other' || other.trim().length > 0), when: !!date, where: true, design: true, guests: true, review: phone.length >= 8 };
+  const need: Record<Step, string> = { name: !title.trim() ? A.rqNeedName : A.rqNeedOther, when: A.rqNeedDate, where: '', design: '', guests: '', review: A.rqNeedPhone };
 
   function next() {
     if (!can[step]) { setErr(need[step]); return; }
@@ -149,7 +150,7 @@ export default function NewEvent() {
     const n = parseInt(digits(guests), 10);
     const r = await requestEvent({
       event: {
-        title: title.trim(), invite_line: by.trim() || null, event_type: kind, starts_at: kwIso(date, time),
+        title: title.trim(), invite_line: by.trim() || null, event_type: kind === 'other' ? other.trim() || 'other' : kind, starts_at: kwIso(date, time),
         rsvp_deadline: replyBy ? kwIso(replyBy, '23:59') : null, venue: venue.trim() || null, map_url: /^https?:\/\//.test(mapUrl.trim()) ? mapUrl.trim() : null,
         lang: evLang, design_style: style, theme_accent: accent,
       },
@@ -171,7 +172,8 @@ export default function NewEvent() {
     );
   }
 
-  const preview = <Preview title={title} by={by} kind={kind} date={date} time={time} venue={venue} style={style} accent={accent} evLang={evLang} />;
+  const kindLabel = kind === 'other' ? other.trim() : A.rqTypes[kind];
+  const preview = <Preview title={title} by={by} kind={kindLabel} date={date} time={time} venue={venue} style={style} accent={accent} evLang={evLang} />;
   const line = (k: string, v: string, to: Step) => (
     <Pressable key={k} onPress={() => setStep(to)} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: 52, borderBottomWidth: 1, borderColor: c.line }}>
       <Txt v="body" tone="muted" style={{ flex: 1 }}>{k}</Txt>
@@ -191,6 +193,7 @@ export default function NewEvent() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[2] }}>
             {TYPES.map((k) => <Button key={k} small kind={kind === k ? 'primary' : 'secondary'} label={A.rqTypes[k]} onPress={() => setKind(k)} testID={`rq-type-${k}`} />)}
           </View>
+          {kind === 'other' ? <Field label={A.rqOther} placeholder={A.rqOtherPh} value={other} onChangeText={setOther} maxLength={40} autoFocus testID="rq-other" /> : null}
         </View>
         <View style={{ gap: space[2] }}><Txt v="label" tone="muted">{A.rqPreview}</Txt>{preview}</View>
       </>
@@ -263,6 +266,7 @@ export default function NewEvent() {
       <>
         <View style={{ borderTopWidth: 1, borderColor: c.line }}>
           {line(A.rqName, title.trim(), 'name')}
+          {line(A.rqType, kindLabel, 'name')}
           {line(A.rqWhen, [fmtDay(date, lang), fmtClock(time, lang)].filter(Boolean).join(' · '), 'when')}
           {line(A.rqVenue, venue.trim(), 'where')}
           {line(A.rqDesign, `${A.rqStyles[style]} · ${designWord}`, 'design')}
