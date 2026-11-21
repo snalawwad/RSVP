@@ -8,6 +8,7 @@ import { hasEventRequest } from '../../../../lib/api7';
 import { links } from '../../../../lib/config';
 import { Busy, Button, Centered, EmptyState, Icon, PressScale, TabBarFrame, TabButton } from '../../../../components';
 import { HostProvider, tabHref, useHost, type Tab } from '../../../../components/host/HostContext';
+import { DeleteEvent } from '../../../../components/host/DeleteEvent';
 import { HostSheets } from '../../../../components/host/HostSheets';
 import { useApp } from '../../../../providers/AppProvider';
 import { radius, size, space } from '../../../../theme/tokens';
@@ -73,9 +74,12 @@ function EventTabs({ id }: { id: string }) {
             {h.status === 'loading' ? <Busy /> : h.status === 'door' ? (
               <EmptyState title={T.doorH} body={T.doorP} action={<Button big block kind="primary" icon="door" label={T.doorBtn} onPress={() => router.replace({ pathname: '/door/[id]', params: { id } })} />} />
             ) : h.status === 'draft' ? (
-              <EmptyState title={t.a.draftH} body={requested ? t.a.rqDraftP : t.a.draftP} testID="ev-draft"
+              <View style={{ gap: space[2], alignSelf: 'stretch' }}>
+                <EmptyState title={t.a.draftH} body={requested ? t.a.rqDraftP : t.a.draftP} testID="ev-draft"
                 action={links.whatsapp(t.a.draftWa(h.me?.title ?? '')) ? <Button kind="primary" icon="whatsapp" label={t.a.whatsappUs}
                   onPress={() => Linking.openURL(links.whatsapp(t.a.draftWa(h.me?.title ?? ''))!).catch(() => {})} testID="draft-wa" /> : undefined} />
+                {h.me?.role === 'host' ? <DeleteEvent id={id} title={h.me.title} testID="draft-delete" /> : null}
+              </View>
             ) : h.status === 'none' ? (
               <EmptyState title={T.noEvH} body={T.noEvP} />
             ) : (

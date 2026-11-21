@@ -108,6 +108,7 @@
       <div class="panel flat pkg" id="pkgBox" hidden></div>
       <details class="grp" id="logBox" hidden><summary><span class="grp-t"><b data-i18n="activity">Activity</b><small data-i18n="activityP">Replies, check-ins and changes</small></span><i class="i i-chev"></i></summary><div class="grp-b"><div class="glist" id="logRows"></div></div></details>
       <p class="page-links" id="invLinks"></p>
+      <button type="button" class="btn danger block" id="evDel" hidden><i class="i i-trash"></i><span data-i18n="delBtn">Delete event</span></button>
     </section>
 
     <!-- ===== ARRIVALS: door requests, who is here ===== -->
@@ -406,6 +407,7 @@ document.addEventListener('DOMContentLoaded', function () {
     chH: 'Change the invite', chP: 'Your invites are already out. Tell us what to change, the text, details or design, and we’ll update it. Guests see the new version once you approve it.',
     chWhat: 'What should we change?', chWhatPh: 'Change the time to 8 PM, and make the names bigger', chWord: 'New wording (optional)', chWordPh: 'Leave empty to keep the current text', chCol: 'Colours (optional)', chColPh: 'Burgundy and gold',
     chPhotos: 'Add reference photos', chPhotosS: 'Optional. Designs you like', chPhotosN: n => `${n} photo${n === 1 ? '' : 's'} added`, ready1: 'Ready in 1 working day', chGo: p => `Review the payment · ${p}`, chNote: p => `Every change after sending is ${p}`, needWhat: 'Tell us what to change',
+    delBtn: 'Delete event', delH: 'Delete this event?', delP: n => `“${n}” is deleted with its guest list, replies and check-ins. Guests’ invite links stop working. This can’t be undone.`, delPaid: ' We keep the record of your payment. Message us about a refund.', delGo: 'Delete the event', delKeep: 'Keep it', delDone: n => `“${n}” deleted`, delErr: 'Couldn’t delete it. Check your connection and try again.',
     payH: 'Pay', chItem: 'Changes to your invite', total: 'Total', payWith: 'Pay with', knet: 'KNET', card: 'Credit card', order: 'Your order', payBtn: p => `Pay ${p}`,
     payNote: 'Our designer starts right after payment', payOff: 'Payments aren’t switched on yet. Message us and we’ll make the change.', payErr: 'Couldn’t start the payment. Try again.',
     paidChH: 'Paid. Changes requested', paidChP: 'Our designer will send the new version within a day. Guests keep seeing the current invite until you approve it.', chLine: p => `Changes · ${p} paid`, beingMade: d => `Being made · ready by ${d}`,
@@ -435,6 +437,7 @@ document.addEventListener('DOMContentLoaded', function () {
     chH: 'غيّروا الدعوة', chP: 'دعواتكم انرسلت. قولوا لنا شنو نغير، الكلام أو التفاصيل أو التصميم، ونعدلها. الضيوف يشوفون النسخة الجديدة بعد ما توافقون عليها.',
     chWhat: 'شنو نغير؟', chWhatPh: 'غيروا الوقت لـ8 بالليل، وكبّروا الأسماء', chWord: 'كلام جديد (اختياري)', chWordPh: 'خلوه فاضي إذا تبون نفس الكلام', chCol: 'الألوان (اختياري)', chColPh: 'عنابي وذهبي',
     chPhotos: 'أضيفوا صور للفكرة', chPhotosS: 'اختياري. تصاميم عاجبتكم', chPhotosN: n => n === 1 ? 'انضافت صورة وحدة' : `انضافت ${n} صور`, ready1: 'تجهز خلال يوم عمل', chGo: p => `راجعوا الدفع · ${p}`, chNote: p => `أي تعديل بعد الإرسال بـ${p}`, needWhat: 'قولوا لنا شنو نغير',
+    delBtn: 'احذفوا المناسبة', delH: 'تبون تحذفون المناسبة؟', delP: n => `بتنحذف «${n}» مع قائمة الضيوف والردود والحضور، وروابط الدعوات اللي عند الضيوف بتوقف. ما نقدر نرجعها بعدين.`, delPaid: ' نحتفظ بسجل الدفع. راسلونا بخصوص الاسترجاع.', delGo: 'احذفوا المناسبة', delKeep: 'خلوها', delDone: n => `انحذفت «${n}»`, delErr: 'ما قدرنا نحذفها. تأكدوا من النت وجربوا مرة ثانية.',
     payH: 'الدفع', chItem: 'تعديلات على دعوتكم', total: 'المجموع', payWith: 'ادفعوا بـ', knet: 'كي نت', card: 'بطاقة ائتمان', order: 'طلبكم', payBtn: p => `ادفعوا ${p}`,
     payNote: 'المصممة تبدأ أول ما تدفعون', payOff: 'الدفع مو شغال للحين. راسلونا ونسوي لكم التعديل.', payErr: 'ما قدرنا نبدأ الدفع، جربوا مرة ثانية.',
     paidChH: 'وصلنا الدفع، وطلبنا التعديل', paidChP: 'المصممة بترسل لكم النسخة الجديدة خلال يوم، والضيوف يشوفون الدعوة الحالية لين توافقون.', chLine: p => `تعديلات · دفعتوا ${p}`, beingMade: d => `قاعدين نسويها · جاهزة قبل ${d}`,
@@ -504,6 +507,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // the Arabic headline in the Arabic UI when there is one, else the event name
   const evName = () => !ev ? '' : lang === 'ar' && ev.headline && isAr(ev.headline) ? ev.headline : ev.title;
   function showMeta() {
+    if (!ev) return;
     const nm = evName();
     $('#title').innerHTML = App.ampTitle(nm); $('#title').classList.toggle('lat', !isAr(nm));
     $('#tbTitle').textContent = nm;
@@ -654,6 +658,7 @@ document.addEventListener('DOMContentLoaded', function () {
     showMeta(); if (!coRole) renderPub();
     $('#rulesBox').hidden = !v2 || !!mySide;
     $('#logBox').hidden = !v2 || !!mySide; $('#logBox').open = false;
+    $('#evDel').hidden = !v2 || !!mySide || coRole;   // the main host or an admin
     $('#invLinks').innerHTML = admin ? `<a class="btn quiet" href="admin.html"><i class="i i-pen"></i>${t.admin}</a>` : '';
     // a self-serve event (it has a package) changes its invite through a paid request (24h); events our team set up keep the form
     const paidFlow = !!ev.package && !admin;
@@ -667,7 +672,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (channel) sb.removeChannel(channel);
     live = false; channel = null;
     if (!coRole) channel = sb.channel('guests-' + ev.id).on('postgres_changes', { event: '*', schema: 'public', table: 'guests', filter: `event_id=eq.${ev.id}` }, loadGuests)
-      .subscribe(s => { live = s === 'SUBSCRIBED'; showMeta(); });
+      .subscribe(s => { live = s === 'SUBSCRIBED'; if (ev) showMeta(); });   // also fires on close (leaving or deleting the event)
     clearInterval(poll); poll = setInterval(() => { loadGuests(); if (!coRole) { loadReqs(); loadPass(); } }, 20000);
     if (location.hash === '#changed') { history.replaceState(null, '', `host.html?event=${ev.id}`); screenChanged(); }
     else if (location.hash === '#change') { history.replaceState(null, '', `host.html?event=${ev.id}`); go('invite'); screenChange(); }
@@ -675,9 +680,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ---------- guests: load + what changed since last time ----------
   async function loadGuests() {
+    if (!ev) return;
     const id = ev.id;
     // a co-host sees names, party sizes and replies only (cohost_guests_v2: no phone numbers, no links)
     const { data, error } = coRole ? await sb.rpc('cohost_guests_v2', { p_event: id }) : await sb.from('guests').select('*').eq('event_id', id).order('created_at');
+    if (!ev || ev.id !== id) return;   // the event was closed or deleted meanwhile
     if (!ev || ev.id !== id) return;
     if (error) { toast(t.loadErrG); return; }
     guests = coRole ? (data || []).map(g => ({ ...g, phone: null, token: null, source: 'list', sent_at: g.responded_at || null, checked_in_at: g.checked_in_count ? g.responded_at || ev.starts_at : null })) : (data || []);
@@ -957,8 +964,8 @@ document.addEventListener('DOMContentLoaded', function () {
   // ---------- door requests: "Let them in" now; "Turn down" waits a few seconds so it can be undone ----------
   async function loadReqs() {
     if (!v2 || !ev) { reqs = []; renderReqs(); renderHome(); return; }
-    const { data, error } = await sb.rpc('list_exceptions_v2', { p_event: ev.id });
-    if (error) return;
+    const rid = ev.id, { data, error } = await sb.rpc('list_exceptions_v2', { p_event: rid });
+    if (error || !ev || ev.id !== rid) return;
     reqs = data || [];
     renderHome(); renderReqs();
   }
@@ -1033,8 +1040,10 @@ document.addEventListener('DOMContentLoaded', function () {
   };
   async function loadPass() {
     if (!passWindow()) { if (passSt) { passSt = null; renderPass(); } return; }
+    if (!ev) return;
     const id = ev.id;
     const { data, error } = await sb.rpc('pass_send_status_v2', { p_event: id });
+    if (!ev || ev.id !== id) return;
     if (!ev || ev.id !== id) return;
     if (error) { if (App.missingFn(error)) { passOff = true; passSt = null; renderPass(); } return; }
     passSt = data || null; renderPass();
@@ -1102,8 +1111,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ---------- activity log ----------
   $('#logBox').ontoggle = () => { if ($('#logBox').open) loadLog(); };
+  $('#evDel').onclick = async () => {
+    if (!ev) return;
+    const name = ev.headline || ev.title, gone = ev;
+    const yes = await App.ask({ title: t.delH, body: t.delP(name) + (ev.paid_at ? t.delPaid : ''), yes: t.delGo, no: t.delKeep, danger: true });
+    if (!yes) return;
+    const b = $('#evDel'); b.setAttribute('aria-busy', 'true');
+    const { error } = await sb.rpc('delete_event_v2', { p_event: gone.id });
+    b.removeAttribute('aria-busy');
+    if (error) { toast(t.delErr); return; }
+    events = events.filter(x => x.id !== gone.id);
+    toast(t.delDone(name)); showEvents();
+  };
   async function loadLog() {
-    const { data, error } = await sb.rpc('audit_log_v2', { p_event: ev.id });
+    if (!ev) return;
+    const lid = ev.id, { data, error } = await sb.rpc('audit_log_v2', { p_event: lid });
+    if (!ev || ev.id !== lid) return;
     if (error) { $('#logRows').innerHTML = `<p class="empty">${t.logErr}</p>`; return; }
     const ACT = t.act;
     const name = id => { const g = guests.find(x => x.id === id); return g ? g.name : ''; };

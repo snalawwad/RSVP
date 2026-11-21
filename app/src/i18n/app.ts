@@ -82,6 +82,8 @@ export const appEn = {
   anotherH: 'Planning another event?', anotherP: 'Our team sets it up with you. Message us on WhatsApp.', anotherWa: 'Hi Sina, I’d like to plan a new event.',
   cohostNote: 'You’re a co-host: you see who’s coming. Phone numbers and changes stay with the main host.',
   // Create an event (a request: the team finalises it with the host)
+  delBtn: 'Delete event', delH: 'Delete this event?', delP: (n: string) => `“${n}” is deleted with its guest list, replies and check-ins. Guests’ invite links stop working. This can’t be undone.`,
+  delGo: 'Delete the event', delKeep: 'Keep it', delDone: (n: string) => `“${n}” deleted`, delErr: 'Couldn’t delete it. Check your connection and try again.',
   rqNameH: 'Name your event', rqNameP: 'Guests see this at the top of their invite.', rqBy: 'Hosted by', rqByPh: 'e.g. The S and M families',
   rqPreview: 'Preview', rqPrevName: 'Your event name', rqPrevBy: 'Hosted by',
   rqWhenH: 'When is it?', rqWhenP: 'The date and time on the invite.', rqReplyBy: 'Guests reply by (optional)', rqReplyByP: 'We remind guests who haven’t replied before this date.', rqWhen: 'When',
@@ -180,6 +182,8 @@ export const appAr: AppStrings = {
   draftH: 'للحين ما صارت جاهزة', draftP: 'المناسبة للحين تحت التجهيز. راسلونا وفريقنا يساعدكم تكمّلونها.', draftWa: (n) => `هلا سنة، أبي أكمّل تجهيز مناسبتي: ${n}`,
   anotherH: 'عندكم مناسبة ثانية؟', anotherP: 'فريقنا يرتبها معاكم. راسلونا على الواتساب.', anotherWa: 'هلا سنة، أبي أرتب مناسبة جديدة.',
   cohostNote: 'أنتم مشاركين بالاستضافة: تشوفون مين بيحضر، وأرقام التلفونات والتعديلات عند صاحب المناسبة.',
+  delBtn: 'احذفوا المناسبة', delH: 'تبون تحذفون المناسبة؟', delP: (n) => `بتنحذف «${n}» مع قائمة الضيوف والردود والحضور، وروابط الدعوات اللي عند الضيوف بتوقف. ما نقدر نرجعها بعدين.`,
+  delGo: 'احذفوا المناسبة', delKeep: 'خلوها', delDone: (n) => `انحذفت «${n}»`, delErr: 'ما قدرنا نحذفها. تأكدوا من النت وجربوا مرة ثانية.',
   rqNameH: 'سمّوا مناسبتكم', rqNameP: 'الضيوف يشوفون هالاسم فوق بالدعوة.', rqBy: 'أهل المناسبة', rqByPh: 'مثلاً: عائلة س وعائلة م',
   rqPreview: 'شكلها', rqPrevName: 'اسم مناسبتكم', rqPrevBy: 'أهل المناسبة',
   rqWhenH: 'متى المناسبة؟', rqWhenP: 'التاريخ والوقت اللي بالدعوة.', rqReplyBy: 'آخر موعد للرد (اختياري)', rqReplyByP: 'نذكّر اللي ما ردوا قبل هالتاريخ.', rqWhen: 'متى',

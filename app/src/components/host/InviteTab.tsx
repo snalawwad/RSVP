@@ -24,6 +24,7 @@ import { Screen } from '../Screen';
 import { Sheet } from '../Sheet';
 import { Tag } from '../Tag';
 import { Txt } from '../Txt';
+import { DeleteEvent } from './DeleteEvent';
 import { useHost } from './HostContext';
 import { Group, Meta, PanelHead, Paper, useFolds, usePull } from './parts';
 
@@ -331,6 +332,8 @@ export function InviteTab() {
             <ActivityRows log={log} />
           </Group>
         ) : null}
+        {/* delete: the main host or an admin (not a co-host or a family-side host) */}
+        {h.v2 && !h.mySide && !h.cohost && h.ev ? <DeleteEvent id={h.ev.id} title={h.evName} /> : null}
       </Screen>
 
       <Sheet visible={!!chg} onClose={() => setChg(null)} title={T.chgH} closeLabel={T.close} testID="chg-sheet">

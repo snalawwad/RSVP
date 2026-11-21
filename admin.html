@@ -63,6 +63,7 @@
           <a class="row lrow" id="openDoor" href="door.html"><i class="i i-door"></i><span class="row-main"><span class="t-name" data-i18n="openDoor">Door screen</span><span class="t-small" data-i18n="openDoorP">Checking guests in</span></span><i class="i i-chev"></i></a>
           <a class="row lrow" id="testInv" href="#" target="_blank" rel="noopener" hidden><i class="i i-env"></i><span class="row-main"><span class="t-name" data-i18n="testInv">Guest page</span><span class="t-small" data-i18n="testInvP">The invitation as the first guest sees it</span></span><i class="i i-chev"></i></a>
         </div>
+        <button type="button" class="btn danger block" id="evDel" style="margin-top:20px"><i class="i i-trash"></i><span data-i18n="delBtn">Delete event</span></button>
       </div>
 
       <!-- ===== one setup step at a time ===== -->
@@ -274,6 +275,7 @@ document.addEventListener('DOMContentLoaded', function () {
       // step screens + saving
       stepOf: i => `Step ${i} of 5`, go: { team: 'Add the hosts and door team', design: 'Choose the card and colours', guests: 'Add the guest list', send: 'Send the invitations' }, saving: 'Saving…', savedS: 'Saved', heldS: 'Not saved yet', errS: 'Couldn’t save', retry: 'Try again',
       // details
+      delBtn: 'Delete event', delH: 'Delete this event?', delP: n => `“${n}” is deleted with its guest list, replies and check-ins. Guests’ invite links stop working. Any payment record is kept. This can’t be undone.`, delGo: 'Delete the event', delKeep: 'Keep it', delDone: n => `“${n}” deleted`, delErr: 'Couldn’t delete it. Check your connection and try again.',
       fTitle: 'Event name', fTitlePh: 'Reem’s engagement', guestsRead: 'Guests will read:', nameOnPage: 'The name shows on the invite page.',
       fType: 'Type', tWedding: 'Wedding', tMilka: 'Milka', tEngagement: 'Engagement', tGhabga: 'Ghabga', tGraduation: 'Graduation', tBirthday: 'Birthday', tBaby: 'Baby shower', tCorporate: 'Company event', tOther: 'Other',
       fLangL: 'Guests read the invitation in', date: 'Date', time: 'Time', endT: 'Ends at (optional)', venue: 'Venue', map: 'Google Maps link',
@@ -372,6 +374,7 @@ document.addEventListener('DOMContentLoaded', function () {
       stCard: 'الكرت مرفوع', stNoCard: 'ما خلصت للحين', stGuests: (g, p) => `${countWord(g, 'guest', 'ar')} و${countWord(p, 'person', 'ar')}`, stNoGuests: 'ما في ضيوف للحين',
       stAddFirst: 'أضيفوا الضيوف أول', stAllSent: 'انرسلت كلها', stSent: (a, b) => b <= 2 ? `انرسل ${a} من ${b}` : `انرسل ${a} من ${countWord(b, 'guest', 'ar')}`,
       stepOf: i => `الخطوة ${i} من 5`, go: { team: 'أضيفوا أهل المناسبة وفريق الباب', design: 'اختاروا الكرت والألوان', guests: 'أضيفوا قائمة الضيوف', send: 'أرسلوا الدعوات' }, saving: 'نحفظ…', savedS: 'انحفظ', heldS: 'ما انحفظ للحين', errS: 'ما انحفظ', retry: 'حاولوا مرة ثانية',
+      delBtn: 'احذفوا المناسبة', delH: 'تبون تحذفون المناسبة؟', delP: n => `بتنحذف «${n}» مع قائمة الضيوف والردود والحضور، وروابط الدعوات اللي عند الضيوف بتوقف. سجل الدفع يبقى محفوظ. ما نقدر نرجعها بعدين.`, delGo: 'احذفوا المناسبة', delKeep: 'خلوها', delDone: n => `انحذفت «${n}»`, delErr: 'ما قدرنا نحذفها. تأكدوا من النت وجربوا مرة ثانية.',
       fTitle: 'اسم المناسبة', fTitlePh: 'خطوبة ريم', guestsRead: 'بيقرا الضيف:', nameOnPage: 'الاسم يطلع بصفحة الدعوة.',
       fType: 'النوع', tWedding: 'زواج', tMilka: 'ملكة', tEngagement: 'خطوبة', tGhabga: 'غبقة', tGraduation: 'تخرج', tBirthday: 'عيد ميلاد', tBaby: 'استقبال مولود', tCorporate: 'فعالية شركة', tOther: 'غيرها',
       fLangL: 'لغة الدعوة للضيوف', date: 'التاريخ', time: 'الوقت', endT: 'ينتهي الساعة (اختياري)', venue: 'المكان', map: 'رابط اللوكيشن (قوقل ماب)',
@@ -652,6 +655,15 @@ document.addEventListener('DOMContentLoaded', function () {
     if (push) history.pushState({}, '', homeTab === 'events' ? location.pathname : '?tab=' + homeTab);
     window.scrollTo(0, 0);
   }
+  $('#evDel').onclick = async () => {
+    if (!ev) return;
+    const gone = ev, name = ev.title;
+    if (!(await App.ask({ title: t.delH, body: t.delP(name), yes: t.delGo, no: t.delKeep, danger: true }))) return;
+    const { error } = await sb.rpc('delete_event_v2', { p_event: gone.id });
+    if (error) { toast(t.delErr); return; }
+    events = events.filter(x => x.id !== gone.id); ev = null;
+    toast(t.delDone(name)); history.pushState({}, '', location.pathname); homeTab = 'events'; showHome(false);
+  };
   function showOverview(push = true) {
     if (!ev) return;
     flushSave();

@@ -386,6 +386,23 @@
   }
   function closeSheet(sheet) { if (!sheet) return; if (sheet.close && sheet.open) sheet.close(); else sheet.removeAttribute('open'); }
 
+
+  // A yes/no sheet (bottom). resolves true on yes. danger = the yes button is red (deleting).
+  function ask({ title, body, yes, no, danger = false }) {
+    return new Promise(done => {
+      let sh = document.getElementById('askSheet');
+      if (!sh) { sh = document.createElement('dialog'); sh.className = 'sheet'; sh.id = 'askSheet'; sh.setAttribute('aria-labelledby', 'askH'); document.body.appendChild(sh); }
+      const L = uiLang() === 'ar';
+      sh.innerHTML = `<div class="sheet-grab"></div><div class="sheet-top"><h2 class="sheet-h" id="askH">${esc(title)}</h2><button type="button" class="sheet-x" data-close aria-label="${L ? 'إغلاق' : 'Close'}"><i class="i i-x"></i></button></div>`
+        + `<p class="t-body" style="margin:0 0 18px">${esc(body)}</p><button type="button" class="btn ${danger ? 'refuse' : 'primary'} block" id="askYes">${esc(yes)}</button><button type="button" class="btn quiet block" id="askNo" style="margin-top:6px">${esc(no)}</button>`;
+      let answered = false;
+      const end = v => { if (answered) return; answered = true; closeSheet(sh); done(v); };
+      sh.querySelector('#askYes').onclick = () => end(true);
+      sh.querySelector('#askNo').onclick = () => end(false);
+      sh.addEventListener('close', () => end(false), { once: true });
+      openSheet(sh);
+    });
+  }
   // ---------- The Menu: Language, Colours, Help, and Log out set apart at the bottom ----------
   // Page markup (the convention):
   //   <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu"><i class="i i-menu"></i><span class="menu-l">Menu</span></button>
@@ -579,7 +596,7 @@
   window.App = { asciiDigits, bdi, ampTitle, countdown, vibrate, reducedMotion, countUp, uiLang, drawThemeSwitch, sb, $, esc, toast, normPhone, showPhone, fmtDate, fmtTime, kwToIso, isoToKw, inviteLink, waLink, fillTemplate, DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_EN, templateFor,
     mix, lum, rgb2hex, themeVars, applyTheme, calLink, icsBlobUrl, icsText, appleCalUrl, isAppleTouch, requireLogin, signOut, configured, BRAND, brandTitle,
     need, v2Ready, rpc2, missingFn, normName, MAX_EXTRAS, clampSeats, peopleComing,
-    nameKey, nameScore, searchNames, openSheet, closeSheet, setHelp, openHelp, countWord, arN, undoBand, hostWord, HOSTS,
+    nameKey, nameScore, searchNames, openSheet, closeSheet, ask, setHelp, openHelp, countWord, arN, undoBand, hostWord, HOSTS,
     passLink, passKeyOf, passCode, loadScript };
 
   // ======================================================================

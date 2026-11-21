@@ -87,3 +87,6 @@ export async function hasEventRequest(eventId: string): Promise<boolean> {
   const r = await wrap<{ kind: string; status: string }[]>(supabase.rpc('event_requests_v2', { p_event: eventId }));
   return !r.error && Array.isArray(r.data) && r.data.some((x) => x.kind === 'event' && x.status !== 'cancelled');
 }
+
+/** Delete an event (main host or admin, 0009). Guests, replies and check-ins go with it; the team keeps a copy of payments. */
+export const deleteEvent = (id: string) => wrap<{ ok: boolean; guests: number }>(supabase.rpc('delete_event_v2', { p_event: id }));
