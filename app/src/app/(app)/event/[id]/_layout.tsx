@@ -2,7 +2,8 @@
 // badges. The event, its guests and the door's requests are loaded once here and shared by every tab.
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { TabList, Tabs, TabSlot, TabTrigger } from 'expo-router/ui';
-import { Platform, View } from 'react-native';
+import { Linking, Platform, View } from 'react-native';
+import { links } from '../../../../lib/config';
 import { Busy, Button, Centered, EmptyState, Icon, PressScale, TabBarFrame, TabButton } from '../../../../components';
 import { HostProvider, tabHref, useHost, type Tab } from '../../../../components/host/HostContext';
 import { HostSheets } from '../../../../components/host/HostSheets';
@@ -67,7 +68,9 @@ function EventTabs({ id }: { id: string }) {
             {h.status === 'loading' ? <Busy /> : h.status === 'door' ? (
               <EmptyState title={T.doorH} body={T.doorP} action={<Button big block kind="primary" icon="door" label={T.doorBtn} onPress={() => router.replace({ pathname: '/door/[id]', params: { id } })} />} />
             ) : h.status === 'draft' ? (
-              <EmptyState title={t.a.draftH} body={t.a.draftP} testID="ev-draft" />
+              <EmptyState title={t.a.draftH} body={t.a.draftP} testID="ev-draft"
+                action={links.whatsapp(t.a.draftWa(h.me?.title ?? '')) ? <Button kind="primary" icon="whatsapp" label={t.a.whatsappUs}
+                  onPress={() => Linking.openURL(links.whatsapp(t.a.draftWa(h.me?.title ?? ''))!).catch(() => {})} testID="draft-wa" /> : undefined} />
             ) : h.status === 'none' ? (
               <EmptyState title={T.noEvH} body={T.noEvP} />
             ) : (
