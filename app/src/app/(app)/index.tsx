@@ -194,7 +194,8 @@ function EventCard({ e }: { e: MyEvent }) {
   const meta = draft ? A.notSentYet
     : e.role === 'door' ? A.doorTag
     : n ? (n.invited ? A.invitesComing(n.invited, n.yes_people) : t.host.emptyG) : '';
-  const go = draft ? undefined : () => router.push((e.role === 'door' ? `/door/${e.id}` : `/event/${e.id}`) as never);
+  // a draft opens too: its page says it isn't live yet (better than a card that does nothing when tapped)
+  const go = () => router.push((e.role === 'door' ? `/door/${e.id}` : `/event/${e.id}`) as never);
   const tag = e.role === 'cohost' ? ` · ${A.cohostTag}` : '';
   return <Card iso={e.starts_at} title={name} sub={sub + tag} meta={meta} metaTone={draft ? 'muted' : 'ink'} onPress={go}
     testID={e.role === 'door' ? `door-ev-${e.id}` : `ev-${e.id}`} a11y={[name, sub, meta].filter(Boolean).join(', ')} />;

@@ -5,7 +5,7 @@
   'use strict';
   var API = 'https://mock.supabase.test';
   var PGLITE = null;   // set below: our own copy (Safari won't load its add-ons from another site)
-  var DB_NAME = 'idb://sina-demo-v3', FLAG = 'sina-demo-v3-ready';
+  var DB_NAME = 'idb://sina-demo-v4', FLAG = 'sina-demo-v4-ready';
   var HERE = (document.currentScript && document.currentScript.src) || location.href;
   var BASE = HERE.replace(/[^/]*$/, '');                       // …/RSVP/demo/
   var DEMO_EMAIL = 'host@sina.test';
@@ -30,7 +30,7 @@
 
   // ---------- reset, and signed in from the start ----------
   try {
-    if (/[?&]reset=1/.test(location.search)) { localStorage.removeItem(FLAG); localStorage.removeItem('sb-mock-auth-token'); indexedDB.deleteDatabase('/pglite/sina-demo-v3'); }
+    if (/[?&]reset=1/.test(location.search)) { localStorage.removeItem(FLAG); localStorage.removeItem('sb-mock-auth-token'); indexedDB.deleteDatabase('/pglite/sina-demo-v4'); }
     if (!localStorage.getItem('sb-mock-auth-token')) localStorage.setItem('sb-mock-auth-token', JSON.stringify(sessionFor(DEMO_EMAIL)));
   } catch (e) {}
 
@@ -41,16 +41,17 @@
     var opts = { extensions: { pgcrypto: crypto_.pgcrypto }, relaxedDurability: false };   // save every change before the next page opens
     var fresh = true; try { fresh = !localStorage.getItem(FLAG); } catch (e) {}
     if (fresh) {
-      var res = await fetch(BASE + 'demo-db.tar.gz?v=3');
+      var res = await fetch(BASE + 'demo-db.tar.gz?v=4');
       opts.loadDataDir = await res.blob();
-      try { indexedDB.deleteDatabase('/pglite/sina-demo-v3'); indexedDB.deleteDatabase('/pglite/sina-demo-v1'); indexedDB.deleteDatabase('/pglite/sina-demo-v2'); localStorage.removeItem('sina-demo-v1-ready'); localStorage.removeItem('sina-demo-v2-ready'); } catch (e) {}
+      try { indexedDB.deleteDatabase('/pglite/sina-demo-v4'); indexedDB.deleteDatabase('/pglite/sina-demo-v1'); indexedDB.deleteDatabase('/pglite/sina-demo-v2'); indexedDB.deleteDatabase('/pglite/sina-demo-v3'); localStorage.removeItem('sina-demo-v1-ready'); localStorage.removeItem('sina-demo-v2-ready'); localStorage.removeItem('sina-demo-v3-ready'); } catch (e) {}
     }
     var db;
     try { db = await mod.PGlite.create(DB_NAME, opts); }
     catch (e) {   // private browsing or no storage: keep it in memory for this page
-      if (!opts.loadDataDir) opts.loadDataDir = await (await fetch(BASE + 'demo-db.tar.gz?v=3')).blob();
+      if (!opts.loadDataDir) opts.loadDataDir = await (await fetch(BASE + 'demo-db.tar.gz?v=4')).blob();
       db = await mod.PGlite.create(opts);
     }
+    try { await db.query('select demo.shift_clock()'); } catch (e) { console.warn('demo clock', e); }   // keep "tonight" tonight
     try { localStorage.setItem(FLAG, '1'); } catch (e) {}
     return db;
   })();
@@ -163,15 +164,65 @@
   window.WebSocket = function (u, p) { if (String(u).indexOf('mock.supabase.test') >= 0) { var f = { readyState: 3, send: function () {}, close: function () {}, addEventListener: function () {}, removeEventListener: function () {} }; return f; } return new RealWS(u, p); };
   window.WebSocket.prototype = RealWS.prototype; ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'].forEach(function (k, i) { window.WebSocket[k] = i; });
 
-  // ---------- a small "Demo" tag so nobody mistakes it for the real thing ----------
-  function tag() {
-    if (document.getElementById('sinaDemoTag')) return;
-    var a = document.createElement('a');
-    a.id = 'sinaDemoTag'; a.href = '?reset=1'; a.title = 'Sample data in this browser only. Tap to start over.';
-    a.textContent = 'Demo · start over';
-    a.setAttribute('style', 'position:fixed;z-index:2147483647;left:8px;bottom:calc(96px + env(safe-area-inset-bottom));font:600 11px/1 system-ui,sans-serif;padding:6px 9px;border-radius:999px;background:rgba(91,15,29,.86);color:#fff;text-decoration:none;opacity:.85');
-    a.addEventListener('click', function (e) { if (!confirm('Start the demo over with fresh sample data?')) e.preventDefault(); });
-    document.body.appendChild(a);
+  // ---------- a slim bar at the top so nobody mistakes it for the real thing ----------
+  var AR = /^ar/.test(document.documentElement.lang || '') || /[?&]lang=ar/.test(location.search);
+  function bar() {
+    if (document.getElementById('sinaDemoBar')) return;
+    var app = !!document.getElementById('root') && !!document.getElementById('expo-reset');
+    var css = document.createElement('style');
+    css.textContent = '#sinaDemoBar{position:' + (app ? 'fixed' : 'relative') + ';top:0;left:0;right:0;z-index:2147483646;height:28px;display:flex;align-items:center;justify-content:center;gap:10px;'
+      + 'background:#F3E6E2;color:#5B0F1D;font:600 12px/1 -apple-system,system-ui,sans-serif;border-bottom:1px solid rgba(91,15,29,.12)}'
+      + '#sinaDemoBar a{color:#5B0F1D;text-decoration:underline;text-underline-offset:2px;padding:6px 2px}'
+      + (app ? '#root{position:fixed!important;top:28px!important;left:0;right:0;bottom:0;height:auto!important}' : '');
+    document.head.appendChild(css);
+    var d = document.createElement('div'); d.id = 'sinaDemoBar'; d.setAttribute('role', 'note'); d.dir = AR ? 'rtl' : 'ltr';
+    var s1 = document.createElement('span'); s1.textContent = AR ? 'نسخة تجريبية · ما ينرسل شي' : 'Demo · sample data, nothing is sent';
+    var a = document.createElement('a'); a.href = '?reset=1'; a.textContent = AR ? 'ابدأ من جديد' : 'Start over';
+    a.addEventListener('click', function (e) { if (!confirm(AR ? 'نرجع البيانات التجريبية من البداية؟' : 'Start the demo over with fresh sample data?')) e.preventDefault(); });
+    d.appendChild(s1); d.appendChild(a);
+    document.body.insertBefore(d, document.body.firstChild);
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tag); else tag();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bar); else bar();
+
+  // ---------- WhatsApp, SMS and calls: show what would be sent instead of messaging a real number ----------
+  var OUT = /^(https?:\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)\/|whatsapp:|sms:|tel:)/i;
+  function fmtPhone(n) { n = String(n || '').replace(/\D/g, ''); if (/^965\d{8}$/.test(n)) return '+965 ' + n.slice(3, 7) + ' ' + n.slice(7); return n ? '+' + n : ''; }
+  function preview(url) {
+    var u; try { u = new URL(url); } catch (e) { u = null; }
+    var kind = /^tel:/i.test(url) ? 'call' : /^sms:/i.test(url) ? 'sms' : 'wa';
+    var to = '', text = '';
+    if (u) {
+      if (kind === 'wa') { to = (u.pathname || '').replace(/\D/g, '') || u.searchParams.get('phone') || ''; text = u.searchParams.get('text') || ''; }
+      else { to = decodeURIComponent(url.replace(/^(sms|tel):/i, '').split('?')[0]); text = u.searchParams ? (u.searchParams.get('body') || '') : ''; }
+    }
+    var old = document.getElementById('sinaDemoOut'); if (old) old.remove();
+    var w = document.createElement('div'); w.id = 'sinaDemoOut';
+    w.setAttribute('style', 'position:fixed;inset:0;z-index:2147483647;background:rgba(30,12,16,.45);display:flex;align-items:flex-end;justify-content:center;font:15px/1.45 -apple-system,system-ui,sans-serif');
+    var card = document.createElement('div'); card.dir = AR ? 'rtl' : 'ltr';
+    card.setAttribute('style', 'background:#FBF8F6;color:#2a1b1d;width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.18);max-height:80vh;overflow:auto');
+    var h = document.createElement('div'); h.setAttribute('style', 'font-weight:700;font-size:18px;margin-bottom:4px');
+    h.textContent = kind === 'call' ? (AR ? 'هني يتصل الجهاز' : 'Your phone would call') : kind === 'sms' ? (AR ? 'هني تنفتح الرسائل' : 'Messages would open here') : (AR ? 'هني ينفتح الواتساب' : 'WhatsApp would open here');
+    var p = document.createElement('div'); p.setAttribute('style', 'color:#625350;font-size:14px;margin-bottom:14px');
+    p.textContent = (to ? (AR ? 'إلى ' : 'To ') + fmtPhone(to) + ' · ' : (AR ? 'تختارون المحادثة · ' : 'You pick the chat · ')) + (AR ? 'في النسخة التجريبية ما ينرسل شي.' : 'In the demo nothing is sent.');
+    card.appendChild(h); card.appendChild(p);
+    if (text) {
+      var b = document.createElement('div'); b.dir = 'auto'; b.textContent = text;
+      b.setAttribute('style', 'white-space:pre-wrap;background:#DCF8C6;color:#111;border-radius:14px 14px 4px 14px;padding:12px 14px;font-size:15px;margin-bottom:16px;word-break:break-word');
+      card.appendChild(b);
+    }
+    var ok = document.createElement('button'); ok.type = 'button'; ok.textContent = AR ? 'تمام' : 'OK';
+    ok.setAttribute('style', 'display:block;width:100%;height:50px;border:0;border-radius:999px;background:#5B0F1D;color:#fff;font:600 16px -apple-system,system-ui,sans-serif');
+    function close() { w.remove(); window.dispatchEvent(new Event('focus')); document.dispatchEvent(new Event('visibilitychange')); }
+    ok.onclick = close; w.onclick = function (e) { if (e.target === w) close(); };
+    card.appendChild(ok); w.appendChild(card); (document.body || document.documentElement).appendChild(w); ok.focus();
+  }
+  var realOpen = window.open;
+  window.open = function (url) {
+    if (OUT.test(String(url || ''))) { preview(String(url)); return { closed: false, close: function () {}, focus: function () {}, location: {} }; }
+    return realOpen.apply(window, arguments);
+  };
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest && e.target.closest('a[href]');
+    if (a && OUT.test(a.href || a.getAttribute('href'))) { e.preventDefault(); e.stopPropagation(); preview(a.href || a.getAttribute('href')); }
+  }, true);
 })();

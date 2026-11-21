@@ -131,7 +131,8 @@ export function HomeTab() {
   const waiting = s.pend.slice().sort((a, b) => rank(a) - rank(b));
   const replied = guests.filter((g) => g.status !== 'pending').length;
   const unsent = s.unsent.length;
-  const headline = !guests.length ? h.evName : unsent && (d == null || d > 0) ? A.toSend(unsent) : A.everyone;
+  // on the day the headline is about tonight ("Everyone's invited" would be wrong with invites still unsent)
+  const headline = !guests.length ? h.evName : d === 0 ? A.tonightH(s.people) : unsent && (d == null || d > 0) ? A.toSend(unsent) : unsent ? h.evName : A.everyone;
   const sub = !guests.length ? '' : unsent ? A.someOutP(guests.length - unsent, guests.length) : A.outP(guests.length, replied);
 
   const latest = guests.filter((g) => g.responded_at && g.status !== 'pending' && !atDoor(g))
