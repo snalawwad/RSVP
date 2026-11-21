@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
       designH: 'Design', style: 'Style', language: 'Language', cover: 'Cover photo', none: 'None', saveDesign: 'Save the design',
       STY: { classic: 'Classic', modern: 'Modern', minimal: 'Minimal' }, styleH: 'Pick a style', styleP: 'You can change it any time before you send.', colour: 'Colour', saveStyle: 'Save the style',
       langH: 'Invite language', langP: 'The language guests see when they open the link.', en: 'English', ar: 'Arabic', saveLang: 'Save the language',
-      coverH: 'Add a cover', coverP: 'It shows at the top of the invite.', upOwn: 'Upload my own design', upOwnS: 'PDF, PNG or JPG of your card or a photo',
+      ownH: 'Want a personalised card?', ownP: 'Upload your own design, or ask our designer to make one for you.', coverH: 'Add a cover', coverP: 'It shows at the top of the invite.', upOwn: 'Upload my own design', upOwnS: 'PDF, PNG or JPG of your card or a photo',
       askUs: 'Ask us to design it', askUsS: p => `Our designer makes one for you. ${p}`, noCover: 'No cover photo', noCoverS: 'Just the text invite', coverGo: { upload: 'Upload my design', ask: 'Describe my design', none: 'Use the text invite' },
       upH: 'Upload your design', upP: 'Your invite card or a photo. PDF, PNG or JPG, up to 10 MB.', choose: 'Choose a file', chooseS: 'From Files, iCloud or Google Drive', uploaded: 'Uploaded', looks: 'How it looks on the invite', useDesign: 'Use this design', uploading: 'Uploading…', upErr: 'Couldn’t upload that file. Try a JPG photo.', tooBig: 'That file is bigger than 10 MB.',
       askH: 'Ask us to design it', askP: 'Tell us what you have in mind. Our designer will send you a first draft.', idea: 'What would you like?', ideaPh: 'Soft and elegant, our initials, a gold arch',
@@ -61,11 +61,11 @@ document.addEventListener('DOMContentLoaded', function () {
       pkgH: 'Pick a package', pkgP: n => `You’ve added ${cw(n, 'person')} so far. Pick the package that fits.`, upToN: n => `Up to ${n} invites`, doorNo: 'Door check-in not included', doorYes: 'Door check-in included', doorDesign: 'Door check-in and design included',
       tooSmall: (n, lim) => `Up to ${lim} invites. You have ${n}, so it doesn’t fit.`, addDoorT: 'Add door check-in', addDoorS: p => `Staff check guests in at the entrance. +${p}`, doorInc: 'Door check-in', doorIncS: 'Included with this package.',
       choosePkg: (n, p) => `Choose ${n} · ${p}`, pickPkg: 'Pick a package',
-      sendH: 'How should we send them?', sendK: 'We send each guest their own invite', wa: 'We send them on WhatsApp', waS: b => `From the ${b} number`, sms: 'We send them by SMS', smsS: 'A text message to each guest',
+      sendH: 'How should we send the invite?', sendK: 'We send each guest their own invite', wa: 'We send them on WhatsApp', waS: b => `From the ${b} number`, sms: 'We send them by SMS', smsS: 'A text message to each guest',
       byHandNote: 'Until our WhatsApp number is connected, you send each invite from your own WhatsApp, one tap per guest.', msg: 'Message', tplHint: '{name} becomes each guest’s name. We add their own link for you.', saveSend: 'Save how we send',
       revH: 'Review and send', rEvent: 'Event', rWhen: 'When', rWhere: 'Where', rGuests: 'Guests', rReply: 'Reply by', rPkg: 'Package', rDoor: 'Door check-in', rSend: 'Send by', rMsg: 'Message',
       on: 'On', off: 'Off', waW: 'WhatsApp', smsW: 'SMS', choosePay: 'Choose how to pay', notSet: 'Not set', guestsV: (g, p) => `${cw(g, 'guest')}, ${cw(p, 'person')}`,
-      payH: 'Pay', total: 'Total', payWith: 'Pay with', knet: 'KNET', knetS: 'Kuwaiti debit cards', card: 'Credit card', cardS: 'Visa, Mastercard', notAdded: 'Not added', included: 'Included',
+      payH: 'Pay', total: 'Total', payWith: 'Pay with', knet: 'KNET', card: 'Credit card', order: 'Your order', notAdded: 'Not added', included: 'Included',
       payBtn: p => `Pay ${p}`, payNote: 'Your invite links are ready right after payment', payOff: 'Payments aren’t switched on yet. Message us and we’ll finish setting up your event.', payErr: 'Couldn’t start the payment. Try again.',
       sentReadyH: 'Your invites are ready', sentReadyP: n => `Your ${cw(n, 'guest')} have their own invite links. Send them from your event page, one tap per guest.`,
       sentAutoH: 'Your invites are on their way', sentAutoP: n => `We’re sending ${cw(n, 'guest')} their invites on WhatsApp now. You’ll see every reply on your event page.`,
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
       designH: 'التصميم', style: 'الشكل', language: 'اللغة', cover: 'صورة الغلاف', none: 'بدون', saveDesign: 'احفظوا التصميم',
       STY: { classic: 'كلاسيكي', modern: 'عصري', minimal: 'بسيط' }, styleH: 'اختاروا الشكل', styleP: 'تقدرون تغيرونه أي وقت قبل الإرسال.', colour: 'اللون', saveStyle: 'احفظوا الشكل',
       langH: 'لغة الدعوة', langP: 'اللغة اللي يشوفها الضيوف لما يفتحون الرابط.', en: 'الإنجليزي', ar: 'العربي', saveLang: 'احفظوا اللغة',
-      coverH: 'أضيفوا غلاف', coverP: 'يطلع فوق بالدعوة.', upOwn: 'ارفعوا تصميمكم', upOwnS: 'ملف PDF أو PNG أو JPG للكرت أو صورة',
+      ownH: 'تبون كرت خاص فيكم؟', ownP: 'ارفعوا تصميمكم، أو خلوا المصممة عندنا تسوي لكم واحد.', coverH: 'أضيفوا غلاف', coverP: 'يطلع فوق بالدعوة.', upOwn: 'ارفعوا تصميمكم', upOwnS: 'ملف PDF أو PNG أو JPG للكرت أو صورة',
       askUs: 'خلونا نصممها لكم', askUsS: p => `المصممة عندنا تسوي لكم وحدة. ${p}`, noCover: 'بدون صورة غلاف', noCoverS: 'الدعوة بالكلام بس', coverGo: { upload: 'ارفعوا تصميمكم', ask: 'وصفوا التصميم', none: 'استخدموا الدعوة بالكلام' },
       upH: 'ارفعوا تصميمكم', upP: 'كرت الدعوة أو صورة. PDF أو PNG أو JPG، لين 10 ميقا.', choose: 'اختاروا ملف', chooseS: 'من الملفات أو iCloud أو Google Drive', uploaded: 'انرفع', looks: 'شكله بالدعوة', useDesign: 'استخدموا هالتصميم', uploading: 'قاعدين نرفع…', upErr: 'ما قدرنا نرفع الملف، جربوا صورة JPG.', tooBig: 'الملف أكبر من 10 ميقا.',
       askH: 'خلونا نصممها لكم', askP: 'قولوا لنا شنو في بالكم، والمصممة ترسل لكم أول نسخة.', idea: 'شنو تبون؟', ideaPh: 'ناعم وراقي، حروفنا الأولى، وقوس ذهبي',
@@ -103,11 +103,11 @@ document.addEventListener('DOMContentLoaded', function () {
       pkgH: 'اختاروا الباقة', pkgP: n => `ضفتوا ${cw(n, 'person')} للحين. اختاروا الباقة اللي تناسبكم.`, upToN: n => `لين ${n} دعوة`, doorNo: 'بدون تسجيل الحضور عند الباب', doorYes: 'مع تسجيل الحضور عند الباب', doorDesign: 'مع تسجيل الحضور عند الباب والتصميم',
       tooSmall: (n, lim) => `لين ${lim} دعوة، وعندكم ${n}، فما تكفي.`, addDoorT: 'أضيفوا تسجيل الحضور عند الباب', addDoorS: p => `موظفين يسجلون وصول الضيوف عند المدخل. +${p}`, doorInc: 'تسجيل الحضور عند الباب', doorIncS: 'موجود مع هالباقة.',
       choosePkg: (n, p) => `اختاروا ${n} · ${p}`, pickPkg: 'اختاروا الباقة',
-      sendH: 'شلون نرسلها؟', sendK: 'نرسل لكل ضيف دعوته الخاصة', wa: 'نرسلها على الواتساب', waS: b => `من رقم ${b}`, sms: 'نرسلها برسالة نصية', smsS: 'رسالة نصية لكل ضيف',
+      sendH: 'شلون نرسل الدعوة؟', sendK: 'نرسل لكل ضيف دعوته الخاصة', wa: 'نرسلها على الواتساب', waS: b => `من رقم ${b}`, sms: 'نرسلها برسالة نصية', smsS: 'رسالة نصية لكل ضيف',
       byHandNote: 'لين ما ينربط رقمنا على الواتساب، ترسلون كل دعوة من واتسابكم، بضغطة وحدة لكل ضيف.', msg: 'الرسالة', tplHint: '{الاسم} يصير اسم كل ضيف، ونضيف رابطه الخاص بنفسنا.', saveSend: 'احفظوا طريقة الإرسال',
       revH: 'راجعوا وأرسلوا', rEvent: 'المناسبة', rWhen: 'الموعد', rWhere: 'المكان', rGuests: 'الضيوف', rReply: 'آخر موعد للرد', rPkg: 'الباقة', rDoor: 'تسجيل الحضور عند الباب', rSend: 'الإرسال', rMsg: 'الرسالة',
       on: 'موجود', off: 'لا', waW: 'الواتساب', smsW: 'رسالة نصية', choosePay: 'اختاروا طريقة الدفع', notSet: 'ما تحدد', guestsV: (g, p) => `${cw(g, 'guest')}، ${cw(p, 'person')}`,
-      payH: 'الدفع', total: 'المجموع', payWith: 'ادفعوا بـ', knet: 'كي نت', knetS: 'بطاقات السحب الكويتية', card: 'بطاقة ائتمان', cardS: 'فيزا، ماستركارد', notAdded: 'ما انضاف', included: 'موجود',
+      payH: 'الدفع', total: 'المجموع', payWith: 'ادفعوا بـ', knet: 'كي نت', card: 'بطاقة ائتمان', order: 'طلبكم', notAdded: 'ما انضاف', included: 'موجود',
       payBtn: p => `ادفعوا ${p}`, payNote: 'روابط الدعوات تجهز أول ما تدفعون', payOff: 'الدفع مو شغال للحين. راسلونا ونكمّل لكم ترتيب المناسبة.', payErr: 'ما قدرنا نبدأ الدفع، جربوا مرة ثانية.',
       sentReadyH: 'دعواتكم جاهزة', sentReadyP: n => `${cw(n, 'guest')} عندهم روابط دعوات خاصة. أرسلوها من صفحة مناسبتكم، بضغطة وحدة لكل ضيف.`,
       sentAutoH: 'دعواتكم بالطريق', sentAutoP: n => `قاعدين نرسل الدعوات لـ${cw(n, 'guest')} على الواتساب، وبتشوفون كل رد بصفحة مناسبتكم.`,
@@ -199,14 +199,15 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   const field = (id, label, val, attrs = '') => `<div class="fld"><label class="f" for="${id}">${esc(label)}</label><input id="${id}" value="${esc(val || '')}" ${attrs}></div>`;
   const foot = (id, label, ok = true, note = '', alt = '') => `<button type="button" class="btn primary block" id="${id}" ${ok ? '' : 'disabled'}>${label}</button>${alt}${note ? `<p class="foot-note">${note}</p>` : ''}`;
-  const themeStyle = () => { const v = App.themeVars(ev && ev.theme_accent || draft.accent || '#5B0F1D', ev && ev.theme_paper || '#FBF6EF'); return Object.entries(v).map(([k, x]) => `${k}:${x}`).join(';'); };
+  // the colour being previewed wins (a swatch just tapped), then the event's saved colour
+  const themeStyle = (e = ev) => { const v = App.themeVars((e && e.theme_accent) || (ev && ev.theme_accent) || draft.accent || '#5B0F1D', (e && e.theme_paper) || (ev && ev.theme_paper) || '#FBF6EF'); return Object.entries(v).map(([k, x]) => `${k}:${x}`).join(';'); };
 
   function card(o = {}) {
     const e = { ...(ev || {}), ...o }, st = e.design_style || 'classic', tl = e.headline || e.title;
     const when = e.starts_at ? `${App.fmtDate(e.starts_at, e.lang || lang)} · ${App.fmtTime(e.starts_at, e.lang || lang)}` : '';
-    if (e.card_image_url && !o.noImg) return `<div class="prev-card" style="${themeStyle()}"><img class="pc-img" src="${esc(e.card_image_url)}" alt=""></div>`;
-    return `<div class="prev-card st-${st}${tl ? '' : ' blank'}${o.big ? ' big' : ''}" style="${themeStyle()}">${o.mark ? '<span class="pc-mark" aria-hidden="true"></span>' : ''}
-      <p class="pc-k" dir="auto">${esc(e.invite_line || t.prevHost)}</p><p class="pc-t" dir="auto">${App.ampTitle(tl || t.prevName)}</p>${e.event_type && e.event_type !== 'wedding' ? `<p class="pc-s" dir="auto">${esc(e.event_type)}</p>` : ''}
+    if (e.card_image_url && !o.noImg) return `<div class="prev-card" style="${themeStyle(e)}"><img class="pc-img" src="${esc(e.card_image_url)}" alt=""></div>`;
+    return `<div class="prev-card st-${st}${tl ? '' : ' blank'}${o.big ? ' big' : ''}" style="${themeStyle(e)}">${o.mark ? '<span class="pc-mark" aria-hidden="true"></span>' : ''}
+      ${e.invite_line || o.ph ? `<p class="pc-k" dir="auto">${esc(e.invite_line || t.prevHost)}</p>` : ''}<p class="pc-t" dir="auto">${App.ampTitle(tl || t.prevName)}</p>${e.event_type && e.event_type !== 'wedding' ? `<p class="pc-s" dir="auto">${esc(e.event_type)}</p>` : ''}
       ${when ? `<p class="pc-w">${esc(when)}</p>` : ''}${e.venue && o.withVenue ? `<p class="pc-s" dir="auto">${esc(e.venue)}</p>` : ''}</div>`;
   }
 
@@ -218,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function () {
       ${field('fBy', t.hostBy, v.by, `type="text" dir="auto" placeholder="${esc(t.hostByPh)}" autocomplete="off"`)}
       ${field('fWhat', t.celeb, v.what, `type="text" dir="auto" placeholder="${esc(t.celebPh)}" autocomplete="off"`)}
       <p class="sec-k">${t.preview}</p><div id="pv"></div><p class="hint"><i class="i i-sparkle sm"></i><span>${t.nameHint}</span></p>`, foot('goNext', t.saveName, !!v.title.trim()));
-    const pv = () => { draft = { ...draft, title: $('#fTitle').value, by: $('#fBy').value, what: $('#fWhat').value }; $('#pv').innerHTML = card({ headline: draft.title.trim(), title: draft.title.trim(), invite_line: draft.by.trim(), event_type: draft.what.trim() || 'wedding', starts_at: null, card_image_url: null }); $('#goNext').disabled = !draft.title.trim(); };
+    const pv = () => { draft = { ...draft, title: $('#fTitle').value, by: $('#fBy').value, what: $('#fWhat').value }; $('#pv').innerHTML = card({ ph: true, headline: draft.title.trim(), title: draft.title.trim(), invite_line: draft.by.trim(), event_type: draft.what.trim() || 'wedding', starts_at: null, card_image_url: null }); $('#goNext').disabled = !draft.title.trim(); };
     ['fTitle', 'fBy', 'fWhat'].forEach(id => $('#' + id).oninput = pv); pv();
     $('#goNext').onclick = async () => {
       const ttl = $('#fTitle').value.trim(); if (!ttl) { App.toast(t.evNameReq); return; }
@@ -315,7 +316,9 @@ document.addEventListener('DOMContentLoaded', function () {
     frame(`<h1 class="scr-h">${t.designH}</h1>${card({ big: true, mark: true, withVenue: true })}
       <div class="lines"><button type="button" class="line" data-sub="style"><span class="l">${t.style}</span><span class="v">${t.STY[ev.design_style || 'classic']}</span><i class="i i-chev"></i></button>
       <button type="button" class="line" data-sub="language"><span class="l">${t.language}</span><span class="v">${ev.lang === 'en' ? t.en : t.ar}</span><i class="i i-chev"></i></button>
-      <button type="button" class="line" data-sub="cover"><span class="l">${t.cover}</span><span class="v">${cov}</span><i class="i i-chev"></i></button></div>`,
+      <button type="button" class="line" data-sub="cover"><span class="l">${t.cover}</span><span class="v">${cov}</span><i class="i i-chev"></i></button></div>
+      ${ev.card_image_url || designReq ? '' : `<section class="paybox own-card"><p class="paybox-h">${t.ownH}</p><p class="t-small" style="margin:0 0 10px">${t.ownP}</p>
+        <div class="own-btns"><button type="button" class="btn secondary block" data-sub="upload"><i class="i i-upload"></i>${t.upOwn}</button><button type="button" class="btn secondary block" data-sub="ask"><i class="i i-sparkle"></i>${t.askUs}</button></div></section>`}`,
       foot('goNext', t.saveDesign, true, '', `<button type="button" class="btn quiet block" id="pvGuest">${t.previewGuest}</button>`));
     document.querySelectorAll('[data-sub]').forEach(b => b.onclick = () => go(b.dataset.sub));
     $('#pvGuest').onclick = previewGuest;
@@ -537,7 +540,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const r = await rpc('preview_invite_v2', { p_event: ev.id });
     const inv = r.data || { event: ev, name: lang === 'ar' ? 'دانة' : 'Dana' };
     const e = { ...ev, ...(inv.event || {}) };
-    sheet(t.previewH, `<p class="t-small" style="margin:0 0 12px">${t.sampleNote}</p>${card({ ...e, big: true, mark: true, withVenue: true })}<p class="t-body" style="margin:14px 0 0" dir="auto">${esc(e.lang === 'en' ? `Dear ${inv.name},` : `حياكم الله ${inv.name}`)}</p>`);
+    sheet(t.previewH, `<p class="t-small" style="margin:0 0 12px">${t.sampleNote}</p>${card({ ...e, big: true, mark: true, withVenue: true })}`);
   }
 
   // ---------- P2 Pay ----------
@@ -546,8 +549,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const q = quotes[ev.package] || { items: [], total_fils: 0 };
     const pk = (q.items || []).find(i => i.kind === 'package') || {}, dr = (q.items || []).find(i => i.kind === 'door_addon');
     const L = (l, v, cls = '') => `<div class="line ${cls}"><span class="l">${l}</span><span class="v">${v}</span></div>`;
-    frame(`<h1 class="scr-h">${t.payH}</h1><div class="lines">${L(`${esc(pkgName(ev.package))}`, App.kwd(pk.amount_fils, lang))}${L(t.rDoor, q.door_included ? t.included : dr ? App.kwd(dr.amount_fils, lang) : t.notAdded)}${L(t.total, App.kwd(q.total_fils, lang), 'tot')}</div>
-      <p class="sec-k">${t.payWith}</p><div class="lines" role="radiogroup" aria-label="${esc(t.payWith)}">${[['knet', t.knet, t.knetS], ['card', t.card, t.cardS]].map(([k, a, b]) => `<div class="line choice-line" role="radio" tabindex="0" data-c="${k}" aria-checked="${sel.method === k}" style="cursor:pointer"><span class="l">${a}<br><span class="t-small">${b}</span></span><span class="radio" aria-hidden="true"></span></div>`).join('')}</div>`,
+    frame(`<h1 class="scr-h">${t.payH}</h1><section class="paybox" aria-label="${esc(t.order)}"><p class="paybox-h">${t.order}</p><div class="lines">${L(`${esc(pkgName(ev.package))}`, App.kwd(pk.amount_fils, lang))}${L(t.rDoor, q.door_included ? t.included : dr ? App.kwd(dr.amount_fils, lang) : t.notAdded)}${L(t.total, App.kwd(q.total_fils, lang), 'tot')}</div></section>
+      <section class="paybox"><p class="paybox-h">${t.payWith}</p><div class="lines" role="radiogroup" aria-label="${esc(t.payWith)}">${[['knet', t.knet], ['card', t.card]].map(([k, a]) => `<div class="line choice-line" role="radio" tabindex="0" data-c="${k}" aria-checked="${sel.method === k}" style="cursor:pointer"><span class="l">${a}</span><span class="radio" aria-hidden="true"></span></div>`).join('')}</div></section>`,
       foot('goPay', t.payBtn(App.kwd(q.total_fils, lang)), true, t.payNote));
     document.querySelectorAll('.choice-line').forEach(c => { const pick = () => { sel.method = c.dataset.c; drawPay(); }; c.onclick = pick; c.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); pick(); } }; });
     $('#goPay').onclick = async () => {

@@ -581,3 +581,10 @@ body.me .tabs button{max-width:200px}
 .au-back{flex:none;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--plum);padding:0;margin-inline-end:4px}
 html[dir="rtl"] .au-back svg{transform:scaleX(-1)}
 .au-top .au-lang{margin-inline-start:auto}
+/* pay: the order and the way to pay as two separate cards; also the "personalised card" card on Design */
+.paybox{background:var(--card);border:1px solid var(--line);border-radius:var(--r-l);padding:4px 16px;margin:0 0 14px;box-shadow:var(--shadow)}
+.paybox-h{margin:12px 0 4px;font-size:var(--fs-s);font-weight:600;color:var(--muted)}
+.paybox .lines{border-top:0}
+.paybox .line:last-child{border-bottom:0}
+.own-card{padding-bottom:14px;margin-top:14px}
+.own-btns{display:grid;gap:8px}

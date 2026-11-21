@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function () {
     chH: 'Change the invite', chP: 'Your invites are already out. Tell us what to change, the text, details or design, and we’ll update it. Guests see the new version once you approve it.',
     chWhat: 'What should we change?', chWhatPh: 'Change the time to 8 PM, and make the names bigger', chWord: 'New wording (optional)', chWordPh: 'Leave empty to keep the current text', chCol: 'Colours (optional)', chColPh: 'Burgundy and gold',
     chPhotos: 'Add reference photos', chPhotosS: 'Optional. Designs you like', chPhotosN: n => `${n} photo${n === 1 ? '' : 's'} added`, ready1: 'Ready in 1 working day', chGo: p => `Review the payment · ${p}`, chNote: p => `Every change after sending is ${p}`, needWhat: 'Tell us what to change',
-    payH: 'Pay', chItem: 'Changes to your invite', total: 'Total', payWith: 'Pay with', knet: 'KNET', knetS: 'Kuwaiti debit cards', card: 'Credit card', cardS: 'Visa, Mastercard', payBtn: p => `Pay ${p}`,
+    payH: 'Pay', chItem: 'Changes to your invite', total: 'Total', payWith: 'Pay with', knet: 'KNET', card: 'Credit card', order: 'Your order', payBtn: p => `Pay ${p}`,
     payNote: 'Our designer starts right after payment', payOff: 'Payments aren’t switched on yet. Message us and we’ll make the change.', payErr: 'Couldn’t start the payment. Try again.',
     paidChH: 'Paid. Changes requested', paidChP: 'Our designer will send the new version within a day. Guests keep seeing the current invite until you approve it.', chLine: p => `Changes · ${p} paid`, beingMade: d => `Being made · ready by ${d}`,
     pkgH: 'Your package', paidW: 'paid', usedOf: (u, l) => `${u} of ${l} invites used`, doorL: 'Door check-in', incl: 'Included', notIncl: 'Not included', needMore: 'Need more?',
@@ -435,7 +435,7 @@ document.addEventListener('DOMContentLoaded', function () {
     chH: 'غيّروا الدعوة', chP: 'دعواتكم انرسلت. قولوا لنا شنو نغير، الكلام أو التفاصيل أو التصميم، ونعدلها. الضيوف يشوفون النسخة الجديدة بعد ما توافقون عليها.',
     chWhat: 'شنو نغير؟', chWhatPh: 'غيروا الوقت لـ8 بالليل، وكبّروا الأسماء', chWord: 'كلام جديد (اختياري)', chWordPh: 'خلوه فاضي إذا تبون نفس الكلام', chCol: 'الألوان (اختياري)', chColPh: 'عنابي وذهبي',
     chPhotos: 'أضيفوا صور للفكرة', chPhotosS: 'اختياري. تصاميم عاجبتكم', chPhotosN: n => n === 1 ? 'انضافت صورة وحدة' : `انضافت ${n} صور`, ready1: 'تجهز خلال يوم عمل', chGo: p => `راجعوا الدفع · ${p}`, chNote: p => `أي تعديل بعد الإرسال بـ${p}`, needWhat: 'قولوا لنا شنو نغير',
-    payH: 'الدفع', chItem: 'تعديلات على دعوتكم', total: 'المجموع', payWith: 'ادفعوا بـ', knet: 'كي نت', knetS: 'بطاقات السحب الكويتية', card: 'بطاقة ائتمان', cardS: 'فيزا، ماستركارد', payBtn: p => `ادفعوا ${p}`,
+    payH: 'الدفع', chItem: 'تعديلات على دعوتكم', total: 'المجموع', payWith: 'ادفعوا بـ', knet: 'كي نت', card: 'بطاقة ائتمان', order: 'طلبكم', payBtn: p => `ادفعوا ${p}`,
     payNote: 'المصممة تبدأ أول ما تدفعون', payOff: 'الدفع مو شغال للحين. راسلونا ونسوي لكم التعديل.', payErr: 'ما قدرنا نبدأ الدفع، جربوا مرة ثانية.',
     paidChH: 'وصلنا الدفع، وطلبنا التعديل', paidChP: 'المصممة بترسل لكم النسخة الجديدة خلال يوم، والضيوف يشوفون الدعوة الحالية لين توافقون.', chLine: p => `تعديلات · دفعتوا ${p}`, beingMade: d => `قاعدين نسويها · جاهزة قبل ${d}`,
     pkgH: 'باقتكم', paidW: 'مدفوعة', usedOf: (u, l) => `استخدمتوا ${u} من ${l} دعوة`, doorL: 'تسجيل الحضور عند الباب', incl: 'موجود', notIncl: 'مو موجود', needMore: 'تبون زيادة؟',
@@ -1869,8 +1869,8 @@ document.addEventListener('DOMContentLoaded', function () {
   let payMethod = 'knet';
   async function screenPayChange() {
     const amt = await price('invite_change'), p = App.kwd(amt, lang);
-    screen('paychange', t.chH, `<h1 class="scr-h">${t.payH}</h1><div class="lines"><div class="line"><span class="l">${t.chItem}</span><span class="v">${p}</span></div><div class="line tot"><span class="l">${t.total}</span><span class="v">${p}</span></div></div>
-      <p class="sec-k">${t.payWith}</p><div class="lines" role="radiogroup">${[['knet', t.knet, t.knetS], ['card', t.card, t.cardS]].map(([k, a, b]) => `<div class="line" role="radio" tabindex="0" data-c="${k}" aria-checked="${payMethod === k}" style="cursor:pointer"><span class="l">${a}<br><span class="t-small">${b}</span></span><span class="radio" aria-hidden="true"></span></div>`).join('')}</div>`,
+    screen('paychange', t.chH, `<h1 class="scr-h">${t.payH}</h1><section class="paybox"><p class="paybox-h">${t.order}</p><div class="lines"><div class="line"><span class="l">${t.chItem}</span><span class="v">${p}</span></div><div class="line tot"><span class="l">${t.total}</span><span class="v">${p}</span></div></div></section>
+      <section class="paybox"><p class="paybox-h">${t.payWith}</p><div class="lines" role="radiogroup">${[['knet', t.knet], ['card', t.card]].map(([k, a]) => `<div class="line" role="radio" tabindex="0" data-c="${k}" aria-checked="${payMethod === k}" style="cursor:pointer"><span class="l">${a}</span><span class="radio" aria-hidden="true"></span></div>`).join('')}</div></section>`,
       `<button type="button" class="btn primary block" id="hsGo">${t.payBtn(p)}</button><p class="foot-note">${t.payNote}</p>`, screenChange);
     bindRadios($('#hscreen'), k => { payMethod = k; screenPayChange(); });
     $('#hsGo').onclick = async () => {

@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
   let lang = document.documentElement.lang === 'ar' ? 'ar' : 'en';
   const T = {
     en: { title: 'Pay', back: 'Back', other: 'العربية', what: { package: k => `${k} package`, door_addon: () => 'Door check-in', invite_change: () => 'Changes to your invite', design: () => 'Invite design' },
-      total: 'Total', payWith: 'Pay with', knet: 'KNET', knetS: 'Kuwaiti debit cards', card: 'Credit card', cardS: 'Visa, Mastercard',
+      total: 'Total', payWith: 'Pay with', knet: 'KNET', card: 'Credit card', order: 'Your order',
       testNote: 'Test payments: no money moves. Pick how this payment ends.', pay: p => `Pay ${p} (test)`, fail: 'Payment fails (test)',
       paidH: 'Payment received', paidP: { package: 'Your event is ready. Your invite links are ready to send.', invite_change: 'Our designer will send the new version within a day.', design: 'Your design is approved.' },
       failH: 'Payment didn’t go through', failP: 'Nothing was charged. You can try again.', waitH: 'Waiting for the bank', waitP: 'We’ll show the result here as soon as the bank answers.',
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
       err: 'Couldn’t reach the payment. Check your connection and try again.', offH: 'Payments aren’t switched on yet', offP: 'Message us and we’ll finish this for you.', home: 'Open my events',
       PK: { basic: 'Basic', plus: 'Plus', premium: 'Premium' } },
     ar: { title: 'الدفع', back: 'رجوع', other: 'English', what: { package: k => `باقة ${k}`, door_addon: () => 'تسجيل الحضور عند الباب', invite_change: () => 'تعديلات على دعوتكم', design: () => 'تصميم الدعوة' },
-      total: 'المجموع', payWith: 'ادفعوا بـ', knet: 'كي نت', knetS: 'بطاقات السحب الكويتية', card: 'بطاقة ائتمان', cardS: 'فيزا، ماستركارد',
+      total: 'المجموع', payWith: 'ادفعوا بـ', knet: 'كي نت', card: 'بطاقة ائتمان', order: 'طلبكم',
       testNote: 'دفع تجريبي: ما تنسحب أي فلوس. اختاروا شلون ينتهي الدفع.', pay: p => `ادفعوا ${p} (تجربة)`, fail: 'الدفع يفشل (تجربة)',
       paidH: 'وصلنا الدفع', paidP: { package: 'مناسبتكم جاهزة، وروابط الدعوات جاهزة للإرسال.', invite_change: 'المصممة بترسل لكم النسخة الجديدة خلال يوم.', design: 'تمت الموافقة على التصميم.' },
       failH: 'الدفع ما تم', failP: 'ما انسحب شي. تقدرون تجربون مرة ثانية.', waitH: 'ننتظر رد البنك', waitP: 'بنعرض لكم النتيجة هني أول ما يرد البنك.',
@@ -86,10 +86,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (CONFIG.PAYMENT_MODE !== 'test') { shell(`<div class="centered"><h1 class="scr-h">${t.waitH}</h1><p class="scr-p">${t.waitP}</p></div>`); setTimeout(refresh, 4000); return; }
     const what = (t.what[o.kind] || t.what.invite_change)(t.PK[o.package] || o.package || '');
     shell(`<h1 class="scr-h">${t.title}</h1>
-      <div class="lines">${o.kind === 'package' && o.door && doorFils > 0 && o.amount_fils > doorFils
+      <section class="paybox" aria-label="${esc(t.order)}"><p class="paybox-h">${t.order}</p><div class="lines">${o.kind === 'package' && o.door && doorFils > 0 && o.amount_fils > doorFils
         ? `<div class="line"><span class="l">${esc(what)}</span><span class="v">${App.kwd(o.amount_fils - doorFils, lang)}</span></div><div class="line"><span class="l">${esc(t.what.door_addon())}</span><span class="v">${App.kwd(doorFils, lang)}</span></div>`
-        : `<div class="line"><span class="l">${esc(what)}</span><span class="v">${amt}</span></div>`}<div class="line tot"><span class="l">${t.total}</span><span class="v">${amt}</span></div></div>
-      <p class="sec-k">${t.payWith}</p><div class="lines" role="radiogroup" aria-label="${esc(t.payWith)}">${[['knet', t.knet, t.knetS], ['card', t.card, t.cardS]].map(([k, a, b]) => `<div class="line choice-line" role="radio" tabindex="0" data-m="${k}" aria-checked="${method === k}" style="cursor:pointer"><span class="l">${a}<br><span class="t-small">${b}</span></span><span class="radio" aria-hidden="true"></span></div>`).join('')}</div>
+        : `<div class="line"><span class="l">${esc(what)}</span><span class="v">${amt}</span></div>`}<div class="line tot"><span class="l">${t.total}</span><span class="v">${amt}</span></div></div></section>
+      <section class="paybox"><p class="paybox-h">${t.payWith}</p><div class="lines" role="radiogroup" aria-label="${esc(t.payWith)}">${[['knet', t.knet], ['card', t.card]].map(([k, a]) => `<div class="line choice-line" role="radio" tabindex="0" data-m="${k}" aria-checked="${method === k}" style="cursor:pointer"><span class="l">${a}</span><span class="radio" aria-hidden="true"></span></div>`).join('')}</div></section>
       <p class="note-box">${t.testNote}</p>`,
       `<button type="button" class="btn primary block" id="pPay">${t.pay(amt)}</button><button type="button" class="btn secondary block" id="pFail">${t.fail}</button>`);
     document.querySelectorAll('[data-m]').forEach(c => { const pick = () => { method = c.dataset.m; draw(); }; c.onclick = pick; c.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); pick(); } }; });
