@@ -48,7 +48,9 @@ function EventTabs({ id }: { id: string }) {
       {/* the event's name sits in the top bar on every tab except Home (where the one-line title is on the page) */}
       <Stack.Screen options={{ title: h.evName, ...webBack }} />
       <Tabs style={{ flex: 1 }}>
-        <TabSlot />
+        {/* TabSlot grows to its content by default (flexShrink 0); on web that pushed the tab bar off-screen and
+            the page could not scroll. Keep it to the space above the tab bar so each tab's own ScrollView scrolls. */}
+        <TabSlot style={{ flexGrow: 1, flexShrink: 1, flexBasis: 0, minHeight: 0 }} />
         <TabList asChild>
           <TabBarFrame>
             {tabs.map((x) => (
