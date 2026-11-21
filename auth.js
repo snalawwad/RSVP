@@ -24,7 +24,7 @@
       sH: 'Create your account', sP: PHONE ? 'We’ll send a code to your phone on WhatsApp. No password.' : 'We’ll send a code to your email. No password.',
       name: 'Your name', phone: 'Phone number', email: PHONE ? 'Email (optional)' : 'Email', send: 'Send code', haveAcc: 'I already have an account',
       terms: 'By continuing you agree to the terms', termsLink: 'terms',
-      lH: 'Welcome back', lP: PHONE ? 'Enter the number you signed up with. We’ll send a code on WhatsApp.' : 'Enter the email you signed up with. We’ll send you a code.',
+      lH: 'Welcome back', backL: 'Back', lP: PHONE ? 'Enter the number you signed up with. We’ll send a code on WhatsApp.' : 'Enter the email you signed up with. We’ll send you a code.',
       newHere: 'New here? Create an account',
       gH: 'See your invites', gP: PHONE ? 'Log in with the phone number your invite was sent to.' : 'Log in with your email and we’ll send you a code.',
       gNote: 'Got an invite link? Just open it. You don’t need to log in first.',
@@ -43,7 +43,7 @@
       sH: 'سوّوا حسابكم', sP: PHONE ? 'نرسل لكم رمز على الواتساب، بدون كلمة سر.' : 'نرسل لكم رمز على الإيميل، بدون كلمة سر.',
       name: 'اسمكم', phone: 'رقم التلفون', email: PHONE ? 'الإيميل (اختياري)' : 'الإيميل', send: 'أرسلوا الرمز', haveAcc: 'عندكم حساب؟ سجّلوا الدخول',
       terms: 'لما تكملون، توافقون على الشروط', termsLink: 'الشروط',
-      lH: 'هلا فيكم من جديد', lP: PHONE ? 'اكتبوا الرقم اللي سجلتوا فيه، ونرسل لكم رمز على الواتساب.' : 'اكتبوا الإيميل اللي سجلتوا فيه، ونرسل لكم رمز.',
+      lH: 'هلا فيكم من جديد', backL: 'رجوع', lP: PHONE ? 'اكتبوا الرقم اللي سجلتوا فيه، ونرسل لكم رمز على الواتساب.' : 'اكتبوا الإيميل اللي سجلتوا فيه، ونرسل لكم رمز.',
       newHere: 'أول مرة؟ سوّوا حساب',
       gH: 'شوفوا دعواتكم', gP: PHONE ? 'سجّلوا الدخول بالرقم اللي وصلتكم عليه الدعوة.' : 'سجّلوا الدخول بإيميلكم، ونرسل لكم رمز.',
       gNote: 'عندكم رابط دعوة؟ افتحوه على طول، ما تحتاجون تسجلون دخول.',
@@ -84,8 +84,10 @@
   }
 
   // ---------- drawing ----------
+  // a way back on every step: welcome → the site's home page, log in / sign up → welcome (a guest: home), code → the step before
+  const BACK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>';
   function head(withMark = true) {
-    return `<div class="au-top">${withMark ? `${ARCH}<span class="au-brand">${esc(BR())}</span>` : ''}<button type="button" class="au-lang" id="auLang" lang="${lang() === 'ar' ? 'en' : 'ar'}" aria-label="${esc(t().langL)}">${t().otherLang}</button></div>`;
+    return `<div class="au-top"><button type="button" class="au-back" id="auBack" aria-label="${esc(t().backL)}">${BACK}</button>${withMark ? `${ARCH}<span class="au-brand">${esc(BR())}</span>` : ''}<button type="button" class="au-lang" id="auLang" lang="${lang() === 'ar' ? 'en' : 'ar'}" aria-label="${esc(t().langL)}">${t().otherLang}</button></div>`;
   }
   const field = (id, label, type, val, extra = '') => `<div class="fld"><label class="f" for="${id}">${esc(label)}</label><input type="${type}" id="${id}" value="${esc(val || '')}" ${extra}></div>`;
   const contact = () => PHONE ? App.prettyPhone(state.phone) : state.email;
@@ -136,6 +138,12 @@
       if (s.opts.onLang) s.opts.onLang();
       else { const l = lang() === 'ar' ? 'en' : 'ar'; document.documentElement.lang = l; document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr'; try { localStorage.setItem('host-lang', l); } catch (e) {} }
       draw();
+    };
+    $('auBack').onclick = () => {
+      s.err = null;
+      if (s.step === 'code') { s.code = ''; go(s.from || 'login'); }
+      else if (s.step !== 'welcome' && s.opts.audience !== 'guest') go('welcome');
+      else location.href = 'index.html';
     };
     if (s.step === 'welcome') { $('auSign').onclick = () => go('signup'); $('auLog').onclick = () => go('login'); return; }
     if (s.step === 'signup' || s.step === 'login') {

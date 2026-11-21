@@ -3,6 +3,8 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { TabList, Tabs, TabSlot, TabTrigger } from 'expo-router/ui';
 import { Linking, Platform, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { hasEventRequest } from '../../../../lib/api7';
 import { links } from '../../../../lib/config';
 import { Busy, Button, Centered, EmptyState, Icon, PressScale, TabBarFrame, TabButton } from '../../../../components';
 import { HostProvider, tabHref, useHost, type Tab } from '../../../../components/host/HostContext';
@@ -38,6 +40,9 @@ export default function EventLayout() {
 function EventTabs({ id }: { id: string }) {
   const { t, c, lang } = useApp();
   const h = useHost();
+  // a draft made by "Create an event" in the app: say the request arrived (the team finalises it)
+  const [requested, setRequested] = useState(false);
+  useEffect(() => { if (h.status === 'draft') hasEventRequest(id).then(setRequested); }, [h.status, id]);
   const T = t.host;
   // a co-host has no Invite tab (sending and the invite's words stay with the main host)
   const tabs: { k: Tab; icon: 'home' | 'people' | 'env' | 'door'; label: string }[] = [
@@ -68,7 +73,7 @@ function EventTabs({ id }: { id: string }) {
             {h.status === 'loading' ? <Busy /> : h.status === 'door' ? (
               <EmptyState title={T.doorH} body={T.doorP} action={<Button big block kind="primary" icon="door" label={T.doorBtn} onPress={() => router.replace({ pathname: '/door/[id]', params: { id } })} />} />
             ) : h.status === 'draft' ? (
-              <EmptyState title={t.a.draftH} body={t.a.draftP} testID="ev-draft"
+              <EmptyState title={t.a.draftH} body={requested ? t.a.rqDraftP : t.a.draftP} testID="ev-draft"
                 action={links.whatsapp(t.a.draftWa(h.me?.title ?? '')) ? <Button kind="primary" icon="whatsapp" label={t.a.whatsappUs}
                   onPress={() => Linking.openURL(links.whatsapp(t.a.draftWa(h.me?.title ?? ''))!).catch(() => {})} testID="draft-wa" /> : undefined} />
             ) : h.status === 'none' ? (

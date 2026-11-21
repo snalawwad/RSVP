@@ -5,7 +5,7 @@
   'use strict';
   var API = 'https://mock.supabase.test';
   var PGLITE = null;   // set below: our own copy (Safari won't load its add-ons from another site)
-  var DB_NAME = 'idb://sina-demo-v4', FLAG = 'sina-demo-v4-ready';
+  var DB_NAME = 'idb://sina-demo-v5', FLAG = 'sina-demo-v5-ready';
   var HERE = (document.currentScript && document.currentScript.src) || location.href;
   var BASE = HERE.replace(/[^/]*$/, '');                       // …/RSVP/demo/
   var DEMO_EMAIL = 'host@sina.test';
@@ -30,7 +30,7 @@
 
   // ---------- reset, and signed in from the start ----------
   try {
-    if (/[?&]reset=1/.test(location.search)) { localStorage.removeItem(FLAG); localStorage.removeItem('sb-mock-auth-token'); indexedDB.deleteDatabase('/pglite/sina-demo-v4'); }
+    if (/[?&]reset=1/.test(location.search)) { localStorage.removeItem(FLAG); localStorage.removeItem('sb-mock-auth-token'); indexedDB.deleteDatabase('/pglite/sina-demo-v5'); }
     if (!localStorage.getItem('sb-mock-auth-token')) localStorage.setItem('sb-mock-auth-token', JSON.stringify(sessionFor(DEMO_EMAIL)));
   } catch (e) {}
 
@@ -41,14 +41,14 @@
     var opts = { extensions: { pgcrypto: crypto_.pgcrypto }, relaxedDurability: false };   // save every change before the next page opens
     var fresh = true; try { fresh = !localStorage.getItem(FLAG); } catch (e) {}
     if (fresh) {
-      var res = await fetch(BASE + 'demo-db.tar.gz?v=4');
+      var res = await fetch(BASE + 'demo-db.tar.gz?v=5');
       opts.loadDataDir = await res.blob();
-      try { indexedDB.deleteDatabase('/pglite/sina-demo-v4'); indexedDB.deleteDatabase('/pglite/sina-demo-v1'); indexedDB.deleteDatabase('/pglite/sina-demo-v2'); indexedDB.deleteDatabase('/pglite/sina-demo-v3'); localStorage.removeItem('sina-demo-v1-ready'); localStorage.removeItem('sina-demo-v2-ready'); localStorage.removeItem('sina-demo-v3-ready'); } catch (e) {}
+      try { indexedDB.deleteDatabase('/pglite/sina-demo-v5'); indexedDB.deleteDatabase('/pglite/sina-demo-v1'); indexedDB.deleteDatabase('/pglite/sina-demo-v2'); indexedDB.deleteDatabase('/pglite/sina-demo-v3'); indexedDB.deleteDatabase('/pglite/sina-demo-v4'); localStorage.removeItem('sina-demo-v1-ready'); localStorage.removeItem('sina-demo-v2-ready'); localStorage.removeItem('sina-demo-v3-ready'); localStorage.removeItem('sina-demo-v4-ready'); } catch (e) {}
     }
     var db;
     try { db = await mod.PGlite.create(DB_NAME, opts); }
     catch (e) {   // private browsing or no storage: keep it in memory for this page
-      if (!opts.loadDataDir) opts.loadDataDir = await (await fetch(BASE + 'demo-db.tar.gz?v=4')).blob();
+      if (!opts.loadDataDir) opts.loadDataDir = await (await fetch(BASE + 'demo-db.tar.gz?v=5')).blob();
       db = await mod.PGlite.create(opts);
     }
     try { await db.query('select demo.shift_clock()'); } catch (e) { console.warn('demo clock', e); }   // keep "tonight" tonight

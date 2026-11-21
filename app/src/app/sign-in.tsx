@@ -6,9 +6,9 @@
 // Create account keeps the name (and email) and saves it with save_profile_v2 once logged in (see (app)/index).
 // The app never offers to create an event or to pay (Apple): getting in only.
 import { useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Linking, Platform, ScrollView, View } from 'react-native';
+import { BackHandler, KeyboardAvoidingView, Linking, Platform, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BrandBar, Button, Field, PageTitle, PressScale, Txt } from '../components';
+import { BrandBar, Button, Field, Icon, PageTitle, PressScale, Txt } from '../components';
 import { CodeBoxes, type CodeBoxesRef } from '../components/CodeBoxes';
 import { WelcomeArt } from '../components/WelcomeArt';
 import { config, isConfigured, links } from '../lib/config';
@@ -102,6 +102,11 @@ export default function SignIn() {
     </PressScale>
   );
   const back = (to: Step) => () => { setErrs({}); setCodeErr(''); setStep(to); };
+  useEffect(() => {
+    if (step === 'welcome') return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => { back(step === 'code' ? from : 'welcome')(); return true; });
+    return () => sub.remove();
+  }, [step, from]);
 
   if (!isConfigured) {
     return (
@@ -160,6 +165,12 @@ export default function SignIn() {
       <SafeAreaView testID="sign-in" style={{ flex: 1, backgroundColor: c.bg }} edges={['top', 'left', 'right', 'bottom']}>
         <BrandBar end={toLang} />
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1, paddingHorizontal: space[4], paddingTop: space[6], paddingBottom: space[6], gap: 18 }}>
+          {/* a way back on every step: Log in / Create account → Welcome, Enter the code → the step before */}
+          <PressScale kind="chip" accessibilityRole="button" accessibilityLabel={t.back} hitSlop={4} testID="step-back"
+            onPress={back(step === 'code' ? from : 'welcome')}
+            style={{ width: size.target, height: size.target, borderRadius: 999, borderWidth: 1, borderColor: c.line, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center', marginTop: -space[3] }}>
+            <Icon name="chev" color={c.plum} flip={!rtl} />
+          </PressScale>
           <PageTitle testID={`step-${step}`} sub={<Txt v="body" tone="muted" testID="sent-to">{sub}</Txt>}>{head}</PageTitle>
 
           {step === 'create' ? (

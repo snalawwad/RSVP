@@ -577,3 +577,7 @@ body.app .menu-foot .btn.quiet{color:var(--no);padding-inline:4px}
 
 /* the guest's invites (me.html) */
 body.me .tabs button{max-width:200px}
+/* log in: round back button at the start of the top bar (mirrors in Arabic) */
+.au-back{flex:none;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--plum);padding:0;margin-inline-end:4px}
+html[dir="rtl"] .au-back svg{transform:scaleX(-1)}
+.au-top .au-lang{margin-inline-start:auto}

@@ -452,10 +452,13 @@ document.addEventListener('DOMContentLoaded', function () {
     markPaid: 'Mark as paid', payQ: (a, e) => `Mark ${a} from “${e}” as paid? Only do this once the money is in.`, payNote: 'Note (optional)', payNotePh: 'e.g. bank transfer on 20 Nov',
     payYes: 'Yes, mark it paid', payNo: 'Keep it unpaid', paidOk: 'Marked as paid', payErr: 'Couldn’t mark it paid. Try again.',
     // requests
-    reqKind: { design: 'Card design', change: 'Change to the invite' },
+    reqKind: { design: 'Card design', change: 'Change to the invite', event: 'New event (from the app)' },
     reqSt: { change: { awaiting_payment: 'Waiting for payment', requested: 'New', in_progress: 'In progress', done: 'Done', cancelled: 'Cancelled' },
-             design: { requested: 'New', draft_sent: 'Draft sent', approved: 'Approved', cancelled: 'Cancelled' } },
-    reqNone: 'No design or change requests yet.', reqErr: 'Couldn’t load the requests. Check the connection and try again.',
+             design: { requested: 'New', draft_sent: 'Draft sent', approved: 'Approved', cancelled: 'Cancelled' },
+             event: { requested: 'New', in_progress: 'In progress', done: 'Done', cancelled: 'Cancelled' } },
+    rqWhen: 'When', rqWhere: 'Where', rqType: 'Type', rqGuests: 'Guests (about)', rqDoor: 'Door check-in', rqDesign: 'Design', rqContact: 'WhatsApp', rqNotes: 'Notes', rqLang: 'Invite language',
+    rqYes: 'Yes', rqNo: 'No', rqDesigns: { we_design: 'Design it for them', own: 'They have their own', simple: 'Keep it simple' }, rqOpen: 'Open the event', rqWa: 'WhatsApp them',
+    reqNone: 'No requests yet.', reqErr: 'Couldn’t load the requests. Check the connection and try again.',
     rIdea: 'Idea', rWhat: 'What to change', rWording: 'Wording', rColours: 'Colours', rPhotos: n => n === 1 ? '1 photo' : `${n} photos`, rHost: 'Host',
     rStatus: 'Status', rDraft: 'Draft link', rDraftPh: 'https://…', rSave: 'Save the status', rSaved: 'Request updated', rSaveErr: 'Couldn’t update the request. Try again.',
     rOpenDraft: 'Open the draft', rAsked: d => `Asked ${d}`, rBadUrl: 'The draft link must start with https://',
@@ -482,10 +485,13 @@ document.addEventListener('DOMContentLoaded', function () {
     ordWhen: d => `انطلبت ${d}`, paidWhen: d => `اندفعت ${d}`,
     markPaid: 'سجّلوها مدفوعة', payQ: (a, e) => `نسجّل ${a} من «${e}» مدفوعة؟ سوّوها بس بعد ما توصل الفلوس.`, payNote: 'ملاحظة (اختياري)', payNotePh: 'مثلاً: تحويل بنكي يوم 20 نوفمبر',
     payYes: 'إي، سجّلوها مدفوعة', payNo: 'لا، خلّوها', paidOk: 'انسجلت مدفوعة', payErr: 'ما قدرنا نسجّلها مدفوعة. حاولوا مرة ثانية.',
-    reqKind: { design: 'تصميم الكرت', change: 'تعديل على الدعوة' },
+    reqKind: { design: 'تصميم الكرت', change: 'تعديل على الدعوة', event: 'مناسبة جديدة (من التطبيق)' },
     reqSt: { change: { awaiting_payment: 'تنتظر الدفع', requested: 'جديد', in_progress: 'نشتغل عليه', done: 'خلص', cancelled: 'ملغي' },
-             design: { requested: 'جديد', draft_sent: 'أرسلنا المسودة', approved: 'انعتمد', cancelled: 'ملغي' } },
-    reqNone: 'ما في طلبات تصميم أو تعديل للحين.', reqErr: 'ما قدرنا نجيب الطلبات. شيكوا على النت وحاولوا مرة ثانية.',
+             design: { requested: 'جديد', draft_sent: 'أرسلنا المسودة', approved: 'انعتمد', cancelled: 'ملغي' },
+             event: { requested: 'جديد', in_progress: 'نشتغل عليه', done: 'خلص', cancelled: 'ملغي' } },
+    rqWhen: 'متى', rqWhere: 'وين', rqType: 'النوع', rqGuests: 'الضيوف (تقريباً)', rqDoor: 'تسجيل على الباب', rqDesign: 'التصميم', rqContact: 'واتساب', rqNotes: 'ملاحظات', rqLang: 'لغة الدعوة',
+    rqYes: 'إي', rqNo: 'لا', rqDesigns: { we_design: 'نصممها لهم', own: 'عندهم تصميمهم', simple: 'بسيطة' }, rqOpen: 'افتحوا المناسبة', rqWa: 'راسلوهم واتساب',
+    reqNone: 'ما في طلبات للحين.', reqErr: 'ما قدرنا نجيب الطلبات. شيكوا على النت وحاولوا مرة ثانية.',
     rIdea: 'الفكرة', rWhat: 'شنو يتعدّل', rWording: 'الكلام', rColours: 'الألوان', rPhotos: n => App.arN(n, 'صورة وحدة', 'صورتين', 'صور', 'صورة'), rHost: 'أهل المناسبة',
     rStatus: 'الحالة', rDraft: 'رابط المسودة', rDraftPh: 'https://…', rSave: 'احفظوا الحالة', rSaved: 'انحفظ الطلب', rSaveErr: 'ما قدرنا نحفظ الطلب. حاولوا مرة ثانية.',
     rOpenDraft: 'افتحوا المسودة', rAsked: d => `انطلب ${d}`, rBadUrl: 'رابط المسودة لازم يبدأ بـ https://',
@@ -844,7 +850,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const tone = { awaiting_payment: 'wait', requested: 'wait', in_progress: 'wait', draft_sent: 'wait', done: 'ok', approved: 'ok', cancelled: 'mute' };
     L.innerHTML = `<div class="glist reql">${reqs7.map(r => {
       const sts = t.reqSt[r.kind] || {}, host = hostOf(r.host), id = esc(r.id);
-      const lines = r.kind === 'design' ? [[t.rIdea, r.idea], [t.rWording, r.wording], [t.rColours, r.colours]] : [[t.rWhat, r.what], [t.rWording, r.wording], [t.rColours, r.colours]];
+      const when = r.starts_at ? new Date(r.starts_at).toLocaleString(lang === 'ar' ? 'ar-KW-u-nu-latn' : 'en-GB', { timeZone: 'Asia/Kuwait', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+      const lines = r.kind === 'event' ? [[t.rqWhen, when], [t.rqWhere, r.venue], [t.rqType, r.event_type], [t.rqGuests, r.guests], [t.rqDoor, r.door ? t.rqYes : t.rqNo], [t.rqDesign, (t.rqDesigns || {})[r.design] || r.design], [t.rqLang, r.lang === 'en' ? 'English' : 'العربية'], [t.rqContact, r.contact ? '+' + r.contact : ''], [t.rqNotes, r.notes]]
+        : r.kind === 'design' ? [[t.rIdea, r.idea], [t.rWording, r.wording], [t.rColours, r.colours]] : [[t.rWhat, r.what], [t.rWording, r.wording], [t.rColours, r.colours]];
       const photos = (r.photos || []).length;
       return `<article class="reqrow" data-id="${id}" data-kind="${esc(r.kind)}">
         <div class="or-top"><span class="t-name">${esc(t.reqKind[r.kind] || r.kind)}</span><span class="tag tone-${tone[r.status] || 'mute'}">${esc(sts[r.status] || r.status)}</span></div>
@@ -852,6 +860,7 @@ document.addEventListener('DOMContentLoaded', function () {
         ${host.length ? `<p class="t-small or-h">${host.map(x => `<bdi dir="auto">${esc(x)}</bdi>`).join(t.sep)}</p>` : ''}
         <dl class="rq-d">${lines.filter(([, v]) => v).map(([k, v]) => `<div><dt>${esc(k)}</dt><dd dir="auto">${esc(v)}</dd></div>`).join('')}${photos ? `<div><dt>${esc(t.rPhotos(photos))}</dt><dd>${(r.photos || []).map((u, i) => /^https:\/\//.test(u) ? `<a href="${esc(u)}" target="_blank" rel="noopener">${i + 1}</a>` : '').join(' ')}</dd></div>` : ''}</dl>
         <p class="t-small or-m">${esc(t.rAsked(ago(r.created_at)))}${r.draft_url ? `${t.sep}<a href="${esc(r.draft_url)}" target="_blank" rel="noopener">${t.rOpenDraft}</a>` : ''}</p>
+        ${r.kind === 'event' ? `<p class="t-small or-m"><a href="?event=${esc(r.event_id)}">${esc(t.rqOpen)}</a>${r.contact ? `${t.sep}<a href="https://wa.me/${esc(r.contact)}" target="_blank" rel="noopener">${esc(t.rqWa)}</a>` : ''}</p>` : ''}
         <div class="rq-edit">
           <div class="fld"><label class="f" for="rs-${id}">${t.rStatus}</label><select id="rs-${id}" data-rs>${Object.keys(sts).map(k => `<option value="${k}"${k === r.status ? ' selected' : ''}>${esc(sts[k])}</option>`).join('')}</select></div>
           ${r.kind === 'design' ? `<div class="fld"><label class="f" for="rd-${id}">${t.rDraft}</label><input type="url" id="rd-${id}" data-rd dir="ltr" inputmode="url" placeholder="${esc(t.rDraftPh)}" value="${esc(r.draft_url || '')}"></div>` : ''}

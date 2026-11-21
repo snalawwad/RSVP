@@ -1,6 +1,7 @@
 // Words for the launch screens (Sama's Figma): log in, the one home, a guest's invitations, the account, the package,
 // after the event. t.a.<key>. Arabic is written as Arabic (Kuwaiti plural address, one term per concept), not mirrored English.
-// Never: a price, "buy", "upgrade", "create an event" or "go to the website" (Apple: the app takes no payment).
+// Never: a price, "buy", "upgrade" or "go to the website" (Apple: the app takes no payment). "Create an event" sends a
+// request (rq*): the team finishes it with the host outside the app; nothing is paid here.
 import { arN, countWord, hostWord } from '../lib/words';
 import type { Widen } from './widen';
 
@@ -80,6 +81,20 @@ export const appEn = {
   draftH: 'Not live yet', draftP: 'This event is still being set up. Message us and our team will help you finish it.', draftWa: (n: string) => `Hi Sina, I’d like to finish setting up my event: ${n}`,
   anotherH: 'Planning another event?', anotherP: 'Our team sets it up with you. Message us on WhatsApp.', anotherWa: 'Hi Sina, I’d like to plan a new event.',
   cohostNote: 'You’re a co-host: you see who’s coming. Phone numbers and changes stay with the main host.',
+  // Create an event (a request: the team finalises it with the host)
+  rqNew: 'Create an event', rqH: 'Create an event', rqP: 'Tell us about it. Our team will contact you to finalise everything.',
+  rqName: 'Event name', rqNamePh: 'e.g. Reem & Fahad’s wedding', rqType: 'What is it?',
+  rqTypes: { wedding: 'Wedding', engagement: 'Engagement', graduation: 'Graduation', ghabga: 'Ghabga', dinner: 'Dinner', other: 'Other' } as Record<string, string>,
+  rqDate: 'Date', rqTime: 'Time', rqPick: 'Pick', rqVenue: 'Venue', rqVenuePh: 'e.g. Al Hamra Hall', rqGuests: 'About how many guests?', rqGuestsPh: 'e.g. 150',
+  rqDoor: 'Check guests in at the door?', rqDoorYes: 'Yes', rqDoorNo: 'No', rqDoorP: 'Our team brings guest passes and checks people in.',
+  rqDesign: 'Invitation design', rqDesignWe: 'Design it for me', rqDesignWeS: 'Our designer makes your card', rqDesignOwn: 'I have my own',
+  rqDesignOwnS: 'Send it to us on WhatsApp later', rqDesignSimple: 'Keep it simple', rqDesignSimpleS: 'Words only, in our style',
+  rqLang: 'Guests read the invitation in', rqContact: 'Your WhatsApp number', rqContactP: 'We’ll message you here to finalise it.',
+  rqNotes: 'Anything else? (optional)', rqNotesPh: 'e.g. women only, a second night, special wording',
+  rqSend: 'Send request', rqNeed: 'Add the event name, date and your WhatsApp number.',
+  rqErr: 'Couldn’t send it. Check your connection and try again.', rqTooMany: 'You have a few requests waiting already. We’ll be in touch soon.',
+  rqDoneH: 'We’ve received your request', rqDoneP: 'Our team will contact you on WhatsApp soon to finalise your event. It shows in your events as “Not live yet” until then.',
+  rqDoneB: 'Back to your events', rqDraftP: 'We’ve received your request. Our team will contact you soon to finalise it.',
   everyone: 'Everyone’s invited', tonightH: (n: number) => (n === 1 ? '1 person coming tonight' : `${n} coming tonight`), toSend: (n: number) => `${n} still to send`,
   outP: (inv: number, rep: number) => `All ${inv} invites are out. ${rep} ${rep === 1 ? 'guest has' : 'guests have'} replied so far.`,
   someOutP: (sent: number, inv: number) => `${sent} of ${inv} invites are out.`,
@@ -154,6 +169,19 @@ export const appAr: AppStrings = {
   draftH: 'للحين ما صارت جاهزة', draftP: 'المناسبة للحين تحت التجهيز. راسلونا وفريقنا يساعدكم تكمّلونها.', draftWa: (n) => `هلا سنة، أبي أكمّل تجهيز مناسبتي: ${n}`,
   anotherH: 'عندكم مناسبة ثانية؟', anotherP: 'فريقنا يرتبها معاكم. راسلونا على الواتساب.', anotherWa: 'هلا سنة، أبي أرتب مناسبة جديدة.',
   cohostNote: 'أنتم مشاركين بالاستضافة: تشوفون مين بيحضر، وأرقام التلفونات والتعديلات عند صاحب المناسبة.',
+  rqNew: 'سوّوا مناسبة', rqH: 'سوّوا مناسبة', rqP: 'قولوا لنا عنها، وفريقنا يتواصل معاكم عشان نجهز كل شي.',
+  rqName: 'اسم المناسبة', rqNamePh: 'مثلاً: زواج ريم وفهد', rqType: 'شنو المناسبة؟',
+  rqTypes: { wedding: 'زواج', engagement: 'ملكة', graduation: 'تخرج', ghabga: 'غبقة', dinner: 'عشا', other: 'غير' },
+  rqDate: 'التاريخ', rqTime: 'الوقت', rqPick: 'اختاروا', rqVenue: 'المكان', rqVenuePh: 'مثلاً: قاعة الحمراء', rqGuests: 'تقريباً كم ضيف؟', rqGuestsPh: 'مثلاً: ١٥٠',
+  rqDoor: 'تبون تسجيل حضور على الباب؟', rqDoorYes: 'إي', rqDoorNo: 'لا', rqDoorP: 'فريقنا يجهز بطاقات الدخول ويسجل الحضور.',
+  rqDesign: 'تصميم الدعوة', rqDesignWe: 'صمموها لي', rqDesignWeS: 'المصممة عندنا تسوي لكم الكرت', rqDesignOwn: 'عندي تصميمي',
+  rqDesignOwnS: 'أرسلوه لنا على الواتساب بعدين', rqDesignSimple: 'خلوها بسيطة', rqDesignSimpleS: 'كلام بس، بستايلنا',
+  rqLang: 'لغة الدعوة للضيوف', rqContact: 'رقم الواتساب مالكم', rqContactP: 'بنراسلكم عليه عشان نكمّل التجهيز.',
+  rqNotes: 'شي ثاني؟ (اختياري)', rqNotesPh: 'مثلاً: حريم بس، ليلة ثانية، كلام خاص',
+  rqSend: 'أرسلوا الطلب', rqNeed: 'اكتبوا اسم المناسبة والتاريخ ورقم الواتساب.',
+  rqErr: 'ما قدرنا نرسله. تأكدوا من النت وجربوا مرة ثانية.', rqTooMany: 'عندكم طلبات للحين ننتظرها. بنتواصل معاكم قريب.',
+  rqDoneH: 'وصلنا طلبكم', rqDoneP: 'فريقنا بيتواصل معاكم على الواتساب قريب عشان نكمّل تجهيز المناسبة. بتطلع عندكم بمناسباتكم «للحين ما صارت جاهزة» لين ذاك الوقت.',
+  rqDoneB: 'ارجعوا لمناسباتكم', rqDraftP: 'وصلنا طلبكم. فريقنا بيتواصل معاكم قريب عشان نكمّلها.',
   everyone: 'وصلت الدعوة للكل', tonightH: (n) => `${arN(n, 'شخص واحد جاي', 'شخصين جايين', 'أشخاص جايين', 'شخص جايين')} الليلة`, toSend: (n) => `باقي ${arN(n, 'دعوة وحدة', 'دعوتين', 'دعوات', 'دعوة')} ما انرسلت`,
   outP: (inv, rep) => `انرسلت كل الدعوات (${inv})، ورد ${arN(rep, 'ضيف واحد', 'ضيفين', 'ضيوف', 'ضيف')} للحين.`,
   someOutP: (sent, inv) => `انرسلت ${sent} من ${inv} دعوة.`,

@@ -40,6 +40,7 @@ export default function AppLayout() {
       <Stack.Screen name="reply/[token]" options={{ title: t.a.yourInvite, ...webBack }} />
       <Stack.Screen name="package/[id]" options={{ title: t.a.pkgH, ...webBack }} />
       <Stack.Screen name="settings" options={{ title: t.a.account, ...webBack }} />
+      <Stack.Screen name="new-event" options={{ title: '', ...webBack }} />
       <Stack.Screen name="help" options={{ title: t.menu.help, ...webBack }} />
       <Stack.Screen name="delete-account" options={{ title: t.deleteAccount, ...webBack }} />
     </Stack>

@@ -9,9 +9,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Linking } from 'react-native';
 import { BrandBar, Busy, Button, Icon, PageTitle, Panel, PressScale, Txt } from '../../components';
-import { links } from '../../lib/config';
 import { listGuests, type Guest } from '../../lib/api';
 import { myEvents, myInvites, myProfile, saveProfile } from '../../lib/api7';
 import { daysTo, fmtTime, kwDay, kwParts } from '../../lib/format';
@@ -128,10 +126,10 @@ export default function Home() {
         <PageTitle testID="home-title" sub={empty ? <Txt v="body" tone="muted" testID="no-events">{A.emptyP}</Txt> : undefined}>
           {name ? A.hi(name.split(/\s+/)[0]) : A.yourEvents}
         </PageTitle>
+        <Button kind="primary" block icon="plus" label={A.rqNew} onPress={() => router.push('/new-event' as never)} testID="rq-new" />
         {hosting.length ? <Section title={A.hosting} testID="events-up">{hosting.map((e) => <EventCard key={e.id} e={e} />)}</Section> : null}
         {door.length ? <Section title={A.atDoor} testID="events-door">{door.map((e) => <EventCard key={e.id} e={e} />)}</Section> : null}
         {invUp.length ? <Section title={hosting.length || door.length ? A.invitedTo : A.comingUp} testID="invites-up">{invUp.map((i) => <InviteCard key={i.token} i={i} />)}</Section> : null}
-        {hosting.length || empty ? <Another /> : null}
         {pastEv.length || pastInv.length ? (
           <Section title={A.past} testID="events-past">
             {pastEv.map((e) => <EventCard key={e.id} e={e} />)}
@@ -150,22 +148,6 @@ export default function Home() {
         {body}
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-/** "Planning another event?": hosts can't create or pay in the app (Apple), so the team helps on WhatsApp.
- *  No word about the website or paying. Hidden when no support number is set. */
-function Another() {
-  const { t } = useApp();
-  const A = t.a;
-  const wa = links.whatsapp(A.anotherWa);
-  if (!wa) return null;
-  return (
-    <Panel testID="another" gap={space[2]}>
-      <Txt v="name" tone="ink">{A.anotherH}</Txt>
-      <Txt v="small" tone="muted">{A.anotherP}</Txt>
-      <Button label={A.whatsappUs} kind="secondary" small icon="whatsapp" onPress={() => Linking.openURL(wa).catch(() => {})} testID="another-wa" style={{ alignSelf: 'flex-start', marginTop: space[1] }} />
-    </Panel>
   );
 }
 

@@ -74,3 +74,15 @@ export const getInvite = (token: string) => wrap<InviteView | null>(supabase.rpc
 /** Reply. count = people coming on a yes (1..seats). Errors: RSVP_CLOSED, CHANGES_LOCKED, NOT_READY. */
 export const respond = (token: string, status: GuestStatus, count: number | null, reason: string | null) =>
   wrap<InviteView>(supabase.rpc('respond_v2', { p_token: token, p_status: status, p_count: status === 'yes' ? count : null, p_reason: status === 'no' ? reason : null }));
+
+/** "Create an event" in the app: makes a draft and a request the team finalises with the host (0008). id = the event. */
+export type EventRequest = {
+  event: { title: string; event_type?: string; starts_at?: string | null; venue?: string | null; lang: 'ar' | 'en' };
+  guests?: number | null; door: boolean; design: 'we_design' | 'own' | 'simple'; contact: string; notes?: string;
+};
+export const requestEvent = (p: EventRequest) => wrap<string>(supabase.rpc('request_event_v2', { p }));
+/** Has this (draft) event got a request from the app waiting? */
+export async function hasEventRequest(eventId: string): Promise<boolean> {
+  const r = await wrap<{ kind: string; status: string }[]>(supabase.rpc('event_requests_v2', { p_event: eventId }));
+  return !r.error && Array.isArray(r.data) && r.data.some((x) => x.kind === 'event' && x.status !== 'cancelled');
+}

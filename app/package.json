@@ -8,6 +8,7 @@
     "@expo-google-fonts/noto-kufi-arabic": "^0.4.3",
     "@expo-google-fonts/noto-naskh-arabic": "^0.4.5",
     "@expo/metro-runtime": "~58.0.17",
+    "@react-native-community/datetimepicker": "9.2.1",
     "@supabase/supabase-js": "^2.119.0",
     "expo": "~58.0.26",
     "expo-calendar": "~58.0.8",
