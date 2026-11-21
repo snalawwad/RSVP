@@ -5,7 +5,7 @@
   'use strict';
   var API = 'https://mock.supabase.test';
   var PGLITE = null;   // set below: our own copy (Safari won't load its add-ons from another site)
-  var DB_NAME = 'idb://sina-demo-v2', FLAG = 'sina-demo-v2-ready';
+  var DB_NAME = 'idb://sina-demo-v3', FLAG = 'sina-demo-v3-ready';
   var HERE = (document.currentScript && document.currentScript.src) || location.href;
   var BASE = HERE.replace(/[^/]*$/, '');                       // …/RSVP/demo/
   var DEMO_EMAIL = 'host@sina.test';
@@ -30,7 +30,7 @@
 
   // ---------- reset, and signed in from the start ----------
   try {
-    if (/[?&]reset=1/.test(location.search)) { localStorage.removeItem(FLAG); localStorage.removeItem('sb-mock-auth-token'); indexedDB.deleteDatabase('/pglite/sina-demo-v2'); }
+    if (/[?&]reset=1/.test(location.search)) { localStorage.removeItem(FLAG); localStorage.removeItem('sb-mock-auth-token'); indexedDB.deleteDatabase('/pglite/sina-demo-v3'); }
     if (!localStorage.getItem('sb-mock-auth-token')) localStorage.setItem('sb-mock-auth-token', JSON.stringify(sessionFor(DEMO_EMAIL)));
   } catch (e) {}
 
@@ -41,14 +41,14 @@
     var opts = { extensions: { pgcrypto: crypto_.pgcrypto }, relaxedDurability: false };   // save every change before the next page opens
     var fresh = true; try { fresh = !localStorage.getItem(FLAG); } catch (e) {}
     if (fresh) {
-      var res = await fetch(BASE + 'demo-db.tar.gz?v=2');
+      var res = await fetch(BASE + 'demo-db.tar.gz?v=3');
       opts.loadDataDir = await res.blob();
-      try { indexedDB.deleteDatabase('/pglite/sina-demo-v2'); indexedDB.deleteDatabase('/pglite/sina-demo-v1'); localStorage.removeItem('sina-demo-v1-ready'); } catch (e) {}
+      try { indexedDB.deleteDatabase('/pglite/sina-demo-v3'); indexedDB.deleteDatabase('/pglite/sina-demo-v1'); indexedDB.deleteDatabase('/pglite/sina-demo-v2'); localStorage.removeItem('sina-demo-v1-ready'); localStorage.removeItem('sina-demo-v2-ready'); } catch (e) {}
     }
     var db;
     try { db = await mod.PGlite.create(DB_NAME, opts); }
     catch (e) {   // private browsing or no storage: keep it in memory for this page
-      if (!opts.loadDataDir) opts.loadDataDir = await (await fetch(BASE + 'demo-db.tar.gz?v=2')).blob();
+      if (!opts.loadDataDir) opts.loadDataDir = await (await fetch(BASE + 'demo-db.tar.gz?v=3')).blob();
       db = await mod.PGlite.create(opts);
     }
     try { localStorage.setItem(FLAG, '1'); } catch (e) {}
