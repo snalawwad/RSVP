@@ -33,8 +33,11 @@ export type EventRow = {
 export type MemberRow = {
   id: string;
   event_id: string;
-  email: string;
-  role: 'host' | 'door';
+  /** null for members added by phone only. */
+  email: string | null;
+  phone?: string | null;
+  name?: string | null;
+  role: 'host' | 'door' | 'cohost';
   side: string | null;
   created_at?: string;
   expires_at?: string | null;

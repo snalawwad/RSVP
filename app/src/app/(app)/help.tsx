@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { Busy, Button, Kicker, Screen, Txt } from '../../components';
-import { isAdmin, listMembers } from '../../lib/api';
+import { isAdmin, lc, listMembers } from '../../lib/api';
 import { links } from '../../lib/config';
 import { useApp } from '../../providers/AppProvider';
 import { space } from '../../theme/tokens';
@@ -32,7 +32,7 @@ export default function Help() {
     let alive = true;
     (async () => {
       const [admin, mem] = await Promise.all([isAdmin(), listMembers()]);
-      const mine = (mem.data ?? []).filter((m) => m.email.toLowerCase() === email);
+      const mine = (mem.data ?? []).filter((m) => lc(m.email) === email);
       const w: Who = admin || mine.some((m) => m.role === 'host') ? 'host' : mine.length ? 'door' : 'none';
       if (alive) setWho(w);
     })();

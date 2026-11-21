@@ -80,6 +80,9 @@ export async function rpc2<T>(name: string, args: Record<string, unknown>, oldNa
 export const isAdmin = async () => (await wrap<boolean>(supabase.rpc('is_admin'))).data === true;
 export const canHost = async (eventId: string) => (await wrap<boolean>(supabase.rpc('can_host', { p_event: eventId }))).data === true;
 
+/** Lower-case an email that may be missing (members added by phone have none). */
+export const lc = (s: string | null | undefined) => String(s || '').trim().toLowerCase();
+
 /** Events this login can see (RLS decides), soonest first. */
 export const listEvents = (columns = '*') =>
   wrap<EventRow[]>(supabase.from('events').select(columns).order('starts_at', { ascending: true }));
@@ -91,11 +94,11 @@ export const listMembers = () => wrap<MemberRow[]>(supabase.from('event_members'
  * hosts (door-only events left out unless admin), members, and noEvents = 'door' | 'none' | null.
  */
 export async function loadHostHome(email: string) {
-  const me = email.toLowerCase();
+  const me = lc(email);
   const [admin, v2, evs, mem] = await Promise.all([isAdmin(), v2Ready(), listEvents(), listMembers()]);
   if (evs.error) return { error: evs.error, admin, v2, events: [] as EventRow[], members: [] as MemberRow[], noEvents: null as null | 'door' | 'none' };
   const members = mem.data ?? [];
-  const mine = members.filter((m) => m.email.toLowerCase() === me);
+  const mine = members.filter((m) => lc(m.email) === me);
   const doorOnly = new Set(mine.filter((m) => m.role === 'door').map((m) => m.event_id));
   const events = (evs.data ?? []).filter((e) => admin || !doorOnly.has(e.id));
   const noEvents = events.length ? null : doorOnly.size ? 'door' as const : 'none' as const;
@@ -104,13 +107,13 @@ export async function loadHostHome(email: string) {
 /** The host's own side on an event (a host who only sees one family's guests), or null. */
 export function mySide(members: MemberRow[], eventId: string, email: string, admin: boolean) {
   if (admin) return null;
-  const m = members.find((x) => x.event_id === eventId && x.email.toLowerCase() === email.toLowerCase() && x.role === 'host');
+  const m = members.find((x) => x.event_id === eventId && lc(x.email) === lc(email) && x.role === 'host');
   return m?.side || null;
 }
 
 /** What the door page does after login: v2?, can this person open the host pages?, and the events. */
 export async function loadDoorHome(email: string) {
-  const me = email.toLowerCase();
+  const me = lc(email);
   const [v2, admin, mem, evs] = await Promise.all([v2Ready(), isAdmin(), wrap<Pick<MemberRow, 'role' | 'email'>[]>(supabase.from('event_members').select('role, email')),
     wrap<Pick<EventRow, 'id' | 'title' | 'starts_at'>[]>(supabase.from('events').select('id, title, starts_at').order('starts_at'))]);
   const canHostAny = admin || (mem.data ?? []).some((m) => m.role === 'host' && (!me || String(m.email || '').toLowerCase() === me));
