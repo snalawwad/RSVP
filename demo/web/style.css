@@ -743,3 +743,9 @@ body.app .login.box h2{font-size:clamp(28px,8.6vw,36px)}
 input[type=date],input[type=time]{min-width:0;max-width:100%;-webkit-appearance:none;appearance:none;display:block;min-height:3em;text-align:start}
 input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and-time-value{text-align:start;margin:0}
 .pair>*,.grid2>*{min-width:0}
+/* Menu polish: no focus box on the sheet title when it opens (focus goes there for screen readers),
+   and Log out is a plain red row right under Help instead of an underlined link far below. */
+body.app .sheet-h:focus,body.app .sheet-h:focus-visible,.sheet-h:focus-visible{outline:none}
+.menu-out{margin-top:0;padding-top:0;border-top:0}
+.menu-logout{display:flex;width:100%;min-height:60px;padding:0;text-decoration:none;font-size:var(--fs-name);font-weight:600;color:var(--no);text-align:start}
+body.app .menu-logout:active{opacity:.7}

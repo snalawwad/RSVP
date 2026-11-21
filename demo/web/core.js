@@ -368,7 +368,7 @@
     const el = document.getElementById('themeSw'); if (!el) return;
     const cur = currentTheme(), ar = uiLang() === 'ar';
     el.setAttribute('role', 'group'); el.setAttribute('aria-label', ar ? 'الألوان' : 'Colours');
-    el.innerHTML = Object.entries(THEMES).map(([k, l]) => `<button type="button" data-t="${k}" aria-pressed="${k === cur}"><span class="sw sw-${k}" aria-hidden="true"></span>${ar ? l[1] : l[0]}</button>`).join('');
+    el.innerHTML = Object.entries(THEMES).map(([k, l]) => `<button type="button" data-t="${k}" aria-pressed="${k === cur}">${ar ? l[1] : l[0]}</button>`).join('');
     el.querySelectorAll('button').forEach(b => b.onclick = () => { document.documentElement.dataset.theme = b.dataset.t; try { localStorage.setItem('ui-theme', b.dataset.t); } catch (e) {} drawThemeSwitch(); });
   }
   // ---------- Bottom sheets ----------
