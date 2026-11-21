@@ -70,7 +70,7 @@
       <form id="editForm" onsubmit="return false" novalidate>
         <details class="grp" id="grp1"><summary><span class="grp-t"><b data-i18n="grp1">The occasion</b><small id="pv1" dir="auto"></small></span><i class="i i-chev"></i></summary><div class="grp-b"><div class="grid2">
           <div class="full"><label class="f" for="eTitle" data-i18n="evName">Event name</label><input type="text" id="eTitle" dir="auto"><p class="ferr" id="err-eTitle" hidden></p></div>
-          <div class="full"><label class="f" for="eLine" data-i18n="line">Invite line</label><input type="text" id="eLine" dir="auto" data-i18n-ph="linePh" placeholder="Join us for Ghala’s bridal shower"></div>
+          <div class="full"><label class="f" for="eLine" data-i18n="line">Invite line</label><input type="text" id="eLine" dir="auto" data-i18n-ph="linePh" placeholder="Join us for Reem’s engagement"></div>
           <div class="full"><label class="f" for="eNote" data-i18n="note">Note on the invite page (optional)</label><textarea id="eNote" rows="3" dir="auto" data-i18n-ph="notePh" placeholder="A samra night, Bring your thoub!&#10;Note: we will have a male samra group."></textarea><p class="help" data-i18n="noteHelp">The first line shows highlighted. Put anything extra on the next lines.</p></div>
           <div class="full"><label class="f" for="eHead" data-i18n="head">Title if there’s no card</label><input type="text" id="eHead" dir="auto"></div>
           <div class="full"><label class="f" for="eLang" data-i18n="invLang">Invite language</label><select id="eLang"><option value="en">English</option><option value="ar">العربية</option></select></div>
@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function () {
       // invite
       persH: 'Personal invitations', persP: 'Each guest gets a message with their name and their own reply link. This is the best way to invite.',
       persAll: 'Everyone on your list has their invitation.', persNone: 'Add your guests first, then send their invitations from here.', addGuestsB: 'Add guests',
-      seeGuest: 'See the guest page', editH: 'Invite details', evName: 'Event name', line: 'Invite line', linePh: 'Join us for Ghala’s bridal shower', note: 'Note on the invite page (optional)',
+      seeGuest: 'See the guest page', editH: 'Invite details', evName: 'Event name', line: 'Invite line', linePh: 'Join us for Reem’s engagement', note: 'Note on the invite page (optional)',
       notePh: 'A samra night, Bring your thoub!\nNote: we will have a male samra group.', noteHelp: 'The first line shows highlighted. Put anything extra on the next lines.',
       head: 'Title if there’s no card', date: 'Date', from: 'From', to: 'To', venue: 'Venue', map: 'Google Maps link', invLang: 'Invite language', waMsg: 'WhatsApp message',
       grp1: 'The occasion', grp2: 'When & where', grp3: 'WhatsApp message', grp4: 'Card & colours', instant: 'Changes here save straight away.',
@@ -335,7 +335,7 @@ document.addEventListener('DOMContentLoaded', function () {
       updTpl: v => 'هلا {الاسم}، حبينا نبلغكم بتغيير بسيط: {المناسبة} صارت يوم {التاريخ} الساعة {الوقت}' + (v ? '، في {المكان}' : '') + '.\n\nكل التفاصيل برابط دعوتكم:\n{الرابط}',
       persH: 'الدعوات الشخصية', persP: 'كل ضيف توصله رسالة باسمه ورابط رد خاص فيه. هذي أفضل طريقة للدعوة.',
       persAll: 'كل ضيوفكم وصلتهم الدعوة.', persNone: 'ضيفوا ضيوفكم أول، وبعدين أرسلوا دعواتهم من هني.', addGuestsB: 'إضافة ضيوف',
-      seeGuest: 'شوفوا صفحة الضيف', editH: 'تفاصيل الدعوة', evName: 'اسم المناسبة', line: 'عبارة الدعوة', linePh: 'نتشرف بدعوتكم لحضور ليلة غلا', note: 'ملاحظة بصفحة الدعوة (اختياري)',
+      seeGuest: 'شوفوا صفحة الضيف', editH: 'تفاصيل الدعوة', evName: 'اسم المناسبة', line: 'عبارة الدعوة', linePh: 'نتشرف بدعوتكم لحضور خطوبة ريم', note: 'ملاحظة بصفحة الدعوة (اختياري)',
       notePh: 'ليلة سمرة، لا تنسون الثوب\nوبيكون عندنا فرقة سمرة رجالية.', noteHelp: 'السطر الأول يطلع بارز، والباقي اكتبوه بالأسطر اللي بعده.',
       head: 'العنوان إذا ما في كرت', date: 'التاريخ', from: 'من', to: 'إلى', venue: 'المكان', map: 'لوكيشن قوقل ماب', invLang: 'لغة الدعوة', waMsg: 'رسالة الواتساب',
       grp1: 'المناسبة', grp2: 'الموعد والمكان', grp3: 'رسالة الواتساب', grp4: 'الكرت والألوان', instant: 'التعديلات هني تنحفظ على طول.',

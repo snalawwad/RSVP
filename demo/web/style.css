@@ -738,3 +738,8 @@ body.app .login.box>h2:first-child{margin-top:clamp(28px,10vw,44px)}
 body.app .login.box h2,body.app .login.box .sub{text-wrap:balance}
 body.app .login.box>.btn{margin-top:16px;width:100%}
 body.app .login.box h2{font-size:clamp(28px,8.6vw,36px)}
+/* iPhone Safari gives date/time fields a built-in minimum width, so two side by side ran off the screen.
+   Let them shrink to their column and keep the value lined up like other fields. */
+input[type=date],input[type=time]{min-width:0;max-width:100%;-webkit-appearance:none;appearance:none;display:block;min-height:3em;text-align:start}
+input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and-time-value{text-align:start;margin:0}
+.pair>*,.grid2>*{min-width:0}

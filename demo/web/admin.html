@@ -78,7 +78,7 @@
         <!-- 1 details -->
         <section class="step" id="s-details" data-s="details">
           <form id="detailsForm" novalidate onsubmit="return false">
-            <div class="fld"><label class="f" for="fTitle" data-i18n="fTitle">Event name</label><input type="text" id="fTitle" dir="auto" data-i18n-ph="fTitlePh" placeholder="Ghala’s bridal shower"><p class="help guestq" id="guestsRead"></p><p class="ferr" id="err-fTitle" hidden></p></div>
+            <div class="fld"><label class="f" for="fTitle" data-i18n="fTitle">Event name</label><input type="text" id="fTitle" dir="auto" data-i18n-ph="fTitlePh" placeholder="Reem’s engagement"><p class="help guestq" id="guestsRead"></p><p class="ferr" id="err-fTitle" hidden></p></div>
             <div class="pair">
               <div class="fld"><label class="f" for="fDate" data-i18n="date">Date</label><input type="date" id="fDate"></div>
               <div class="fld"><label class="f" for="fTime" data-i18n="time">Time</label><input type="time" id="fTime"></div>
@@ -99,8 +99,8 @@
                     <option value="graduation" data-i18n="tGraduation">Graduation</option><option value="birthday" data-i18n="tBirthday">Birthday</option><option value="baby" data-i18n="tBaby">Baby shower</option><option value="corporate" data-i18n="tCorporate">Company event</option><option value="other" data-i18n="tOther">Other</option></select></div>
                 </div>
                 <div class="fld"><label class="f" for="fMap" data-i18n="map">Google Maps link</label><input type="url" id="fMap" dir="ltr" inputmode="url"></div>
-                <div class="fld"><label class="f" for="fHead" data-i18n="fHead">Big title on the card</label><input type="text" id="fHead" dir="auto" placeholder="ليلة غلا"></div>
-                <div class="fld"><label class="f" for="fLine" data-i18n="line">Invite line</label><input type="text" id="fLine" dir="auto" data-i18n-ph="linePh" placeholder="Join us for Ghala’s bridal shower"></div>
+                <div class="fld"><label class="f" for="fHead" data-i18n="fHead">Big title on the card</label><input type="text" id="fHead" dir="auto" placeholder="خطوبة ريم"></div>
+                <div class="fld"><label class="f" for="fLine" data-i18n="line">Invite line</label><input type="text" id="fLine" dir="auto" data-i18n-ph="linePh" placeholder="Join us for Reem’s engagement"></div>
                 <div class="fld"><label class="f" for="fNote" data-i18n="note">Note on the invite page (optional)</label><textarea id="fNote" rows="3" dir="auto" data-i18n-ph="notePh"></textarea><p class="help" data-i18n="noteHelp">The first line shows highlighted. Put anything extra on the next lines.</p></div>
                 <div class="fld"><label class="f" for="fLimit" data-i18n="fLimit">People in the package</label><input type="number" id="fLimit" min="0" inputmode="numeric"><p class="help" data-i18n="fLimitHelp">Leave empty for no limit.</p></div>
                 <div class="fld">
@@ -274,11 +274,11 @@ document.addEventListener('DOMContentLoaded', function () {
       // step screens + saving
       stepOf: i => `Step ${i} of 5`, go: { team: 'Add the hosts and door team', design: 'Choose the card and colours', guests: 'Add the guest list', send: 'Send the invitations' }, saving: 'Saving…', savedS: 'Saved', heldS: 'Not saved yet', errS: 'Couldn’t save', retry: 'Try again',
       // details
-      fTitle: 'Event name', fTitlePh: 'Ghala’s bridal shower', guestsRead: 'Guests will read:', nameOnPage: 'The name shows on the invite page.',
+      fTitle: 'Event name', fTitlePh: 'Reem’s engagement', guestsRead: 'Guests will read:', nameOnPage: 'The name shows on the invite page.',
       fType: 'Type', tWedding: 'Wedding', tMilka: 'Milka', tEngagement: 'Engagement', tGhabga: 'Ghabga', tGraduation: 'Graduation', tBirthday: 'Birthday', tBaby: 'Baby shower', tCorporate: 'Company event', tOther: 'Other',
       fLangL: 'Guests read the invitation in', date: 'Date', time: 'Time', endT: 'Ends at (optional)', venue: 'Venue', map: 'Google Maps link',
       moreH: 'More options', moreP: 'End time, type, map link, card text, package size, invite link',
-      fHead: 'Big title on the card', line: 'Invite line', linePh: 'Join us for Ghala’s bridal shower', note: 'Note on the invite page (optional)', notePh: 'A samra night, bring your thoub!\nNote: we will have a male samra group.',
+      fHead: 'Big title on the card', line: 'Invite line', linePh: 'Join us for Reem’s engagement', note: 'Note on the invite page (optional)', notePh: 'A samra night, bring your thoub!\nNote: we will have a male samra group.',
       noteHelp: 'The first line shows highlighted. Put anything extra on the next lines.', fLimit: 'People in the package', fLimitHelp: 'Leave empty for no limit.',
       fCode: 'Invite link name', codeEmpty: 'Leave empty and we’ll make one from the event name.', codeKeep: 'Leave empty to keep the current link.', codeShort: n => `${n} of at least 8 characters`,
       codeBad: 'Only English letters, numbers and dashes', codeOk: 'Looks good', useSlug: 'Use', autoLink: 'The full link shows here once there’s a name.', copy: 'Copy the link', copied: 'Link copied', copyPrompt: 'Copy this link:',
@@ -372,11 +372,11 @@ document.addEventListener('DOMContentLoaded', function () {
       stCard: 'الكرت مرفوع', stNoCard: 'ما خلصت للحين', stGuests: (g, p) => `${countWord(g, 'guest', 'ar')} و${countWord(p, 'person', 'ar')}`, stNoGuests: 'ما في ضيوف للحين',
       stAddFirst: 'أضيفوا الضيوف أول', stAllSent: 'انرسلت كلها', stSent: (a, b) => b <= 2 ? `انرسل ${a} من ${b}` : `انرسل ${a} من ${countWord(b, 'guest', 'ar')}`,
       stepOf: i => `الخطوة ${i} من 5`, go: { team: 'أضيفوا أهل المناسبة وفريق الباب', design: 'اختاروا الكرت والألوان', guests: 'أضيفوا قائمة الضيوف', send: 'أرسلوا الدعوات' }, saving: 'نحفظ…', savedS: 'انحفظ', heldS: 'ما انحفظ للحين', errS: 'ما انحفظ', retry: 'حاولوا مرة ثانية',
-      fTitle: 'اسم المناسبة', fTitlePh: 'ليلة غلا', guestsRead: 'بيقرا الضيف:', nameOnPage: 'الاسم يطلع بصفحة الدعوة.',
+      fTitle: 'اسم المناسبة', fTitlePh: 'خطوبة ريم', guestsRead: 'بيقرا الضيف:', nameOnPage: 'الاسم يطلع بصفحة الدعوة.',
       fType: 'النوع', tWedding: 'زواج', tMilka: 'ملكة', tEngagement: 'خطوبة', tGhabga: 'غبقة', tGraduation: 'تخرج', tBirthday: 'عيد ميلاد', tBaby: 'استقبال مولود', tCorporate: 'فعالية شركة', tOther: 'غيرها',
       fLangL: 'لغة الدعوة للضيوف', date: 'التاريخ', time: 'الوقت', endT: 'ينتهي الساعة (اختياري)', venue: 'المكان', map: 'رابط اللوكيشن (قوقل ماب)',
       moreH: 'خيارات أكثر', moreP: 'وقت النهاية، النوع، اللوكيشن، كلام الكرت، الباقة، رابط الدعوة',
-      fHead: 'العنوان الكبير على الكرت', line: 'جملة الدعوة', linePh: 'نتشرف بدعوتكم لحضور ليلة غلا', note: 'ملاحظة بصفحة الدعوة (اختياري)', notePh: 'ليلة سمرة، لا تنسون الثوب\nبيكون عندنا فرقة سمرة رجالية.',
+      fHead: 'العنوان الكبير على الكرت', line: 'جملة الدعوة', linePh: 'نتشرف بدعوتكم لحضور خطوبة ريم', note: 'ملاحظة بصفحة الدعوة (اختياري)', notePh: 'ليلة سمرة، لا تنسون الثوب\nبيكون عندنا فرقة سمرة رجالية.',
       noteHelp: 'السطر الأول يطلع بارز، والباقي اكتبوه تحته.', fLimit: 'عدد الأشخاص بالباقة', fLimitHelp: 'خلوه فاضي إذا ما في حد.',
       fCode: 'اسم رابط الدعوة', codeEmpty: 'خلوه فاضي ونسويه لكم من اسم المناسبة.', codeKeep: 'خلوه فاضي ويبقى نفس الرابط.', codeShort: n => `${n} من 8 حروف على الأقل`,
       codeBad: 'حروف إنجليزية وأرقام وشرطات بس', codeOk: 'تمام', useSlug: 'استخدموا', autoLink: 'الرابط الكامل يطلع هني بعد ما تكتبون الاسم.', copy: 'نسخ الرابط', copied: 'نسخنا الرابط', copyPrompt: 'انسخوا الرابط:',
