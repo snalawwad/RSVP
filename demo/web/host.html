@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function () {
   Object.assign(T.en, {
     account: 'Account', yourEvents: 'Your events', hosting: 'Hosting', invitedTo: 'Invited to', newEvent: 'Create an event', hi: n => n ? `Hi ${n}` : 'Hello',
     noEvYet: 'You don’t have any events yet.', how: 'How it works', howS: [['Add the details', 'Date, venue and who’s hosting'], ['Add your guests', 'Paste a list or upload Excel'], ['Share the invite', 'One link per guest. Send it any way you like'], ['Watch replies come in', 'And check people in on the night']],
-    draftX: 'Draft · pick up where you left off', notSentX: 'Not sent yet', evX: (g, c) => `${E(g, 'guest')} · ${c} coming`, cohostX: 'Co-host', doneX: 'Done',
+    draftX: 'Draft · pick up where you left off', pastH: 'Past', notSentX: 'Not sent yet', evX: (g, c) => `${E(g, 'guest')} · ${c} coming`, cohostX: 'Co-host', doneX: 'Done',
     meComing: n => `You’re coming · ${E(n)}`, meWait: 'Waiting for your reply', meNo: 'You can’t make it', meWent: 'You went',
     nameL: 'Name', phoneL: 'Phone', emailL: 'Email', delAcct: 'Delete my account', helpUs: 'Help', waUs: 'WhatsApp us',
     doneK: 'Done', aftCame: n => `${E(n)} came`, aftYes: n => `${E(n)} said yes`, aftP: y => `Out of ${E(y)} who said yes. Mabrook to you both.`, aftPno: 'Door check-in was off, so we can’t tell who came. Mabrook to you both.',
@@ -418,7 +418,7 @@ document.addEventListener('DOMContentLoaded', function () {
   Object.assign(T.ar, {
     account: 'الحساب', yourEvents: 'مناسباتكم', hosting: 'مناسباتكم أنتم', invitedTo: 'معزومين عليها', newEvent: 'سوّوا مناسبة', hi: n => n ? `هلا ${n}` : 'هلا والله',
     noEvYet: 'ما عندكم مناسبات للحين.', how: 'شلون تمشي', howS: [['أضيفوا التفاصيل', 'الموعد والمكان وأهل المناسبة'], ['أضيفوا ضيوفكم', 'الصقوا قائمة أو ارفعوا إكسل'], ['أرسلوا الدعوة', 'رابط خاص لكل ضيف، أرسلوه بالطريقة اللي تبونها'], ['تابعوا الردود', 'وسجلوا وصول الضيوف ليلة المناسبة']],
-    draftX: 'مسودة · كمّلوا من وين ما وقفتوا', notSentX: 'ما انرسلت للحين', evX: (g, c) => `${A(g, 'guest')} · ${c} بيحضرون`, cohostX: 'مساعد', doneX: 'انتهت',
+    draftX: 'مسودة · كمّلوا من وين ما وقفتوا', pastH: 'اللي خلصت', notSentX: 'ما انرسلت للحين', evX: (g, c) => `${A(g, 'guest')} · ${c} بيحضرون`, cohostX: 'مساعد', doneX: 'انتهت',
     meComing: n => `بتحضرون · ${A(n)}`, meWait: 'ننتظر ردكم', meNo: 'اعتذرتوا', meWent: 'حضرتوا',
     nameL: 'الاسم', phoneL: 'التلفون', emailL: 'الإيميل', delAcct: 'احذفوا حسابي', helpUs: 'مساعدة', waUs: 'راسلونا واتساب',
     doneK: 'انتهت', aftCame: n => `حضر ${A(n)}`, aftYes: n => `أكد ${A(n)}`, aftP: y => `من أصل ${A(y)} أكدوا. مبروك وعساها دوم الأفراح.`, aftPno: 'تسجيل الحضور عند الباب ما كان شغال، فما نعرف منو حضر. مبروك وعساها دوم الأفراح.',
@@ -605,10 +605,14 @@ document.addEventListener('DOMContentLoaded', function () {
       return `<a class="evc" href="invite.html?t=${encodeURIComponent(i.token)}">${tile(e.starts_at)}<span class="e-main"><span class="e-t" dir="auto">${esc(e.title || '')}</span>${e.venue ? `<span class="e-s" dir="auto">${esc(e.venue)}</span>` : ''}${st ? `<span class="e-x${i.status === 'yes' ? ' ok' : i.status === 'pending' ? ' wait' : ''}">${esc(st)}</span>` : ''}</span><i class="i i-chev"></i></a>`; };
     const name = (profile && profile.name || '').split(' ')[0];
     const how = `<p class="sec-k" style="margin-top:14px">${t.how}</p><div class="mlist">${t.howS.map(([a, b], i) => `<div class="mrow"><span class="dtile" style="width:36px;min-height:36px;border-radius:50%"><b style="font-family:var(--body);font-size:var(--fs-s)">${i + 1}</b></span><span class="m-main"><span class="m-n">${a}</span><span class="m-s">${b}</span></span></div>`).join('')}</div>`;
-    const sorted = events.slice().sort((a, b) => (a.status === 'draft') - (b.status === 'draft') || String(a.starts_at || '9').localeCompare(String(b.starts_at || '9')));
+    // coming up first (soonest on top, drafts by date too), then past events in their own group (latest first)
+    const isPast = e => e.status !== 'draft' && e.starts_at && daysTo(e.starts_at) < 0;
+    const byDate = (a, b) => String(a.starts_at || '9').localeCompare(String(b.starts_at || '9'));
+    const upcoming = events.filter(e => !isPast(e)).sort(byDate), pastEv = events.filter(isPast).sort((a, b) => byDate(b, a));
+    const newBtn = `<button type="button" class="btn primary block" id="evNew" style="margin:4px 0 8px"><i class="i i-plus"></i>${t.newEvent}</button>`;
     const invH = invites.length ? `<p class="sec-k ev-sec">${t.invitedTo}</p>${invites.map(inv).join('')}` : '';
     $('#evHome').innerHTML = events.length
-      ? `<h1 class="scr-h ev-hi">${t.yourEvents}</h1><p class="sec-k ev-sec">${t.hosting}</p>${sorted.map(card).join('')}${invH}<div style="height:16px"></div><button type="button" class="btn primary block" id="evNew"><i class="i i-plus"></i>${t.newEvent}</button>`
+      ? `<h1 class="scr-h ev-hi">${t.yourEvents}</h1>${newBtn}${upcoming.length ? `<p class="sec-k ev-sec">${t.hosting}</p>${upcoming.map(card).join('')}` : ''}${invH}${pastEv.length ? `<p class="sec-k ev-sec">${t.pastH}</p>${pastEv.map(card).join('')}` : ''}`
       : `<h1 class="scr-h ev-hi">${esc(t.hi(name))}</h1><p class="scr-p" style="margin:0">${t.noEvYet}</p>${how}${invH}<div style="height:16px"></div><button type="button" class="btn primary block" id="evNew"><i class="i i-plus"></i>${t.newEvent}</button>`;
     $('#evHome').querySelectorAll('[data-ev]').forEach(b => b.onclick = () => openEvent(b.dataset.ev));
     $('#evNew').onclick = () => { location.href = 'new.html'; };
