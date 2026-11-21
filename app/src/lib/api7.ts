@@ -77,7 +77,8 @@ export const respond = (token: string, status: GuestStatus, count: number | null
 
 /** "Create an event" in the app: makes a draft and a request the team finalises with the host (0008). id = the event. */
 export type EventRequest = {
-  event: { title: string; event_type?: string; starts_at?: string | null; venue?: string | null; lang: 'ar' | 'en' };
+  event: { title: string; invite_line?: string | null; event_type?: string; starts_at?: string | null; rsvp_deadline?: string | null; venue?: string | null;
+    map_url?: string | null; lang: 'ar' | 'en'; design_style?: string; theme_accent?: string };
   guests?: number | null; door: boolean; design: 'we_design' | 'own' | 'simple'; contact: string; notes?: string;
 };
 export const requestEvent = (p: EventRequest) => wrap<string>(supabase.rpc('request_event_v2', { p }));
