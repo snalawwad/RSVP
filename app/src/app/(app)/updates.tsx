@@ -9,7 +9,7 @@ import { Initial } from '../../components/host/EventPage';
 import { peopleComing } from '../../lib/guests';
 import { isNew, lastSeen, loadUpdates, markSeen, type Update } from '../../lib/updates';
 import { useApp } from '../../providers/AppProvider';
-import { mix, radius, space } from '../../theme/tokens';
+import { bodyFont, mix, radius, scriptOf } from '../../theme/tokens';
 
 function ago(iso: string | null, A: { agoMin: (n: number) => string; agoH: (n: number) => string; yesterday: string; agoD: (n: number) => string }) {
   if (!iso) return '';
@@ -21,7 +21,7 @@ function ago(iso: string | null, A: { agoMin: (n: number) => string; agoH: (n: n
 }
 
 export default function Updates() {
-  const { t, c, email, lang } = useApp();
+  const { t, c, email, lang, rtl } = useApp();
   const A = t.a;
   const [items, setItems] = useState<Update[] | null>(null);
   const [seen, setSeen] = useState(lastSeen());
@@ -50,14 +50,16 @@ export default function Updates() {
     }
     return (
       <Pressable key={u.id} accessibilityRole="button" onPress={go} testID={`up-${u.id}`}
-        style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: space[3], paddingVertical: space[4], borderBottomWidth: 1, borderBottomColor: c.line, backgroundColor: pressed ? mix(c.bg, c.ink, 0.04) : 'transparent' })}>
+        style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 16, minHeight: 92, borderBottomWidth: 1, borderBottomColor: c.line, backgroundColor: pressed ? mix(c.bg, c.ink, 0.04) : 'transparent' })}>
         <Initial name={letter} tone={tone} />
         <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-          <Txt v="name" numberOfLines={2} style={fresh ? undefined : { fontWeight: '500' }}>{title}</Txt>
-          {sub ? <Txt v="small" tone="muted" numberOfLines={1}>{sub}</Txt> : null}
+          {/* the line's direction follows the app's language, so an Arabic name stays at the start of an English line */}
+          <Txt v="body" numberOfLines={2} {...({ dir: rtl ? 'rtl' : 'ltr' } as object)}
+            style={{ fontSize: 15, lineHeight: 21, writingDirection: rtl ? 'rtl' : 'ltr', fontFamily: bodyFont(scriptOf(title), fresh ? 'semi' : 'regular') }}>{title}</Txt>
+          {sub ? <Txt v="small" tone="muted" numberOfLines={1} style={{ fontSize: 13 }}>{sub}</Txt> : null}
         </View>
-        <View style={{ alignItems: 'flex-end', gap: 6 }}>
-          <Txt v="small" tone="muted">{ago(u.at, A)}</Txt>
+        <View style={{ alignItems: 'flex-end', gap: 6, minWidth: 64 }}>
+          <Txt v="small" tone="muted" style={{ fontSize: 12 }}>{ago(u.at, A)}</Txt>
           {fresh ? <View accessibilityLabel={A.upNew} style={{ width: 8, height: 8, borderRadius: radius.pill, backgroundColor: c.plum }} /> : null}
         </View>
       </Pressable>
@@ -66,7 +68,7 @@ export default function Updates() {
 
   return (
     <SafeAreaView edges={['left', 'right', 'bottom']} style={{ flex: 1, backgroundColor: c.bg }} testID="updates">
-      <ScrollView contentContainerStyle={{ paddingHorizontal: space[4], paddingTop: space[5], paddingBottom: space[8], gap: space[4], width: '100%', maxWidth: 760, alignSelf: 'center' }}
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 48, gap: 14, width: '100%', maxWidth: 760, alignSelf: 'center' }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(true); setRefreshing(false); }} tintColor={c.plum} colors={[c.plum]} />}>
         <PageTitle testID="updates-title">{A.tabUpdates}</PageTitle>
         {items == null ? <Busy /> : items.length ? <View>{items.map(row)}</View> : (

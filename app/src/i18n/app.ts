@@ -34,7 +34,7 @@ export const appEn = {
   continue: 'Continue', wrong: 'That code isn’t right. Check the message and try again.',
   expired: 'This code has expired.', newCode: 'Send a new code', otherPhone: 'Use a different number', codeBox: (i: number) => `Digit ${i} of 6`,
   // home (24g / G10 / 04 / G10a)
-  hi: (n: string) => `Hi ${n}`, yourEvents: 'Your events', account: 'Account',
+  hi: (n: string) => `Hello, ${n}`, guestT: 'Guest', saveChanges: 'Save changes', changeGroup: 'Group', newGroupL: 'Or a new group', notifications: 'Notifications', inSettings: 'Settings', yourEvents: 'Your events', account: 'Account',
   emptyP: 'Events you host or are invited to show up here.',
   hosting: 'Hosting', atDoor: 'At the door', invitedTo: 'Invited to', comingUp: 'Coming up', past: 'Past',
   invitesComing: (inv: number, yes: number) => `${inv} ${inv === 1 ? 'invite' : 'invites'} · ${yes} coming`,
@@ -160,7 +160,7 @@ export const appAr: AppStrings = {
   resendIn: (s) => `تقدرون تطلبون رمز جديد بعد ⁦${s}⁩`, resend: 'أرسلوا الرمز مرة ثانية', resent: 'أرسلنا لكم رمز جديد',
   continue: 'كمّلوا', wrong: 'الرمز مو صحيح. شيكوا على الرسالة وجربوا مرة ثانية.',
   expired: 'انتهت صلاحية الرمز.', newCode: 'أرسلوا رمز جديد', otherPhone: 'استخدموا رقم ثاني', codeBox: (i) => `الرقم ${i} من 6`,
-  hi: (n) => `هلا ${n}`, yourEvents: 'مناسباتكم', account: 'الحساب',
+  hi: (n) => `هلا ${n}`, guestT: 'الضيف', saveChanges: 'حفظ التغييرات', changeGroup: 'المجموعة', newGroupL: 'أو مجموعة جديدة', notifications: 'التنبيهات', inSettings: 'الإعدادات', yourEvents: 'مناسباتكم', account: 'الحساب',
   emptyP: 'المناسبات اللي تسوونها أو معزومين عليها تطلع هني.',
   hosting: 'تستضيفونها', atDoor: 'على الباب', invitedTo: 'معزومين عليها', comingUp: 'الجاية', past: 'اللي خلصت',
   invitesComing: (inv, yes) => `${arN(inv, 'دعوة وحدة', 'دعوتين', 'دعوات', 'دعوة')}، ${arN(yes, 'واحد بيحضر', 'اثنين بيحضرون', 'بيحضرون', 'بيحضرون')}`,

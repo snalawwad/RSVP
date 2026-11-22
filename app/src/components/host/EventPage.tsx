@@ -8,7 +8,6 @@ import { isUnsent, peopleComing, sideOf, stats } from '../../lib/guests';
 import { asciiDigits, searchNames } from '../../lib/names';
 import { useApp } from '../../providers/AppProvider';
 import { fonts, mix, radius, scriptOf, space } from '../../theme/tokens';
-import { AlertBar } from '../AlertBar';
 import { Button } from '../Button';
 import { Icon } from '../Icon';
 import { MainTabBar } from '../MainTabBar';
@@ -117,7 +116,15 @@ export function EventPage() {
         </View>
 
         {h.openReqs.length && !h.cohost ? (
-          <AlertBar count={h.openReqs.length} icon="door" text={T.reqBar(h.openReqs.length)} go={T.reqGo} onPress={() => router.push(`/event/${h.id}/arrivals` as never)} testID="ev-door-reqs" />
+          // not in Figma 24e: on the night the door's questions need an answer, so a quiet card (not a red bar) leads to them
+          <Pressable accessibilityRole="button" accessibilityLabel={`${T.reqBar(h.openReqs.length)}. ${T.reqGo}`} onPress={() => router.push(`/event/${h.id}/arrivals` as never)} testID="ev-door-reqs"
+            style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, borderWidth: 1, borderColor: c.line, backgroundColor: pressed ? mix(c.card, c.ink, 0.04) : c.card })}>
+            <View style={{ minWidth: 26, height: 26, paddingHorizontal: 6, borderRadius: 13, backgroundColor: c.plum, alignItems: 'center', justifyContent: 'center' }}>
+              <Txt v="small" script="lat" color={c.plumInk} center style={{ fontFamily: fonts.sansSemi, fontSize: 13 }}>{String(h.openReqs.length)}</Txt>
+            </View>
+            <Txt v="body" style={{ flex: 1, fontSize: 15, fontFamily: rtl ? fonts.arSemi : fonts.sansSemi }}>{T.reqBar(h.openReqs.length)}</Txt>
+            <Txt v="small" tone="plum" style={{ fontFamily: rtl ? fonts.arSemi : fonts.sansSemi }}>{T.reqGo + (rtl ? ' ‹' : ' ›')}</Txt>
+          </Pressable>
         ) : null}
 
         <Pressable accessibilityRole="button" disabled={h.cohost} onPress={() => router.push(`/package/${h.id}` as never)} testID="ev-package"

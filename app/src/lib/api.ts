@@ -136,6 +136,8 @@ export const addGuest = (g: NewGuest) => wrap<Guest>(supabase.from('guests').ins
 /** Add many; numbers already on the list are skipped. data = the ids added. */
 export const addGuests = (rows: NewGuest[]) =>
   wrap<{ id: string }[]>(supabase.from('guests').upsert(rows, { onConflict: 'event_id,phone', ignoreDuplicates: true }).select('id'));
+/** Move a guest to another group (side). */
+export const setGuestSide = (id: string, side: string | null) => wrap<null>(supabase.from('guests').update({ side }).eq('id', id));
 export const removeGuest = (id: string) => wrap<null>(supabase.from('guests').delete().eq('id', id));
 /** The host said "Yes, it's sent". */
 export const markSent = (id: string, at = new Date().toISOString()) => wrap<null>(supabase.from('guests').update({ sent_at: at }).eq('id', id));

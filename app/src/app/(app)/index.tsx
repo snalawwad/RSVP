@@ -183,7 +183,7 @@ function NextUp({ e }: { e: MyEvent }) {
 function Section({ title, children, testID }: { title: string; children: ReactNode; testID?: string }) {
   return (
     <View style={{ gap: 10 }} testID={testID}>
-      <Txt v="label" tone="muted" accessibilityRole="header">{title}</Txt>
+      <Txt v="body" tone="muted" accessibilityRole="header" style={{ fontSize: 15 }}>{title}</Txt>
       {children}
     </View>
   );

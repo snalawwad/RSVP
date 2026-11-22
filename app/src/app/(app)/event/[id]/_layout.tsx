@@ -1,7 +1,7 @@
 // One event (Sama's Figma 24e, 22 Nov): no tabs. The event page (index) holds the replies, Your invite / Your package
 // and the guest list; Your invite (invite) and the door's requests (arrivals) open from it with a back button.
 // The event, its guests and the door's requests are loaded once here and shared by these pages.
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams, usePathname } from 'expo-router';
 import { Linking, View } from 'react-native';
 import { useEffect, useState } from 'react';
 import { hasEventRequest } from '../../../../lib/api7';
@@ -44,9 +44,10 @@ function EventPages({ id }: { id: string }) {
   const [requested, setRequested] = useState(false);
   useEffect(() => { if (h.status === 'draft') hasEventRequest(id).then(setRequested); }, [h.status, id]);
   const T = t.host;
+  const onGuest = /\/guest\//.test(usePathname());   // Figma 17a: the guest page's bar says "Guest"
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <Stack.Screen options={{ title: h.evName, ...back }} />
+      <Stack.Screen options={{ title: onGuest ? t.a.guestT : h.evName, ...back }} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.bg } }} />
       {h.status !== 'ok' ? (
         <View style={{ position: 'absolute', top: 0, bottom: 0, start: 0, end: 0 }}>

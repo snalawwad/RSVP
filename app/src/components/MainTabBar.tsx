@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { View } from 'react-native';
 import { useUnreadUpdates } from '../lib/updates';
 import { useApp } from '../providers/AppProvider';
-import { radius, size } from '../theme/tokens';
+import { radius } from '../theme/tokens';
 import { Icon } from './Icon';
 import { PressScale } from './Press';
 import { TabBarFrame, TabButton } from './TabBar';
@@ -38,9 +38,9 @@ export function TopIcons() {
   const n = useUnreadUpdates(email);
   const btn = (icon: 'bell' | 'person', label: string, path: string, dot: boolean, testID: string) => (
     <PressScale kind="chip" accessibilityRole="button" accessibilityLabel={dot ? `${label} (${n})` : label} hitSlop={4} onPress={() => router.push(path as never)} testID={testID}
-      style={{ width: size.target, height: size.target, borderRadius: radius.pill, backgroundColor: c.surface, alignItems: 'center', justifyContent: 'center' }}>
+      style={{ width: 36, height: 36, borderRadius: radius.pill, backgroundColor: c.surface, alignItems: 'center', justifyContent: 'center' }}>
       <Icon name={icon} sm color={c.ink} />
-      {dot ? <View style={{ position: 'absolute', top: 9, right: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: c.plum, borderWidth: 1.5, borderColor: c.surface }} /> : null}
+      {dot ? <View style={{ position: 'absolute', top: 6, right: 7, width: 8, height: 8, borderRadius: 4, backgroundColor: c.plum, borderWidth: 1.5, borderColor: c.surface }} /> : null}
     </PressScale>
   );
   return (
