@@ -23,6 +23,8 @@ const TYPES = ['wedding', 'engagement', 'graduation', 'ghabga', 'dinner', 'other
 /** the website's colours (new.html COLOURS) */
 const COLOURS: [string, string, string][] = [['#5B0F1D', 'Burgundy', 'عنابي'], ['#9C7A3C', 'Gold', 'ذهبي'], ['#5E6B3A', 'Olive', 'زيتي'], ['#1F3A5F', 'Navy', 'كحلي'], ['#B8646E', 'Rose', 'وردي'], ['#1A1A1A', 'Black', 'أسود']];
 const pad = (n: number) => String(n).padStart(2, '0');
+/** today in Kuwait as YYYY-MM-DD (the earliest date the picker offers) */
+const kwToday = () => new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10);
 /** Kuwait wall-clock date + time → ISO (Kuwait is UTC+3 all year). */
 const kwIso = (d: string, tm: string) => (d ? new Date(`${d}T${tm || '20:00'}:00+03:00`).toISOString() : null);
 const digits = (s: string) => s.replace(/[٠-٩]/g, (x) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(x))).replace(/\D/g, '');
@@ -46,7 +48,7 @@ function WhenField({ kind, label, value, onChange, testID }: { kind: 'date' | 't
         <View style={box}>
           {createElement('input', {
             type: kind, value, 'data-testid': testID, 'aria-label': label,
-            min: kind === 'date' ? new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10) : undefined,
+            min: kind === 'date' ? kwToday() : undefined,
             onChange: (e: { target: { value: string } }) => onChange(e.target.value),
             style: { border: 0, outline: 'none', background: 'transparent', color: value ? c.ink : c.muted, fontFamily: fonts.sans, fontSize: 16, width: '100%', minWidth: 0, height: 48, padding: 0, WebkitAppearance: 'none' },
           })}
@@ -119,13 +121,14 @@ export default function NewEvent() {
   const [contact, setContact] = useState('');
   const [notes, setNotes] = useState('');
   const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState('');
+  const [err, setErr] = useState('');      // a send error (network, too many)
+  const [tried, setTried] = useState(false); // Continue was pressed with something missing
   const [done, setDone] = useState(false);
 
   useEffect(() => { myProfile().then((r) => { if (r.data?.phone) setContact((v) => v || r.data!.phone!.replace(/^965/, '')); }); }, []);
 
   const i = STEPS.indexOf(step);
-  const back = () => { setErr(''); if (i > 0) setStep(STEPS[i - 1]); else router.back(); };
+  const back = () => { setErr(''); setTried(false); if (i > 0) setStep(STEPS[i - 1]); else router.back(); };
   useEffect(() => {
     if (done) return;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => { back(); return true; });
@@ -134,13 +137,12 @@ export default function NewEvent() {
 
   const phone = digits(contact);
   // the "add the …" message goes away as soon as the missing thing is filled in
-  useEffect(() => { setErr(''); }, [title, other, date, contact, step]);
   const can: Record<Step, boolean> = { name: title.trim().length > 0 && (kind !== 'other' || other.trim().length > 0), when: !!date, where: true, design: true, guests: true, review: phone.length >= 8 };
   const need: Record<Step, string> = { name: !title.trim() ? A.rqNeedName : A.rqNeedOther, when: A.rqNeedDate, where: '', design: '', guests: '', review: A.rqNeedPhone };
 
   function next() {
-    if (!can[step]) { setErr(need[step]); return; }
-    setErr('');
+    if (!can[step]) { setTried(true); return; }
+    setErr(''); setTried(false);
     if (step === 'review') { void send(); return; }
     setStep(STEPS[i + 1]);
   }
@@ -310,7 +312,7 @@ export default function NewEvent() {
       )}
       footer={(
         <View style={{ gap: space[2] }}>
-          {err ? <Txt v="small" tone="no" testID="rq-err">{err}</Txt> : null}
+          {err || (tried && !can[step]) ? <Txt v="small" tone="no" testID="rq-err">{err || need[step]}</Txt> : null}
           <Button kind="primary" big block label={step === 'review' ? A.rqSend : A.rqContinue} busy={busy} onPress={next} testID={step === 'review' ? 'rq-send' : 'rq-next'} />
         </View>
       )}>

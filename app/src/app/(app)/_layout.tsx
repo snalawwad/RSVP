@@ -39,7 +39,8 @@ export default function AppLayout() {
       <Stack.Screen name="pass/[token]" options={{ title: t.a.yourInvite, ...webBack }} />
       <Stack.Screen name="reply/[token]" options={{ title: t.a.yourInvite, ...webBack }} />
       <Stack.Screen name="package/[id]" options={{ title: t.a.pkgH, ...webBack }} />
-      <Stack.Screen name="settings" options={{ title: t.a.account, ...webBack }} />
+      <Stack.Screen name="settings" options={{ headerShown: false, animation: 'none' }} />
+      <Stack.Screen name="updates" options={{ headerShown: false, animation: 'none' }} />
       <Stack.Screen name="new-event" options={{ headerShown: false }} />
       <Stack.Screen name="help" options={{ title: t.menu.help, ...webBack }} />
       <Stack.Screen name="delete-account" options={{ title: t.deleteAccount, ...webBack }} />

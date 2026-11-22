@@ -1,4 +1,4 @@
-// invite tab of the host dashboard (see components/host/InviteTab.tsx).
-import { InviteTab } from '../../../../components/host/InviteTab';
+// Your invite (Sama's Figma 24c): see components/host/YourInvite.tsx.
+import { YourInvite } from '../../../../components/host/YourInvite';
 
-export default InviteTab;
+export default YourInvite;

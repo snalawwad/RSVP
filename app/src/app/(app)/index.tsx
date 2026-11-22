@@ -9,17 +9,18 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BrandBar, Busy, Button, Icon, PageTitle, Panel, PressScale, Txt } from '../../components';
+import { BrandBar, Busy, Button, Icon, PageTitle, Panel, Txt } from '../../components';
+import { MainTabBar } from '../../components/MainTabBar';
 import { listGuests, type Guest } from '../../lib/api';
 import { myEvents, myInvites, myProfile, saveProfile } from '../../lib/api7';
-import { daysTo, fmtTime, kwDay, kwParts } from '../../lib/format';
+import { daysTo, fmtTime, kwDay, kwParts, shortDate } from '../../lib/format';
 import { peopleComing } from '../../lib/guests';
 import { KEYS, kv } from '../../lib/storage';
 import { supabase } from '../../lib/supabase';
 import type { MyEvent, MyInvite } from '../../lib/types7';
 import { nb, type Lang } from '../../lib/words';
 import { useApp } from '../../providers/AppProvider';
-import { mix, radius, scriptOf, size, space } from '../../theme/tokens';
+import { mix, radius, scriptOf, space } from '../../theme/tokens';
 
 type HomeState =
   | { kind: 'loading' }
@@ -94,13 +95,6 @@ export default function Home() {
 
   const refresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
 
-  const accountBtn = (
-    <PressScale kind="chip" testID="menu-btn" accessibilityRole="button" accessibilityLabel={A.account} onPress={() => router.push('/settings')} hitSlop={4}
-      style={{ minHeight: size.target, paddingHorizontal: space[4], borderRadius: radius.pill, borderWidth: 1, borderColor: c.line, backgroundColor: c.card, flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
-      <Icon name="person" sm color={c.ink} />
-      <Txt v="label" tone="ink">{A.account}</Txt>
-    </PressScale>
-  );
 
   let body: ReactNode;
   if (home.kind === 'loading') body = <Busy />;
@@ -115,21 +109,25 @@ export default function Home() {
   } else {
     const { events, invites, name } = home;
     const ts = (s: string | null) => (s ? new Date(s).getTime() : Infinity);
-    const hosting = events.filter((e) => e.role !== 'door' && !pastEvent(e)).sort((a, b) => ts(a.starts_at) - ts(b.starts_at));
+    const hostingAll = events.filter((e) => e.role !== 'door' && !pastEvent(e)).sort((a, b) => ts(a.starts_at) - ts(b.starts_at));
+    // Figma 24g: the soonest live event you host gets the big "Next up" card; the rest stay in Hosting
+    const next = hostingAll.find((e) => e.status !== 'draft' && e.role !== 'door') ?? null;
+    const hosting = hostingAll.filter((e) => e !== next);
     const door = events.filter((e) => e.role === 'door' && !pastEvent(e)).sort((a, b) => ts(a.starts_at) - ts(b.starts_at));
     const invUp = invites.filter((i) => !i.past);
     const pastEv = events.filter(pastEvent).sort((a, b) => ts(b.starts_at) - ts(a.starts_at));
     const pastInv = invites.filter((i) => i.past);
     const empty = !events.length && !invites.length;
+    const month = [...hostingAll.filter((e) => e.status !== 'draft'), ...invUp.map((i) => i.event)].filter((e) => { const d = daysTo(e.starts_at); return d != null && d >= 0 && d <= 31; }).length;
     body = (
       <>
-        <PageTitle testID="home-title" sub={empty ? <Txt v="body" tone="muted" testID="no-events">{A.emptyP}</Txt> : undefined}>
+        <PageTitle testID="home-title" sub={<Txt v="body" tone="muted" testID={empty ? 'no-events' : 'home-sub'}>{empty ? A.emptyP : A.monthSub(month)}</Txt>}>
           {name ? A.hi(name.split(/\s+/)[0]) : A.yourEvents}
         </PageTitle>
-        <Button kind="primary" block icon="plus" label={A.rqNew} onPress={() => router.push('/new-event' as never)} testID="rq-new" />
+        {next ? <NextUp e={next} /> : null}
         {hosting.length ? <Section title={A.hosting} testID="events-up">{hosting.map((e) => <EventCard key={e.id} e={e} />)}</Section> : null}
         {door.length ? <Section title={A.atDoor} testID="events-door">{door.map((e) => <EventCard key={e.id} e={e} />)}</Section> : null}
-        {invUp.length ? <Section title={hosting.length || door.length ? A.invitedTo : A.comingUp} testID="invites-up">{invUp.map((i) => <InviteCard key={i.token} i={i} />)}</Section> : null}
+        {invUp.length ? <Section title={A.invitedTo} testID="invites-up">{invUp.map((i) => <InviteCard key={i.token} i={i} />)}</Section> : null}
         {pastEv.length || pastInv.length ? (
           <Section title={A.past} testID="events-past">
             {pastEv.map((e) => <EventCard key={e.id} e={e} />)}
@@ -142,12 +140,49 @@ export default function Home() {
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1, backgroundColor: c.bg }} testID="events">
-      <BrandBar end={accountBtn} />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: space[4], paddingTop: space[5], paddingBottom: space[10], gap: space[5], width: '100%', maxWidth: 760, alignSelf: 'center' }}
+      <BrandBar />
+      <ScrollView contentContainerStyle={{ paddingHorizontal: space[4], paddingTop: space[5], paddingBottom: space[6], gap: space[5], width: '100%', maxWidth: 760, alignSelf: 'center' }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={c.plum} colors={[c.plum]} />}>
         {body}
       </ScrollView>
+      {/* Figma 24g: "New event" sits above the bottom bar */}
+      <View style={{ paddingHorizontal: space[4], paddingVertical: space[3], borderTopWidth: 1, borderTopColor: c.line, backgroundColor: c.bg }}>
+        <View style={{ width: '100%', maxWidth: 760, alignSelf: 'center' }}>
+          <Button kind="primary" big block icon="plus" label={A.newEventBtn} onPress={() => router.push('/new-event' as never)} testID="rq-new" />
+        </View>
+      </View>
+      <MainTabBar active="home" />
     </SafeAreaView>
+  );
+}
+
+/** Figma 24g "Next up": countdown, the event, where and when, a reply bar and the three counts. */
+function NextUp({ e }: { e: MyEvent }) {
+  const { t, c, lang } = useApp();
+  const A = t.a;
+  const d = daysTo(e.starts_at);
+  const k = d == null ? '' : d === 0 ? A.tonightK : d === 1 ? A.tomorrowK : A.daysToGo(d);
+  const n = e.counts;
+  const replied = n ? n.invited - n.no_reply : 0;
+  const when = [e.starts_at ? `${shortDate(e.starts_at, lang)} · ${nb(fmtTime(e.starts_at, lang))}` : '', e.venue || ''].filter(Boolean).join(' · ');
+  return (
+    <Pressable accessibilityRole="button" onPress={() => router.push(`/event/${e.id}` as never)} testID={`next-${e.id}`}>
+      {({ pressed }) => (
+        <View style={{ borderWidth: 1, borderColor: c.line, borderRadius: radius.l, backgroundColor: pressed ? mix(c.card, c.ink, 0.05) : c.card, padding: space[5], gap: space[2] }}>
+          <Txt v="label" tone="plum" style={{ letterSpacing: lang === 'ar' ? 0 : 1, textTransform: 'uppercase' }}>{[A.nextUp, k].filter(Boolean).join(' · ')}</Txt>
+          <Txt v="title" style={{ fontSize: 26, lineHeight: 32 }}>{evName(e, lang)}</Txt>
+          {when ? <Txt v="body" tone="muted">{when}</Txt> : null}
+          {n && n.invited ? (
+            <>
+              <View style={{ height: 6, borderRadius: radius.pill, backgroundColor: c.surface, overflow: 'hidden', marginTop: space[1] }}>
+                <View style={{ height: 6, width: `${Math.round((replied / n.invited) * 100)}%`, backgroundColor: c.okBar }} />
+              </View>
+              <Txt v="small" tone="ink">{A.sumLine(n.yes_people, n.no, n.no_reply)}</Txt>
+            </>
+          ) : <Txt v="small" tone="ink">{t.host.emptyG}</Txt>}
+        </View>
+      )}
+    </Pressable>
   );
 }
 
@@ -192,7 +227,7 @@ function EventCard({ e }: { e: MyEvent }) {
   const sub = whenLine(e.starts_at, e.venue, lang, t.noDate);
   const draft = e.status === 'draft';
   const n = e.counts;
-  const meta = draft ? A.draftH
+  const meta = draft ? A.stillSetting
     : e.role === 'door' ? A.doorTag
     : n ? (n.invited ? A.invitesComing(n.invited, n.yes_people) : t.host.emptyG) : '';
   // a draft opens too: its page says it isn't live yet (better than a card that does nothing when tapped)

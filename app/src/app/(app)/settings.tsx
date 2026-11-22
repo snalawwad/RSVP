@@ -5,19 +5,19 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Linking, Platform, Pressable, View } from 'react-native';
-import { Button, Field, Icon, Screen, Segmented, Sheet, Txt, useToast } from '../../components';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { BrandBar, Button, Field, Icon, PageTitle, Screen, Segmented, Sheet, Txt, useToast } from '../../components';
+import { MainTabBar } from '../../components/MainTabBar';
 import { signOut } from '../../lib/api';
 import { myProfile, saveProfile } from '../../lib/api7';
 import { links } from '../../lib/config';
 import { haptics } from '../../lib/haptics';
-import { showPhone } from '../../lib/phone';
 import type { Profile } from '../../lib/types7';
-import type { Lang } from '../../lib/words';
 import { useApp } from '../../providers/AppProvider';
 import { mix, radius, size, space, type ThemePref } from '../../theme/tokens';
 
 export default function Account() {
-  const { t, lang, setLang, email, phone, themePref, setThemePref, c } = useApp();
+  const { t, lang, setLang, email, themePref, setThemePref, c } = useApp();
   const A = t.a;
   const toast = useToast();
   const [prof, setProf] = useState<Profile | null>(null);
@@ -33,11 +33,8 @@ export default function Account() {
     return () => { off = true; };
   }, []);
 
-  const langs: { key: Lang; label: string }[] = [{ key: 'ar', label: t.arabic }, { key: 'en', label: t.english }];
   const themes: { key: ThemePref; label: string }[] = [{ key: 'light', label: A.light }, { key: 'dark', label: A.dark }, { key: 'auto', label: A.auto }];
   const wa = links.whatsapp(lang === 'ar' ? 'مرحبا، عندي سؤال عن التطبيق' : 'Hi, I have a question about the app');
-  const shownPhone = prof?.phone || phone;
-  const shownEmail = prof?.email || email;
 
   async function saveName() {
     if (!name.trim() || busy) return;
@@ -49,32 +46,32 @@ export default function Account() {
   }
   async function logOut() { setOut(true); haptics.tap(); await signOut(); }
 
+  const langName = lang === 'ar' ? t.arabic : t.english;
   return (
-    <Screen gap={space[5]} testID="menu">
+    <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1, backgroundColor: c.bg }}>
+    <BrandBar />
+    <Screen gap={space[5]} edges={['left', 'right']} testID="menu">
+      <PageTitle testID="account-title">{A.account}</PageTitle>
+      {/* Figma 24b: Name · Language · Help · Colours, then Log out */}
       <View>
-        {v7 ? <Line label={A.name} value={prof?.name || A.notSet} onPress={() => { setName(prof?.name || ''); setEditing(true); }} testID="acc-name" /> : null}
-        {shownPhone ? <Line label={A.phone} value={showPhone(shownPhone).replace(/^(\d{4})(\d{4})$/, '+965 $1 $2')} ltr testID="acc-phone" /> : null}
-        {shownEmail ? <Line label={A.email} value={shownEmail} ltr testID="acc-email" /> : null}
-        <View testID="menu-lang" style={{ minHeight: 64, paddingVertical: space[3], borderBottomWidth: 1, borderBottomColor: c.line, gap: space[2] }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[3], flexWrap: 'wrap' }}>
-            <Txt v="body">{A.language}</Txt>
-            <Segmented<Lang> label={A.language} value={lang} onChange={(l) => { if (l !== lang) setLang(l); }} options={langs} testID="lang-switch" />
-          </View>
-          {Platform.OS !== 'web' ? <Txt v="small">{t.languageRestart}</Txt> : null}
-        </View>
+        <Line label={A.name} value={prof?.name || A.notSet} onPress={v7 ? () => { setName(prof?.name || ''); setEditing(true); } : undefined} testID="acc-name" />
+        <Line label={A.language} value={langName} onPress={() => setLang(lang === 'ar' ? 'en' : 'ar')} testID="menu-lang" />
+        <Line label={A.help} value={wa ? A.whatsappUs : A.helpSub} onPress={() => (wa ? Linking.openURL(wa).catch(() => {}) : router.push('/help'))} testID="menu-help" />
         <View testID="menu-theme" style={{ minHeight: 64, paddingVertical: space[3], borderBottomWidth: 1, borderBottomColor: c.line, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[3], flexWrap: 'wrap' }}>
           <Txt v="body">{A.colours}</Txt>
           <Segmented<ThemePref> label={A.colours} value={themePref === 'cream' ? 'light' : themePref} onChange={(k) => { haptics.tap(); setThemePref(k); }} options={themes} testID="theme-switch" />
         </View>
-        <Line label={A.help} value={A.helpSub} onPress={() => router.push('/help')} testID="menu-help" />
-        {wa ? <Line label={A.whatsappUs} onPress={() => Linking.openURL(wa).catch(() => {})} testID="acc-wa" /> : null}
-        <Line label={A.privacy} onPress={() => Linking.openURL(links.privacy(lang)).catch(() => {})} testID="acc-privacy" />
-        <Line label={A.termsLink} onPress={() => Linking.openURL(links.terms(lang)).catch(() => {})} testID="acc-terms" />
+        {Platform.OS !== 'web' ? <Txt v="small" tone="muted" style={{ marginTop: space[2] }}>{t.languageRestart}</Txt> : null}
       </View>
 
-      <View style={{ gap: space[2] }}>
-        <Button block kind="secondary" label={A.logOut} onPress={logOut} busy={out} testID="log-out" />
-        <Button block kind="danger" label={A.deleteAccount} onPress={() => router.push('/delete-account')} testID="delete-account" />
+      <Button block kind="secondary" label={A.logOut} onPress={logOut} busy={out} testID="log-out" />
+
+      {/* kept small under the design: Apple asks for a way to delete the account and for the privacy policy */}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', columnGap: space[4], rowGap: space[1] }}>
+        <Button small kind="quiet" label={A.helpSub} onPress={() => router.push('/help')} testID="acc-faq" />
+        <Button small kind="quiet" label={A.privacy} onPress={() => Linking.openURL(links.privacy(lang)).catch(() => {})} testID="acc-privacy" />
+        <Button small kind="quiet" label={A.termsLink} onPress={() => Linking.openURL(links.terms(lang)).catch(() => {})} testID="acc-terms" />
+        <Button small kind="danger" label={A.deleteAccount} onPress={() => router.push('/delete-account')} testID="delete-account" />
       </View>
 
       <Sheet visible={editing} onClose={() => setEditing(false)} title={A.editName} closeLabel={t.close} testID="name-sheet"
@@ -82,6 +79,8 @@ export default function Account() {
         <Field label={A.yourName} value={name} onChangeText={setName} autoComplete="name" textContentType="name" onSubmitEditing={saveName} testID="name-field" />
       </Sheet>
     </Screen>
+    <MainTabBar active="account" />
+    </SafeAreaView>
   );
 }
 

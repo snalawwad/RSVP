@@ -1,4 +1,4 @@
-// index tab of the host dashboard (see components/host/HomeTab.tsx).
-import { HomeTab } from '../../../../components/host/HomeTab';
+// The event's page (Sama's Figma 24e): see components/host/EventPage.tsx.
+import { EventPage } from '../../../../components/host/EventPage';
 
-export default HomeTab;
+export default EventPage;

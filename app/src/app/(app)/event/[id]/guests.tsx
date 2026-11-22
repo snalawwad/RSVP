@@ -1,4 +1,7 @@
-// guests tab of the host dashboard (see components/host/GuestsTab.tsx).
-import { GuestsTab } from '../../../../components/host/GuestsTab';
+// The guest list now sits on the event's page (Sama's Figma 24e): old links to /guests go there.
+import { Redirect, useLocalSearchParams } from 'expo-router';
 
-export default GuestsTab;
+export default function Guests() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  return <Redirect href={`/event/${id}` as never} />;
+}
