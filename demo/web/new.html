@@ -9,6 +9,50 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=DM+Sans:wght@400;500;600&family=Noto+Naskh+Arabic:wght@500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="host.css">
+<style>
+/* Figma 11 Guests, 11d Add guests, 11e Contacts, 10e File uploaded, 13 Sent: bits only this page uses */
+.g-head{align-items:center;gap:8px}
+.g-head .scr-h{flex:1;min-width:0}
+.g-head .cnt{flex:none}
+body.app .g-head .btn.pillsoft{flex:none;position:relative;padding:0 14px;white-space:nowrap}
+.g-plus{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:var(--plum);color:var(--plum-ink);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.g-plus:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.g-av{flex:none;width:40px;height:40px;border-radius:var(--r-m);background:var(--surface);color:var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:600;font-size:var(--fs-name);line-height:1}
+.mrow .m-s b{color:var(--ok);font-weight:600}
+.add-rows .line>.i:first-child{color:var(--plum)}
+.add-rows .line .l b{display:block;font-weight:600}
+.add-rows label.line{display:flex;align-items:center;gap:12px;min-height:64px;cursor:pointer;position:relative}
+.add-rows label.line:focus-within{outline:2px solid var(--focus);outline-offset:-2px;border-radius:var(--r-s)}
+.add-rows label.line input{position:absolute;opacity:0;width:1px;height:1px}
+label.ct-row{cursor:pointer}
+.ct-cb{position:relative;flex:none;width:24px;height:24px}
+.ct-cb input{-webkit-appearance:none;appearance:none;margin:0;width:24px;height:24px;border:1.5px solid var(--field-line,var(--muted));border-radius:6px;background:var(--card);cursor:pointer}
+.ct-cb input:checked{background:var(--plum);border-color:var(--plum)}
+.ct-cb input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.ct-cb .i{position:absolute;inset:4px;width:16px;height:16px;color:var(--plum-ink);opacity:0;pointer-events:none}
+.ct-cb input:checked+.i{opacity:1}
+.ct-row.off{cursor:default}
+.ct-row.off .m-n,.ct-row.off .m-s{color:var(--muted);font-weight:500}
+.filecard{display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid var(--line);border-radius:var(--r-l);background:var(--card)}
+.filecard .ft{flex:none;width:44px;height:52px;border-radius:var(--r-s);background:var(--accent-soft,var(--surface));color:var(--plum);display:grid;place-items:center;font-size:12px;font-weight:600;letter-spacing:.02em}
+.filecard .fc-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.filecard .fc-main b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.filecard .fc-main span{font-size:var(--fs-s);color:var(--muted)}
+.filecard>.i{flex:none;color:var(--ink)}
+label.btn.another{position:relative;align-self:flex-start}
+label.btn.another input{position:absolute;opacity:0;width:1px;height:1px}
+label.btn.another:focus-within{outline:2px solid var(--focus);outline-offset:2px}
+.sent-steps{width:100%;text-align:start;margin:8px 0 0}
+.sent-steps .line{align-items:flex-start;padding:12px 0;min-height:0}
+.sent-steps .line .l{line-height:1.35;font-size:15px}
+.sent-steps .t-small{font-size:13px}
+.sent-done .done-mark{width:72px;height:72px}
+.sent-done.centered{gap:10px}
+.sent-steps .t-small,.add-rows .t-small{display:block;margin:2px 0 0;line-height:1.35}
+.sent-steps .line>.i{margin-top:2px;color:var(--ink)}
+.sent-steps .line.done>.i{color:var(--ok)}
+.sent-steps .line .l b{display:block;font-weight:500}
+</style>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('ui-theme')||'light';var l=localStorage.getItem('host-lang')==='ar'?'ar':'en';document.documentElement.lang=l;document.documentElement.dir=l==='ar'?'rtl':'ltr'}catch(e){}</script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
 <script defer src="config.js"></script>
@@ -30,6 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const pkgName = c => (PKG_NAME[c] || [c, c])[lang === 'ar' ? 1 : 0];
   const COLOURS = [['#5B0F1D', 'Burgundy', 'عنابي'], ['#9C7A3C', 'Gold', 'ذهبي'], ['#5E6B3A', 'Olive', 'زيتي'], ['#1F3A5F', 'Navy', 'كحلي'], ['#B8646E', 'Rose', 'وردي'], ['#1A1A1A', 'Black', 'أسود']];
   const GROUPS = { en: ['Bride’s side', 'Groom’s side', 'Family', 'Friends', 'Work'], ar: ['أهل العروس', 'أهل المعرس', 'العائلة', 'الأصدقاء', 'الدوام'] };
+  const invAr = n => App.arN(n, 'دعوة وحدة', 'دعوتين', 'دعوات', 'دعوة');
   const T = {
     en: {
       title: 'New event', other: 'العربية', rail: ['Details', 'Team', 'Design', 'Guests', 'Send'], back: 'Back', railL: 'Steps',
@@ -48,11 +93,16 @@ document.addEventListener('DOMContentLoaded', function () {
       ownH: 'Want a personalised card?', ownP: 'Upload your own design, or ask our designer to make one for you.', coverH: 'Add a cover', coverP: 'It shows at the top of the invite.', upOwn: 'Upload my own design', upOwnS: 'PDF, PNG or JPG of your card or a photo',
       askUs: 'Ask us to design it', askUsS: p => `Our designer makes one for you. ${p}`, noCover: 'No cover photo', noCoverS: 'Just the text invite', coverGo: { upload: 'Upload my design', ask: 'Describe my design', none: 'Use the text invite' },
       upH: 'Upload your design', upP: 'Your invite card or a photo. PDF, PNG or JPG, up to 10 MB.', choose: 'Choose a file', chooseS: 'From Files, iCloud or Google Drive', uploaded: 'Uploaded', looks: 'How it looks on the invite', useDesign: 'Use this design', uploading: 'Uploading…', upErr: 'Couldn’t upload that file. Try a JPG photo.', tooBig: 'That file is bigger than 10 MB.',
+      upDoneH: 'Your design is uploaded', yourFile: 'Your file', cardFile: 'Your invite card', another: 'Choose a different file',
       askH: 'Ask us to design it', askP: 'Tell us what you have in mind. Our designer will send you a first draft.', idea: 'What would you like?', ideaPh: 'Soft and elegant, our initials, a gold arch',
       wording: 'Wording on the invite (optional)', colours: 'Colours (optional)', coloursPh: 'Burgundy and gold', ready2: 'Ready in 2 working days', sendReq: 'Send request', payLater: 'You only pay when you approve the design',
       needIdea: 'Tell us what you’d like', sentH: 'Request sent', sentP: 'Our designer will message you within a day. Keep setting up your event in the meantime.', beingMade: 'Being designed', backDesign: 'Back to design',
-      guestsH: 'Guests', paste: 'Paste list', upXls: 'Upload Excel', searchPh: 'Name or number', noGuests: 'No guests yet. Paste a list or upload an Excel file to add them.', addOne: 'Add a guest',
-      seatsW: n => n === 1 ? '1 seat' : `${n} seats`, showAll: n => `Show all ${n}`, saveGuests: 'Save the guest list', needGuest: 'Add at least one guest to continue', gFoot: (g, p) => `${cw(g, 'guest')} · ${cw(p, 'person')}`,
+      guestsH: 'Guests', paste: 'Paste list', upXls: 'Excel sheet', searchPh: 'Name or number', noGuests: 'No guests yet. Tap + to add them, or upload an Excel sheet.', addOne: 'Add guests',
+      seatsW: n => n === 1 ? '1 seat' : `${n} seats`, showAll: n => `Show all ${n}`, saveGuests: 'Continue', needGuest: 'Add at least one guest to continue', gFoot: (g, p) => `${cw(g, 'guest')} · ${cw(p, 'person')}`,
+      gNote: (s, left) => left == null ? T.en.seatsW(s) : left >= 0 ? `${T.en.seatsW(s)} · ${left} invite${left === 1 ? '' : 's'} left in your package` : `${T.en.seatsW(s)} · ${-left} more than your package allows`,
+      gsFrom: 'From your contacts', gsFromS: 'Pick people from your phone', gsType: 'Type them in', gsTypeS: 'Name and phone number, one by one',
+      gsXls: 'Upload an Excel sheet', gsXlsS: 'Your guest list in Excel (.xlsx) or CSV', gsPasteS: 'Copied from WhatsApp, Notes or an email',
+      ctH: 'Your contacts', already: 'Already invited', ctNone: 'None of the people you picked have a phone number.', ctErr: 'Couldn’t open your contacts. Try again, or type them in.',
       addH: 'Add a guest', editH: 'Edit guest', gName: 'Name', gPhone: 'Phone number', bring: 'Can they bring people?', justThem: 'Just them', justThemS: 'The invite is for one person',
       canBring: 'They can bring people', canBringS: 'You choose how many', upTo: 'Up to how many more?', less: 'Fewer', more: 'More', group: 'Group', saveGuest: 'Save guest', removeGuest: 'Remove guest',
       typeName: 'Type the guest’s name', short: 'That phone number looks too short', dup: 'That number is already on the list', addErr: 'Couldn’t save that guest. Try again.',
@@ -62,14 +112,17 @@ document.addEventListener('DOMContentLoaded', function () {
       tooSmall: (n, lim) => `Up to ${lim} invites. You have ${n}, so it doesn’t fit.`, addDoorT: 'Add door check-in', addDoorS: p => `Staff check guests in at the entrance. +${p}`, doorInc: 'Door check-in', doorIncS: 'Included with this package.',
       choosePkg: (n, p) => `Choose ${n} · ${p}`, pickPkg: 'Pick a package',
       sendH: 'How should we send the invite?', sendK: 'We send each guest their own invite', wa: 'We send them on WhatsApp', waS: b => `From the ${b} number`, sms: 'We send them by SMS', smsS: 'A text message to each guest',
-      byHandNote: 'Until our WhatsApp number is connected, you send each invite from your own WhatsApp, one tap per guest.', msg: 'Message', tplHint: '{name} becomes each guest’s name. We add their own link for you.', saveSend: 'Save how we send',
+      byHandNote: 'Our team checks your invite, then sends each guest their own invite. You’ll see every reply on your event page.', msg: 'Message', tplHint: '{name} becomes each guest’s name. We add their own link for you.', saveSend: 'Save how we send',
       revH: 'Review and send', rEvent: 'Event', rWhen: 'When', rWhere: 'Where', rGuests: 'Guests', rReply: 'Reply by', rPkg: 'Package', rDoor: 'Door check-in', rSend: 'Send by', rMsg: 'Message',
       on: 'On', off: 'Off', waW: 'WhatsApp', smsW: 'SMS', choosePay: 'Choose how to pay', notSet: 'Not set', guestsV: (g, p) => `${cw(g, 'guest')}, ${cw(p, 'person')}`,
       payH: 'Pay', total: 'Total', payWith: 'Pay with', knet: 'KNET', card: 'Credit card', order: 'Your order', notAdded: 'Not added', included: 'Included',
       payBtn: p => `Pay ${p}`, payNote: 'Your invite links are ready right after payment', payOff: 'Payments aren’t switched on yet. Message us and we’ll finish setting up your event.', payErr: 'Couldn’t start the payment. Try again.',
-      sentReadyH: 'Your invites are ready', sentReadyP: n => `Your ${cw(n, 'guest')} have their own invite links. Send them from your event page, one tap per guest.`,
-      sentAutoH: 'Your invites are on their way', sentAutoP: n => `We’re sending ${cw(n, 'guest')} their invites on WhatsApp now. You’ll see every reply on your event page.`,
-      doorLinkT: 'Door link ready', doorLinkS: 'Your door staff use it to check guests in on the night', openEvent: 'Open my event', waitPayH: 'Waiting for payment', waitPayP: 'We haven’t received the payment for this event yet.', payAgain: 'Pay for the event',
+      sentH: 'Your invites are with our team', via: ch => ch === 'sms' ? 'by SMS' : 'on WhatsApp',
+      sentP: ch => `Our team checks everything, then sends each guest their invite ${T.en.via(ch)}. You’ll see every reply on your event page.`,
+      stPaid: 'Paid and received', stNow: 'Just now', stCheck: 'Our team checks your invite', stHour: 'Within 1 hour',
+      stSend: (n, ch) => `Our team sends ${n} invite${n === 1 ? '' : 's'} ${T.en.via(ch)}`, stToday: 'Today, by 6 PM', stTomorrow: 'Tomorrow, by 12 PM',
+      stDoor: who => `Our team sends ${who || 'your door staff'} the door link`, stDayBefore: 'The day before', goEvent: 'Go to my event',
+      waitPayH: 'Waiting for payment', waitPayP: 'We haven’t received the payment for this event yet.', payAgain: 'Pay for the event',
       saved: 'Saved', saveErr: 'Couldn’t save. Check your connection and try again.', notYours: 'This event isn’t one of yours.', loadErr: 'Couldn’t load the event', previewH: 'Preview as a guest', sampleNote: 'This is how a guest sees the top of their invite.',
       evNameReq: 'Give the event a name'
     },
@@ -90,11 +143,16 @@ document.addEventListener('DOMContentLoaded', function () {
       ownH: 'تبون كرت خاص فيكم؟', ownP: 'ارفعوا تصميمكم، أو خلوا المصممة عندنا تسوي لكم واحد.', coverH: 'أضيفوا غلاف', coverP: 'يطلع فوق بالدعوة.', upOwn: 'ارفعوا تصميمكم', upOwnS: 'ملف PDF أو PNG أو JPG للكرت أو صورة',
       askUs: 'خلونا نصممها لكم', askUsS: p => `المصممة عندنا تسوي لكم وحدة. ${p}`, noCover: 'بدون صورة غلاف', noCoverS: 'الدعوة بالكلام بس', coverGo: { upload: 'ارفعوا تصميمكم', ask: 'وصفوا التصميم', none: 'استخدموا الدعوة بالكلام' },
       upH: 'ارفعوا تصميمكم', upP: 'كرت الدعوة أو صورة. PDF أو PNG أو JPG، لين 10 ميقا.', choose: 'اختاروا ملف', chooseS: 'من الملفات أو iCloud أو Google Drive', uploaded: 'انرفع', looks: 'شكله بالدعوة', useDesign: 'استخدموا هالتصميم', uploading: 'قاعدين نرفع…', upErr: 'ما قدرنا نرفع الملف، جربوا صورة JPG.', tooBig: 'الملف أكبر من 10 ميقا.',
+      upDoneH: 'انرفع تصميمكم', yourFile: 'ملفكم', cardFile: 'كرت دعوتكم', another: 'اختاروا ملف ثاني',
       askH: 'خلونا نصممها لكم', askP: 'قولوا لنا شنو في بالكم، والمصممة ترسل لكم أول نسخة.', idea: 'شنو تبون؟', ideaPh: 'ناعم وراقي، حروفنا الأولى، وقوس ذهبي',
       wording: 'الكلام اللي بالدعوة (اختياري)', colours: 'الألوان (اختياري)', coloursPh: 'عنابي وذهبي', ready2: 'تجهز خلال يومين عمل', sendReq: 'أرسلوا الطلب', payLater: 'ما تدفعون إلا لما توافقون على التصميم',
       needIdea: 'قولوا لنا شنو تبون', sentH: 'وصلنا طلبكم', sentP: 'المصممة بتراسلكم خلال يوم، وكمّلوا ترتيب مناسبتكم لين ذاك الوقت.', beingMade: 'قاعدين نصممها', backDesign: 'ارجعوا للتصميم',
-      guestsH: 'الضيوف', paste: 'الصقوا قائمة', upXls: 'ارفعوا إكسل', searchPh: 'الاسم أو الرقم', noGuests: 'ما في ضيوف للحين. الصقوا قائمة أو ارفعوا ملف إكسل.', addOne: 'أضيفوا ضيف',
-      seatsW: n => n === 1 ? 'شخص واحد' : App.countWord(n, 'person', 'ar'), showAll: n => `اعرضوا الكل (${n})`, saveGuests: 'احفظوا قائمة الضيوف', needGuest: 'أضيفوا ضيف واحد على الأقل عشان تكمّلون', gFoot: (g, p) => `${cw(g, 'guest')} · ${cw(p, 'person')}`,
+      guestsH: 'الضيوف', paste: 'الصقوا قائمة', upXls: 'ملف إكسل', searchPh: 'الاسم أو الرقم', noGuests: 'ما في ضيوف للحين. اضغطوا + عشان تضيفونهم، أو ارفعوا ملف إكسل.', addOne: 'أضيفوا ضيوف',
+      seatsW: n => n === 1 ? 'شخص واحد' : App.countWord(n, 'person', 'ar'), showAll: n => `اعرضوا الكل (${n})`, saveGuests: 'كمّلوا', needGuest: 'أضيفوا ضيف واحد على الأقل عشان تكمّلون', gFoot: (g, p) => `${cw(g, 'guest')} · ${cw(p, 'person')}`,
+      gNote: (s, left) => left == null ? T.ar.seatsW(s) : left >= 0 ? `${T.ar.seatsW(s)} · باقي ${invAr(left)} بباقتكم` : `${T.ar.seatsW(s)} · أكثر من باقتكم بـ${invAr(-left)}`,
+      gsFrom: 'من جهات الاتصال', gsFromS: 'اختاروا ناس من تلفونكم', gsType: 'اكتبوهم بنفسكم', gsTypeS: 'الاسم ورقم التلفون، واحد واحد',
+      gsXls: 'ارفعوا ملف إكسل', gsXlsS: 'قائمة ضيوفكم بملف إكسل (.xlsx) أو CSV', gsPasteS: 'منسوخة من الواتساب أو الملاحظات أو الإيميل',
+      ctH: 'جهات الاتصال', already: 'معزوم من قبل', ctNone: 'اللي اخترتوهم ما عندهم أرقام تلفون.', ctErr: 'ما قدرنا نفتح جهات الاتصال. جربوا مرة ثانية، أو اكتبوهم بنفسكم.',
       addH: 'أضيفوا ضيف', editH: 'تعديل الضيف', gName: 'الاسم', gPhone: 'رقم التلفون', bring: 'يقدرون يجيبون أحد معاهم؟', justThem: 'بروحهم', justThemS: 'الدعوة لشخص واحد',
       canBring: 'يقدرون يجيبون أحد', canBringS: 'أنتم تحددون العدد', upTo: 'كم شخص زيادة بالكثير؟', less: 'أقل', more: 'أكثر', group: 'المجموعة', saveGuest: 'احفظوا الضيف', removeGuest: 'احذفوا الضيف',
       typeName: 'اكتبوا اسم الضيف', short: 'رقم التلفون ناقص', dup: 'هالرقم موجود بالقائمة من قبل', addErr: 'ما قدرنا نحفظ الضيف، جربوا مرة ثانية.',
@@ -104,14 +162,17 @@ document.addEventListener('DOMContentLoaded', function () {
       tooSmall: (n, lim) => `لين ${lim} دعوة، وعندكم ${n}، فما تكفي.`, addDoorT: 'أضيفوا تسجيل الحضور عند الباب', addDoorS: p => `موظفين يسجلون وصول الضيوف عند المدخل. +${p}`, doorInc: 'تسجيل الحضور عند الباب', doorIncS: 'موجود مع هالباقة.',
       choosePkg: (n, p) => `اختاروا ${n} · ${p}`, pickPkg: 'اختاروا الباقة',
       sendH: 'شلون نرسل الدعوة؟', sendK: 'نرسل لكل ضيف دعوته الخاصة', wa: 'نرسلها على الواتساب', waS: b => `من رقم ${b}`, sms: 'نرسلها برسالة نصية', smsS: 'رسالة نصية لكل ضيف',
-      byHandNote: 'لين ما ينربط رقمنا على الواتساب، ترسلون كل دعوة من واتسابكم، بضغطة وحدة لكل ضيف.', msg: 'الرسالة', tplHint: '{الاسم} يصير اسم كل ضيف، ونضيف رابطه الخاص بنفسنا.', saveSend: 'احفظوا طريقة الإرسال',
+      byHandNote: 'فريقنا يشيك على الدعوة، وبعدين يرسل لكل ضيف دعوته الخاصة. وبتشوفون كل الردود بصفحة المناسبة.', msg: 'الرسالة', tplHint: '{الاسم} يصير اسم كل ضيف، ونضيف رابطه الخاص بنفسنا.', saveSend: 'احفظوا طريقة الإرسال',
       revH: 'راجعوا وأرسلوا', rEvent: 'المناسبة', rWhen: 'الموعد', rWhere: 'المكان', rGuests: 'الضيوف', rReply: 'آخر موعد للرد', rPkg: 'الباقة', rDoor: 'تسجيل الحضور عند الباب', rSend: 'الإرسال', rMsg: 'الرسالة',
       on: 'موجود', off: 'لا', waW: 'الواتساب', smsW: 'رسالة نصية', choosePay: 'اختاروا طريقة الدفع', notSet: 'ما تحدد', guestsV: (g, p) => `${cw(g, 'guest')}، ${cw(p, 'person')}`,
       payH: 'الدفع', total: 'المجموع', payWith: 'ادفعوا بـ', knet: 'كي نت', card: 'بطاقة ائتمان', order: 'طلبكم', notAdded: 'ما انضاف', included: 'موجود',
       payBtn: p => `ادفعوا ${p}`, payNote: 'روابط الدعوات تجهز أول ما تدفعون', payOff: 'الدفع مو شغال للحين. راسلونا ونكمّل لكم ترتيب المناسبة.', payErr: 'ما قدرنا نبدأ الدفع، جربوا مرة ثانية.',
-      sentReadyH: 'دعواتكم جاهزة', sentReadyP: n => `${cw(n, 'guest')} عندهم روابط دعوات خاصة. أرسلوها من صفحة مناسبتكم، بضغطة وحدة لكل ضيف.`,
-      sentAutoH: 'دعواتكم بالطريق', sentAutoP: n => `قاعدين نرسل الدعوات لـ${cw(n, 'guest')} على الواتساب، وبتشوفون كل رد بصفحة مناسبتكم.`,
-      doorLinkT: 'رابط الباب جاهز', doorLinkS: 'اللي على الباب يسجلون فيه وصول الضيوف ليلة المناسبة', openEvent: 'افتحوا مناسبتكم', waitPayH: 'ننتظر الدفع', waitPayP: 'ما وصلنا الدفع لهالمناسبة للحين.', payAgain: 'ادفعوا للمناسبة',
+      sentH: 'دعواتكم عند فريقنا', via: ch => ch === 'sms' ? 'برسالة نصية' : 'على الواتساب',
+      sentP: ch => `فريقنا يراجع كل شي، وبعدين يرسل لكل ضيف دعوته ${T.ar.via(ch)}. وبتشوفون كل رد بصفحة مناسبتكم.`,
+      stPaid: 'وصلنا الدفع', stNow: 'الحين', stCheck: 'فريقنا يراجع دعوتكم', stHour: 'خلال ساعة',
+      stSend: (n, ch) => `فريقنا يرسل ${invAr(n)} ${T.ar.via(ch)}`, stToday: 'اليوم، قبل الساعة 6 المسا', stTomorrow: 'باچر، قبل الساعة 12 الظهر',
+      stDoor: who => who ? `فريقنا يرسل رابط الباب لـ${who}` : 'فريقنا يرسل رابط الباب للي على الباب', stDayBefore: 'قبل المناسبة بيوم', goEvent: 'روحوا لصفحة مناسبتكم',
+      waitPayH: 'ننتظر الدفع', waitPayP: 'ما وصلنا الدفع لهالمناسبة للحين.', payAgain: 'ادفعوا للمناسبة',
       saved: 'انحفظ', saveErr: 'ما قدرنا نحفظ. شيّكوا النت وجربوا مرة ثانية.', notYours: 'هالمناسبة مو من مناسباتكم.', loadErr: 'ما قدرنا نحمّل المناسبة', previewH: 'شوفوها مثل الضيف', sampleNote: 'هذا شكل بداية الدعوة عند الضيف.',
       evNameReq: 'اكتبوا اسم المناسبة'
     }
@@ -120,10 +181,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ---------- state ----------
   const qs = new URLSearchParams(location.search);
-  let PK = null, ev = null, members = [], guests = [], me = null, screen = 'name', quotes = {}, sel = { pkg: null, door: false, method: 'knet' }, draft = {}, editG = null, gq = '', showAllG = false, designReq = null, pendingFile = null;
-  const STEP_OF = { name: 0, when: 0, where: 0, team: 1, design: 2, style: 2, language: 2, cover: 2, upload: 2, ask: 2, asked: 2, guests: 3, guest: 3, package: 4, send: 4, review: 4, pay: 4 };
+  let PK = null, ev = null, members = [], guests = [], me = null, screen = 'name', quotes = {}, sel = { pkg: null, door: false, method: 'knet' }, draft = {}, editG = null, gq = '', showAllG = false, designReq = null, pendingFile = null, picked = [], ctq = '';
+  const STEP_OF = { name: 0, when: 0, where: 0, team: 1, design: 2, style: 2, language: 2, cover: 2, upload: 2, ask: 2, asked: 2, guests: 3, guest: 3, contacts: 3, package: 4, send: 4, review: 4, pay: 4 };
   const RAIL_TO = ['name', 'team', 'design', 'guests', 'package'];
-  const SUB = { style: 'design', language: 'design', cover: 'design', upload: 'cover', ask: 'cover', asked: 'design', guest: 'guests' };
+  const SUB = { style: 'design', language: 'design', cover: 'design', upload: 'cover', ask: 'cover', asked: 'design', guest: 'guests', contacts: 'guests' };
   const BACK = { when: 'name', where: 'when', team: 'where', design: 'team', guests: 'design', package: 'guests', send: 'package', review: 'send', pay: 'review' };
   const kwDate = iso => iso ? App.isoToKw(iso) : { date: '', time: '' };
   const seatsOf = () => guests.reduce((a, g) => a + (g.seats || 1), 0);
@@ -363,17 +424,29 @@ document.addEventListener('DOMContentLoaded', function () {
       draft = {}; go('design');
     };
   }
+  // 10d before a file is in, 10e after: the file, how it looks, "Use this design"
   function drawUpload() {
-    const f = pendingFile;
-    frame(`<h1 class="scr-h">${t.upH}</h1><p class="scr-p">${t.upP}</p>
-      <label class="upbox"><input type="file" id="fFile" accept="image/*,.pdf"><i class="i i-upload"></i><span>${t.choose}</span><small>${t.chooseS}</small></label>
-      ${ev.card_image_url || f ? `<p class="sec-k">${t.uploaded}</p><div class="infocard"><i class="i i-check"></i><div><b dir="auto">${esc(f ? f.name : (ev.card_image_url || '').split('/').pop())}</b>${f ? `<span>${(f.size / 1048576).toFixed(1)} MB</span>` : ''}</div></div><p class="sec-k">${t.looks}</p>${card()}` : ''}`,
-      foot('goNext', t.useDesign, !!ev.card_image_url), { title: t.cover });
+    let f = pendingFile; const has = !!ev.card_image_url;
+    if (!f && has) { try { const m = JSON.parse(ls.get('new-card-' + ev.id) || 'null'); if (m && m.url === ev.card_image_url) f = m; } catch (e) {} }
+    const pick = (cls, inner) => `<label class="${cls}"><input type="file" id="fFile" accept="image/*,.pdf">${inner}</label>`;
+    if (!has) {
+      frame(`<h1 class="scr-h">${t.upH}</h1><p class="scr-p">${t.upP}</p>${pick('upbox', `<i class="i i-upload"></i><span>${t.choose}</span><small>${t.chooseS}</small>`)}`,
+        foot('goNext', t.useDesign, false), { title: t.cover });
+    } else {
+      const name = f ? f.name : t.cardFile;
+      const ext = ((f && f.type === 'application/pdf') ? 'pdf' : f ? (f.name.split('.').pop() || 'jpg') : 'jpg').toUpperCase().replace('JPEG', 'JPG').slice(0, 4);
+      const size = f ? (f.size >= 1048576 ? `${(f.size / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(f.size / 1024))} KB`) : '';
+      frame(`<h1 class="scr-h">${t.upDoneH}</h1><p class="scr-p">${t.upP}</p>
+        <p class="sec-k">${t.yourFile}</p><div class="filecard"><span class="ft" aria-hidden="true">${esc(ext)}</span><span class="fc-main"><b dir="auto">${esc(name)}</b>${size ? `<span dir="ltr" style="text-align:start">${size}</span>` : ''}</span><i class="i i-check" role="img" aria-label="${esc(t.uploaded)}"></i></div>
+        ${pick('btn quiet addline another', `<i class="i i-upload sm"></i>${t.another}`)}
+        <p class="sec-k">${t.looks}</p>${card()}`,
+        foot('goNext', t.useDesign), { title: t.cover });
+    }
     $('#fFile').onchange = async e => {
       const file = e.target.files[0]; e.target.value = ''; if (!file) return;
       if (file.size > 10 * 1048576) { App.toast(t.tooBig); return; }
       App.toast(t.uploading);
-      try { const { url, pal } = await App.uploadCard(ev.id, file); pendingFile = file; await save({ card_image_url: url, theme_accent: pal.accent, theme_paper: pal.paper }); drawUpload(); }
+      try { const { url, pal } = await App.uploadCard(ev.id, file); pendingFile = file; ls.set('new-card-' + ev.id, JSON.stringify({ url, name: file.name, size: file.size, type: file.type })); await save({ card_image_url: url, theme_accent: pal.accent, theme_paper: pal.paper }); drawUpload(); }
       catch (err) { why(err); App.toast(t.upErr); }
     };
     $('#goNext').onclick = () => { pendingFile = null; draft = {}; go('design'); };
@@ -400,30 +473,95 @@ document.addEventListener('DOMContentLoaded', function () {
     $('#goNext').onclick = () => go('design');
   }
 
-  // ---------- 11 Guests ----------
+  // ---------- 11 Guests: header with Excel + "+", search, rows, Continue ----------
+  const CONTACTS_OK = 'contacts' in navigator && 'ContactsManager' in window;
+  const pkgCode = () => { const c = ev.package || qs.get('package') || ls.get('new-package'); return ['basic', 'plus', 'premium'].includes(c) ? c : null; };
+  async function loadPK() { if (PK) return PK; const r = await sb.from('packages').select('*'); if (!r.error) PK = Object.fromEntries((r.data || []).map(p => [p.code, p])); return PK; }
   function drawGuests() {
     const q = gq.trim(), qd = App.asciiDigits(q).replace(/\D/g, '');
     let list = guests.slice().reverse();
     if (q) { const byName = App.searchNames(guests, q).map(x => x.item); list = byName.concat(qd.length >= 3 ? guests.filter(g => (g.phone || '').includes(qd) && !byName.includes(g)) : []); }
     const shown = q || showAllG ? list : list.slice(0, 5);
-    const sub = g => [t.seatsW(g.seats || 1), g.side].filter(Boolean).map(esc).join(' · ');
-    frame(`<div class="headrow"><h1 class="scr-h">${t.guestsH}</h1><span class="cnt">${guests.length}</span></div>
-      <div class="toolrow"><button type="button" class="btn pillsoft" id="gPaste"><i class="i i-list sm"></i>${t.paste}</button><label class="btn pillsoft" style="position:relative"><input type="file" id="gFile" accept=".xlsx,.xls,.csv,.docx" style="position:absolute;opacity:0;width:1px;height:1px"><i class="i i-upload sm"></i>${t.upXls}</label></div>
+    const sub = g => [`<b>${esc(t.seatsW(g.seats || 1))}</b>`, g.side ? bdi(g.side) : ''].filter(Boolean).join(' · ');
+    const ini = n => esc((String(n || '').trim().match(/[\p{L}\p{N}]/u) || ['?'])[0].toUpperCase());
+    const pc = pkgCode(), lim = pc && PK && PK[pc] ? PK[pc].invite_limit : null;
+    if (pc && !PK) loadPK().then(() => { if (screen === 'guests' && PK) drawGuests(); });
+    frame(`<div class="headrow g-head"><h1 class="scr-h">${t.guestsH}</h1><span class="cnt">${guests.length}</span>
+        <label class="btn pillsoft"><input type="file" id="gFile" accept=".xlsx,.xls,.csv,.docx" style="position:absolute;opacity:0;width:1px;height:1px"><i class="i i-upload sm"></i>${t.upXls}</label>
+        <button type="button" class="g-plus" id="gPlus" aria-label="${esc(t.addOne)}" aria-haspopup="dialog"><i class="i i-plus"></i></button></div>
       <div class="searchbox"><i class="i i-search"></i><input type="search" id="gQ" dir="auto" placeholder="${esc(t.searchPh)}" aria-label="${esc(t.searchPh)}" value="${esc(gq)}"></div>
-      ${guests.length ? `<div class="mlist">${shown.map(g => `<button type="button" class="mrow" data-g="${g.id}"><span class="m-main"><span class="m-n" dir="auto">${esc(g.name)}</span><span class="m-s">${sub(g)}</span></span><i class="i i-chev"></i></button>`).join('')}</div>
-        ${!q && !showAllG && list.length > 5 ? `<button type="button" class="btn quiet addline" id="gAll">${t.showAll(list.length)}</button>` : ''}` : `<p class="t-body">${t.noGuests}</p>`}
-      <button type="button" class="btn secondary" id="gAdd"><i class="i i-plus"></i>${t.addOne}</button>`,
-      foot('goNext', t.saveGuests, guests.length > 0, guests.length ? t.gFoot(guests.length, seatsOf()) : t.needGuest));
+      ${guests.length ? `<div class="mlist">${shown.map(g => `<button type="button" class="mrow" data-g="${g.id}"><span class="g-av" aria-hidden="true">${ini(g.name)}</span><span class="m-main"><span class="m-n">${bdi(g.name)}</span><span class="m-s">${sub(g)}</span></span><i class="i i-chev"></i></button>`).join('')}</div>
+        ${!q && !showAllG && list.length > 5 ? `<button type="button" class="btn quiet addline" id="gAll">${t.showAll(list.length)}</button>` : ''}` : `<p class="t-body">${t.noGuests}</p><button type="button" class="btn secondary" id="gAdd"><i class="i i-plus"></i>${t.addOne}</button>`}`,
+      foot('goNext', t.saveGuests, guests.length > 0, guests.length ? esc(t.gNote(seatsOf(), lim == null ? null : lim - seatsOf())) : t.needGuest));
     $('#gQ').oninput = e => { gq = e.target.value; const pos = e.target.selectionStart; drawGuests(); const i = $('#gQ'); i.focus(); try { i.setSelectionRange(pos, pos); } catch (er) {} };
     document.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { editG = guests.find(g => g.id === b.dataset.g); go('guest'); });
     if ($('#gAll')) $('#gAll').onclick = () => { showAllG = true; drawGuests(); };
-    $('#gAdd').onclick = () => { editG = null; go('guest'); };
-    $('#gPaste').onclick = pasteSheet;
-    $('#gFile').onchange = async e => {
-      const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-      try { const r = await App.parseGuestFile(f); if (!r.rows.length) { App.toast(t.fileNone); return; } pasteSheet(null, r); } catch (err) { why(err); App.toast(t.fileErr); }
-    };
+    $('#gPlus').onclick = addSheet;
+    if ($('#gAdd')) $('#gAdd').onclick = addSheet;
+    $('#gFile').onchange = guestFile;
     $('#goNext').onclick = () => go('package');
+  }
+  async function guestFile(e) {
+    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    try { const r = await App.parseGuestFile(f); if (!r.rows.length) { App.closeSheet($('#sheet')); App.toast(t.fileNone); return; } pasteSheet(null, r); } catch (err) { why(err); App.closeSheet($('#sheet')); App.toast(t.fileErr); }
+  }
+  // 11d: the "+" sheet. "From your contacts" only where the browser has the Contact Picker.
+  function addSheet() {
+    const row = (id, icon, h, s) => `<button type="button" class="line" id="${id}"><i class="i ${icon}"></i><span class="l"><b>${h}</b><span class="t-small">${s}</span></span><i class="i i-chev"></i></button>`;
+    sheet(t.addOne, `<div class="lines add-rows">${CONTACTS_OK ? row('aCt', 'i-people', t.gsFrom, t.gsFromS) : ''}${row('aType', 'i-pen', t.gsType, t.gsTypeS)}
+      <label class="line"><input type="file" id="aFile" accept=".xlsx,.xls,.csv,.docx"><i class="i i-upload"></i><span class="l"><b>${t.gsXls}</b><span class="t-small">${t.gsXlsS}</span></span><i class="i i-chev"></i></label>
+      ${row('aPaste', 'i-list', t.pasteH, t.gsPasteS)}</div>`);
+    if ($('#aCt')) $('#aCt').onclick = pickContacts;
+    $('#aType').onclick = () => { App.closeSheet($('#sheet')); editG = null; draft = {}; go('guest'); };
+    $('#aFile').onchange = guestFile;
+    $('#aPaste').onclick = () => pasteSheet();
+  }
+  // Add parsed or picked rows ({ name, phone, seats }); skips numbers already on the list. → how many were added, or -1
+  async function addRows(list) {
+    const seen = new Set(guests.map(g => g.phone)), rows = list.filter(g => !seen.has(g.phone) && seen.add(g.phone)).map(g => ({ ...g, event_id: ev.id }));
+    if (!rows.length) return 0;
+    const { data, error } = await sb.from('guests').upsert(rows, { onConflict: 'event_id,phone', ignoreDuplicates: true }).select('*');
+    if (error) { why(error); App.toast(t.addErr); return -1; }
+    guests = guests.concat(data || []); App.toast(t.added((data || []).length)); return (data || []).length;
+  }
+  // 11e: the phone's contact picker, then the people picked as a checklist
+  async function pickContacts() {
+    App.closeSheet($('#sheet'));
+    let got;
+    try { got = await navigator.contacts.select(['name', 'tel'], { multiple: true }); } catch (err) { why(err); App.toast(t.ctErr); return; }
+    if (!got || !got.length) return;
+    const have = new Set(guests.map(g => g.phone)), seen = new Set();
+    picked = got.map(c => {
+      const phone = (c.tel || []).map(App.normPhone).find(p => p.length >= 10 && p.length <= 15) || '';
+      const name = String((c.name || [])[0] || '').trim() || (phone ? App.prettyPhone(phone) : '');
+      return { name, phone, seats: 1, dup: have.has(phone), on: !have.has(phone) };
+    }).filter(c => c.phone && !seen.has(c.phone) && seen.add(c.phone));
+    if (!picked.length) { App.toast(t.ctNone); return; }
+    ctq = ''; go('contacts');
+  }
+  function drawContacts() {
+    if (!picked.length) { screen = 'guests'; return drawGuests(); }
+    const n = picked.filter(c => c.on && !c.dup).length;
+    frame(`<h1 class="scr-h">${t.ctH}</h1>
+      <div class="searchbox"><i class="i i-search"></i><input type="search" id="ctQ" dir="auto" placeholder="${esc(t.searchPh)}" aria-label="${esc(t.searchPh)}" value="${esc(ctq)}"></div>
+      <div class="mlist" id="ctList"></div>`,
+      foot('ctAdd', n ? t.addN(n) : t.addOne, n > 0), { title: t.addOne });
+    const list = () => {
+      const q = ctq.trim(), qd = App.asciiDigits(q).replace(/\D/g, '');
+      const rows = !q ? picked : picked.filter(c => App.searchNames([c], q).length || (qd.length >= 3 && c.phone.includes(qd)));
+      $('#ctList').innerHTML = rows.map(c => { const i = picked.indexOf(c);
+        return c.dup ? `<div class="mrow ct-row off"><span class="m-main"><span class="m-n">${bdi(c.name)}</span><span class="m-s">${t.already}</span></span></div>`
+          : `<label class="mrow ct-row"><span class="m-main"><span class="m-n">${bdi(c.name)}</span><span class="m-s"><span dir="ltr">${esc(App.prettyPhone(c.phone))}</span></span></span><span class="ct-cb"><input type="checkbox" data-ct="${i}" ${c.on ? 'checked' : ''} aria-label="${esc(c.name)}"><i class="i i-check" aria-hidden="true"></i></span></label>`; }).join('');
+      document.querySelectorAll('[data-ct]').forEach(x => x.onchange = () => { picked[+x.dataset.ct].on = x.checked; const k = picked.filter(c => c.on && !c.dup).length; const b = $('#ctAdd'); b.textContent = k ? t.addN(k) : t.addOne; b.disabled = !k; });
+    };
+    list();
+    $('#ctQ').oninput = e => { ctq = e.target.value; list(); };
+    $('#ctAdd').onclick = async () => {
+      const b = $('#ctAdd'); b.setAttribute('aria-busy', 'true');
+      const r = await addRows(picked.filter(c => c.on && !c.dup).map(({ name, phone, seats }) => ({ name, phone, seats })));
+      b.removeAttribute('aria-busy'); if (r < 0) return;
+      picked = []; go('guests');
+    };
   }
   function pasteSheet(_, pre) {
     let parsed = pre || null;
@@ -436,10 +574,9 @@ document.addEventListener('DOMContentLoaded', function () {
         + (parsed.bad.length ? `<div class="panel flat tone-wait badl"><p class="t-tone">${t.badL}</p><ul>${parsed.bad.slice(0, 30).map(l => `<li><bdi>${esc(l)}</bdi></li>`).join('')}</ul></div>` : '')
         + (parsed.rows.length ? `<button type="button" class="btn primary block" id="pAdd" style="margin-top:12px">${t.addN(parsed.rows.length)}</button>` : '');
       if ($('#pAdd')) $('#pAdd').onclick = async () => {
-        const seen = new Set(guests.map(g => g.phone)), rows = parsed.rows.filter(g => !seen.has(g.phone) && seen.add(g.phone)).map(g => ({ ...g, event_id: ev.id }));
-        const { data, error } = await sb.from('guests').upsert(rows, { onConflict: 'event_id,phone', ignoreDuplicates: true }).select('*');
-        if (error) { why(error); App.toast(t.addErr); return; }
-        guests = guests.concat(data || []); App.closeSheet($('#sheet')); App.toast(t.added((data || []).length)); drawGuests();
+        const r = await addRows(parsed.rows); if (r < 0) return;
+        if (r === 0) App.toast(t.added(0));
+        App.closeSheet($('#sheet')); drawGuests();
       };
     };
     $('#pCheck').onclick = () => { parsed = App.parseGuestLines($('#pText').value.split(/\n/)); if (!parsed.rows.length && !parsed.bad.length) return; show(); };
@@ -573,18 +710,22 @@ document.addEventListener('DOMContentLoaded', function () {
     };
   }
 
-  // ---------- 13 / 13a Sent ----------
+  // ---------- 13 / 13a Sent: our team takes it from here ----------
   function drawSent() {
     if (ev.status === 'draft') {
       $('#root').innerHTML = `<div class="scr"><div class="fl-top"><p class="fl-title">${esc(ev.headline || ev.title)}</p></div><div class="scr-main centered"><h1 class="scr-h">${t.waitPayH}</h1><p class="scr-p">${t.waitPayP}</p></div><div class="scr-foot">${foot('goNext', t.payAgain)}</div></div>`;
       $('#goNext').onclick = () => go('pay'); return;
     }
     const door = !!(quotes[ev.package] && quotes[ev.package].door_included) || ev.door_addon || ev.package === 'plus' || ev.package === 'premium';
-    const auto = !!CONFIG.WHATSAPP_AUTO && ev.send_channel === 'whatsapp';
+    const ch = ev.send_channel === 'sms' ? 'sms' : 'whatsapp';
+    const doors = members.filter(m => m.role === 'door'), who = doors.length === 1 ? (doors[0].name || '').trim() : '';
+    const hourKw = +new Date().toLocaleString('en-GB', { timeZone: 'Asia/Kuwait', hour: '2-digit', hour12: false });
+    const step = (icon, h, s, done = false) => `<div class="line${done ? ' done' : ''}"><i class="i ${icon}" aria-hidden="true"></i><span class="l"><b>${h}</b><span class="t-small">${s}</span></span></div>`;
     $('#root').innerHTML = `<div class="scr"><div class="fl-top"><p class="fl-title">${esc(ev.headline || ev.title)}</p></div>
-      <div class="scr-main centered"><span class="done-mark"><i class="i i-check"></i></span><h1 class="scr-h">${auto ? t.sentAutoH : t.sentReadyH}</h1><p class="scr-p">${(auto ? t.sentAutoP : t.sentReadyP)(guests.length)}</p>
-      ${door ? `<div class="infocard"><i class="i i-door"></i><div><b>${t.doorLinkT}</b><span>${t.doorLinkS}</span></div></div>` : ''}</div>
-      <div class="scr-foot">${foot('goNext', t.openEvent)}</div></div>`;
+      <div class="scr-main centered sent-done"><span class="done-mark"><i class="i i-check"></i></span><h1 class="scr-h">${t.sentH}</h1><p class="scr-p">${t.sentP(ch)}</p>
+      <section class="paybox sent-steps"><div class="lines">${step('i-check', t.stPaid, t.stNow, true)}${step('i-clock', t.stCheck, t.stHour)}${step('i-clock', esc(t.stSend(guests.length, ch)), hourKw < 16 ? t.stToday : t.stTomorrow)}
+        ${door ? step('i-door', t.stDoor(who ? bdi(who) : ''), t.stDayBefore) : ''}</div></section></div>
+      <div class="scr-foot">${foot('goNext', t.goEvent)}</div></div>`;
     $('#goNext').onclick = () => { location.href = `host.html?event=${ev.id}`; };
     ls.set('new-step-' + ev.id, 'sent');
   }
@@ -593,7 +734,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function sheet(h, body) { $('#shH').textContent = h; $('#shBody').innerHTML = body; $('#sheet .sheet-x').setAttribute('aria-label', lang === 'ar' ? 'إغلاق' : 'Close'); App.openSheet($('#sheet')); }
 
   const DRAW = { name: drawName, when: drawWhen, where: drawWhere, team: drawTeam, design: drawDesign, style: drawStyle, language: drawLanguage, cover: drawCover, upload: drawUpload, ask: drawAsk, asked: drawAsked,
-    guests: drawGuests, guest: drawGuest, package: drawPackage, send: drawSend, review: drawReview, pay: drawPay, sent: drawSent };
+    guests: drawGuests, guest: drawGuest, contacts: drawContacts, package: drawPackage, send: drawSend, review: drawReview, pay: drawPay, sent: drawSent };
   function draw() { if (!ev && screen !== 'name') screen = 'name'; (DRAW[screen] || drawName)(); }
   function applyLang() { t = T[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; document.title = App.brandTitle(t.title, lang); draw(); }
 
