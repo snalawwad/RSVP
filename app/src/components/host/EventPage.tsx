@@ -3,35 +3,55 @@
 // yet show "Sending…". Door requests (on the night) show as a red bar that opens the arrivals; Delete event is
 // at the bottom for the main host.
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, ScrollView, TextInput, View } from 'react-native';
 import { isUnsent, peopleComing, sideOf, stats } from '../../lib/guests';
 import { asciiDigits, searchNames } from '../../lib/names';
 import { useApp } from '../../providers/AppProvider';
-import { mix, radius, space } from '../../theme/tokens';
+import { fonts, mix, radius, scriptOf, space } from '../../theme/tokens';
 import { AlertBar } from '../AlertBar';
 import { Button } from '../Button';
-import { Field } from '../Field';
 import { Icon } from '../Icon';
 import { MainTabBar } from '../MainTabBar';
 import { Screen } from '../Screen';
 import { Txt } from '../Txt';
 import { DeleteEvent } from './DeleteEvent';
-import { GuestSheet } from './GuestSheet';
 import { useHost, type Filter } from './HostContext';
-import { CountSeg, usePull } from './parts';
+import { usePull } from './parts';
 import type { Guest } from '../../lib/api';
 
 
-/** The arch-shaped letter tile in front of each guest (Figma 24e). */
-function Initial({ name, tone }: { name: string; tone: 'ok' | 'no' | 'wait' | 'mute' }) {
-  const { c } = useApp();
-  const bg = tone === 'ok' ? c.okBg : tone === 'no' ? c.noBg : tone === 'wait' ? c.waitBg : c.surface;
+/** Figma "Monogram" (5:230): the guest's initial in an arch (round top, square bottom), tinted by their reply. */
+export function Initial({ name, tone }: { name: string; tone: 'ok' | 'no' | 'wait' | 'mute' }) {
+  const { c, theme } = useApp();
+  const light = theme !== 'dark';
+  const bg = tone === 'ok' ? (light ? '#DCE1D2' : c.okBg) : tone === 'no' ? (light ? '#F3D9D7' : c.noBg) : tone === 'wait' ? (light ? '#D6E1EC' : c.waitBg) : c.surface;
+  const fg = tone === 'ok' ? c.ok : tone === 'no' ? c.no : tone === 'wait' ? c.wait : c.ink;
   return (
-    <View style={{ width: 36, height: 40, borderTopLeftRadius: 18, borderTopRightRadius: 18, borderBottomLeftRadius: 5, borderBottomRightRadius: 5, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}
+    <View style={{ width: 36, height: 42, borderTopLeftRadius: 18, borderTopRightRadius: 18, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}
       accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      <Txt v="name" style={{ fontSize: 16 }}>{name.trim().charAt(0).toUpperCase() || '?'}</Txt>
+      <Txt v="name" script="lat" style={{ fontFamily: scriptOf(name) === 'ar' ? fonts.arDisplay : fonts.display, fontSize: 17, lineHeight: scriptOf(name) === 'ar' ? 26 : 19, color: fg }}>{name.trim().charAt(0).toUpperCase() || '?'}</Txt>
     </View>
+  );
+}
+
+/** Figma "Filter chip" (5:162): pills in a row that scrolls; the chosen one has a 2px plum ring, the others a dot. */
+function FilterChips({ value, onChange, items }: { value: Filter; onChange: (k: Filter) => void; items: { k: Filter; label: string; n: number; dot?: string }[] }) {
+  const { c } = useApp();
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingEnd: space[4] }} style={{ marginEnd: -space[4], flexGrow: 0 }}
+      accessibilityRole="tablist" testID="filter">
+      {items.map((x) => {
+        const on = x.k === value;
+        return (
+          <Pressable key={x.k} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={`${x.label}: ${x.n}`} onPress={() => onChange(x.k)} testID={`filter-${x.k}`}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 40, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: c.card, borderWidth: on ? 2 : 1, borderColor: on ? c.plum : c.line }}>
+            {!on && x.dot ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: x.dot }} /> : null}
+            <Txt v="label" style={{ color: on ? c.plum : c.ink, fontSize: 14 }}>{x.label}</Txt>
+            <Txt v="label" style={{ color: on ? c.plum : c.ink, fontSize: 14, fontWeight: '700' }}>{String(x.n)}</Txt>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
   );
 }
 
@@ -40,7 +60,6 @@ export function EventPage() {
   const T = t.host, A = t.a;
   const h = useHost();
   const pull = usePull();
-  const [openId, setOpenId] = useState<string | null>(null);
   const ev = h.ev;
   const guests = h.guests, p = h.pool, s = stats(p);
   const q = h.query.trim(), qd = asciiDigits(q).replace(/\D/g, '');
@@ -71,8 +90,8 @@ export function EventPage() {
     if (g.checked_in_at) bits.push(T.arrived);
     if (sideOf(g)) bits.push(sideOf(g) as string);
     return (
-      <Pressable key={g.id} accessibilityRole={h.cohost ? undefined : 'button'} accessibilityLabel={[g.name, word, ...bits].join(', ')} disabled={h.cohost} onPress={() => setOpenId(g.id)} testID={`open-${g.id}`}
-        style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: 64, paddingVertical: 10, paddingHorizontal: space[4],
+      <Pressable key={g.id} accessibilityRole={h.cohost ? undefined : 'button'} accessibilityLabel={[g.name, word, ...bits].join(', ')} disabled={h.cohost} onPress={() => router.push(`/event/${h.id}/guest/${g.id}` as never)} testID={`open-${g.id}`}
+        style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: 66, paddingVertical: 10, paddingStart: space[4], paddingEnd: space[3],
           borderTopWidth: i ? 1 : 0, borderTopColor: c.line, backgroundColor: pressed ? mix(c.card, c.ink, 0.06) : h.isFresh(g.id) ? c.okBg : 'transparent' })}>
         <Initial name={g.name} tone={tone} />
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -92,7 +111,7 @@ export function EventPage() {
       <Screen edges={['left', 'right']} bottom={space[6]} gap={space[4]} {...pull} testID="event-page">
         {/* Figma 24e (22 Nov evening): Guests + Add, the package card, search, filters, the list */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[3] }}>
-          <Txt v="title" accessibilityRole="header" style={{ fontSize: 30, lineHeight: 36 }}>{T.tGuests}</Txt>
+          <Txt v="title" accessibilityRole="header" style={{ fontSize: 26, lineHeight: 30, letterSpacing: -0.5 }}>{T.tGuests}</Txt>
           {h.cohost ? <Txt v="body" tone="muted" testID="g-sum">{A.nInvites(guests.length)}</Txt>
             : <Button small kind="secondary" icon="plus" label={A.addShort} onPress={() => h.openAdd(false)} testID="add-guest" />}
         </View>
@@ -104,42 +123,46 @@ export function EventPage() {
         <Pressable accessibilityRole="button" disabled={h.cohost} onPress={() => router.push(`/package/${h.id}` as never)} testID="ev-package"
           accessibilityLabel={[A.yourPackage, pkg, lim ? A.invitesUsed(guests.length, lim) : ''].filter(Boolean).join(', ')}>
           {({ pressed }) => (
-            <View style={{ borderRadius: radius.l, backgroundColor: c.plum, padding: space[5], gap: space[2], overflow: 'hidden', opacity: pressed ? 0.92 : 1 }}>
-              <View style={{ position: 'absolute', right: -6, bottom: -26 }} pointerEvents="none"><Icon name="arch" size={150} color="rgba(255,255,255,0.13)" /></View>
+            <View style={{ borderRadius: 16, backgroundColor: c.plum, paddingHorizontal: 20, paddingVertical: 18, gap: 6, overflow: 'hidden', opacity: pressed ? 0.92 : 1 }}>
+              <View style={{ position: 'absolute', right: 30, top: 14 }} pointerEvents="none"><Icon name="arch" size={128} color="rgba(255,255,255,0.14)" /></View>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Txt v="label" style={{ color: 'rgba(255,255,255,0.75)', letterSpacing: lang === 'ar' ? 0 : 1.2, textTransform: 'uppercase', fontSize: 12 }}>{A.yourPackage}</Txt>
                 {h.cohost ? null : <Icon name="chev" sm color="#FFFFFF" flip={rtl} />}
               </View>
-              <Txt v="title" style={{ color: '#FFFFFF', fontSize: 28, lineHeight: 34 }}>{pkg || A.pkgNone}</Txt>
+              <Txt v="title" style={{ color: '#FFFFFF', fontSize: 24, lineHeight: 30 }}>{pkg || A.pkgNone}</Txt>
               {lim ? (
                 <>
-                  <View style={{ height: 6, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.25)', overflow: 'hidden', marginTop: space[1] }}>
-                    <View style={{ height: 6, width: `${Math.min(100, Math.round((guests.length / lim) * 100))}%`, backgroundColor: '#FFFFFF' }} />
+                  <View style={{ height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.25)', overflow: 'hidden', marginTop: 6 }}>
+                    <View style={{ height: 8, borderRadius: 4, width: `${Math.min(100, Math.round((guests.length / lim) * 100))}%`, backgroundColor: '#FFFFFF' }} />
                   </View>
-                  <Txt v="small" style={{ color: 'rgba(255,255,255,0.85)' }}>{A.invitesUsed(guests.length, lim)}</Txt>
+                  <Txt v="small" style={{ color: 'rgba(255,255,255,0.85)', fontSize: 14 }}>{A.invitesUsed(guests.length, lim)}</Txt>
                 </>
               ) : null}
             </View>
           )}
         </Pressable>
 
-        <Field search value={h.query} onChangeText={h.setQuery} placeholder={A.searchShort} accessibilityLabel={T.search} autoCorrect={false} testID="g-search" />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, height: 48, borderRadius: 12, backgroundColor: c.surface, paddingHorizontal: 14 }}>
+          <Icon name="search" color={c.muted} />
+          <TextInput value={h.query} onChangeText={h.setQuery} placeholder={A.searchShort} placeholderTextColor={c.muted} accessibilityLabel={T.search} autoCorrect={false} testID="g-search"
+            style={{ flex: 1, height: 48, color: c.ink, fontFamily: fonts.sans, fontSize: 16, padding: 0, outlineStyle: 'none' } as never} />
+        </View>
         {guests.length ? (
-          <CountSeg<Filter> label={T.filterBy} testID="filter" value={q ? 'all' : h.filter} onChange={(k) => { h.setFilter(k); h.setQuery(''); }}
-            options={(['all', 'yes', 'pending', 'no'] as Filter[]).map((k) => ({ key: k, label: T.K[k], count: N[k], a11y: `${T.K[k]}: ${h.cw(N[k], 'guest')}` }))} />
+          <FilterChips value={q ? 'all' : h.filter} onChange={(k) => { h.setFilter(k); h.setQuery(''); }}
+            items={[{ k: 'all', label: T.K.all, n: N.all }, { k: 'pending', label: T.K.pending, n: N.pending, dot: c.waitMark },
+              { k: 'yes', label: T.K.yes, n: N.yes, dot: c.okMark }, { k: 'no', label: A.cantShort, n: N.no, dot: c.noMark }]} />
         ) : null}
 
         {!h.guestsLoaded ? null : !guests.length ? (
           <Txt v="body" tone="muted" center style={{ paddingVertical: space[5] }} testID="g-empty">{T.emptyG}</Txt>
         ) : (
-          <View testID="g-list" style={{ backgroundColor: c.card, borderWidth: 1, borderColor: c.line, borderRadius: radius.l, overflow: 'hidden' }}>
+          <View testID="g-list" style={{ backgroundColor: c.card, borderWidth: 1, borderColor: c.line, borderRadius: 16, overflow: 'hidden' }}>
             {list.length ? list.map(row) : <View style={{ padding: space[5] }}><Txt v="body" tone="muted" center>{q ? T.noMatch : T.noneHere}</Txt></View>}
           </View>
         )}
         {h.cohost ? <Txt v="small" testID="cohost-note">{A.cohostNote}</Txt> : null}
         {!h.cohost && !h.mySide ? <View style={{ marginTop: space[4] }}><DeleteEvent id={h.id} title={h.evName} /></View> : null}
       </Screen>
-      <GuestSheet id={openId} onClose={() => setOpenId(null)} />
       <MainTabBar active="home" onEvent />
     </View>
   );

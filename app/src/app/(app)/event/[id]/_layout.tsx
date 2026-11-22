@@ -11,17 +11,17 @@ import { HostProvider, useHost } from '../../../../components/host/HostContext';
 import { DeleteEvent } from '../../../../components/host/DeleteEvent';
 import { HostSheets } from '../../../../components/host/HostSheets';
 import { useApp } from '../../../../providers/AppProvider';
-import { radius, size, space } from '../../../../theme/tokens';
+import { size, space } from '../../../../theme/tokens';
 
 /** The round 44px back button: from Your invite or the arrivals back to the event, from the event back home. */
 function Back() {
   const { t, c, rtl } = useApp();
   return (
-    <View style={{ marginHorizontal: space[4] }}>
+    <View style={{ marginHorizontal: space[2] }}>
       <PressScale kind="chip" testID="header-back" accessibilityRole="button" accessibilityLabel={t.back} hitSlop={4}
         onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
-        style={{ width: size.target, height: size.target, borderRadius: radius.pill, borderWidth: 1, borderColor: c.line, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center' }}>
-        <Icon name="chev" color={c.plum} flip={!rtl} />
+        style={{ width: 40, height: size.target, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }}>
+        <Icon name="chev" color={c.ink} flip={!rtl} />
       </PressScale>
     </View>
   );

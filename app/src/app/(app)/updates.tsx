@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Busy, PageTitle, Txt } from '../../components';
+import { Initial } from '../../components/host/EventPage';
 import { peopleComing } from '../../lib/guests';
 import { isNew, lastSeen, loadUpdates, markSeen, type Update } from '../../lib/updates';
 import { useApp } from '../../providers/AppProvider';
@@ -47,13 +48,10 @@ export default function Updates() {
       letter = e.title.trim().charAt(0).toUpperCase(); tone = 'wait';
       go = () => router.push({ pathname: '/invite/[token]', params: { token: u.token } });
     }
-    const bg = tone === 'ok' ? c.okBg : tone === 'no' ? c.noBg : c.surface;
     return (
       <Pressable key={u.id} accessibilityRole="button" onPress={go} testID={`up-${u.id}`}
         style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: space[3], paddingVertical: space[4], borderBottomWidth: 1, borderBottomColor: c.line, backgroundColor: pressed ? mix(c.bg, c.ink, 0.04) : 'transparent' })}>
-        <View style={{ width: 40, height: 44, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderBottomLeftRadius: 6, borderBottomRightRadius: 6, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
-          <Txt v="name" style={{ fontSize: 17 }}>{letter}</Txt>
-        </View>
+        <Initial name={letter} tone={tone} />
         <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
           <Txt v="name" numberOfLines={2} style={fresh ? undefined : { fontWeight: '500' }}>{title}</Txt>
           {sub ? <Txt v="small" tone="muted" numberOfLines={1}>{sub}</Txt> : null}

@@ -1,7 +1,8 @@
-// One guest, opened (Sama's Figma 17a, 22 Nov evening): read-only. The number and group, a coloured reply card
-// (their answer, when, and their note), extra guests as a number, the group, and when the invitation went out with
-// "Ask our team to resend" (WhatsApp our team). Hosts don't change replies or party sizes by hand any more; our
-// team does that. Remove guest stays as a small link at the bottom (a host can still take out a mistake).
+// One guest (Sama's Figma 17a, 22 Nov evening), a page: the name, number and group, the reply in a card (their
+// answer in colour, when, and their note), extra guests as a number, the group, and when the invitation went out
+// with "Ask our team to resend" (WhatsApp our team). Read-only: our team changes replies and party sizes now.
+// Remove guest stays as a small link at the bottom (a host can still take out a mistake).
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Linking, Pressable, View } from 'react-native';
 import { removeGuest, type Guest } from '../../lib/api';
@@ -11,15 +12,18 @@ import { atDoor, isUnsent, sideOf } from '../../lib/guests';
 import { haptics } from '../../lib/haptics';
 import { showPhone } from '../../lib/phone';
 import { useApp } from '../../providers/AppProvider';
-import { mix, radius, space } from '../../theme/tokens';
+import { fonts, mix, scriptOf, space } from '../../theme/tokens';
 import { Button } from '../Button';
 import { useToast } from '../Feedback';
 import { Icon } from '../Icon';
-import { Sheet } from '../Sheet';
+import { Screen } from '../Screen';
 import { Txt } from '../Txt';
 import { useHost } from './HostContext';
 
-export function GuestSheet({ id, onClose }: { id: string | null; onClose: () => void }) {
+export function GuestPage() {
+  const { gid } = useLocalSearchParams<{ gid: string }>();
+  const id = gid ? String(gid) : null;
+  const onClose = () => (router.canGoBack() ? router.back() : router.replace('/'));
   const { t, c, lang, rtl } = useApp();
   const T = t.host, A = t.a;
   const h = useHost();
@@ -28,17 +32,15 @@ export function GuestSheet({ id, onClose }: { id: string | null; onClose: () => 
   const [armed, setArmed] = useState(false);
   const armTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (armTimer.current) clearTimeout(armTimer.current); }, []);
-  useEffect(() => { setArmed(false); }, [id]);   // eslint-disable-line react-hooks/set-state-in-effect
 
-  if (!g) return <Sheet visible={false} onClose={onClose} title=""><View /></Sheet>;
+  if (!g) return <Screen><View /></Screen>;
   const side = sideOf(g);
   const unsent = isUnsent(g);
   const extra = Math.max(0, (g.seats || 1) - 1);
   const tone = g.status === 'yes' ? 'ok' : g.status === 'no' ? 'no' : 'wait';
   const word = unsent ? A.sendingDots : g.status === 'yes' ? (g.confirmed_count ? T.ofPeople(g.confirmed_count, g.seats || 1) : T.K.yes) : g.status === 'no' ? A.cantShort : A.noReplyYet;
-  const bg = tone === 'ok' ? c.okBg : tone === 'no' ? c.noBg : c.waitBg;
   const wa = links.whatsapp(A.resendWa(g.name, h.evName));
-  const who = [g.phone ? showPhone(g.phone).replace(/^(\d{4})(\d{4})$/, '+965 $1 $2') : atDoor(g) ? T.atDoor : T.viaLink, side].filter(Boolean).join(' · ');
+  const who = [g.phone ? `\u2066${showPhone(g.phone).replace(/^(\d{4})(\d{4})$/, '+965 $1 $2')}\u2069` : atDoor(g) ? T.atDoor : T.viaLink, side].filter(Boolean).join(' · ');
 
   async function remove() {
     if (!g) return;
@@ -66,14 +68,17 @@ export function GuestSheet({ id, onClose }: { id: string | null; onClose: () => 
   );
 
   return (
-    <Sheet visible onClose={onClose} title={g.name} closeLabel={T.close} testID="guest-sheet">
-      <Txt v="small" tone="muted" script={g.phone ? 'lat' : undefined} testID="g-who">{who}</Txt>
-      {/* the reply, coloured, not a button (Figma 17a) */}
-      <View testID="g-reply" style={{ borderRadius: radius.l, backgroundColor: bg, padding: space[4], gap: 4 }}>
+    <Screen gap={space[5]} testID="guest-page">
+      <View style={{ gap: 4 }}>
+        <Txt v="title" accessibilityRole="header" style={{ fontFamily: scriptOf(g.name) === 'ar' ? fonts.arDisplay : fonts.display, fontSize: 30, lineHeight: scriptOf(g.name) === 'ar' ? 46 : 36 }}>{g.name}</Txt>
+        <Txt v="small" tone="muted" testID="g-who">{who}</Txt>
+      </View>
+      {/* the reply: in colour, but not a button (Figma 17a) */}
+      <View testID="g-reply" style={{ borderRadius: 16, borderWidth: 1, borderColor: c.line, backgroundColor: c.card, padding: space[4], gap: 4 }}>
         <Txt v="label" tone="muted">{A.replyL}</Txt>
         <Txt v="title" tone={tone} style={{ fontSize: 24, lineHeight: 30 }}>{word}</Txt>
         {g.responded_at && g.status !== 'pending' ? <Txt v="small" tone="muted">{A.repliedOn(shortDate(g.responded_at, lang))}</Txt> : null}
-        {g.decline_reason ? <Txt v="body" style={{ fontStyle: 'italic' }}>{`“${g.decline_reason}”`}</Txt> : null}
+        {g.decline_reason ? <Txt v="body" style={{ fontStyle: 'italic', marginTop: 4 }}>{`“${g.decline_reason}”`}</Txt> : null}
       </View>
       <View style={{ borderTopWidth: 1, borderTopColor: c.line }}>
         {row(A.extraGuests, A.extraGuestsP, extra ? String(extra) : A.noneWord, undefined, 'g-extra')}
@@ -83,11 +88,11 @@ export function GuestSheet({ id, onClose }: { id: string | null; onClose: () => 
           : g.phone ? row(A.notSentYet, null, A.sendingWord, undefined, 'g-sending') : null}
       </View>
       {h.cohost ? null : (
-        <View style={{ alignItems: 'center', marginTop: space[2] }}>
+        <View style={{ alignItems: 'center' }}>
           <Button small kind="danger" icon="trash" label={armed ? T.tapRemove : T.remove} onPress={remove} testID="g-remove"
             style={armed ? { backgroundColor: c.noBg, borderRadius: 999 } : undefined} />
         </View>
       )}
-    </Sheet>
+    </Screen>
   );
 }

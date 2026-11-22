@@ -4,7 +4,7 @@ import { router, Stack } from 'expo-router';
 import { Platform, View } from 'react-native';
 import { Icon, PressScale, Txt, useStackOptions } from '../../components';
 import { useApp } from '../../providers/AppProvider';
-import { radius, size, space } from '../../theme/tokens';
+import { fonts, radius, size, space } from '../../theme/tokens';
 
 export const unstable_settings = { anchor: 'index' };
 
@@ -35,7 +35,7 @@ function HomeBack() {
       onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
       style={{ marginHorizontal: edge, minHeight: size.target, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 4 }}>
       <Icon name="chev" sm color={c.ink} flip={!rtl} />
-      <Txt v="name">{t.a.tabHome}</Txt>
+      <Txt v="name" style={{ fontFamily: rtl ? fonts.arDisplay : fonts.display, fontSize: 16 }}>{t.a.tabHome}</Txt>
     </PressScale>
   );
 }

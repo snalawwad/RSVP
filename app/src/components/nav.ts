@@ -8,7 +8,7 @@ export function useStackOptions() {
   return {
     headerStyle: { backgroundColor: c.bg },
     headerTintColor: c.plum,
-    headerShadowVisible: false,
+    headerShadowVisible: true,   // Figma top bar: a hairline under it
     headerTitleStyle: { fontFamily: rtl ? fonts.arDisplay : fonts.display, fontSize: fs.name, color: c.ink },
     headerBackButtonDisplayMode: 'minimal' as const,
     contentStyle: { backgroundColor: c.bg },

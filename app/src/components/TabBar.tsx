@@ -53,7 +53,7 @@ export const TabButton = forwardRef<ComponentRef<typeof View>, TabButtonProps>(f
           </View>
         ) : null}
       </View>
-      <Txt v="tab" color={col} center style={isFocused ? { fontFamily: lang === 'ar' ? fonts.arSemi : fonts.sansSemi } : undefined}>{label}</Txt>
+      <Txt v="tab" color={col} center style={[{ fontSize: lang === 'ar' ? 13 : 12, lineHeight: lang === 'ar' ? 20 : 15 }, { fontFamily: lang === 'ar' ? fonts.arSemi : fonts.sansSemi }]}>{label}</Txt>
     </Pressable>
   );
 });
