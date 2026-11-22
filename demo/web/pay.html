@@ -30,16 +30,16 @@ document.addEventListener('DOMContentLoaded', function () {
       total: 'Total', payWith: 'Pay with', knet: 'KNET', card: 'Credit card', order: 'Your order',
       testNote: 'Test payments: no money moves. Pick how this payment ends.', pay: p => `Pay ${p} (test)`, fail: 'Payment fails (test)',
       paidH: 'Payment received', paidP: { package: 'Your event is ready. Your invite links are ready to send.', invite_change: 'Our designer will send the new version within a day.', design: 'Your design is approved.' },
-      failH: 'Payment didn’t go through', failP: 'Nothing was charged. You can try again.', waitH: 'Waiting for the bank', waitP: 'We’ll show the result here as soon as the bank answers.',
-      next: { package: 'See my sent invites', invite_change: 'Open my event', design: 'Open my event' }, again: 'Try the payment again', noOrder: 'This payment link isn’t complete.', notYours: 'This payment isn’t for one of your events.',
+      failH: 'Payment didn’t go through', failP: 'You haven’t been charged. Your event and guest list are saved, so nothing is lost. Try again when you’re ready.', waTeam: 'WhatsApp our team', waMsg: n => `Hi Sina, my payment for ${n} didn’t go through.`, waitH: 'Waiting for the bank', waitP: 'We’ll show the result here as soon as the bank answers.',
+      next: { package: 'See my sent invites', invite_change: 'Open my event', design: 'Open my event' }, again: 'Try again', noOrder: 'This payment link isn’t complete.', notYours: 'This payment isn’t for one of your events.',
       err: 'Couldn’t reach the payment. Check your connection and try again.', offH: 'Payments aren’t switched on yet', offP: 'Message us and we’ll finish this for you.', home: 'Open my events',
       PK: { basic: 'Basic', plus: 'Plus', premium: 'Premium' } },
     ar: { title: 'الدفع', back: 'رجوع', other: 'English', what: { package: k => `باقة ${k}`, door_addon: () => 'تسجيل الحضور عند الباب', invite_change: () => 'تعديلات على دعوتكم', design: () => 'تصميم الدعوة' },
       total: 'المجموع', payWith: 'ادفعوا بـ', knet: 'كي نت', card: 'بطاقة ائتمان', order: 'طلبكم',
       testNote: 'دفع تجريبي: ما تنسحب أي فلوس. اختاروا شلون ينتهي الدفع.', pay: p => `ادفعوا ${p} (تجربة)`, fail: 'الدفع يفشل (تجربة)',
       paidH: 'وصلنا الدفع', paidP: { package: 'مناسبتكم جاهزة، وروابط الدعوات جاهزة للإرسال.', invite_change: 'المصممة بترسل لكم النسخة الجديدة خلال يوم.', design: 'تمت الموافقة على التصميم.' },
-      failH: 'الدفع ما تم', failP: 'ما انسحب شي. تقدرون تجربون مرة ثانية.', waitH: 'ننتظر رد البنك', waitP: 'بنعرض لكم النتيجة هني أول ما يرد البنك.',
-      next: { package: 'شوفوا دعواتكم', invite_change: 'افتحوا مناسبتكم', design: 'افتحوا مناسبتكم' }, again: 'جربوا الدفع مرة ثانية', noOrder: 'رابط الدفع ناقص.', notYours: 'هالدفع مو لمناسبة من مناسباتكم.',
+      failH: 'الدفع ما تم', failP: 'ما انسحب منكم شي. مناسبتكم وقائمة الضيوف محفوظة، فما ضاع شي. جربوا مرة ثانية لما تكونون جاهزين.', waTeam: 'كلموا فريقنا واتساب', waMsg: n => `هلا سنة، الدفع لمناسبة ${n} ما تم.`, waitH: 'ننتظر رد البنك', waitP: 'بنعرض لكم النتيجة هني أول ما يرد البنك.',
+      next: { package: 'شوفوا دعواتكم', invite_change: 'افتحوا مناسبتكم', design: 'افتحوا مناسبتكم' }, again: 'جربوا مرة ثانية', noOrder: 'رابط الدفع ناقص.', notYours: 'هالدفع مو لمناسبة من مناسباتكم.',
       err: 'ما قدرنا نوصل للدفع. شيّكوا النت وجربوا مرة ثانية.', offH: 'الدفع مو شغال للحين', offP: 'راسلونا ونكمّل لكم.', home: 'افتحوا مناسباتكم',
       PK: { basic: 'الأساسية', plus: 'بلس', premium: 'بريميوم' } }
   };
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
     if (o.status === 'failed' || o.status === 'cancelled') {
-      shell(`<div class="centered"><span class="done-mark no"><i class="i i-x"></i></span><h1 class="scr-h">${t.failH}</h1><p class="scr-p">${t.failP}</p></div>`, `<a class="btn primary block" id="pAgain" href="${retryUrl(o)}">${t.again}</a>`);
+      shell(`<div class="centered"><span class="done-mark no"><i class="i i-x"></i></span><h1 class="scr-h">${t.failH}</h1><p class="scr-p">${t.failP}</p></div>`, `<a class="btn primary block" id="pAgain" href="${retryUrl(o)}">${t.again}</a>${/^\d{8,15}$/.test(CONFIG.SUPPORT_WHATSAPP || '') ? `<a class="btn quiet block" id="pWa" href="https://wa.me/${CONFIG.SUPPORT_WHATSAPP}?text=${encodeURIComponent(t.waMsg(o.event_title || ''))}" target="_blank" rel="noopener">${t.waTeam}</a>` : ''}`);
       return;
     }
     if (CONFIG.PAYMENT_MODE !== 'test') { shell(`<div class="centered"><h1 class="scr-h">${t.waitH}</h1><p class="scr-p">${t.waitP}</p></div>`); setTimeout(refresh, 4000); return; }

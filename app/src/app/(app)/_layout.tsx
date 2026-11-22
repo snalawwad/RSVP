@@ -2,7 +2,7 @@
 // Account (settings) holds the name, language, colours, help, privacy, terms, log out and delete account.
 import { router, Stack } from 'expo-router';
 import { Platform, View } from 'react-native';
-import { Icon, PressScale, useStackOptions } from '../../components';
+import { Icon, PressScale, Txt, useStackOptions } from '../../components';
 import { useApp } from '../../providers/AppProvider';
 import { radius, size, space } from '../../theme/tokens';
 
@@ -27,6 +27,19 @@ function BackButton() {
 }
 const webBack = Platform.OS === 'web' ? { headerLeft: () => <BackButton /> } : {};
 
+/** Figma 24o / 24b: "‹ Home" at the top of Updates and Account. */
+function HomeBack() {
+  const { t, c, rtl } = useApp();
+  return (
+    <PressScale kind="chip" testID="header-back" accessibilityRole="button" accessibilityLabel={t.a.tabHome} hitSlop={6}
+      onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+      style={{ marginHorizontal: edge, minHeight: size.target, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 4 }}>
+      <Icon name="chev" sm color={c.ink} flip={!rtl} />
+      <Txt v="name">{t.a.tabHome}</Txt>
+    </PressScale>
+  );
+}
+
 export default function AppLayout() {
   const { t } = useApp();
   const stack = useStackOptions();
@@ -39,8 +52,9 @@ export default function AppLayout() {
       <Stack.Screen name="pass/[token]" options={{ title: t.a.yourInvite, ...webBack }} />
       <Stack.Screen name="reply/[token]" options={{ title: t.a.yourInvite, ...webBack }} />
       <Stack.Screen name="package/[id]" options={{ title: t.a.pkgH, ...webBack }} />
-      <Stack.Screen name="settings" options={{ headerShown: false, animation: 'none' }} />
-      <Stack.Screen name="updates" options={{ headerShown: false, animation: 'none' }} />
+      <Stack.Screen name="settings" options={{ title: '', headerLeft: () => <HomeBack /> , headerBackVisible: false }} />
+      <Stack.Screen name="updates" options={{ title: '', headerLeft: () => <HomeBack />, headerBackVisible: false }} />
+      <Stack.Screen name="support" options={{ headerShown: false, animation: 'none' }} />
       <Stack.Screen name="new-event" options={{ headerShown: false }} />
       <Stack.Screen name="help" options={{ title: t.menu.help, ...webBack }} />
       <Stack.Screen name="delete-account" options={{ title: t.deleteAccount, ...webBack }} />

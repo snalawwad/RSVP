@@ -29,6 +29,7 @@ export const ICONS = {
   "moon": { fill: false, shapes: [{"t": "path", "a": {"d": "M19 14.5A8 8 0 0 1 9.5 5a8 8 0 1 0 9.5 9.5z"}}] as IconShape[] },
   // the door pass scan (app only for now): three finder squares and a few modules
   "qr": { fill: false, shapes: [{"t": "rect", "a": {"x": "4", "y": "4", "width": "6", "height": "6", "rx": "1"}}, {"t": "rect", "a": {"x": "14", "y": "4", "width": "6", "height": "6", "rx": "1"}}, {"t": "rect", "a": {"x": "4", "y": "14", "width": "6", "height": "6", "rx": "1"}}, {"t": "path", "a": {"d": "M14 14h2.5v2.5M20 14v.01M14 20h.01M17.5 20H20v-3"}}] as IconShape[] },
+  "help": { fill: false, shapes: [{"t": "circle", "a": {"cx": "12", "cy": "12", "r": "8.5"}}, {"t": "path", "a": {"d": "M9.6 9.4a2.5 2.5 0 0 1 4.9.7c0 1.6-2.5 2.1-2.5 3.6"}}, {"t": "path", "a": {"d": "M12 16.6v.4"}}] as IconShape[] },
 } as const;
 
 export type IconName = keyof typeof ICONS;

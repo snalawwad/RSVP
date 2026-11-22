@@ -15,6 +15,7 @@ export const links = {
   privacy: (lang: string) => `${config.siteUrl}/privacy.html?lang=${lang}`,
   support: (lang: string) => `${config.siteUrl}/support.html?lang=${lang}`,
   terms: (lang: string) => `${config.siteUrl}/terms.html?lang=${lang}`,
+  about: (lang: string) => `${config.siteUrl}/index.html?lang=${lang}#how`,
   whatsapp: (text: string) =>
     /^\d{8,15}$/.test(config.supportWhatsApp) ? `https://wa.me/${config.supportWhatsApp}?text=${encodeURIComponent(text)}` : null,
 };

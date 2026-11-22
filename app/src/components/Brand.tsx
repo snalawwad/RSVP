@@ -13,7 +13,8 @@ export function BrandBar({ end, testID }: { end?: ReactNode; testID?: string }) 
     <View testID={testID} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 60, paddingHorizontal: space[4], paddingVertical: space[2] }}>
       <View accessible accessibilityRole="header" accessibilityLabel={t.appName} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
         <ArchMark size={28} />
-        <Txt v="name" style={{ fontFamily: rtl ? fonts.arDisplayBold : fonts.display, fontSize: rtl ? 18 : 16, lineHeight: rtl ? 28 : 20 }}>{t.appName}</Txt>
+        {/* Figma 24g (22 Nov): SINA in plum capitals next to the arch (Arabic stays سنة) */}
+        <Txt v="name" tone="plum" style={{ fontFamily: rtl ? fonts.arDisplayBold : fonts.display, fontSize: rtl ? 18 : 15, lineHeight: rtl ? 28 : 20, letterSpacing: rtl ? 0 : 1.4, textTransform: rtl ? 'none' : 'uppercase' }}>{t.appName}</Txt>
       </View>
       {end}
     </View>

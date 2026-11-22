@@ -117,11 +117,9 @@ document.addEventListener('DOMContentLoaded', function () {
       on: 'On', off: 'Off', waW: 'WhatsApp', smsW: 'SMS', choosePay: 'Choose how to pay', notSet: 'Not set', guestsV: (g, p) => `${cw(g, 'guest')}, ${cw(p, 'person')}`,
       payH: 'Pay', total: 'Total', payWith: 'Pay with', knet: 'KNET', card: 'Credit card', order: 'Your order', notAdded: 'Not added', included: 'Included',
       payBtn: p => `Pay ${p}`, payNote: 'Your invite links are ready right after payment', payOff: 'Payments aren’t switched on yet. Message us and we’ll finish setting up your event.', payErr: 'Couldn’t start the payment. Try again.',
-      sentH: 'Your invites are with our team', via: ch => ch === 'sms' ? 'by SMS' : 'on WhatsApp',
-      sentP: ch => `Our team checks everything, then sends each guest their invite ${T.en.via(ch)}. You’ll see every reply on your event page.`,
-      stPaid: 'Paid and received', stNow: 'Just now', stCheck: 'Our team checks your invite', stHour: 'Within 1 hour',
-      stSend: (n, ch) => `Our team sends ${n} invite${n === 1 ? '' : 's'} ${T.en.via(ch)}`, stToday: 'Today, by 6 PM', stTomorrow: 'Tomorrow, by 12 PM',
-      stDoor: who => `Our team sends ${who || 'your door staff'} the door link`, stDayBefore: 'The day before', goEvent: 'Go to my event',
+      doneH: 'Your invitations are with our team', via: ch => ch === 'sms' ? 'by SMS' : 'on WhatsApp',
+      doneP: (n, ch, today, door) => `Our team checks your invitation within the hour, then sends it to your ${n === 1 ? 'guest' : n + ' guests'} ${T.en.via(ch)} ${today ? 'by 6 PM today' : 'by 12 PM tomorrow'}.${door ? ' Your door staff get their link the day before.' : ''} Every reply will show on your event page.`,
+      goEvent: 'Go to my event',
       waitPayH: 'Waiting for payment', waitPayP: 'We haven’t received the payment for this event yet.', payAgain: 'Pay for the event',
       saved: 'Saved', saveErr: 'Couldn’t save. Check your connection and try again.', notYours: 'This event isn’t one of yours.', loadErr: 'Couldn’t load the event', previewH: 'Preview as a guest', sampleNote: 'This is how a guest sees the top of their invite.',
       evNameReq: 'Give the event a name'
@@ -167,11 +165,9 @@ document.addEventListener('DOMContentLoaded', function () {
       on: 'موجود', off: 'لا', waW: 'الواتساب', smsW: 'رسالة نصية', choosePay: 'اختاروا طريقة الدفع', notSet: 'ما تحدد', guestsV: (g, p) => `${cw(g, 'guest')}، ${cw(p, 'person')}`,
       payH: 'الدفع', total: 'المجموع', payWith: 'ادفعوا بـ', knet: 'كي نت', card: 'بطاقة ائتمان', order: 'طلبكم', notAdded: 'ما انضاف', included: 'موجود',
       payBtn: p => `ادفعوا ${p}`, payNote: 'روابط الدعوات تجهز أول ما تدفعون', payOff: 'الدفع مو شغال للحين. راسلونا ونكمّل لكم ترتيب المناسبة.', payErr: 'ما قدرنا نبدأ الدفع، جربوا مرة ثانية.',
-      sentH: 'دعواتكم عند فريقنا', via: ch => ch === 'sms' ? 'برسالة نصية' : 'على الواتساب',
-      sentP: ch => `فريقنا يراجع كل شي، وبعدين يرسل لكل ضيف دعوته ${T.ar.via(ch)}. وبتشوفون كل رد بصفحة مناسبتكم.`,
-      stPaid: 'وصلنا الدفع', stNow: 'الحين', stCheck: 'فريقنا يراجع دعوتكم', stHour: 'خلال ساعة',
-      stSend: (n, ch) => `فريقنا يرسل ${invAr(n)} ${T.ar.via(ch)}`, stToday: 'اليوم، قبل الساعة 6 المسا', stTomorrow: 'باچر، قبل الساعة 12 الظهر',
-      stDoor: who => who ? `فريقنا يرسل رابط الباب لـ${who}` : 'فريقنا يرسل رابط الباب للي على الباب', stDayBefore: 'قبل المناسبة بيوم', goEvent: 'روحوا لصفحة مناسبتكم',
+      doneH: 'دعواتكم عند فريقنا', via: ch => ch === 'sms' ? 'برسالة نصية' : 'على الواتساب',
+      doneP: (n, ch, today, door) => `فريقنا يراجع الدعوة خلال ساعة، وبعدين يرسلها لـ${n === 1 ? 'ضيفكم' : ` ${n} ضيف`} ${T.ar.via(ch)} ${today ? 'قبل الساعة 6 المغرب اليوم' : 'قبل الساعة 12 الظهر باچر'}.${door ? ' وفريق الباب ياخذ رابطه قبل المناسبة بيوم.' : ''} وبتشوفون كل رد بصفحة مناسبتكم.`,
+      goEvent: 'روحوا لصفحة مناسبتكم',
       waitPayH: 'ننتظر الدفع', waitPayP: 'ما وصلنا الدفع لهالمناسبة للحين.', payAgain: 'ادفعوا للمناسبة',
       saved: 'انحفظ', saveErr: 'ما قدرنا نحفظ. شيّكوا النت وجربوا مرة ثانية.', notYours: 'هالمناسبة مو من مناسباتكم.', loadErr: 'ما قدرنا نحمّل المناسبة', previewH: 'شوفوها مثل الضيف', sampleNote: 'هذا شكل بداية الدعوة عند الضيف.',
       evNameReq: 'اكتبوا اسم المناسبة'
@@ -718,13 +714,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     const door = !!(quotes[ev.package] && quotes[ev.package].door_included) || ev.door_addon || ev.package === 'plus' || ev.package === 'premium';
     const ch = ev.send_channel === 'sms' ? 'sms' : 'whatsapp';
-    const doors = members.filter(m => m.role === 'door'), who = doors.length === 1 ? (doors[0].name || '').trim() : '';
     const hourKw = +new Date().toLocaleString('en-GB', { timeZone: 'Asia/Kuwait', hour: '2-digit', hour12: false });
-    const step = (icon, h, s, done = false) => `<div class="line${done ? ' done' : ''}"><i class="i ${icon}" aria-hidden="true"></i><span class="l"><b>${h}</b><span class="t-small">${s}</span></span></div>`;
+    // Figma 13a (22 Nov evening): just the news to read, then Go to my event (no checklist to come back to)
     $('#root').innerHTML = `<div class="scr"><div class="fl-top"><p class="fl-title">${esc(ev.headline || ev.title)}</p></div>
-      <div class="scr-main centered sent-done"><span class="done-mark"><i class="i i-check"></i></span><h1 class="scr-h">${t.sentH}</h1><p class="scr-p">${t.sentP(ch)}</p>
-      <section class="paybox sent-steps"><div class="lines">${step('i-check', t.stPaid, t.stNow, true)}${step('i-clock', t.stCheck, t.stHour)}${step('i-clock', esc(t.stSend(guests.length, ch)), hourKw < 16 ? t.stToday : t.stTomorrow)}
-        ${door ? step('i-door', t.stDoor(who ? bdi(who) : ''), t.stDayBefore) : ''}</div></section></div>
+      <div class="scr-main centered sent-done"><span class="done-mark"><i class="i i-check"></i></span><h1 class="scr-h">${t.doneH}</h1><p class="scr-p">${esc(t.doneP(guests.length, ch, hourKw < 16, door))}</p></div>
       <div class="scr-foot">${foot('goNext', t.goEvent)}</div></div>`;
     $('#goNext').onclick = () => { location.href = `host.html?event=${ev.id}`; };
     ls.set('new-step-' + ev.id, 'sent');

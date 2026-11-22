@@ -1,11 +1,10 @@
-// The event's page (Sama's Figma 24e Event page and 24m Guest added, 22 Nov): no tabs, one page.
-// A card with where the replies stand, two cards (Your invite · Your package), then the guest list with search,
-// Add, and the four filters. Invitations go out through our team: guests not sent yet show "Sending…" and a
-// banner says the team is sending them. Door requests (on the night) show as a red bar that opens the arrivals.
+// The event's page (Sama's Figma 24e, 22 Nov evening): no tabs. "Guests" with Add, the plum package card (opens
+// Your package), search, the four filters and the list. Invitations go out through our team, so guests not sent
+// yet show "Sending…". Door requests (on the night) show as a red bar that opens the arrivals; Delete event is
+// at the bottom for the main host.
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { daysTo, fmtTime, shortDate } from '../../lib/format';
 import { isUnsent, peopleComing, sideOf, stats } from '../../lib/guests';
 import { asciiDigits, searchNames } from '../../lib/names';
 import { useApp } from '../../providers/AppProvider';
@@ -13,40 +12,16 @@ import { mix, radius, space } from '../../theme/tokens';
 import { AlertBar } from '../AlertBar';
 import { Button } from '../Button';
 import { Field } from '../Field';
-import { Icon, type IconName } from '../Icon';
+import { Icon } from '../Icon';
 import { MainTabBar } from '../MainTabBar';
 import { Screen } from '../Screen';
 import { Txt } from '../Txt';
+import { DeleteEvent } from './DeleteEvent';
 import { GuestSheet } from './GuestSheet';
 import { useHost, type Filter } from './HostContext';
 import { CountSeg, usePull } from './parts';
 import type { Guest } from '../../lib/api';
 
-const DAY = 86400e3;
-/** when our team reminds who hasn't replied: 3 days before the reply-by date, else a week before the event (if still ahead) */
-function remindDate(deadline: string | null, starts: string | null) {
-  const base = deadline ? new Date(deadline).getTime() - 3 * DAY : starts ? new Date(starts).getTime() - 7 * DAY : 0;
-  return base > Date.now() ? new Date(base).toISOString() : null;
-}
-
-/** A small card that opens a page (Figma 24e "Your invite" / "Your package"). */
-function MiniCard({ icon, title, sub, onPress, testID }: { icon: IconName; title: string; sub: string; onPress?: () => void; testID?: string }) {
-  const { c, rtl } = useApp();
-  return (
-    <Pressable accessibilityRole="button" onPress={onPress} disabled={!onPress} testID={testID} style={{ flex: 1 }}>
-      {({ pressed }) => (
-        <View style={{ flex: 1, minHeight: 96, borderWidth: 1, borderColor: c.line, borderRadius: radius.l, padding: space[4], gap: 6, backgroundColor: pressed ? mix(c.card, c.ink, 0.05) : c.card }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Icon name={icon} sm color={c.plum} />
-            {onPress ? <Icon name="chev" sm color={c.ink} flip={rtl} /> : null}
-          </View>
-          <Txt v="name" style={{ marginTop: 'auto' }}>{title}</Txt>
-          <Txt v="small" tone="muted" numberOfLines={2}>{sub}</Txt>
-        </View>
-      )}
-    </Pressable>
-  );
-}
 
 /** The arch-shaped letter tile in front of each guest (Figma 24e). */
 function Initial({ name, tone }: { name: string; tone: 'ok' | 'no' | 'wait' | 'mute' }) {
@@ -61,24 +36,16 @@ function Initial({ name, tone }: { name: string; tone: 'ok' | 'no' | 'wait' | 'm
 }
 
 export function EventPage() {
-  const { t, c, lang } = useApp();
+  const { t, c, lang, rtl } = useApp();
   const T = t.host, A = t.a;
   const h = useHost();
   const pull = usePull();
   const [openId, setOpenId] = useState<string | null>(null);
   const ev = h.ev;
-  const guests = h.guests, p = h.pool, s = stats(p), all = stats(guests);
+  const guests = h.guests, p = h.pool, s = stats(p);
   const q = h.query.trim(), qd = asciiDigits(q).replace(/\D/g, '');
   if (!ev) return null;
 
-  // ---------- where the replies stand ----------
-  const d = daysTo(ev.starts_at);
-  const kicker = [ev.starts_at ? `${shortDate(ev.starts_at, lang)} · ${fmtTime(ev.starts_at, lang)}` : '', ev.venue || '', d === 0 ? A.tonightK : ''].filter(Boolean).join(' · ');
-  const replied = all.yes.length + all.no.length;
-  const head = !guests.length ? T.emptyG : d === 0 ? A.tonightH(all.people) : A.repliedOf(replied, guests.length);
-  // the team reminds who hasn't replied a few days before the reply-by date (or a week before the event)
-  const remindAt = remindDate(ev.rsvp_deadline ?? null, ev.starts_at);
-  const firstSent = guests.map((g) => g.sent_at).filter(Boolean).sort()[0] as string | undefined;
   const pkg = h.me?.package ? (A.pkgShort[h.me.package] || h.me.package) : null;
   const lim = ev.invite_limit || 0;
 
@@ -93,7 +60,6 @@ export function EventPage() {
     list = (h.filter === 'all' ? p : p.filter((g) => g.status === h.filter)).slice().sort((a, b) => order(a) - order(b));
   }
   const N = { all: p.length, yes: s.yes.length, pending: s.pend.length, no: s.no.length };
-  const sending = h.cohost ? [] : s.unsent;
 
   const row = (g: Guest, i: number) => {
     const unsent = isUnsent(g);
@@ -124,57 +90,43 @@ export function EventPage() {
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <Screen edges={['left', 'right']} bottom={space[6]} gap={space[4]} {...pull} testID="event-page">
-        {/* where the replies stand */}
-        <View testID="ev-summary" style={{ borderWidth: 1, borderColor: c.line, borderRadius: radius.l, backgroundColor: c.card, padding: space[5], gap: space[2] }}>
-          <Txt v="label" tone="plum" style={{ letterSpacing: lang === 'ar' ? 0 : 1, textTransform: 'uppercase' }}>{kicker}</Txt>
-          <Txt v="title" style={{ fontSize: 26, lineHeight: 32 }} accessibilityRole="header">{head}</Txt>
-          {guests.length ? (
-            <>
-              <View style={{ height: 6, borderRadius: radius.pill, backgroundColor: c.surface, overflow: 'hidden', marginTop: 2 }}>
-                <View style={{ height: 6, width: `${Math.round((replied / guests.length) * 100)}%`, backgroundColor: c.okBar }} />
-              </View>
-              <Txt v="small" tone="ink">{A.sumLine(all.people, all.no.length, all.pend.length)}</Txt>
-              {all.pend.length && remindAt ? <Txt v="small" tone="muted" testID="ev-remind">{A.teamReminds(all.pend.length, shortDate(remindAt, lang))}</Txt> : null}
-            </>
-          ) : null}
+        {/* Figma 24e (22 Nov evening): Guests + Add, the package card, search, filters, the list */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[3] }}>
+          <Txt v="title" accessibilityRole="header" style={{ fontSize: 30, lineHeight: 36 }}>{T.tGuests}</Txt>
+          {h.cohost ? <Txt v="body" tone="muted" testID="g-sum">{A.nInvites(guests.length)}</Txt>
+            : <Button small kind="secondary" icon="plus" label={A.addShort} onPress={() => h.openAdd(false)} testID="add-guest" />}
         </View>
 
         {h.openReqs.length && !h.cohost ? (
           <AlertBar count={h.openReqs.length} icon="door" text={T.reqBar(h.openReqs.length)} go={T.reqGo} onPress={() => router.push(`/event/${h.id}/arrivals` as never)} testID="ev-door-reqs" />
         ) : null}
 
-        <View style={{ flexDirection: 'row', gap: space[3] }}>
-          <MiniCard icon="env" title={A.yourInvite} sub={firstSent ? A.sentOn(shortDate(firstSent, lang)) : A.notSentYet} testID="ev-invite"
-            onPress={h.cohost ? undefined : () => router.push(`/event/${h.id}/invite` as never)} />
-          <MiniCard icon="sparkle" title={A.yourPackage} sub={[pkg, lim ? A.usedOf(guests.length, lim) : ''].filter(Boolean).join(' · ') || A.pkgNone} testID="ev-package"
-            onPress={h.cohost ? undefined : () => router.push(`/package/${h.id}` as never)} />
-        </View>
+        <Pressable accessibilityRole="button" disabled={h.cohost} onPress={() => router.push(`/package/${h.id}` as never)} testID="ev-package"
+          accessibilityLabel={[A.yourPackage, pkg, lim ? A.invitesUsed(guests.length, lim) : ''].filter(Boolean).join(', ')}>
+          {({ pressed }) => (
+            <View style={{ borderRadius: radius.l, backgroundColor: c.plum, padding: space[5], gap: space[2], overflow: 'hidden', opacity: pressed ? 0.92 : 1 }}>
+              <View style={{ position: 'absolute', right: -6, bottom: -26 }} pointerEvents="none"><Icon name="arch" size={150} color="rgba(255,255,255,0.13)" /></View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Txt v="label" style={{ color: 'rgba(255,255,255,0.75)', letterSpacing: lang === 'ar' ? 0 : 1.2, textTransform: 'uppercase', fontSize: 12 }}>{A.yourPackage}</Txt>
+                {h.cohost ? null : <Icon name="chev" sm color="#FFFFFF" flip={rtl} />}
+              </View>
+              <Txt v="title" style={{ color: '#FFFFFF', fontSize: 28, lineHeight: 34 }}>{pkg || A.pkgNone}</Txt>
+              {lim ? (
+                <>
+                  <View style={{ height: 6, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.25)', overflow: 'hidden', marginTop: space[1] }}>
+                    <View style={{ height: 6, width: `${Math.min(100, Math.round((guests.length / lim) * 100))}%`, backgroundColor: '#FFFFFF' }} />
+                  </View>
+                  <Txt v="small" style={{ color: 'rgba(255,255,255,0.85)' }}>{A.invitesUsed(guests.length, lim)}</Txt>
+                </>
+              ) : null}
+            </View>
+          )}
+        </Pressable>
 
-        {/* the guest list */}
-        <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginTop: space[3] }}>
-          <Txt v="title" accessibilityRole="header" style={{ fontSize: 30, lineHeight: 36 }}>{T.tGuests}</Txt>
-          <Txt v="body" tone="muted" testID="g-sum">{A.nInvites(guests.length)}</Txt>
-        </View>
-        <View style={{ flexDirection: 'row', gap: space[2], alignItems: 'center' }}>
-          <View style={{ flex: 1 }}>
-            <Field search value={h.query} onChangeText={h.setQuery} placeholder={A.searchShort} accessibilityLabel={T.search} autoCorrect={false} testID="g-search" />
-          </View>
-          {h.cohost ? null : <Button kind="secondary" icon="plus" label={A.addShort} onPress={() => h.openAdd(false)} testID="add-guest" />}
-        </View>
+        <Field search value={h.query} onChangeText={h.setQuery} placeholder={A.searchShort} accessibilityLabel={T.search} autoCorrect={false} testID="g-search" />
         {guests.length ? (
           <CountSeg<Filter> label={T.filterBy} testID="filter" value={q ? 'all' : h.filter} onChange={(k) => { h.setFilter(k); h.setQuery(''); }}
             options={(['all', 'yes', 'pending', 'no'] as Filter[]).map((k) => ({ key: k, label: T.K[k], count: N[k], a11y: `${T.K[k]}: ${h.cw(N[k], 'guest')}` }))} />
-        ) : null}
-
-        {sending.length && !q && (h.filter === 'all' || h.filter === 'pending') ? (
-          <View testID="sending-banner" style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], borderWidth: 1, borderColor: c.line, borderRadius: radius.l, backgroundColor: c.card, paddingVertical: 14, paddingHorizontal: space[4] }}>
-            <Icon name="clock" sm color={c.ink} />
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Txt v="name">{A.teamSending(sending.length)}</Txt>
-              <Txt v="small" tone="muted" numberOfLines={1}>{`${h.nameParts(sending, 2).names.join(', ')}${sending.length > 2 ? ` +${sending.length - 2}` : ''} · ${A.withinHour}`}</Txt>
-            </View>
-            <Txt v="label" tone="plum">{A.sendingWord}</Txt>
-          </View>
         ) : null}
 
         {!h.guestsLoaded ? null : !guests.length ? (
@@ -185,6 +137,7 @@ export function EventPage() {
           </View>
         )}
         {h.cohost ? <Txt v="small" testID="cohost-note">{A.cohostNote}</Txt> : null}
+        {!h.cohost && !h.mySide ? <View style={{ marginTop: space[4] }}><DeleteEvent id={h.id} title={h.evName} /></View> : null}
       </Screen>
       <GuestSheet id={openId} onClose={() => setOpenId(null)} />
       <MainTabBar active="home" onEvent />

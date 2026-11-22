@@ -4,8 +4,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BrandBar, Busy, PageTitle, Txt } from '../../components';
-import { MainTabBar } from '../../components/MainTabBar';
+import { Busy, PageTitle, Txt } from '../../components';
 import { peopleComing } from '../../lib/guests';
 import { isNew, lastSeen, loadUpdates, markSeen, type Update } from '../../lib/updates';
 import { useApp } from '../../providers/AppProvider';
@@ -68,8 +67,7 @@ export default function Updates() {
   };
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1, backgroundColor: c.bg }} testID="updates">
-      <BrandBar />
+    <SafeAreaView edges={['left', 'right', 'bottom']} style={{ flex: 1, backgroundColor: c.bg }} testID="updates">
       <ScrollView contentContainerStyle={{ paddingHorizontal: space[4], paddingTop: space[5], paddingBottom: space[8], gap: space[4], width: '100%', maxWidth: 760, alignSelf: 'center' }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(true); setRefreshing(false); }} tintColor={c.plum} colors={[c.plum]} />}>
         <PageTitle testID="updates-title">{A.tabUpdates}</PageTitle>
@@ -77,7 +75,6 @@ export default function Updates() {
           <Txt v="body" tone="muted" testID="updates-empty">{A.upEmpty}</Txt>
         )}
       </ScrollView>
-      <MainTabBar active="updates" />
     </SafeAreaView>
   );
 }

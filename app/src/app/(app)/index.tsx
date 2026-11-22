@@ -10,7 +10,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BrandBar, Busy, Button, Icon, PageTitle, Panel, Txt } from '../../components';
-import { MainTabBar } from '../../components/MainTabBar';
+import { MainTabBar, TopIcons } from '../../components/MainTabBar';
 import { listGuests, type Guest } from '../../lib/api';
 import { myEvents, myInvites, myProfile, saveProfile } from '../../lib/api7';
 import { daysTo, fmtTime, kwDay, kwParts, shortDate } from '../../lib/format';
@@ -140,17 +140,11 @@ export default function Home() {
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1, backgroundColor: c.bg }} testID="events">
-      <BrandBar />
+      <BrandBar end={<TopIcons />} />
       <ScrollView contentContainerStyle={{ paddingHorizontal: space[4], paddingTop: space[5], paddingBottom: space[6], gap: space[5], width: '100%', maxWidth: 760, alignSelf: 'center' }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={c.plum} colors={[c.plum]} />}>
         {body}
       </ScrollView>
-      {/* Figma 24g: "New event" sits above the bottom bar */}
-      <View style={{ paddingHorizontal: space[4], paddingVertical: space[3], borderTopWidth: 1, borderTopColor: c.line, backgroundColor: c.bg }}>
-        <View style={{ width: '100%', maxWidth: 760, alignSelf: 'center' }}>
-          <Button kind="primary" big block icon="plus" label={A.newEventBtn} onPress={() => router.push('/new-event' as never)} testID="rq-new" />
-        </View>
-      </View>
       <MainTabBar active="home" />
     </SafeAreaView>
   );
