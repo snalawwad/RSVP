@@ -1,18 +1,19 @@
 // One guest (Sama's Figma 17a, 22 Nov evening), a page: the name, number and group, the reply in a card (their
 // answer in colour, when, and their note), extra guests as a number, the group, and when the invitation went out
-// with "Ask our team to resend" (WhatsApp our team). The host can change the extra guests and the group, then
-// "Save changes" (Figma footer). The reply itself is the guest's. Remove guest stays as a small link at the bottom.
+// with "Ask our team to resend" (WhatsApp our team). Extra guests is written as a number (Sama: hosts can't change
+// it); the host can change the group, then "Save changes" (Figma footer). The reply itself is the guest's. Remove
+// guest stays as a small link at the bottom.
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Linking, Pressable, View } from 'react-native';
-import { removeGuest, setExtras, setGuestSide, why, type Guest } from '../../lib/api';
+import { Linking, View } from 'react-native';
+import { removeGuest, setGuestSide, why, type Guest } from '../../lib/api';
 import { links } from '../../lib/config';
 import { dayMon, shortDate } from '../../lib/format';
-import { atDoor, isUnsent, MAX_EXTRAS, sideOf } from '../../lib/guests';
+import { atDoor, isUnsent, sideOf } from '../../lib/guests';
 import { haptics } from '../../lib/haptics';
 import { showPhone } from '../../lib/phone';
 import { useApp } from '../../providers/AppProvider';
-import { fonts, mix, radius, scriptOf, space } from '../../theme/tokens';
+import { fonts, scriptOf, space } from '../../theme/tokens';
 import { Button } from '../Button';
 import { Choice } from '../Choice';
 import { Field } from '../Field';
@@ -35,7 +36,6 @@ export function GuestPage() {
   const [armed, setArmed] = useState(false);
   const armTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (armTimer.current) clearTimeout(armTimer.current); }, []);
-  const [extrasNew, setExtrasNew] = useState<number | null>(null);
   const [sideNew, setSideNew] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
   const [typed, setTyped] = useState('');
@@ -44,11 +44,10 @@ export function GuestPage() {
   if (!g) return <Screen><View /></Screen>;
   const side = sideOf(g);
   const unsent = isUnsent(g);
-  const extraNow = Math.max(0, (g.seats || 1) - 1);
-  const extra = extrasNew ?? extraNow;
+  const extra = Math.max(0, (g.seats || 1) - 1);
   const sideShown = sideNew ?? side;
   const canEdit = !h.cohost;
-  const changed = (extrasNew != null && extrasNew !== extraNow) || (sideNew != null && sideNew !== (side || ''));
+  const changed = sideNew != null && sideNew !== (side || '');
   const tone = g.status === 'yes' ? 'ok' : g.status === 'no' ? 'no' : 'wait';
   const word = unsent ? A.sendingDots : g.status === 'yes' ? (g.confirmed_count ? T.ofPeople(g.confirmed_count, g.seats || 1) : T.K.yes) : g.status === 'no' ? A.cantShort : A.noReplyYet;
   const wa = links.whatsapp(A.resendWa(g.name, h.evName));
@@ -70,24 +69,12 @@ export function GuestPage() {
   async function save() {
     if (!g || !changed || saving) return;
     setSaving(true);
-    const r1 = extrasNew != null && extrasNew !== extraNow ? await setExtras(g.id, extrasNew) : { error: null };
-    const r2 = !r1.error && sideNew != null && sideNew !== (side || '') ? await setGuestSide(g.id, sideNew.trim() || null) : { error: null };
+    const r = await setGuestSide(g.id, (sideNew ?? '').trim() || null);
     setSaving(false);
-    if (r1.error || r2.error) { toast(T.cantSave(why(r1.error ?? r2.error))); return; }
+    if (r.error) { toast(T.cantSave(why(r.error))); return; }
     haptics.success(); toast(A.saved); h.reload(); onClose();
   }
   const pickSide = (v: string) => { setSideNew(v); setPicking(false); setTyped(''); };
-  const round = (d: -1 | 1) => {
-    const off = d < 0 ? extra <= 0 : extra >= MAX_EXTRAS;
-    return (
-      <Pressable accessibilityRole="button" accessibilityLabel={d < 0 ? T.less : T.more} disabled={off} hitSlop={6}
-        onPress={() => { haptics.tap(); setExtrasNew(Math.max(0, Math.min(MAX_EXTRAS, extra + d))); }} testID={d < 0 ? 'g-extra-less' : 'g-extra-more'}
-        style={({ pressed }) => ({ width: 32, height: 32, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? mix(c.surface, c.ink, 0.08) : c.surface, opacity: off ? 0.4 : 1 })}>
-        <Txt v="name" script="lat" style={{ fontSize: 18, lineHeight: 20 }}>{d < 0 ? '−' : '+'}</Txt>
-      </Pressable>
-    );
-  };
-
   return (
     <Screen gap={18} testID="guest-page" bottom={space[6]}
       footer={canEdit ? <Button block kind="primary" label={A.saveChanges} onPress={save} busy={saving} disabled={!changed} testID="g-save" /> : undefined}>
@@ -103,13 +90,7 @@ export function GuestPage() {
         {g.decline_reason ? <Txt v="body" style={{ fontStyle: 'italic', marginTop: 4 }}>{`“${g.decline_reason}”`}</Txt> : null}
       </View>
       <View>
-        <ListLine label={A.extraGuests} sub={A.extraGuestsP} testID="g-extra" valueTone="ink"
-          value={canEdit ? null : extra ? String(extra) : A.noneWord}
-          end={canEdit ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              {round(-1)}<Txt v="body" script="lat" center style={{ minWidth: 18, fontVariant: ['tabular-nums'] }} testID="g-extra-n">{String(extra)}</Txt>{round(1)}
-            </View>
-          ) : undefined} />
+        <ListLine label={A.extraGuests} sub={A.extraGuestsP} testID="g-extra" valueTone="ink" value={extra ? String(extra) : A.noneWord} />
         {sideShown || (canEdit && !h.mySide) ? (
           <ListLine label={A.groupL} value={sideShown || A.notSet} valueTone="ink" testID="g-group"
             onPress={canEdit && !h.mySide ? () => setPicking(true) : undefined} />

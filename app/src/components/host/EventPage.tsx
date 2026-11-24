@@ -4,7 +4,7 @@
 // at the bottom for the main host.
 import { router } from 'expo-router';
 import { Pressable, ScrollView, TextInput, View } from 'react-native';
-import { isUnsent, peopleComing, sideOf, stats } from '../../lib/guests';
+import { isUnsent, peopleComing, sideOf, stats, sumSeats } from '../../lib/guests';
 import { asciiDigits, searchNames } from '../../lib/names';
 import { useApp } from '../../providers/AppProvider';
 import { fonts, mix, radius, scriptOf, space } from '../../theme/tokens';
@@ -66,6 +66,8 @@ export function EventPage() {
 
   const pkg = h.me?.package ? (A.pkgShort[h.me.package] || h.me.package) : null;
   const lim = ev.invite_limit || 0;
+  // the package limit counts people (seats), the same number as Your package and the database's limit
+  const used = sumSeats(guests);
 
   // ---------- the list ----------
   let list: Guest[];
@@ -128,7 +130,7 @@ export function EventPage() {
         ) : null}
 
         <Pressable accessibilityRole="button" disabled={h.cohost} onPress={() => router.push(`/package/${h.id}` as never)} testID="ev-package"
-          accessibilityLabel={[A.yourPackage, pkg, lim ? A.invitesUsed(guests.length, lim) : ''].filter(Boolean).join(', ')}>
+          accessibilityLabel={[A.yourPackage, pkg, lim ? A.invitesUsed(used, lim) : ''].filter(Boolean).join(', ')}>
           {({ pressed }) => (
             <View style={{ borderRadius: 16, backgroundColor: c.plum, paddingHorizontal: 20, paddingVertical: 18, gap: 6, overflow: 'hidden', opacity: pressed ? 0.92 : 1 }}>
               <View style={{ position: 'absolute', right: 30, top: 14 }} pointerEvents="none"><Icon name="arch" size={128} color="rgba(255,255,255,0.14)" /></View>
@@ -140,9 +142,9 @@ export function EventPage() {
               {lim ? (
                 <>
                   <View style={{ height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.25)', overflow: 'hidden', marginTop: 6 }}>
-                    <View style={{ height: 8, borderRadius: 4, width: `${Math.min(100, Math.round((guests.length / lim) * 100))}%`, backgroundColor: '#FFFFFF' }} />
+                    <View style={{ height: 8, borderRadius: 4, width: `${Math.min(100, Math.round((used / lim) * 100))}%`, backgroundColor: '#FFFFFF' }} />
                   </View>
-                  <Txt v="small" style={{ color: 'rgba(255,255,255,0.85)', fontSize: 14 }}>{A.invitesUsed(guests.length, lim)}</Txt>
+                  <Txt v="small" style={{ color: 'rgba(255,255,255,0.85)', fontSize: 14 }}>{A.invitesUsed(used, lim)}</Txt>
                 </>
               ) : null}
             </View>
