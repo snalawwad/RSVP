@@ -1,4 +1,5 @@
-// Updates (Sama's Figma 24o): who replied to your events, and invitations sent to you, newest first.
+// Updates (Sama's Figma 24o): who replied to your events, invitations sent to you, and drafts from our team waiting
+// for your yes ("Your design changes are ready", opens 24p), newest first.
 // New since you last looked get a plum dot; opening this screen clears the count on the tab.
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
@@ -42,6 +43,10 @@ export default function Updates() {
       title = g.status === 'yes' ? A.upComing(nm, more) : A.upCant(nm);
       sub = lang === 'ar' && u.eventHeadline ? u.eventHeadline : u.eventTitle; letter = g.name.trim().charAt(0).toUpperCase(); tone = g.status === 'yes' ? 'ok' : 'no';
       go = () => router.push(`/event/${u.eventId}` as never);
+    } else if (u.kind === 'draft') {
+      const ev = lang === 'ar' && u.eventHeadline ? u.eventHeadline : u.eventTitle;
+      title = A.upDraftH; sub = A.upDraftP; letter = ev.trim().charAt(0).toUpperCase() || '?'; tone = 'wait';
+      go = () => router.push(`/event/${u.eventId}/review/${u.requestId}` as never);
     } else {
       const e = u.invite.event;
       title = A.upInvited(`\u2068${e.title}\u2069`); sub = e.starts_at ? new Date(e.starts_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : '';

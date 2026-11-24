@@ -67,7 +67,7 @@ export default function SignIn() {
   async function demoIn() {
     if (busy) return;
     setBusy(true);
-    await supabase.auth.verifyOtp({ email: 'host@sina.test', token: '000000', type: 'email' });
+    await supabase.auth.verifyOtp({ email: 'dana@example.com', token: '000000', type: 'email' });
     setBusy(false);   // the root layout opens the app by itself
   }
 

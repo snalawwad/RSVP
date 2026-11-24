@@ -10,8 +10,8 @@ import {
   decideRequest, listGuests, listRequests, loadHostHome, markSent as apiMarkSent, mySide as apiMySide, subscribeGuests, why,
   type DoorRequest, type EventRow, type Guest, type MemberRow,
 } from '../../lib/api';
-import { cohostGuests, myEvents } from '../../lib/api7';
-import type { MyEvent } from '../../lib/types7';
+import { cohostGuests, eventRequests, myEvents } from '../../lib/api7';
+import type { HostRequest, MyEvent } from '../../lib/types7';
 import { daysTo, kwDay } from '../../lib/format';
 import { atDoor, isUnsent, peopleComing, sideOf, stats, sumPeople, sumSeats } from '../../lib/guests';
 import { haptics } from '../../lib/haptics';
@@ -55,6 +55,8 @@ type HostCtx = {
   // door requests
   reqs: DoorRequest[]; openReqs: DoorRequest[]; reqName: (r: DoorRequest) => string;
   approve: (id: string) => Promise<boolean>; turnDown: (id: string) => void; busyReq: string | null;
+  // what the host asked our team for (changes, designs): a draft to approve shows on Your invite (Figma 24p)
+  asks: HostRequest[] | null; loadAsks: () => Promise<void>;
   // send one by one
   queue: Queue | null; setQueue: (q: Queue | null) => void; startQueue: (mode: QueueMode, ids: string[]) => void; msgFor: (mode: QueueMode, g: Guest) => string;
   markSent: (gid: string) => Promise<boolean>;
@@ -88,6 +90,7 @@ export function HostProvider({ id, children }: { id: string; children: ReactNode
   const [guests, setGuests] = useState<Guest[]>([]);
   const [guestsLoaded, setGuestsLoaded] = useState(false);
   const [reqs, setReqs] = useState<DoorRequest[]>([]);
+  const [asks, setAsks] = useState<HostRequest[] | null>(null);
   const [live, setLive] = useState(false);
   const [filter, setFilter] = useState<Filter>('all');
   const [side, setSide] = useState('all');
@@ -196,6 +199,13 @@ export function HostProvider({ id, children }: { id: string; children: ReactNode
     setReqs(data ?? []);
   }, [id]);
 
+  // the main host's requests to our team (event_requests_v2 is for hosts only: never a co-host)
+  const loadAsks = useCallback(async () => {
+    if (!evRef.current || cohostRef.current) return;
+    const { data, error } = await eventRequests(id);
+    if (!error) setAsks(data ?? []);
+  }, [id]);
+
   // ---------- boot: who am I, which events, is this one mine ----------
   useEffect(() => {
     let off = false;
@@ -230,11 +240,11 @@ export function HostProvider({ id, children }: { id: string; children: ReactNode
   // ---------- live: realtime + every 20 s + coming back to the app ----------
   useEffect(() => {
     if (status !== 'ok') return;
-    const first = setTimeout(() => { reload(); loadReqs(); }, 0);
+    const first = setTimeout(() => { reload(); loadReqs(); loadAsks(); }, 0);
     const unsub = subscribeGuests(id, () => { reload(); }, (on) => setLive(on));
     const poll = setInterval(() => { reload(); loadReqs(); }, 20000);
     return () => { clearTimeout(first); unsub(); clearInterval(poll); };
-  }, [status, id, reload, loadReqs]);
+  }, [status, id, reload, loadReqs, loadAsks]);
 
   // ---------- reminders ----------
   const remMap = useCallback((): Record<string, number> => kv.getJSON(KEYS.hostReminded(id), {} as Record<string, number>) || {}, [id]);
@@ -300,10 +310,10 @@ export function HostProvider({ id, children }: { id: string; children: ReactNode
   useEffect(() => {
     const sub = AppState.addEventListener('change', (s) => {
       if (s === 'background' || s === 'inactive') flushRejects();
-      else if (s === 'active' && evRef.current) { reload(); loadReqs(); }
+      else if (s === 'active' && evRef.current) { reload(); loadReqs(); loadAsks(); }
     });
     return () => sub.remove();
-  }, [flushRejects, reload, loadReqs]);
+  }, [flushRejects, reload, loadReqs, loadAsks]);
 
   // ---------- send one by one ----------
   const evLang: Lang = ev?.lang === 'en' ? 'en' : 'ar';
@@ -349,7 +359,7 @@ export function HostProvider({ id, children }: { id: string; children: ReactNode
     filter, setFilter, side: sideNow, setSide, query, setQuery, sides, pool,
     newSince, isFresh, cw, nameParts,
     remDays, setReminded, remindList,
-    reqs, openReqs, reqName, approve, turnDown, busyReq,
+    reqs, openReqs, reqName, approve, turnDown, busyReq, asks, loadAsks,
     queue, setQueue, startQueue, msgFor, markSent,
     addSheet, openAdd, closeAdd: () => setAddSheet(null),
     go, selfIds, markFresh: (gid) => { fresh.current.set(gid, Date.now()); },

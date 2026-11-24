@@ -65,7 +65,7 @@ export const appEn = {
   closed: 'Replies for this event have closed.', locked: 'Your reply can’t be changed any more. Message the hosts if plans changed.',
   notReady: 'This invite isn’t ready yet.', gone: 'We couldn’t find this invite.', theHosts: hostWord('en'),
   // host: package (24f), add people (24l/24m), list full, after the event (27/27a), drafts, co-host
-  pkgH: 'Your package', pkgUsed: (u: number, l: number) => `${u} of ${l} invites used`, pkgDoor: 'Door check-in', included: 'Included', notIncluded: 'Not included',
+  pkgH: 'Your package', pkgUsed: (u: number, l: number) => `${u} of ${l} people invited`, pkgDoor: 'Door check-in', included: 'Included', notIncluded: 'Not included',
   pkgDesign: 'Design by our team', pkgNone: 'Your invite limit', pkgLeft: (n: number) => `${n} left`,
   addH: 'Add more people', justThem: 'Just them', justThemP: 'The invite is for one person', canBring: 'They can bring people', canBringP: 'You choose how many',
   canBringQ: 'Can they bring people?', upTo: 'Up to how many more?', group: 'Group', addSend: 'Add and send invite', addOnly: 'Add without sending',
@@ -97,7 +97,7 @@ export const appEn = {
   newEventBtn: 'New event', searchShort: 'Name or number',
   replyL: 'Reply', repliedOn: (d: string) => `Replied on ${d}`, extraGuests: 'Extra guests', extraGuestsP: 'People they can bring', noneWord: 'None', groupL: 'Group',
   inviteSentOn: (d: string) => `Invitation sent ${d}`, askResend: 'Ask our team to resend', resendWa: (g: string, e: string) => `Hi Sina, please resend ${g}’s invitation for ${e}.`,
-  invitesUsed: (n: number, lim: number) => `${n} of ${lim} invites used`,
+  invitesUsed: (n: number, lim: number) => `${n} of ${lim} people invited`, invitationRow: 'Invitation',
   secDetails: 'Your details', secPrefs: 'Preferences', secPrivacy: 'Privacy', secAbout: 'About', phoneNumber: 'Phone number', appearance: 'Appearance',
   deleteMine: 'Delete my account', aboutSina: 'About Sina', termsOfUse: 'Terms of use', versionLine: (v: string) => `Sina · Version ${v}`,
   supportP: 'Our team is here to help with your event.', supportWaL: 'WhatsApp our team', supportChat: 'Chat', supportFaq: 'Common questions', supportWa: 'Hi Sina, I need help with my event.',
@@ -135,6 +135,24 @@ export const appEn = {
   someOutP: (sent: number, inv: number) => `${sent} of ${inv} invites are out.`,
   comingL: 'Coming', cantL: 'Can’t make it', noReplyYet: 'No reply yet', people: P, invites: (n: number) => `${n} ${n === 1 ? 'invite' : 'invites'}`,
   seeGuests: 'See guests', overview: 'Overview',
+  // 0010: the last of Sama's 22 Nov frames
+  // 24l guest note
+  noteOpt: 'Note (optional)', notePh: 'e.g. Bride’s friend from work',
+  // 24p review a draft from our team (approving a paid change or a design the package includes; never a payment)
+  reviewNew: 'Review the new version', newInvH: 'The new invitation', newInvP: 'Check it over. Guests keep seeing the current one until you approve.',
+  openDraft: 'Open the new version', askedFor: 'You asked for', approveB: 'Approve', notRight: 'Not right? Tell our team and we’ll fix it.',
+  approvedOk: 'Approved. Our team will make it live.', askTeam: 'Ask our team', noDraft: 'This version isn’t waiting for you any more.',
+  notRightWa: (n: string) => `Hi Sina, the new version of the invite for ${n} needs a change.`,
+  designWa: (n: string) => `Hi Sina, I’ve seen the new design for ${n}. Can we go over it?`,
+  // 24o Updates
+  upDraftH: 'Your design changes are ready', upDraftP: 'Tap to review and approve',
+  // 24b Account: notifications, privacy settings
+  notifyOn: 'On', notifyOff: 'Off', notifyP: 'A dot on the bell when guests reply or our team needs you.',
+  privSettings: 'Privacy settings', privKeepH: 'What we keep', privKeepP: 'Your name, phone number and email, and your events’ guest lists.',
+  privNumH: 'Who sees your guests’ numbers', privNumP: 'Only you, and any family hosts you add. Co-hosts and door staff see names and party sizes, never numbers.',
+  privCopyH: 'A copy of your data', privCopyB: 'Ask our team for a copy', privCopyWa: 'Hi Sina, I’d like a copy of my data.',
+  // 24g Home cards
+  withNames: (names: string) => `With ${names}`, fromLine: (line: string) => `From ${line}`, youComingShort: 'You’re coming',
 };
 
 export type AppStrings = Widen<typeof appEn>;
@@ -188,7 +206,7 @@ export const appAr: AppStrings = {
   yourMsg: 'رسالتكم', backToInvite: 'ارجعوا لدعوتكم',
   closed: 'انتهى وقت الرد على هالمناسبة.', locked: 'ما يمديكم تغيرون ردكم الحين. كلموا أهل المناسبة إذا تغيرت خطتكم.',
   notReady: 'هالدعوة مو جاهزة للحين.', gone: 'ما لقينا هالدعوة.', theHosts: hostWord('ar'),
-  pkgH: 'باقتكم', pkgUsed: (u, l) => `استخدمتوا ${u} من ${l} دعوة`, pkgDoor: 'تسجيل الحضور على الباب', included: 'موجود', notIncluded: 'مو موجود',
+  pkgH: 'باقتكم', pkgUsed: (u, l) => `عزمتوا ${u} من ${l}`, pkgDoor: 'تسجيل الحضور على الباب', included: 'موجود', notIncluded: 'مو موجود',
   pkgDesign: 'التصميم من فريقنا', pkgNone: 'حد الدعوات', pkgLeft: (n) => `باقي ${n}`,
   addH: 'أضيفوا ناس', justThem: 'بس هو', justThemP: 'الدعوة لشخص واحد', canBring: 'يقدر يجيب معاه', canBringP: 'أنتم تحددون العدد',
   canBringQ: 'يقدر يجيب أحد معاه؟', upTo: 'كم واحد زيادة؟', group: 'المجموعة', addSend: 'أضيفوه وأرسلوا الدعوة', addOnly: 'أضيفوه بدون إرسال',
@@ -219,7 +237,7 @@ export const appAr: AppStrings = {
   newEventBtn: 'مناسبة جديدة', searchShort: 'الاسم أو الرقم',
   replyL: 'الرد', repliedOn: (d) => `ردّ يوم ${d}`, extraGuests: 'ضيوف إضافيين', extraGuestsP: 'الناس اللي يقدر يجيبهم', noneWord: 'ولا أحد', groupL: 'المجموعة',
   inviteSentOn: (d) => `انرسلت الدعوة ${d}`, askResend: 'اطلبوا من فريقنا يعيد الإرسال', resendWa: (g, e) => `هلا سنة، ممكن تعيدون إرسال دعوة ${g} لـ ${e}؟`,
-  invitesUsed: (n, lim) => `${n} من ${lim} دعوة مستخدمة`,
+  invitesUsed: (n, lim) => `عزمتوا ${n} من ${lim}`, invitationRow: 'الدعوة',
   secDetails: 'بياناتكم', secPrefs: 'التفضيلات', secPrivacy: 'الخصوصية', secAbout: 'عن سنة', phoneNumber: 'رقم التلفون', appearance: 'الشكل',
   deleteMine: 'احذفوا حسابي', aboutSina: 'عن سنة', termsOfUse: 'شروط الاستخدام', versionLine: (v) => `سنة · النسخة ${v}`,
   supportP: 'فريقنا موجود يساعدكم بمناسبتكم.', supportWaL: 'كلموا فريقنا واتساب', supportChat: 'محادثة', supportFaq: 'أسئلة شائعة', supportWa: 'هلا سنة، أحتاج مساعدة بمناسبتي.',
@@ -257,4 +275,16 @@ export const appAr: AppStrings = {
   someOutP: (sent, inv) => `انرسلت ${sent} من ${inv} دعوة.`,
   comingL: 'بيحضرون', cantL: 'اعتذروا', noReplyYet: 'ما ردوا', people: PA, invites: (n) => arN(n, 'دعوة وحدة', 'دعوتين', 'دعوات', 'دعوة'),
   seeGuests: 'شوفوا الضيوف', overview: 'الملخص',
+  noteOpt: 'ملاحظة (اختياري)', notePh: 'مثلاً: صديقة العروس من الشغل',
+  reviewNew: 'شوفوا النسخة الجديدة', newInvH: 'الدعوة الجديدة', newInvP: 'شوفوها زين. الضيوف يشوفون الحالية لين توافقون.',
+  openDraft: 'افتحوا النسخة الجديدة', askedFor: 'طلبتوا', approveB: 'وافقوا', notRight: 'فيها شي مو مضبوط؟ قولوا لفريقنا ونصلحه.',
+  approvedOk: 'وافقتوا عليها. فريقنا بيحدّث الدعوة للضيوف.', askTeam: 'اسألوا فريقنا', noDraft: 'هالنسخة ما تنتظركم الحين.',
+  notRightWa: (n) => `هلا سنة، النسخة الجديدة من دعوة ${n} تحتاج تعديل.`,
+  designWa: (n) => `هلا سنة، شفت التصميم الجديد لدعوة ${n}. ممكن نراجعه سوا؟`,
+  upDraftH: 'تعديلات التصميم جاهزة', upDraftP: 'اضغطوا عشان تشوفونها وتوافقون',
+  notifyOn: 'شغالة', notifyOff: 'طافية', notifyP: 'نقطة على الجرس إذا ردوا ضيوفكم أو احتاجكم فريقنا.',
+  privSettings: 'إعدادات الخصوصية', privKeepH: 'شنو نحتفظ فيه', privKeepP: 'اسمكم ورقم تلفونكم وإيميلكم، وقوائم الضيوف لمناسباتكم.',
+  privNumH: 'مين يشوف أرقام ضيوفكم', privNumP: 'بس أنتم، والأهل اللي تضيفونهم كمضيفين. المشاركين بالاستضافة وفريق الباب يشوفون الأسامي وكم شخص بكل دعوة، وما يشوفون الأرقام أبداً.',
+  privCopyH: 'نسخة من بياناتكم', privCopyB: 'اطلبوا نسخة من فريقنا', privCopyWa: 'هلا سنة، أبي نسخة من بياناتي.',
+  withNames: (names) => `مع ${names}`, fromLine: (line) => `من ${line}`, youComingShort: 'بتحضرون',
 };

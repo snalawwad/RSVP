@@ -6,10 +6,12 @@ import { router } from 'expo-router';
 import { Pressable, ScrollView, TextInput, View } from 'react-native';
 import { isUnsent, peopleComing, sideOf, stats, sumSeats } from '../../lib/guests';
 import { asciiDigits, searchNames } from '../../lib/names';
+import { dayMon } from '../../lib/format';
 import { useApp } from '../../providers/AppProvider';
 import { fonts, mix, radius, scriptOf, space } from '../../theme/tokens';
 import { Button } from '../Button';
 import { Icon } from '../Icon';
+import { ListLine } from '../ListLine';
 import { MainTabBar } from '../MainTabBar';
 import { Screen } from '../Screen';
 import { Txt } from '../Txt';
@@ -68,6 +70,7 @@ export function EventPage() {
   const lim = ev.invite_limit || 0;
   // the package limit counts people (seats), the same number as Your package and the database's limit
   const used = sumSeats(guests);
+  const firstSent = guests.map((g) => g.sent_at).filter((x): x is string => !!x).sort()[0] ?? null;
 
   // ---------- the list ----------
   let list: Guest[];
@@ -89,7 +92,9 @@ export function EventPage() {
     if (g.status === 'yes') bits.push(T.ofPeople(peopleComing(g), g.seats || 1));
     else if ((g.seats || 1) > 1 && g.status === 'pending') bits.push(A.plusExtra((g.seats || 1) - 1));
     if (g.checked_in_at) bits.push(T.arrived);
-    if (sideOf(g)) bits.push(sideOf(g) as string);
+    // Figma 24e: the host's note ("Bride’s mum") when there is one, else the group
+    const tail = g.note?.trim() || sideOf(g);
+    if (tail) bits.push(tail);
     return (
       <Pressable key={g.id} accessibilityRole={h.cohost ? undefined : 'button'} accessibilityLabel={[g.name, word, ...bits].join(', ')} disabled={h.cohost} onPress={() => router.push(`/event/${h.id}/guest/${g.id}` as never)} testID={`open-${g.id}`}
         style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: 66, paddingVertical: 10, paddingStart: space[4], paddingEnd: space[3],
@@ -151,6 +156,11 @@ export function EventPage() {
           )}
         </Pressable>
 
+        {h.cohost ? null : (
+          // not drawn in Figma 24e, but her 24c says "From Invitation on the event page": the way in to the invitation and its changes
+          <ListLine label={A.invitationRow} testID="ev-invite" onPress={() => router.push(`/event/${h.id}/invite` as never)}
+            value={firstSent ? A.sentOn(dayMon(firstSent, lang)) : A.notSentYet} last />
+        )}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, height: 48, borderRadius: 12, backgroundColor: c.surface, paddingHorizontal: 14 }}>
           <Icon name="search" color={c.muted} />
           <TextInput value={h.query} onChangeText={h.setQuery} placeholder={A.searchShort} placeholderTextColor={c.muted} accessibilityLabel={T.search} autoCorrect={false} testID="g-search"

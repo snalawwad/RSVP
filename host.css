@@ -864,3 +864,15 @@ body.app .hv-h1{font-size:32px;line-height:35px}
 body.app .hv-h1.name{font-size:30px;line-height:36px}
 html[lang="ar"] body.app .hv-h1{font-size:30px;line-height:48px}
 body.app .hv-foot .btn:disabled{background:var(--surface);border-color:var(--surface);color:var(--muted);opacity:1}
+/* 24o "Your design changes are ready": a plum arch */
+.hv-ini.tone-plum{background:#F1E1E4;color:#5B0F1D}
+html[data-theme="dark"] .hv-ini.tone-plum{background:#3A1B22;color:#E7B9C2}
+@media (prefers-color-scheme:dark){html[data-theme="auto"] .hv-ini.tone-plum{background:#3A1B22;color:#E7B9C2}}
+/* 24b Account: notifications switch line, receipts, privacy settings */
+.hv-line .hv-lsub{display:block;font-size:13px;line-height:18px;color:var(--muted);font-weight:400;margin-top:2px}
+.hv-rc{display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.hv-rc:last-child{border-bottom:0}
+.hv-rc .l{flex:1;min-width:0}.hv-rc .l b{display:block;font-weight:500}.hv-rc .l small{display:block;color:var(--muted);font-size:13px;line-height:18px;margin-top:2px}
+.hv-rc .v{flex:none;text-align:end}.hv-rc .v b{display:block;font-weight:600}.hv-rc .v small{display:block;font-size:13px;line-height:18px;margin-top:2px;color:var(--muted)}
+.hv-rc .v small.ok{color:var(--ok)}.hv-rc .v small.no{color:var(--no)}
+.hv-pr h2{font-size:16px;line-height:22px;font-weight:600;margin:22px 0 4px}.hv-pr p{margin:0;color:var(--muted);line-height:22px}

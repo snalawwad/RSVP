@@ -1,5 +1,6 @@
 // The logged-in app: a native stack. The home (index) draws its own top bar (arch mark, Sina, Account).
-// Account (settings) holds the name, language, colours, help, privacy, terms, log out and delete account.
+// Account (settings) holds the name, language, notifications, colours, privacy settings (privacy), terms, log out and
+// delete account.
 import { router, Stack } from 'expo-router';
 import { Platform, View } from 'react-native';
 import { Icon, PressScale, Txt, useStackOptions } from '../../components';
@@ -27,18 +28,20 @@ function BackButton() {
 }
 const webBack = Platform.OS === 'web' ? { headerLeft: () => <BackButton /> } : {};
 
-/** Figma 24o / 24b: "‹ Home" at the top of Updates and Account. */
-function HomeBack() {
-  const { t, c, rtl } = useApp();
+/** Figma 24o / 24b: "‹ Home" at the top of Updates and Account; "‹ Account" on the screens that open from Account. */
+function TextBack({ label, to = '/' }: { label: string; to?: '/' | '/settings' }) {
+  const { c, rtl } = useApp();
   return (
-    <PressScale kind="chip" testID="header-back" accessibilityRole="button" accessibilityLabel={t.a.tabHome} hitSlop={6}
-      onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+    <PressScale kind="chip" testID="header-back" accessibilityRole="button" accessibilityLabel={label} hitSlop={6}
+      onPress={() => (router.canGoBack() ? router.back() : router.replace(to))}
       style={{ marginHorizontal: edge, minHeight: size.target, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 4 }}>
       <Icon name="chev" sm color={c.ink} flip={!rtl} />
-      <Txt v="name" style={{ fontFamily: rtl ? fonts.arDisplay : fonts.display, fontSize: 16 }}>{t.a.tabHome}</Txt>
+      <Txt v="name" style={{ fontFamily: rtl ? fonts.arDisplay : fonts.display, fontSize: 16 }}>{label}</Txt>
     </PressScale>
   );
 }
+function HomeBack() { const { t } = useApp(); return <TextBack label={t.a.tabHome} />; }
+function AccountBack() { const { t } = useApp(); return <TextBack label={t.a.account} to="/settings" />; }
 
 export default function AppLayout() {
   const { t } = useApp();
@@ -54,6 +57,7 @@ export default function AppLayout() {
       <Stack.Screen name="package/[id]" options={{ title: t.a.pkgH, ...webBack }} />
       <Stack.Screen name="settings" options={{ title: '', headerLeft: () => <HomeBack /> , headerBackVisible: false }} />
       <Stack.Screen name="updates" options={{ title: '', headerLeft: () => <HomeBack />, headerBackVisible: false }} />
+      <Stack.Screen name="privacy" options={{ title: '', headerLeft: () => <AccountBack />, headerBackVisible: false }} />
       <Stack.Screen name="support" options={{ headerShown: false, animation: 'none' }} />
       <Stack.Screen name="new-event" options={{ headerShown: false }} />
       <Stack.Screen name="help" options={{ title: t.menu.help, ...webBack }} />

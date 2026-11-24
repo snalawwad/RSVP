@@ -130,7 +130,7 @@ export function pickDoorEvent<T extends { id: string; starts_at: string | null }
 export const listGuests = (eventId: string) =>
   wrap<Guest[]>(supabase.from('guests').select('*').eq('event_id', eventId).order('created_at'));
 
-export type NewGuest = { event_id: string; name: string; phone: string; seats: number; side?: string | null };
+export type NewGuest = { event_id: string; name: string; phone: string; seats: number; side?: string | null; note?: string | null };
 /** Add one guest. error.code '23505' = that number is already on the list; overLimit(error) = package full. */
 export const addGuest = (g: NewGuest) => wrap<Guest>(supabase.from('guests').insert(g).select().single());
 /** Add many; numbers already on the list are skipped. data = the ids added. */

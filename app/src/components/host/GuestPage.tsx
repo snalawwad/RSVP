@@ -1,4 +1,4 @@
-// One guest (Sama's Figma 17a, 22 Nov evening), a page: the name, number and group, the reply in a card (their
+// One guest (Sama's Figma 17a, 22 Nov evening), a page: the name, number and note (else the group), the reply in a card (their
 // answer in colour, when, and their note), extra guests as a number, the group, and when the invitation went out
 // with "Ask our team to resend" (WhatsApp our team). Extra guests is written as a number (Sama: hosts can't change
 // it); the host can change the group, then "Save changes" (Figma footer). The reply itself is the guest's. Remove
@@ -51,7 +51,9 @@ export function GuestPage() {
   const tone = g.status === 'yes' ? 'ok' : g.status === 'no' ? 'no' : 'wait';
   const word = unsent ? A.sendingDots : g.status === 'yes' ? (g.confirmed_count ? T.ofPeople(g.confirmed_count, g.seats || 1) : T.K.yes) : g.status === 'no' ? A.cantShort : A.noReplyYet;
   const wa = links.whatsapp(A.resendWa(g.name, h.evName));
-  const who = [g.phone ? `\u2066${showPhone(g.phone).replace(/^(\d{4})(\d{4})$/, '+965 $1 $2')}\u2069` : atDoor(g) ? T.atDoor : T.viaLink, side].filter(Boolean).join(' · ');
+  // Figma 17a: "+965 9000 0105 · Bride’s mum" (the host's note when there is one, else the group)
+  const note = g.note?.trim();
+  const who = [g.phone ? `\u2066${showPhone(g.phone).replace(/^(\d{4})(\d{4})$/, '+965 $1 $2')}\u2069` : atDoor(g) ? T.atDoor : T.viaLink, note ? `\u2068${note}\u2069` : side].filter(Boolean).join(' · ');
 
   async function remove() {
     if (!g) return;

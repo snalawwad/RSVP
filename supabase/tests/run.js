@@ -73,6 +73,8 @@ async function as(role, claims, sql, params) {
   if (fs.existsSync(repo + '/supabase/migrations/0006_pass_sending.sql')) await require('./pass_sending.js')({ c, ok, as, repo });
   // ---------- self-serve hosts, phone login, payments, invites (0007) ----------
   if (fs.existsSync(repo + '/supabase/migrations/0007_self_serve.sql')) await require('./self_serve.js')({ c, ok, as, repo });
+  // ---------- guest notes, change drafts, notifications, With/From (0010) ----------
+  if (fs.existsSync(repo + '/supabase/migrations/0010_figma_finish.sql')) await require('./figma_finish.js')({ c, ok, as, repo });
   await c.end();
 })().catch(e => { console.error('ERROR', e.message); process.exit(1); });
 

@@ -66,9 +66,10 @@ document.addEventListener('DOMContentLoaded', function () {
       sumLine: (c, no, p) => `${c} coming · ${no} can’t make it · ${p} haven’t replied`,
       hosting: 'Hosting', atDoor: 'At the door', invitedTo: 'Invited to', past: 'Past',
       invitesComing: (i, y) => `${i} ${i === 1 ? 'invite' : 'invites'} · ${y} coming`, notSentX: 'Not sent yet', stillSetting: 'Still setting up', doorTag: 'Door check-in', cohostTag: 'Co-host', doneX: 'Done',
-      waitingReply: 'Waiting for your reply', youComing: n => `You’re coming · ${E(n)}`, youCant: 'You can’t make it', youWent: 'You went', youMissed: 'You didn’t go', noDate: 'No date yet',
+      waitingReply: 'Waiting for your reply', youComing: n => `You’re coming · ${E(n)}`, youComing2: 'You’re coming', replyBy: d => `Reply by ${d}`,
+      withL: names => `With ${names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names[0]}`, fromL: x => `From ${x.replace(/^The /, 'the ')}`, youCant: 'You can’t make it', youWent: 'You went', youMissed: 'You didn’t go', noDate: 'No date yet',
       // 24e Event page
-      guestsH: 'Guests', addShort: 'Add', yourPackage: 'Your package', pkgNone: 'Your invite limit', invitesUsed: (n, l) => `${n} of ${l} invites used`,
+      guestsH: 'Guests', addShort: 'Add', yourPackage: 'Your package', pkgNone: 'Your invite limit', invitesUsed: (n, l) => `${n} of ${l} people invited`,
       searchShort: 'Name or number', search: 'Search', K: { all: 'All', pending: 'No reply', yes: 'Coming', no: 'Can’t make it' },
       sendingDots: 'Sending…', noReplyYet: 'No reply yet', cantShort: 'Can’t make it', comingW: 'Coming', plusExtra: n => `+${n} extra`,
       ofPeople: (c, s) => c === s ? `${c} of ${s}` : `${c} of ${s}`, arrived: 'Arrived', viaLink: 'Replied via the group link', atDoorG: 'Let in at the door',
@@ -89,11 +90,11 @@ document.addEventListener('DOMContentLoaded', function () {
       pasteP: 'One guest per line, with their name and number.', pastePh: 'Dana Alanjeri 55771754\nHuda Alsaleh 99619992', check: 'Check names', found: n => `Found ${E(n, 'guest')}:`, addN: n => `Add ${E(n, 'guest')}`,
       badL: 'We couldn’t read a name and number on these lines:', fileErr: 'Couldn’t read that file', fileNone: 'No names and numbers found in that file', addedN: n => `Added ${E(n, 'guest')}`,
       addH: 'Add a guest', nameL: 'Name', phoneL: 'Phone number', canBringQ: 'Can they bring people?', justThem: 'Just them', justThemP: 'The invitation is for one person',
-      canBring: 'They can bring people', canBringP: 'You choose how many', upTo: 'Up to how many more?', less: 'Fewer', more: 'More', group: 'Group', addGuest: 'Add guest',
+      canBring: 'They can bring people', canBringP: 'You choose how many', upTo: 'Up to how many more?', less: 'Fewer', more: 'More', group: 'Group', addGuest: 'Add guest', noteL: 'Note (optional)', notePh: 'e.g. Bride’s friend from work',
       leftAfter: n => `${n} invites left in your package.`, fullH: 'Your list is full', fullP: l => `All ${l} invites in your package are used.`,
       typeName: 'Type the guest’s name', short: 'That phone number looks too short', dupNum: 'That number is already on the list', noPkg: 'Not enough invites left in your package', addOneErr: 'Couldn’t add that guest', added: n => `Added ${n}`, addErr: 'Couldn’t add them. Try again.',
       // 24f Your package
-      pkgH: 'Your package', usedOf: (u, l) => `${u} of ${l} invites used`, doorL: 'Door check-in', incl: 'Included', notIncl: 'Not included', needMore: 'Need more?', setByTeam: 'Set by our team',
+      pkgH: 'Your package', usedOf: (u, l) => `${u} of ${l} people invited`, doorL: 'Door check-in', incl: 'Included', notIncl: 'Not included', needMore: 'Need more?', setByTeam: 'Set by our team',
       upPkg: { plus: 'Up to 150 invites, door check-in included', premium: 'Up to 400 invites, door check-in and design', door: 'Keep Basic, add staff at the door' }, doorOnly: 'Door check-in only',
       upgradeB: (n, p) => `Upgrade to ${n} · ${p}`, upgradeMsg: (e, n) => `Hello, I’d like to upgrade “${e}” to ${n}.`, teamPkg: 'Our team set up this event for you. Message us if you need more.',
       // 24c Invitation, 24h, 24i, 24j, 24p
@@ -107,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function () {
       payNote: 'Our designer starts right after payment', payOff: 'Payments aren’t switched on yet. Message us and we’ll make the change.', payErr: 'Couldn’t start the payment. Try again.',
       paidChH: 'Change requested', paidChP: 'Our designer will send the new version within a day. Guests keep seeing the current invitation until you approve it.',
       chLine: p => `Changes · ${p} paid`, chLineDue: p => `Changes · ${p}`, beingMade: d => `Being made · ready by ${d}`, doneMade: 'Done', waitPay: 'Waiting for payment', payNow: 'Pay now', backInv: 'Back to the invitation',
-      newInvH: 'The new invitation', newInvP: 'Check it over. Guests keep seeing the current one until you approve.', askedFor: 'You asked for', notRight: 'Not right? Tell our team and we’ll fix it.', approveB: 'Approve and update', newReady: 'Your new invitation is ready', reviewB: 'Review',
+      newInvH: 'The new invitation', newInvP: 'Check it over. Guests keep seeing the current one until you approve.', askedFor: 'You asked for', notRight: 'Not right? Tell our team and we’ll fix it.', approveB: 'Approve and update', newReady: 'Your new invitation is ready', reviewB: 'Review', approvedOk: 'Approved. Our team will make it live.',
       // 27 / 27a After the event
       doneK: 'Done', aftCame: n => `${E(n)} came`, aftYes: n => `${E(n)} said yes`, aftP: y => `Out of ${y} who said yes. Mabrook to you both.`, aftPno: 'Door check-in was off, so we can’t tell who came. Mabrook to you both.',
       invSentL: 'Invites sent', saidYesL: 'Said yes', cameL: 'Came', cantL: 'Couldn’t make it', noReplyL: 'No reply', invitesW: n => `${n} ${n === 1 ? 'invite' : 'invites'}`,
@@ -120,12 +121,21 @@ document.addEventListener('DOMContentLoaded', function () {
       letIn: 'Let them in', turnDown: 'Turn them down', approved: 'Approved. The door can see it now', turnedDown: nm => `Turned down: ${nm}`,
       hereH: (h, e) => e ? `${h} of ${E(e)} here` : `${E(h)} here`, noOneYet: 'No one has arrived yet', arrH: 'Arrivals',
       // 24o Updates
-      upComing: (n, more) => more ? `${n} is coming, with ${more} more` : `${n} is coming`, upCant: n => `${n} can’t make it`, upInvited: t => `You’re invited to ${t}`, upNew: 'New',
+      upComing: (n, more) => more ? `${n} is coming, with ${more} more` : `${n} is coming`, upCant: n => `${n} can’t make it`, upInvited: t => `You’re invited to ${t}`, upNew: 'New', upReady: 'Your design changes are ready', upReadyS: 'Tap to review and approve',
       upEmpty: 'Nothing new yet. Replies to your events show up here.', agoMin: n => `${n} min`, agoH: n => `${n} h`, yesterday: 'Yesterday', agoD: n => `${n} days`,
       // 24q Support
       supportP: 'Our team is here to help with your event.', supportWaL: 'WhatsApp our team', supportChat: 'Chat', supportFaq: 'Common questions', supportWa: 'Hi Sina, I need help with my event.',
       // 24b Account
       secDetails: 'Your details', email: 'Email', secPrefs: 'Preferences', language: 'Language', langName: 'English', appearance: 'Appearance', light: 'Light', dark: 'Dark', auto: 'Auto',
+      notif: 'Notifications', on: 'On', off: 'Off', notifP: 'A dot on the bell when guests reply or our team needs you.', notifSaved: v => v ? 'Notifications on' : 'Notifications off',
+      secPay: 'Payments', payMethods: 'Payment methods', receipts: 'Receipts', privSet: 'Privacy settings',
+      pmP: 'You choose how to pay each time, on a secure payment page. We don’t keep your card details.',
+      rcP: 'Everything you’ve paid for your events.', rcNone: 'No payments yet.', rcErr: 'Couldn’t load your receipts. Try again.',
+      rcKind: { package: n => `${n} package`, door_addon: 'Door check-in', invite_change: 'Changes to the invitation', design: 'Invitation design' },
+      rcSt: { paid: 'Paid', pending: 'Not paid yet', failed: 'Didn’t go through', cancelled: 'Cancelled' },
+      prKeepH: 'What we keep', prKeep: 'Your name, phone number and email, and the guest lists of your events.',
+      prSeeH: 'Who sees your guests’ numbers', prSee: 'Only you, and any family hosts you add. Co-hosts and door staff see names and party sizes, never numbers.',
+      prCopyH: 'A copy of your data', prCopy: 'Ask our team and we’ll send you everything we keep about you.', prCopyB: 'Ask our team for a copy', prCopyWa: 'Hi Sina, please send me a copy of my data.',
       secPrivacy: 'Privacy', deleteMine: 'Delete my account', secAbout: 'About', aboutSina: 'About Sina', termsOfUse: 'Terms of use', privacy: 'Privacy policy', logOut: 'Log out', versionLine: v => `Sina · Version ${v}`,
       editName: 'Change your name', yourName: 'Your name',
       // messages
@@ -151,8 +161,9 @@ document.addEventListener('DOMContentLoaded', function () {
       sumLine: (c, no, p) => `${c} جايين · ${no} ما يقدرون · ${p} ما ردوا`,
       hosting: 'تستضيفونها', atDoor: 'على الباب', invitedTo: 'معزومين عليها', past: 'اللي خلصت',
       invitesComing: (i, y) => `${invAr(i)}، ${arN(y, 'واحد بيحضر', 'اثنين بيحضرون', 'بيحضرون', 'بيحضرون')}`, notSentX: 'ما انرسلت للحين', stillSetting: 'للحين تتجهز', doorTag: 'تسجيل الحضور', cohostTag: 'مشاركين بالاستضافة', doneX: 'انتهت',
-      waitingReply: 'ينتظرون ردكم', youComing: n => `بتحضرون، ${AW(n)}`, youCant: 'معتذرين', youWent: 'حضرتوا', youMissed: 'ما حضرتوا', noDate: 'ما في تاريخ للحين',
-      guestsH: 'الضيوف', addShort: 'أضيفوا', yourPackage: 'باقتكم', pkgNone: 'حد الدعوات', invitesUsed: (n, l) => `${n} من ${l} دعوة مستخدمة`,
+      waitingReply: 'ينتظرون ردكم', youComing: n => `بتحضرون، ${AW(n)}`, youComing2: 'بتحضرون', replyBy: d => `ردّوا قبل ${d}`,
+      withL: names => `مع ${names.join(' و')}`, fromL: x => `من ${x}`, youCant: 'معتذرين', youWent: 'حضرتوا', youMissed: 'ما حضرتوا', noDate: 'ما في تاريخ للحين',
+      guestsH: 'الضيوف', addShort: 'أضيفوا', yourPackage: 'باقتكم', pkgNone: 'حد الدعوات', invitesUsed: (n, l) => `عزمتوا ${n} من ${l}`,
       searchShort: 'الاسم أو الرقم', search: 'بحث', K: { all: 'الكل', pending: 'ما ردوا', yes: 'بيحضرون', no: 'اعتذروا' },
       sendingDots: 'تنرسل…', noReplyYet: 'ما ردوا', cantShort: 'ما يقدرون', comingW: 'بيحضرون', plusExtra: n => `+${n} إضافي`,
       ofPeople: (c, s) => `${c} من ${s}`, arrived: 'وصلوا', viaLink: 'ردوا من الرابط العام', atDoorG: 'دخلوا من الباب',
@@ -171,10 +182,10 @@ document.addEventListener('DOMContentLoaded', function () {
       pasteP: 'كل ضيف بسطر، مع اسمه ورقمه.', pastePh: 'دانة العنجري 55771754\nهدى الصالح 99619992', check: 'راجعوا الأسماء', found: n => `لقينا ${AW(n, 'guest')}:`, addN: n => `أضيفوا ${AW(n, 'guest')}`,
       badL: 'هالأسطر ما قدرنا نقرا منها اسم ورقم:', fileErr: 'ما قدرنا نقرا الملف', fileNone: 'ما لقينا أسماء وأرقام بالملف', addedN: n => `ضفنا ${AW(n, 'guest')}`,
       addH: 'أضيفوا ضيف', nameL: 'الاسم', phoneL: 'رقم التلفون', canBringQ: 'يقدرون يجيبون أحد معاهم؟', justThem: 'بروحهم', justThemP: 'الدعوة لشخص واحد',
-      canBring: 'يقدرون يجيبون أحد', canBringP: 'أنتم تحددون العدد', upTo: 'كم شخص زيادة بالكثير؟', less: 'أقل', more: 'أكثر', group: 'المجموعة', addGuest: 'أضيفوا الضيف',
+      canBring: 'يقدرون يجيبون أحد', canBringP: 'أنتم تحددون العدد', upTo: 'كم شخص زيادة بالكثير؟', less: 'أقل', more: 'أكثر', group: 'المجموعة', addGuest: 'أضيفوا الضيف', noteL: 'ملاحظة (اختياري)', notePh: 'مثلاً: صديقة العروس من الدوام',
       leftAfter: n => `باقي ${invAr(n)} بباقتكم.`, fullH: 'قائمتكم كاملة', fullP: l => `استخدمتوا كل الدعوات اللي بباقتكم (${l}).`,
       typeName: 'اكتبوا اسم الضيف', short: 'رقم التلفون ناقص', dupNum: 'هالرقم موجود بالقائمة من قبل', noPkg: 'الدعوات الباقية بباقتكم ما تكفي', addOneErr: 'ما قدرنا نضيف الضيف', added: n => `ضفنا ${n}`, addErr: 'ما قدرنا نضيفهم، جربوا مرة ثانية.',
-      pkgH: 'باقتكم', usedOf: (u, l) => `${u} من ${l} دعوة مستخدمة`, doorL: 'تسجيل الحضور عند الباب', incl: 'موجود', notIncl: 'مو موجود', needMore: 'تبون زيادة؟', setByTeam: 'رتّبها فريقنا',
+      pkgH: 'باقتكم', usedOf: (u, l) => `عزمتوا ${u} من ${l}`, doorL: 'تسجيل الحضور عند الباب', incl: 'موجود', notIncl: 'مو موجود', needMore: 'تبون زيادة؟', setByTeam: 'رتّبها فريقنا',
       upPkg: { plus: 'لين 150 دعوة، مع تسجيل الحضور عند الباب', premium: 'لين 400 دعوة، مع الباب والتصميم', door: 'خلوا الأساسية، وأضيفوا موظفين عند الباب' }, doorOnly: 'تسجيل الحضور عند الباب بس',
       upgradeB: (n, p) => `انتقلوا لـ${n} · ${p}`, upgradeMsg: (e, n) => `هلا، أبي أنقل «${e}» لباقة ${n}.`, teamPkg: 'فريقنا رتّب لكم هالمناسبة. راسلونا إذا تحتاجون زيادة.',
       invH: 'الدعوة', inviteSentP: d => `انرسلت ${d}. هذا اللي يشوفونه ضيوفكم.`, inviteNotSentP: 'ما انرسلت للحين. هذا اللي بيشوفونه ضيوفكم.',
@@ -187,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
       payNote: 'المصممة تبدأ أول ما تدفعون', payOff: 'الدفع مو شغال للحين. راسلونا ونسوي لكم التعديل.', payErr: 'ما قدرنا نبدأ الدفع، جربوا مرة ثانية.',
       paidChH: 'وصلنا طلب التعديل', paidChP: 'المصممة بترسل لكم النسخة الجديدة خلال يوم، والضيوف يشوفون الدعوة الحالية لين توافقون عليها.',
       chLine: p => `تعديلات · دفعتوا ${p}`, chLineDue: p => `تعديلات · ${p}`, beingMade: d => `قاعدين نسويها · جاهزة قبل ${d}`, doneMade: 'خلصت', waitPay: 'ننتظر الدفع', payNow: 'ادفعوا الحين', backInv: 'ارجعوا للدعوة',
-      newInvH: 'الدعوة الجديدة', newInvP: 'شوفوها زين. الضيوف يشوفون الحالية لين توافقون.', askedFor: 'طلبتوا', notRight: 'فيها شي مو مضبوط؟ قولوا لفريقنا ونصلحه.', approveB: 'وافقوا وحدّثوها', newReady: 'دعوتكم الجديدة جاهزة', reviewB: 'شوفوها',
+      newInvH: 'الدعوة الجديدة', newInvP: 'شوفوها زين. الضيوف يشوفون الحالية لين توافقون.', askedFor: 'طلبتوا', notRight: 'فيها شي مو مضبوط؟ قولوا لفريقنا ونصلحه.', approveB: 'وافقوا وحدّثوها', newReady: 'دعوتكم الجديدة جاهزة', reviewB: 'شوفوها', approvedOk: 'وافقتوا عليها. فريقنا بيحدّث الدعوة للضيوف.',
       doneK: 'انتهت', aftCame: n => `حضر ${AW(n)}`, aftYes: n => `أكد ${AW(n)}`, aftP: y => `من أصل ${y} أكدوا. مبروك وعساها دوم الأفراح.`, aftPno: 'تسجيل الحضور عند الباب ما كان شغال، فما نعرف منو حضر. مبروك وعساها دوم الأفراح.',
       invSentL: 'الدعوات المرسلة', saidYesL: 'أكدوا', cameL: 'حضروا', cantL: 'اعتذروا', noReplyL: 'ما ردوا', invitesW: n => invAr(n),
       thanksB: 'اطلبوا من فريقنا يرسل رسالة شكر', thanksWa: e => `هلا سنة، ممكن ترسلون رسالة شكر لضيوفنا من ${e}؟`, downloadB: 'نزّلوا قائمة الضيوف',
@@ -197,10 +208,19 @@ document.addEventListener('DOMContentLoaded', function () {
       ctxAllowed: n => `مسموح ${AW(n)}`, ctxYes: n => `أكدوا ${AW(n)}`, ctxPend: 'ما ردوا', ctxNo: 'اعتذروا', ctxIn: n => n ? `وصل ${AW(n)}` : 'ما وصل أحد للحين', asked: a => `طلبوا ${a}`, ctxSep: '، ',
       letIn: 'إي، خلوهم يدخلون', turnDown: 'لا، ما يدخلون', approved: 'وصلت موافقتكم للباب', turnedDown: nm => `رفضتوا دخول ${nm}`,
       hereH: (h, e) => e ? `وصل ${h} من ${AW(e)}` : `وصل ${AW(h)}`, noOneYet: 'ما وصل أحد للحين', arrH: 'الحضور',
-      upComing: (n, more) => more ? `${n} جاي ومعاه ${more}` : `${n} جاي`, upCant: n => `${n} ما يقدر يجي`, upInvited: t => `انعزمتوا على ${t}`, upNew: 'جديد',
+      upComing: (n, more) => more ? `${n} جاي ومعاه ${more}` : `${n} جاي`, upCant: n => `${n} ما يقدر يجي`, upInvited: t => `انعزمتوا على ${t}`, upNew: 'جديد', upReady: 'تعديلات التصميم جاهزة', upReadyS: 'اضغطوا عشان تشوفونها وتوافقون',
       upEmpty: 'ما في شي جديد للحين. ردود ضيوفكم تطلع هني.', agoMin: n => `قبل ${n} د`, agoH: n => `قبل ${n} س`, yesterday: 'أمس', agoD: n => `قبل ${n} أيام`,
       supportP: 'فريقنا موجود يساعدكم بمناسبتكم.', supportWaL: 'كلموا فريقنا واتساب', supportChat: 'محادثة', supportFaq: 'أسئلة شائعة', supportWa: 'هلا سنة، أحتاج مساعدة بمناسبتي.',
       secDetails: 'بياناتكم', email: 'الإيميل', secPrefs: 'التفضيلات', language: 'اللغة', langName: 'العربية', appearance: 'الشكل', light: 'فاتح', dark: 'داكن', auto: 'مثل التلفون',
+      notif: 'التنبيهات', on: 'شغّالة', off: 'مطفية', notifP: 'نقطة على الجرس لما يرد الضيوف أو يحتاجكم فريقنا.', notifSaved: v => v ? 'شغّلنا التنبيهات' : 'طفينا التنبيهات',
+      secPay: 'الدفع', payMethods: 'طرق الدفع', receipts: 'الإيصالات', privSet: 'إعدادات الخصوصية',
+      pmP: 'تختارون طريقة الدفع كل مرة، في صفحة دفع آمنة. ما نحتفظ ببيانات بطاقاتكم.',
+      rcP: 'كل اللي دفعتوه لمناسباتكم.', rcNone: 'ما فيه مدفوعات للحين.', rcErr: 'ما قدرنا نفتح الإيصالات. جربوا مرة ثانية.',
+      rcKind: { package: n => `باقة ${n}`, door_addon: 'تسجيل الحضور عند الباب', invite_change: 'تعديلات على الدعوة', design: 'تصميم الدعوة' },
+      rcSt: { paid: 'مدفوع', pending: 'ما اندفع للحين', failed: 'ما مشى الدفع', cancelled: 'ملغي' },
+      prKeepH: 'شنو نحتفظ فيه', prKeep: 'اسمكم ورقم تلفونكم وإيميلكم، وقوائم ضيوف مناسباتكم.',
+      prSeeH: 'منو يشوف أرقام ضيوفكم', prSee: 'بس أنتم، والأهل اللي تضيفونهم كمضيفين. المشاركين بالاستضافة وموظفين الباب يشوفون الأسماء والعدد، بدون الأرقام.',
+      prCopyH: 'نسخة من بياناتكم', prCopy: 'اطلبوها من فريقنا ونرسل لكم كل اللي عندنا عنكم.', prCopyB: 'اطلبوا نسخة من فريقنا', prCopyWa: 'هلا سنة، ممكن ترسلون لي نسخة من بياناتي؟',
       secPrivacy: 'الخصوصية', deleteMine: 'احذفوا حسابي', secAbout: 'عن سنة', aboutSina: 'عن سنة', termsOfUse: 'شروط الاستخدام', privacy: 'سياسة الخصوصية', logOut: 'تسجيل خروج', versionLine: v => `سنة · النسخة ${v}`,
       editName: 'غيّروا اسمكم', yourName: 'اسمكم',
       jYes: (nm, n) => `${nm} أكدوا الحضور، ${AW(n)}`, jNo: nm => `${nm} اعتذروا`, jIn: nm => `${nm} وصلوا`,
@@ -422,13 +442,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const evCard = e => {
       const it = itemOf(e.id), n = it.counts || null, draft = e.status === 'draft';
       const meta = draft ? t.stillSetting : e._role === 'door' ? t.doorTag : pastEvent(e) ? t.doneX : n ? (n.invited ? t.invitesComing(n.invited, n.yes_people || 0) : t.notSentX) : '';
-      const sub = whenLine(e.starts_at, e.venue) + (e._role === 'cohost' ? ` · ${t.cohostTag}` : '');
+      const w = itemOf(e.id).with || e.with || [];   // my_events_v2 (0010): the others hosting with you
+      const sub = (w.length && e._role !== 'door' ? t.withL(w) : whenLine(e.starts_at, e.venue)) + (e._role === 'cohost' ? ` · ${t.cohostTag}` : '');
       return card({ iso: e.starts_at, title: evNameOf(e), sub, meta, metaTone: draft ? 'muted' : '', href: e._role === 'door' ? `door.html?event=${e.id}` : '', attr: e._role === 'door' ? '' : ` data-ev="${e.id}"` });
     };
     const invCard = i => {
       const e = i.event || {}, n = i.confirmed_count || i.seats || 1;
-      const meta = i.status === 'yes' ? (i.past ? t.youWent : t.youComing(n)) : i.status === 'no' ? t.youCant : i.past ? t.youMissed : t.waitingReply;
-      return card({ iso: e.starts_at, title: e.title || '', sub: whenLine(e.starts_at, e.venue), meta, metaTone: i.status === 'pending' && !i.past ? 'plum' : '', href: `invite.html?t=${encodeURIComponent(i.token)}` });
+      const replyBy = e.reply_by && new Date(e.reply_by).getTime() > Date.now() ? e.reply_by : null;
+      const meta = i.status === 'yes' ? (i.past ? t.youWent : t.youComing2) : i.status === 'no' ? t.youCant : i.past ? t.youMissed : replyBy ? t.replyBy(dayMon(replyBy)) : t.waitingReply;
+      return card({ iso: e.starts_at, title: e.title || '', sub: e.invite_line ? t.fromL(e.invite_line) : whenLine(e.starts_at, e.venue), meta, metaTone: i.status === 'pending' && !i.past ? 'plum' : '', href: `invite.html?t=${encodeURIComponent(i.token)}` });
     };
     const sec = (h, list) => list ? `<section class="hv-sec"><h2 class="hv-sech">${h}</h2>${list}</section>` : '';
     let nextHtml = '';
@@ -528,7 +550,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (g.status === 'yes') bits.push(t.ofPeople(App.peopleComing(g), g.seats || 1));
       else if ((g.seats || 1) > 1 && g.status === 'pending') bits.push(t.plusExtra((g.seats || 1) - 1));
       if (g.checked_in_at) bits.push(t.arrived);
-      if (sideOf(g) && !mySide) bits.push(sideOf(g));
+      if (g.note) bits.push(g.note); else if (sideOf(g) && !mySide) bits.push(sideOf(g));
       const inner = `${arch(g.name, tone)}<span class="hv-gm"><b class="hv-gn">${bdi(g.name)}</b><span class="hv-gs"><span class="hv-w tone-${tone}">${esc(word)}</span>${bits.length ? ` · ${bits.map(esc).join(' · ')}` : ''}</span></span>`;
       return coRole ? `<div class="hv-grow${isFresh(g.id) ? ' fresh' : ''}">${inner}</div>` : `<button type="button" class="hv-grow row-link${isFresh(g.id) ? ' fresh' : ''}" data-g="${g.id}">${inner}<i class="i i-chev sm"></i></button>`;
     };
@@ -604,7 +626,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const changed = gEdit.side != null && gEdit.side !== (side || '');
     const unsent = isUnsent(g), tone = g.status === 'yes' ? 'ok' : g.status === 'no' ? 'no' : 'wait';
     const word = unsent ? t.sendingDots : g.status === 'yes' ? (g.confirmed_count ? t.ofPeople(g.confirmed_count, g.seats || 1) + ' · ' + t.comingW : t.comingW) : g.status === 'no' ? t.cantShort : t.noReplyYet;
-    const who = [g.phone ? `<bdi dir="ltr">${esc(App.prettyPhone(g.phone))}</bdi>` : atDoor(g) ? t.atDoorG : t.viaLink, side ? bdi(side) : ''].filter(Boolean).join(' · ');
+    const who = [g.phone ? `<bdi dir="ltr">${esc(App.prettyPhone(g.phone))}</bdi>` : atDoor(g) ? t.atDoorG : t.viaLink, g.note ? bdi(g.note) : side ? bdi(side) : ''].filter(Boolean).join(' · ');
     const extra = Math.max(0, (g.seats || 1) - 1);
     const canSide = !coRole && !mySide;
     return { title: t.guestT,
@@ -719,7 +741,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // =====================================================================
   let addDraft = null;
   VIEWS.add = () => {
-    const d = addDraft = addDraft || { name: '', phone: '', bring: false, extra: 1, side: '' };
+    const d = addDraft = addDraft || { name: '', phone: '', bring: false, extra: 1, side: '', note: '' };
     const groups = [...new Set([...GROUPS[lang], ...sidesOf()])];
     const stepper = `<div class="stepline"><span>${t.upTo}</span><div class="stepper" id="adStep" role="group" aria-label="${esc(t.upTo)}"><button type="button" data-d="-1" aria-label="${esc(t.less)}" ${d.extra <= 1 ? 'disabled' : ''}>−</button><output aria-live="polite">${d.extra}</output><button type="button" data-d="1" aria-label="${esc(t.more)}" ${d.extra >= App.MAX_EXTRAS ? 'disabled' : ''}>+</button></div></div>`;
     const radio = (id, on, h, s, extra = '') => `<div class="choice" role="radio" tabindex="0" data-c="${id}" aria-checked="${on}"><span class="ch-main"><span class="ch-t">${h}</span><span class="ch-s">${s}</span></span><span class="radio" aria-hidden="true"></span>${extra}</div>`;
@@ -728,11 +750,13 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="fld"><label class="f" for="adName">${t.nameL}</label><input type="text" id="adName" dir="auto" autocomplete="off" value="${esc(d.name)}"></div>
         <div class="fld"><label class="f" for="adPhone">${t.phoneL}</label><input type="tel" id="adPhone" dir="ltr" inputmode="tel" placeholder="+965 9XXX XXXX" autocomplete="off" value="${esc(d.phone)}"></div>
         <div class="fld"><p class="f">${t.canBringQ}</p><div class="choices" role="radiogroup" aria-label="${esc(t.canBringQ)}">${radio('one', !d.bring, t.justThem, t.justThemP)}${radio('more', d.bring, t.canBring, t.canBringP, d.bring ? stepper : '')}</div></div>
-        ${mySide ? '' : `<div class="fld"><p class="f">${t.group}</p><div class="gchips" role="group" aria-label="${esc(t.group)}">${groups.map(s => `<button type="button" class="gchip" data-side="${esc(s)}" aria-pressed="${d.side === s}">${bdi(s)}</button>`).join('')}</div></div>`}`,
+        ${mySide ? '' : `<div class="fld"><p class="f">${t.group}</p><div class="gchips" role="group" aria-label="${esc(t.group)}">${groups.map(s => `<button type="button" class="gchip" data-side="${esc(s)}" aria-pressed="${d.side === s}">${bdi(s)}</button>`).join('')}</div></div>`}
+        <div class="fld"><label class="f" for="adNote">${t.noteL}</label><input type="text" id="adNote" dir="auto" maxlength="200" autocomplete="off" placeholder="${esc(t.notePh)}" value="${esc(d.note)}"></div>`,
       foot: `<button type="button" class="btn primary block" id="adGo">${t.addGuest}</button>`,
       bind: () => {
         $('#adName').oninput = e => { d.name = e.target.value; };
         $('#adPhone').oninput = e => { d.phone = e.target.value; };
+        $('#adNote').oninput = e => { d.note = e.target.value; };
         $('#hMain').querySelectorAll('[role="radio"][data-c]').forEach(c => {
           const pick = e => { if (e && e.target.closest && e.target.closest('.stepline')) return; d.bring = c.dataset.c === 'more'; draw(); };
           c.onclick = pick; c.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); pick(); } };
@@ -745,7 +769,7 @@ document.addEventListener('DOMContentLoaded', function () {
           if (phone.length < 10) { toast(t.short); $('#adPhone').focus(); return; }
           if (ev.invite_limit != null && seats(guests) + n > ev.invite_limit) { toast(t.noPkg); return; }
           const b = $('#adGo'); b.setAttribute('aria-busy', 'true');
-          const { data, error } = await sb.from('guests').insert({ event_id: ev.id, name, phone, seats: n, side: mySide || d.side || null }).select().single();
+          const { data, error } = await sb.from('guests').insert({ event_id: ev.id, name, phone, seats: n, side: mySide || d.side || null, ...(d.note.trim() ? { note: d.note.trim().slice(0, 200) } : {}) }).select().single();
           if (b.isConnected) b.removeAttribute('aria-busy');
           if (error) { toast(error.code === '23505' ? t.dupNum : /limit/i.test(error.message || '') ? t.noPkg : t.addOneErr); return; }
           selfIds.add(data.id); fresh.set(data.id, Date.now()); addDraft = null; filter = 'all'; query = '';
@@ -785,7 +809,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const id = ev.id, r = await sb.rpc('event_requests_v2', { p_event: id });
     if (!ev || ev.id !== id) return;
     myReqs = r.error ? [] : (r.data || []);
-    redrawIf('invite', 'changed');
+    redrawIf('invite', 'changed', 'review');
   }
   const invCard = (e, whenOverride) => {
     const nm = e.headline || e.title, l = e.lang === 'en' ? 'en' : 'ar';
@@ -802,7 +826,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const canChange = !!ev.package && !mySide && !coRole && !pastEvent(ev);
     const by = d => dayMon(new Date(+new Date(d) + 864e5).toISOString());
     const reqLine = r => {
-      if (r.kind === 'design' && r.status === 'draft_sent') return `<button type="button" class="hv-rqline row-link" data-review="${esc(r.id)}"><i class="i i-sparkle"></i><span><b>${t.newReady}</b><small>${esc(dayMon(r.created_at))}</small></span><span class="v plum">${t.reviewB} ${chev()}</span></button>`;
+      if ((r.kind === 'design' || r.kind === 'change') && r.status === 'draft_sent') return `<button type="button" class="hv-rqline row-link" data-review="${esc(r.id)}"><i class="i i-sparkle"></i><span><b>${t.newReady}</b><small>${esc(dayMon(r.created_at))}</small></span><span class="v plum">${t.reviewB} ${chev()}</span></button>`;
       if (r.kind !== 'change' || r.status === 'cancelled') return '';
       if (r.status === 'awaiting_payment') return `<div class="hv-rqline"><i class="i i-clock"></i><span><b>${esc(t.chLineDue(p))}</b><small>${t.waitPay}</small></span>${r.order_id ? `<button type="button" class="btn small secondary" data-pay="${esc(r.order_id)}">${t.payNow}</button>` : ''}</div>`;
       return `<div class="hv-rqline"><i class="i i-${r.status === 'done' ? 'check' : 'clock'}"></i><span><b>${esc(t.chLine(p))}</b><small>${esc(r.status === 'done' ? t.doneMade : t.beingMade(by(r.created_at)))}</small></span></div>`;
@@ -876,7 +900,7 @@ document.addEventListener('DOMContentLoaded', function () {
   VIEWS.review = p => {
     const r = myReqs.find(x => x.id === p.r);
     if (!r) return { title: t.invH, main: '' };
-    const asked = [r.idea, r.wording, r.colours].filter(Boolean).join(' · ');
+    const asked = [r.kind === 'change' ? r.what : r.idea, r.wording, r.colours].filter(Boolean).join(' · ');
     return { title: t.invH, docTitle: t.newInvH,
       main: `<div class="hv-pt"><h1 class="hv-h1">${t.newInvH}</h1><p class="hv-sub">${t.newInvP}</p></div>
         ${r.draft_url ? `<a class="hv-draft" href="${esc(r.draft_url)}" target="_blank" rel="noopener"><img src="${esc(r.draft_url)}" alt="${esc(t.newInvH)}"></a>` : invCard(ev)}
@@ -886,6 +910,12 @@ document.addEventListener('DOMContentLoaded', function () {
       bind: () => {
         $('#hvApprove').onclick = async () => {
           const b = $('#hvApprove'); b.setAttribute('aria-busy', 'true');
+          if (r.kind === 'change') {   // already paid when it was asked for: nothing more to pay
+            const a = await sb.rpc('approve_change_v2', { p_request: r.id });
+            b.removeAttribute('aria-busy');
+            if (a.error) { toast(t.cantSave(why(a.error))); return; }
+            toast(t.approvedOk); ups = null; await loadRequests(); back(); return;
+          }
           const a = await sb.rpc('approve_design_v2', { p_request: r.id, p_method: 'knet' });
           if (a.error) { b.removeAttribute('aria-busy'); toast(t.cantSave(why(a.error))); return; }
           const st = await sb.rpc('order_status_v2', { p_order: a.data });
@@ -971,13 +1001,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const lists = await Promise.all(hosted.map(e => (e._role === 'cohost' ? sb.rpc('cohost_guests_v2', { p_event: e.id }) : sb.from('guests').select('*').eq('event_id', e.id)).then(r => ({ e, g: r.data || [] }))));
     const out = [];
     lists.forEach(({ e, g }) => g.forEach(x => { if (x.responded_at && x.status !== 'pending' && new Date(x.responded_at).getTime() >= since) out.push({ kind: 'reply', id: `r-${x.id}-${x.status}`, at: x.responded_at, e, g: x }); }));
+    const mainHosted = hosted.filter(e => e._role === 'host');
+    const drafts = await Promise.all(mainHosted.map(e => sb.rpc('event_requests_v2', { p_event: e.id }).then(r => ({ e, rq: r.data || [] }), () => ({ e, rq: [] }))));
+    drafts.forEach(({ e, rq }) => rq.forEach(r => { if ((r.kind === 'change' || r.kind === 'design') && r.status === 'draft_sent') out.push({ kind: 'ready', id: `d-${r.id}`, at: r.created_at, e, r }); }));
     invites.filter(i => !i.past).forEach(i => out.push({ kind: 'invite', id: `i-${i.token}`, at: null, i }));
     out.sort((a, b) => (b.at ? +new Date(b.at) : 0) - (a.at ? +new Date(a.at) : 0));
     ups = out.slice(0, 60);
     return ups;
   }
-  const unread = () => (ups || []).filter(u => u.kind === 'reply' && +new Date(u.at) > seenAt()).length;
-  function bellDot() { const n = unread(); $('#hDot').hidden = !n; $('#hBell').setAttribute('aria-label', n ? `${t.tabUpdates} (${n})` : t.tabUpdates); }
+  const unread = () => (ups || []).filter(u => (u.kind === 'reply' || u.kind === 'ready') && +new Date(u.at) > seenAt()).length;
+  const notifyOn = () => !profile || profile.notify !== false;
+  function bellDot() { const n = notifyOn() ? unread() : 0; $('#hDot').hidden = !n; $('#hBell').setAttribute('aria-label', n ? `${t.tabUpdates} (${n})` : t.tabUpdates); }
   let upSeen = 0;
   VIEWS.updates = () => {
     if (!ups) { loadUpdates().then(() => { if (cur().v === 'updates') { upSeen = seenAt(); ls.set('updates-seen', String(Date.now())); draw(); } }); return { title: t.home, docTitle: t.tabUpdates, main: `<h1 class="hv-h1">${t.tabUpdates}</h1>` }; }
@@ -988,6 +1022,8 @@ document.addEventListener('DOMContentLoaded', function () {
       if (u.kind === 'reply') {
         const more = Math.max(0, App.peopleComing(u.g) - 1), nm = `⁨${u.g.name}⁩`;
         title = u.g.status === 'yes' ? t.upComing(nm, more) : t.upCant(nm); sub = evNameOf(u.e); letter = u.g.name; tone = u.g.status === 'yes' ? 'ok' : 'no'; attr = `data-ev="${u.e.id}"`;
+      } else if (u.kind === 'ready') {
+        title = t.upReady; sub = t.upReadyS; letter = evNameOf(u.e); tone = 'plum'; attr = `data-ready="${esc(u.r.id)}" data-rev="${u.e.id}"`;
       } else {
         const e = u.i.event || {};
         title = t.upInvited(`⁨${e.title || ''}⁩`); sub = e.starts_at ? dayMon(e.starts_at) : ''; letter = e.title || '?'; tone = 'wait'; attr = `data-tok="${esc(u.i.token)}"`;
@@ -998,6 +1034,7 @@ document.addEventListener('DOMContentLoaded', function () {
       main: `<h1 class="hv-h1">${t.tabUpdates}</h1>${ups.length ? `<div class="hv-ups-list">${ups.map(row).join('')}</div>` : `<p class="hv-sub">${t.upEmpty}</p>`}`,
       bind: () => {
         $('#hMain').querySelectorAll('[data-ev]').forEach(b => b.onclick = () => { upSeen = 0; openEvent(b.dataset.ev); });
+        $('#hMain').querySelectorAll('[data-ready]').forEach(b => b.onclick = () => { upSeen = 0; show('review', { ev: b.dataset.rev, r: b.dataset.ready }); });
         $('#hMain').querySelectorAll('[data-tok]').forEach(b => b.onclick = () => { location.href = `invite.html?t=${encodeURIComponent(b.dataset.tok)}`; });
       } };
   };
@@ -1014,10 +1051,20 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   // =====================================================================
-  // 24b Account: your details, preferences (language, appearance), privacy, about, log out
-  // (Notifications, Payment methods, Receipts and Privacy settings in the frame are left out, as in the app:
-  // nothing sends notifications yet, no cards are kept, and there are no privacy switches to show.)
+  // 24b Account: your details, preferences (language, notifications, appearance), payments, privacy, about, log out
+  // Notifications = the dot on the bell (saved on the account: set_notify_v2). Payment methods: how paying works (no cards
+  // are kept). Receipts: every order on the events you host (event_orders_v2). Privacy settings: what we keep and who sees it.
   // =====================================================================
+  let receipts = null, rcLoading = null, rcErr = false;
+  function loadReceipts() {
+    if (rcLoading) return rcLoading;
+    const mine = events.filter(e => e._role === 'host' && e.status !== 'draft');
+    return (rcLoading = Promise.all(mine.map(e => sb.rpc('event_orders_v2', { p_event: e.id }).then(r => { if (r.error) throw r.error; return (r.data || []).map(o => ({ ...o, e })); })))
+      .then(l => { receipts = l.flat().sort((a, b) => +new Date(b.paid_at || b.created_at) - +new Date(a.paid_at || a.created_at)); rcErr = false; })
+      .catch(() => { rcErr = true; })
+      .finally(() => { rcLoading = null; redrawIf('account', 'receipts'); }));
+  }
+  const methodName = m => m === 'card' ? t.card : m === 'knet' ? t.knet : '';
   const themeNow = () => { const d = document.documentElement.dataset.theme; return d === 'dark' ? 'dark' : d === 'auto' ? 'auto' : 'light'; };
   VIEWS.account = () => {
     const p = profile || {}, ph = p.phone || myPhone, em = p.email || myEmail;
@@ -1025,16 +1072,32 @@ document.addEventListener('DOMContentLoaded', function () {
       : id ? `<button type="button" class="hv-line" id="${id}"><span class="l">${label}</span>${value ? `<span class="v"${ltr ? ' dir="ltr"' : ''}>${esc(value)}</span>` : ''}${chev()}</button>`
       : `<div class="hv-line"><span class="l">${label}</span><span class="v"${ltr ? ' dir="ltr"' : ''}>${esc(value)}</span></div>`;
     const tileT = (k, label) => `<button type="button" class="hv-theme" role="radio" aria-checked="${themeNow() === k}" data-th="${k}"><span class="hv-thb ${k}"><span>Aa</span></span><span class="hv-thl">${label}</span></button>`;
+    if (!receipts && !rcLoading && !rcErr) loadReceipts();
+    const lastPaid = (receipts || []).find(o => o.status === 'paid' && o.method);
+    const notifOn = notifyOn();
     return { title: t.home, docTitle: t.account,
       main: `<h1 class="hv-h1">${t.account}</h1>
         <h2 class="hv-lh">${t.secDetails}</h2><div class="hv-lines flat">${L(t.nameL, p.name || t.notSet, 'acName')}${ph ? L(t.phoneL, App.prettyPhone(ph), null, null, true) : ''}${em ? L(t.email, em, null, null, true) : ''}</div>
-        <h2 class="hv-lh">${t.secPrefs}</h2><div class="hv-lines flat">${L(t.language, t.langName, 'acLang')}</div>
+        <h2 class="hv-lh">${t.secPrefs}</h2><div class="hv-lines flat">${L(t.language, t.langName, 'acLang')}<button type="button" class="hv-line" id="acNotif" role="switch" aria-checked="${notifOn}"><span class="l">${t.notif}<small class="hv-lsub">${t.notifP}</small></span><span class="v">${notifOn ? t.on : t.off}</span>${chev()}</button></div>
         <p class="hv-lab ink">${t.appearance}</p><div class="hv-themes" role="radiogroup" aria-label="${esc(t.appearance)}">${tileT('light', t.light)}${tileT('dark', t.dark)}${tileT('auto', t.auto)}</div>
-        <h2 class="hv-lh">${t.secPrivacy}</h2><div class="hv-lines flat">${L(t.deleteMine, '', null, 'delete-account.html')}</div>
+        <h2 class="hv-lh">${t.secPay}</h2><div class="hv-lines flat">${L(t.payMethods, lastPaid ? methodName(lastPaid.method) : '', 'acPm')}${L(t.receipts, '', 'acRc')}</div>
+        <h2 class="hv-lh">${t.secPrivacy}</h2><div class="hv-lines flat">${L(t.privSet, '', 'acPriv')}${L(t.deleteMine, '', null, 'delete-account.html')}</div>
         <h2 class="hv-lh">${t.secAbout}</h2><div class="hv-lines flat">${L(t.aboutSina, '', null, `index.html?lang=${lang}`)}${L(t.termsOfUse, '', null, `terms.html?lang=${lang}`)}${L(t.privacy, '', null, `privacy.html?lang=${lang}`)}</div>
         <button type="button" class="btn secondary block" id="acOut">${t.logOut}</button><p class="hv-ver">${esc(t.versionLine('1.0'))}</p>`,
       bind: () => {
         $('#acLang').onclick = toggleLang;
+        $('#acPm').onclick = () => show('paymethods');
+        $('#acRc').onclick = () => { if (rcErr) { rcErr = false; receipts = null; } show('receipts'); };
+        $('#acPriv').onclick = () => show('privacy');
+        $('#acNotif').onclick = async () => {
+          const was = notifyOn(), b = $('#acNotif');
+          profile = { ...(profile || {}), notify: !was }; draw();   // right away; put back if it doesn't save
+          b.setAttribute('aria-busy', 'true');
+          const r = await sb.rpc('set_notify_v2', { p_on: !was });
+          if (r.error) { profile = { ...profile, notify: was }; toast(t.cantSave(why(r.error))); }
+          else { profile = { ...profile, ...(r.data || {}) }; toast(t.notifSaved(!was)); }
+          draw();
+        };
         $('#acOut').onclick = () => SinaAuth.signOut('host.html');
         $('#hMain').querySelectorAll('[data-th]').forEach(b => b.onclick = () => { const k = b.dataset.th; document.documentElement.dataset.theme = k; ls.set('ui-theme', k); draw(); });
         $('#acName').onclick = () => {
@@ -1051,6 +1114,26 @@ document.addEventListener('DOMContentLoaded', function () {
         };
       } };
   };
+  VIEWS.paymethods = () => ({ title: t.account, docTitle: t.payMethods,
+    main: `<div class="hv-pt"><h1 class="hv-h1">${t.payMethods}</h1><p class="hv-sub">${t.pmP}</p></div>
+      <div class="hv-lines flat"><div class="hv-line"><span class="l">${t.knet}<small class="hv-lsub">${t.knetS}</small></span></div><div class="hv-line"><span class="l">${t.card}<small class="hv-lsub">${t.cardS}</small></span></div></div>` });
+  VIEWS.receipts = () => {
+    if (!receipts && !rcLoading && !rcErr) loadReceipts();
+    const rc = o => {
+      const kind = o.kind === 'package' ? t.rcKind.package(pkgOf({ package: o.package }) || '') : (t.rcKind[o.kind] || o.kind);
+      const when = dayMon(o.paid_at || o.created_at), tone = o.status === 'paid' ? 'ok' : o.status === 'failed' ? 'no' : '';
+      return `<div class="hv-rc"><span class="l"><b>${esc(kind)}</b><small><bdi>${esc(evNameOf(o.e))}</bdi> · ${esc(when)}</small></span><span class="v"><b>${esc(App.kwd(o.amount_fils, lang))}</b><small class="${tone}">${esc([t.rcSt[o.status] || o.status, o.status === 'paid' ? methodName(o.method) : ''].filter(Boolean).join(' · '))}</small></span></div>`;
+    };
+    const list = (receipts || []).filter(o => o.status !== 'cancelled' && (o.status === 'paid' || o.amount_fils > 0));
+    return { title: t.account, docTitle: t.receipts,
+      main: `<div class="hv-pt"><h1 class="hv-h1">${t.receipts}</h1><p class="hv-sub">${t.rcP}</p></div>`
+        + (rcErr ? `<p class="hv-empty">${t.rcErr}</p>` : !receipts ? '' : list.length ? `<div class="hv-rcs">${list.map(rc).join('')}</div>` : `<p class="hv-empty">${t.rcNone}</p>`) };
+  };
+  VIEWS.privacy = () => ({ title: t.account, docTitle: t.privSet,
+    main: `<h1 class="hv-h1">${t.privSet}</h1>
+      <div class="hv-pr"><h2>${t.prKeepH}</h2><p>${t.prKeep}</p><h2>${t.prSeeH}</h2><p>${t.prSee}</p><h2>${t.prCopyH}</h2><p>${t.prCopy}</p></div>
+      <div class="hv-lines flat" style="margin-top:14px"><a class="hv-line" ${teamLink(t.prCopyWa)}><span class="l">${t.prCopyB}</span>${chev()}</a>
+      <a class="hv-line" href="delete-account.html"><span class="l">${t.deleteMine}</span>${chev()}</a><a class="hv-line" href="privacy.html?lang=${lang}"><span class="l">${t.privacy}</span>${chev()}</a></div>` });
 });
 </script>
 </body>

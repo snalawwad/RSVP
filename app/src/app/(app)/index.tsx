@@ -13,7 +13,7 @@ import { BrandBar, Busy, Button, Icon, PageTitle, Panel, Txt } from '../../compo
 import { MainTabBar, TopIcons } from '../../components/MainTabBar';
 import { listGuests, type Guest } from '../../lib/api';
 import { myEvents, myInvites, myProfile, saveProfile } from '../../lib/api7';
-import { daysTo, fmtTime, kwDay, kwParts, shortDate } from '../../lib/format';
+import { dayMon, daysTo, fmtTime, kwDay, kwParts, shortDate } from '../../lib/format';
 import { peopleComing } from '../../lib/guests';
 import { KEYS, kv } from '../../lib/storage';
 import { supabase } from '../../lib/supabase';
@@ -214,11 +214,21 @@ function whenLine(iso: string | null, venue: string | null | undefined, lang: La
   return [iso ? nb(fmtTime(iso, lang)) : noDate, venue || ''].filter(Boolean).join(' · ');
 }
 
+/** "Dana S" · "Dana S and Sara M" · "A, B and C"; Arabic «دانة وسارة» (و joined to an Arabic name, spaced before a Latin one). */
+function joinNames(list: string[], lang: Lang) {
+  const n = list.map((x) => String(x || '').trim()).filter(Boolean);
+  if (n.length < 2) return n[0] || '';
+  const head = n.slice(0, -1).join(lang === 'ar' ? '، ' : ', '), last = n[n.length - 1];
+  return lang === 'ar' ? `${head} ${isAr(last) ? 'و' : 'و '}${last}` : `${head} and ${last}`;
+}
+
 function EventCard({ e }: { e: MyEvent }) {
   const { t, lang } = useApp();
   const A = t.a;
   const name = evName(e, lang);
-  const sub = whenLine(e.starts_at, e.venue, lang, t.noDate);
+  // Figma 24g: "With Dana S" (the event's other hosts and co-hosts) when there are any, else the time and venue
+  const others = joinNames(e.with ?? [], lang);
+  const sub = others ? A.withNames(others) : whenLine(e.starts_at, e.venue, lang, t.noDate);
   const draft = e.status === 'draft';
   const n = e.counts;
   const meta = draft ? A.stillSetting
@@ -234,9 +244,13 @@ function EventCard({ e }: { e: MyEvent }) {
 function InviteCard({ i }: { i: MyInvite }) {
   const { t, lang } = useApp();
   const A = t.a;
-  const sub = whenLine(i.event.starts_at, i.event.venue, lang, t.noDate);
-  const n = i.confirmed_count || i.seats || 1;
-  const meta = i.status === 'yes' ? (i.past ? A.youWent : A.youComing(n)) : i.status === 'no' ? A.youCant : i.past ? A.youMissed : A.waitingReply;
+  // Figma 24g: "From the Al Sabah family" / "From Lulwa M" (the invite line), else the time and venue
+  const from = (i.event.invite_line || '').trim();
+  const sub = from ? A.fromLine(lang === 'en' ? from.replace(/^The\s/, 'the ') : from) : whenLine(i.event.starts_at, i.event.venue, lang, t.noDate);
+  // "You’re coming" · "Reply by 20 Dec" (until that day ends, Kuwait time) · else as before
+  const rb = i.event.reply_by;
+  const meta = i.status === 'yes' ? (i.past ? A.youWent : A.youComingShort) : i.status === 'no' ? A.youCant : i.past ? A.youMissed
+    : rb && (daysTo(rb) ?? -1) >= 0 ? A.replyBy(dayMon(rb, lang)) : A.waitingReply;
   const d = daysTo(i.event.starts_at);
   return <Card iso={i.event.starts_at} title={i.event.title} sub={sub} meta={meta} metaTone={i.status === 'pending' && !i.past ? 'plum' : 'ink'}
     onPress={() => router.push({ pathname: '/invite/[token]', params: { token: i.token } })}

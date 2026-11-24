@@ -1,5 +1,6 @@
 // Account (Figma 24b Account 17:2187 and G10b 143:4048): name, phone or email, language (Arabic or English, right to
-// left for Arabic), colours (Light / Dark / Auto), Help, WhatsApp us, Privacy policy, Terms, Log out, and Delete account
+// left for Arabic), notifications (the dot on the bell), colours (Light / Dark / Auto), Privacy settings, Privacy
+// policy, Terms, Log out, and Delete account
 // (Apple 5.1.1(v): the account can be deleted inside the app; the delete-account function does the work).
 // Opening Help, Privacy and Terms is fine: none of them sells anything.
 import { router } from 'expo-router';
@@ -10,10 +11,11 @@ import Constants from 'expo-constants';
 import { Button, Field, PageTitle, Screen, Sheet, Txt, useToast } from '../../components';
 import { ListHead, ListLine } from '../../components/ListLine';
 import { showPhone } from '../../lib/phone';
-import { signOut } from '../../lib/api';
-import { myProfile, saveProfile } from '../../lib/api7';
+import { signOut, why } from '../../lib/api';
+import { myProfile, saveProfile, setNotify } from '../../lib/api7';
 import { links } from '../../lib/config';
 import { haptics } from '../../lib/haptics';
+import { setNotifyShown } from '../../lib/notify';
 import type { Profile } from '../../lib/types7';
 import { useApp } from '../../providers/AppProvider';
 import { fonts, type ThemePref } from '../../theme/tokens';
@@ -32,7 +34,11 @@ export default function Account() {
 
   useEffect(() => {
     let off = false;
-    myProfile().then((r) => { if (!off && r.data) { setProf(r.data); setV7(true); } });
+    myProfile().then((r) => {
+      if (off || !r.data) return;
+      setProf(r.data); setV7(true);
+      if (typeof r.data.notify === 'boolean') setNotifyShown(r.data.notify);
+    });
     return () => { off = true; };
   }, []);
 
@@ -44,6 +50,19 @@ export default function Account() {
     setBusy(false);
     if (r.error || !r.data) { toast(t.host.cantSave('other')); return; }
     setProf(r.data); setEditing(false); toast(A.saved); haptics.success();
+  }
+  // Notifications: switched at once, put back if the save fails
+  const notifyOn = prof?.notify !== false;
+  async function toggleNotify() {
+    if (!prof || typeof prof.notify !== 'boolean') return;
+    const next = !notifyOn;
+    haptics.tap();
+    setProf((p) => (p ? { ...p, notify: next } : p)); setNotifyShown(next);
+    const r = await setNotify(next);
+    if (r.error) {
+      setProf((p) => (p ? { ...p, notify: !next } : p)); setNotifyShown(!next);
+      toast(t.host.cantSave(why(r.error))); haptics.error();
+    }
   }
   async function logOut() { setOut(true); haptics.tap(); await signOut(); }
 
@@ -72,8 +91,7 @@ export default function Account() {
     <Screen gap={14} edges={['left', 'right', 'bottom']} testID="menu">
       <PageTitle testID="account-title">{A.account}</PageTitle>
       {/* Figma 24b (22 Nov evening): Your details · Preferences · Privacy · About, then Log out and the version.
-          Notifications, Payments and Privacy settings in the frame are left out: the app sends no notifications yet,
-          takes no payments (Apple), and has no privacy switches to show. */}
+          Notifications here means the dot on the bell (the app sends no push notifications). */}
       <View>
         <ListHead>{A.secDetails}</ListHead>
         <ListLine label={A.name} value={prof?.name || A.notSet} onPress={v7 ? () => { setName(prof?.name || ''); setEditing(true); } : undefined} testID="acc-name" />
@@ -83,6 +101,9 @@ export default function Account() {
       <View>
         <ListHead>{A.secPrefs}</ListHead>
         <ListLine label={A.language} value={langName} onPress={() => setLang(lang === 'ar' ? 'en' : 'ar')} testID="menu-lang" />
+        {typeof prof?.notify === 'boolean' ? (
+          <ListLine label={A.notifications} sub={A.notifyP} value={notifyOn ? A.notifyOn : A.notifyOff} onPress={toggleNotify} testID="acc-notify" />
+        ) : null}
         <View testID="menu-theme" style={{ paddingVertical: 16, gap: 14 }}>
           <Txt v="body">{A.appearance}</Txt>
           <View style={{ flexDirection: 'row', gap: 10 }} accessibilityRole="radiogroup" accessibilityLabel={A.appearance}>
@@ -91,8 +112,11 @@ export default function Account() {
         </View>
         {Platform.OS !== 'web' ? <Txt v="small" tone="muted">{t.languageRestart}</Txt> : null}
       </View>
+      {/* Figma 24b has a Payments section here (Payment methods "KNET", Receipts). Left out on purpose: the iPhone app
+          shows no payment surfaces at all (Apple; owner's decision). Payments live on the website only. */}
       <View>
         <ListHead>{A.secPrivacy}</ListHead>
+        <ListLine label={A.privSettings} onPress={() => router.push('/privacy' as never)} testID="acc-privacy-settings" />
         <ListLine label={A.deleteMine} onPress={() => router.push('/delete-account')} last testID="delete-account" />
       </View>
       <View>

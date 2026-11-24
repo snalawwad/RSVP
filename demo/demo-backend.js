@@ -5,11 +5,12 @@
   'use strict';
   var API = 'https://mock.supabase.test';
   var PGLITE = null;   // set below: our own copy (Safari won't load its add-ons from another site)
-  var DB_NAME = 'idb://sina-demo-v8', FLAG = 'sina-demo-v8-ready';
+  var DB_NAME = 'idb://sina-demo-v9', FLAG = 'sina-demo-v9-ready';
   var HERE = (document.currentScript && document.currentScript.src) || location.href;
   var BASE = HERE.replace(/[^/]*$/, '');                       // …/RSVP/demo/
-  var DEMO_EMAIL = 'host@sina.test';
-  window.SINA_DEMO = { email: DEMO_EMAIL };   // auth.js: Log in goes straight in, no email or code
+  var DEMO_EMAIL = 'dana@example.com', DEMO_PHONE = '96590000101';   // the sample host, Dana S (Sama's frames)
+  window.SINA_DEMO = { email: DEMO_EMAIL };
+  function demoWho(email) { return String(email || '').toLowerCase() === DEMO_EMAIL ? { email: DEMO_EMAIL, phone: DEMO_PHONE } : email; }   // Dana logs in with both, so her own invites show too   // auth.js: Log in goes straight in, no email or code
   PGLITE = BASE + 'pglite/';
 
   // ---------- tokens (same shape the real server gives) ----------
@@ -31,8 +32,8 @@
 
   // ---------- reset, and signed in from the start ----------
   try {
-    if (/[?&]reset=1/.test(location.search)) { localStorage.removeItem(FLAG); localStorage.removeItem('sb-mock-auth-token'); indexedDB.deleteDatabase('/pglite/sina-demo-v8'); }
-    if (!localStorage.getItem('sb-mock-auth-token')) localStorage.setItem('sb-mock-auth-token', JSON.stringify(sessionFor(DEMO_EMAIL)));
+    if (/[?&]reset=1/.test(location.search)) { localStorage.removeItem(FLAG); localStorage.removeItem('sb-mock-auth-token'); indexedDB.deleteDatabase('/pglite/sina-demo-v9'); }
+    if (!localStorage.getItem('sb-mock-auth-token') || !localStorage.getItem(FLAG)) localStorage.setItem('sb-mock-auth-token', JSON.stringify(sessionFor(demoWho(DEMO_EMAIL))));   // new sample data: signed in as its host again
   } catch (e) {}
 
   // ---------- the database (in this browser) ----------
@@ -42,14 +43,14 @@
     var opts = { extensions: { pgcrypto: crypto_.pgcrypto }, relaxedDurability: false };   // save every change before the next page opens
     var fresh = true; try { fresh = !localStorage.getItem(FLAG); } catch (e) {}
     if (fresh) {
-      var res = await fetch(BASE + 'demo-db.tar.gz?v=8');
+      var res = await fetch(BASE + 'demo-db.tar.gz?v=9');
       opts.loadDataDir = await res.blob();
-      try { indexedDB.deleteDatabase('/pglite/sina-demo-v8'); indexedDB.deleteDatabase('/pglite/sina-demo-v7'); localStorage.removeItem('sina-demo-v7-ready'); indexedDB.deleteDatabase('/pglite/sina-demo-v1'); indexedDB.deleteDatabase('/pglite/sina-demo-v2'); indexedDB.deleteDatabase('/pglite/sina-demo-v3'); indexedDB.deleteDatabase('/pglite/sina-demo-v4'); indexedDB.deleteDatabase('/pglite/sina-demo-v5'); localStorage.removeItem('sina-demo-v1-ready'); localStorage.removeItem('sina-demo-v2-ready'); localStorage.removeItem('sina-demo-v3-ready'); localStorage.removeItem('sina-demo-v4-ready'); localStorage.removeItem('sina-demo-v5-ready'); } catch (e) {}
+      try { indexedDB.deleteDatabase('/pglite/sina-demo-v9'); indexedDB.deleteDatabase('/pglite/sina-demo-v8'); localStorage.removeItem('sina-demo-v8-ready'); indexedDB.deleteDatabase('/pglite/sina-demo-v7'); localStorage.removeItem('sina-demo-v7-ready'); indexedDB.deleteDatabase('/pglite/sina-demo-v1'); indexedDB.deleteDatabase('/pglite/sina-demo-v2'); indexedDB.deleteDatabase('/pglite/sina-demo-v3'); indexedDB.deleteDatabase('/pglite/sina-demo-v4'); indexedDB.deleteDatabase('/pglite/sina-demo-v5'); localStorage.removeItem('sina-demo-v1-ready'); localStorage.removeItem('sina-demo-v2-ready'); localStorage.removeItem('sina-demo-v3-ready'); localStorage.removeItem('sina-demo-v4-ready'); localStorage.removeItem('sina-demo-v5-ready'); } catch (e) {}
     }
     var db;
     try { db = await mod.PGlite.create(DB_NAME, opts); }
     catch (e) {   // private browsing or no storage: keep it in memory for this page
-      if (!opts.loadDataDir) opts.loadDataDir = await (await fetch(BASE + 'demo-db.tar.gz?v=8')).blob();
+      if (!opts.loadDataDir) opts.loadDataDir = await (await fetch(BASE + 'demo-db.tar.gz?v=9')).blob();
       db = await mod.PGlite.create(opts);
     }
     try { await db.query('select demo.shift_clock()'); } catch (e) { console.warn('demo clock', e); }   // keep "tonight" tonight
@@ -61,8 +62,11 @@
   var q = Promise.resolve();
   function serial(fn) { q = q.then(fn, fn); return q; }
 
+  // the back office (admin.html) runs as the team's admin account; everywhere else Dana is a plain host, as in Sama's frames
+  var ADMIN_PAGE = /\/admin\.html$/.test(location.pathname), ADMIN = userOf('admin@sina.test');
   async function asRole(db, auth, fn) {
     var c = claimsOf(auth), email = c.email || null, phone = c.phone || null, sub = (email || phone) ? (c.sub || null) : null;
+    if (ADMIN_PAGE && email === DEMO_EMAIL) { email = ADMIN.email; phone = null; sub = ADMIN.sub; }
     await db.query('reset role');
     await db.query('update auth.ctx set email = $1, phone = $2, sub = $3', [email, phone, sub]);
     if (sub) await db.query('insert into auth.users(id, email, phone) values ($1, $2, $3) on conflict (id) do nothing', [sub, email, phone]);
@@ -126,9 +130,9 @@
   async function other(db, url, method, headers, body) {
     var p = new URL(url).pathname;
     if (p === '/auth/v1/otp') return { status: 200, json: {} };
-    if (p === '/auth/v1/verify') return { status: 200, json: sessionFor(body && body.phone ? { phone: String(body.phone).replace(/\D/g, '') } : (body && body.email) || DEMO_EMAIL) };
+    if (p === '/auth/v1/verify') return { status: 200, json: sessionFor(body && body.phone ? { phone: String(body.phone).replace(/\D/g, '') } : demoWho((body && body.email) || DEMO_EMAIL)) };
     if (p === '/auth/v1/user') { var c = claimsOf(headers.authorization); return c.email || c.phone ? { status: 200, json: sessionFor({ email: c.email, phone: c.phone, sub: c.sub }).user } : { status: 401, json: { msg: 'no' } }; }
-    if (p === '/auth/v1/token') { var who = String((body && body.refresh_token) || '').replace(/^demo-/, '') || DEMO_EMAIL; return { status: 200, json: sessionFor(/@/.test(who) ? who : { phone: who }) }; }
+    if (p === '/auth/v1/token') { var who = String((body && body.refresh_token) || '').replace(/^demo-/, '') || DEMO_EMAIL; return { status: 200, json: sessionFor(/@/.test(who) ? demoWho(who) : { phone: who }) }; }
     if (p === '/auth/v1/logout') return { status: 204, json: null };
     if (p === '/functions/v1/checkout') return { status: 200, json: { url: BASE + 'web/pay.html?order=' + body.order_id, mode: 'test', order_id: body.order_id } };
     if (p === '/functions/v1/checkout-test') {

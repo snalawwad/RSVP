@@ -1,5 +1,5 @@
 // Add more people (Figma 24l 237:3657; host.html #addSheet): one guest (name, phone number, "Just them" or "They can
-// bring people" and how many more, the group), or a pasted list (one guest per line). "Add and send invite" goes
+// bring people" and how many more, the group, a note such as "Bride’s mum"), or a pasted list (one guest per line). "Add and send invite" goes
 // straight into the one-by-one send. Within the package only: when the list is full it says so, with no upsell and no
 // link (Apple: the app takes no payment).
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
@@ -35,6 +35,7 @@ export function AddSheet() {
   const [phone, setPhone] = useState('');
   const [seats, setSeats] = useState(1);
   const [side, setSide] = useState('');
+  const [note, setNote] = useState('');
   const [sideAuto, setSideAuto] = useState(false);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState<'' | 'save' | 'send' | 'bulk'>('');
@@ -67,11 +68,11 @@ export function AddSheet() {
     if (ph.length < 10) { fail(T.short); return; }
     if (h.ev?.invite_limit != null && sumSeats(h.guests) + n > h.ev.invite_limit) { fail(T.noPkg); return; }
     setBusy(andSend ? 'send' : 'save');
-    const { data, error } = await addGuest({ event_id: h.id, name: nm, phone: ph, seats: n, side: gSide });
+    const { data, error } = await addGuest({ event_id: h.id, name: nm, phone: ph, seats: n, side: gSide, note: note.trim().slice(0, 200) || null });
     setBusy('');
     if (error || !data) { fail(error?.code === '23505' ? T.dupNum : overLimit(error) ? T.noPkg : T.addOneErr); return; }
     h.selfIds.current.add(data.id); h.markFresh(data.id);
-    setName(''); setPhone(''); setSide(''); setSideAuto(false); setSeats(1);
+    setName(''); setPhone(''); setSide(''); setNote(''); setSideAuto(false); setSeats(1);
     h.closeAdd();
     h.setFilter('all'); h.setQuery('');
     await h.reload();
@@ -142,6 +143,8 @@ export function AddSheet() {
               ) : null}
             </View>
           ) : null}
+          {/* Figma 24l: under Group. Only the hosts see it (co-hosts and door staff never get it). */}
+          <Field label={A.noteOpt} value={note} onChangeText={setNote} placeholder={A.notePh} maxLength={200} testID="add-note" />
           {err ? (
             <View accessibilityRole="alert" testID="add-err" style={{ paddingHorizontal: space[3], paddingVertical: 10, borderRadius: radius.m, backgroundColor: c.noBg }}>
               <Txt v="label" tone="no">{err}</Txt>

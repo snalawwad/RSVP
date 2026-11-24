@@ -1,11 +1,13 @@
 // Calls from 0007_self_serve (docs/launch/SPEC.md "Database contract"). Each one has a fallback for a database
 // that doesn't have 0007 yet (the live pilot today), so the app keeps working: events come the old way, a guest
 // with an email login has no invitations, and the profile is empty.
-// The app never calls a payment, package or change-request function (Apple: no purchases in the app).
+// The app never calls a payment, package or change-request function (Apple: no purchases in the app). The one
+// exception is approving a draft that is already paid for (0010): approve_change_v2 (the change was paid when it was
+// asked for) and approve_design_v2 only when the event's package includes design (then the order is free and paid at once).
 import { isAdmin, loadHostHome, missingFn, wrap, type Res } from './api';
 import { supabase } from './supabase';
 import type { EventRow, GuestStatus } from './types';
-import type { CohostGuest, InviteView, MyEvent, MyInvite, PackageRow, Profile } from './types7';
+import type { CohostGuest, HostRequest, InviteView, MyEvent, MyInvite, PackageRow, Profile } from './types7';
 
 type Head = Pick<EventRow, 'id' | 'title' | 'headline' | 'starts_at' | 'ends_at' | 'venue' | 'lang' | 'invite_limit' | 'card_image_url'>;
 
@@ -57,6 +59,8 @@ export async function myProfile(): Promise<Res<Profile>> {
   if (r.error && missingFn(r.error)) return { data: null, error: null };
   return r;
 }
+/** Notifications on or off (0010): the dot on the bell. Returns the profile. */
+export const setNotify = (on: boolean) => wrap<Profile>(supabase.rpc('set_notify_v2', { p_on: on }));
 /** Name and an optional contact email. Access always comes from the login itself. */
 export const saveProfile = (name: string, email: string | null) => wrap<Profile>(supabase.rpc('save_profile_v2', { p_name: name, p_email: email || null }));
 
@@ -87,6 +91,22 @@ export async function hasEventRequest(eventId: string): Promise<boolean> {
   const r = await wrap<{ kind: string; status: string }[]>(supabase.rpc('event_requests_v2', { p_event: eventId }));
   return !r.error && Array.isArray(r.data) && r.data.some((x) => x.kind === 'event' && x.status !== 'cancelled');
 }
+
+/** What the host asked our team for on this event (event_requests_v2), newest first. Main hosts only; [] before 0007. */
+export async function eventRequests(eventId: string): Promise<Res<HostRequest[]>> {
+  const r = await wrap<HostRequest[]>(supabase.rpc('event_requests_v2', { p_event: eventId }));
+  if (r.error && missingFn(r.error)) return { data: [], error: null };
+  return { ...r, data: r.error ? null : Array.isArray(r.data) ? r.data : [] };
+}
+/** A draft our team sent, waiting for the host's yes. */
+export const needsReview = (r: HostRequest) => (r.kind === 'change' || r.kind === 'design') && r.status === 'draft_sent';
+/** Approve a paid change's draft (0010). Free: the change was paid for when it was asked for. Errors: NO_DRAFT_YET, Not allowed. */
+export const approveChange = (id: string) => wrap<{ id: string; status: string; already: boolean }>(supabase.rpc('approve_change_v2', { p_request: id }));
+/**
+ * Approve a design draft. ONLY call this when the event's package includes design: the database then makes the order
+ * free and paid at once. Otherwise it would start a payment, and the app never takes one (Apple; owner's decision).
+ */
+export const approveIncludedDesign = (id: string) => wrap<string>(supabase.rpc('approve_design_v2', { p_request: id, p_method: 'knet' }));
 
 /** Delete an event (main host or admin, 0009). Guests, replies and check-ins go with it; the team keeps a copy of payments. */
 export const deleteEvent = (id: string) => wrap<{ ok: boolean; guests: number }>(supabase.rpc('delete_event_v2', { p_event: id }));

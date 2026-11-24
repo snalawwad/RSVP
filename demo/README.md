@@ -15,3 +15,9 @@ Rebuild after changes (from the session test rig):
    `<script src="/RSVP/demo/demo-backend.js"></script>` first in `<head>` and copy `index.html` to `/404.html`.
 3. `web/`: copy the site pages, set `config.js` `SUPABASE_URL` to `https://mock.supabase.test` and
    `SITE_URL` to `…/demo/web`, and add the same script tag first in every page's `<head>`.
+
+Sample content follows Sama's frames (24 Nov): host Dana S (dana@example.com, +965 9000 0101, signed in with both so her
+own invitations show), tonight's Dana & Mohammad engagement with her 23-invite guest list, S Ghabga, Lulwa’s graduation
+and Noor & Khaled under "Invited to", and a paid change whose new version waits for approval. Surnames are swapped
+(Al Awwad → S, Al G → M). The back office (admin.html) runs as admin@sina.test, so Dana is a plain host everywhere else.
+`card.jpg` and `demo-draft.jpg` are neutral sample cards (never the pilot's card).

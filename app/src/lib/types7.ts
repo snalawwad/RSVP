@@ -28,6 +28,8 @@ export type MyEvent = {
   invite_limit?: number | null;
   paid_at?: string | null;
   counts?: { invited: number; invited_people?: number; yes: number; yes_people: number; no: number; no_reply: number; arrived: number } | null;
+  /** the names of the event's other hosts and co-hosts, never yourself; empty for door staff (0010, Figma 24g "With Dana S") */
+  with?: string[];
 };
 
 /** my_invites_v2() item: an invitation sent to this login's phone number. */
@@ -38,10 +40,17 @@ export type MyInvite = {
   confirmed_count: number | null;
   responded_at: string | null;
   past: boolean;
-  event: { title: string; starts_at: string | null; venue: string | null; map_url?: string | null; card_image_url?: string | null; lang?: string | null };
+  event: {
+    title: string; starts_at: string | null; venue: string | null; map_url?: string | null; card_image_url?: string | null; lang?: string | null;
+    /** "The Al Sabah family" (0010, Figma 24g "From the Al Sabah family") */
+    invite_line?: string | null;
+    /** the event's reply-by date (0010, Figma 24g "Reply by 20 Dec") */
+    reply_by?: string | null;
+  };
 };
 
-export type Profile = { user_id?: string; name: string | null; phone: string | null; email: string | null; is_admin?: boolean };
+/** notify: the dot on the bell (0010, Figma 24b Notifications); missing before 0010 */
+export type Profile = { user_id?: string; name: string | null; phone: string | null; email: string | null; is_admin?: boolean; notify?: boolean };
 
 /** cohost_guests_v2 row: never a phone number or a link. */
 export type CohostGuest = {
@@ -66,3 +75,11 @@ export type InviteView = {
 
 /** packages row (read-only in the app: it never sells one) */
 export type PackageRow = { code: string; name_en: string; name_ar: string; invite_limit: number; door_included: boolean; design_included: boolean };
+
+/** event_requests_v2 item: what the host asked our team for. A draft to approve has status 'draft_sent' and a draft_url (0010). */
+export type HostRequest = {
+  kind: 'change' | 'design' | 'event'; id: string; event_id: string; status: string; created_at: string;
+  /** change: what to change · design: the idea */
+  what?: string | null; idea?: string | null; wording?: string | null; colours?: string | null;
+  draft_url?: string | null; order_id?: string | null;
+};

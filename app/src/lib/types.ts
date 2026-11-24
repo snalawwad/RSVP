@@ -60,6 +60,8 @@ export type Guest = {
   created_at: string;
   source: string;
   confirmed_count?: number | null;
+  /** the host's own note, e.g. "Bride’s mum" (0010, Figma 24l; ≤200, hosts only: co-hosts never get it) */
+  note?: string | null;
 };
 /** legacy name */
 export type GuestRow = Guest;

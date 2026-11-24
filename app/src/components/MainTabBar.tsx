@@ -2,6 +2,7 @@
 // Updates (bell, with a dot for new replies) and Account (person) sit as round icons at the top of Home and Support.
 import { router } from 'expo-router';
 import { View } from 'react-native';
+import { useNotifyOn } from '../lib/notify';
 import { useUnreadUpdates } from '../lib/updates';
 import { useApp } from '../providers/AppProvider';
 import { radius } from '../theme/tokens';
@@ -32,10 +33,12 @@ export function MainTabBar({ active, onEvent = false }: { active: MainTab; onEve
   );
 }
 
-/** Top-right icons (Figma 24g): Updates (bell, plum dot when there are new replies) and Account. */
+/** Top-right icons (Figma 24g): Updates (bell, plum dot when there are new replies or a draft to approve) and Account.
+ *  Notifications off (Account, 24b): no dot. */
 export function TopIcons() {
   const { t, c, email } = useApp();
-  const n = useUnreadUpdates(email);
+  const unread = useUnreadUpdates(email);
+  const n = useNotifyOn() ? unread : 0;
   const btn = (icon: 'bell' | 'person', label: string, path: string, dot: boolean, testID: string) => (
     <PressScale kind="chip" accessibilityRole="button" accessibilityLabel={dot ? `${label} (${n})` : label} hitSlop={4} onPress={() => router.push(path as never)} testID={testID}
       style={{ width: 36, height: 36, borderRadius: radius.pill, backgroundColor: c.surface, alignItems: 'center', justifyContent: 'center' }}>

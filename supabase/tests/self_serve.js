@@ -296,7 +296,7 @@ module.exports = async function selfServe({ c, ok, as, repo }) {
     T('admin_mark_paid_v2: the team marks an order paid by hand (gateway manual); Basic + door opens with 50 invites'));
   j = await val(A, `public.admin_set_package_v2($1,'plus',true)`, [EM]); ok(j.package === 'plus' && j.door_addon === false && j.invite_limit === 150, T('admin_set_package_v2: fixes the package by hand'));
   j = await val(A, `public.admin_set_request_v2('change',$1,'done')`, [cr.id]); ok(j.status === 'done' && j.done_at, T('admin_set_request_v2: a change is done'));
-  ok(/BAD_STATUS/.test(await err(val(A, `public.admin_set_request_v2('change',$1,'approved')`, [cr.id]))), T('admin_set_request_v2: wrong status refused'));
+  ok(/BAD_STATUS/.test(await err(val(A, `public.admin_set_request_v2('change',$1,'shipped')`, [cr.id]))), T('admin_set_request_v2: wrong status refused'));
 
   // ---------- 13. guests with an account ----------
   const past = await one(`insert into public.events(title, starts_at, status) values ('Past party', now() - interval '10 days', 'active') returning id`);
