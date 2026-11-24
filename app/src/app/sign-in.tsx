@@ -63,7 +63,16 @@ export default function SignIn() {
     return !Object.keys(e).length;
   }
 
+  // the demo: no email, no code — in as the sample host (Dana) straight away
+  async function demoIn() {
+    if (busy) return;
+    setBusy(true);
+    await supabase.auth.verifyOtp({ email: 'host@sina.test', token: '000000', type: 'email' });
+    setBusy(false);   // the root layout opens the app by itself
+  }
+
   async function send(again = false) {
+    if (config.demo) return demoIn();
     if (busy) return;
     if (!again && !check()) return;
     setBusy(true); setErrs({});
@@ -132,8 +141,8 @@ export default function SignIn() {
           <Txt v="body" tone="muted" center>{A.welcomeP}</Txt>
         </ScrollView>
         <View style={{ paddingHorizontal: space[5], paddingTop: space[3], paddingBottom: space[4], gap: 10 }}>
-          <Button block kind="primary" label={A.logIn} onPress={() => setStep('login')} testID="go-login" />
-          <Button block kind="secondary" label={A.createAccount} onPress={() => setStep('create')} testID="go-create" />
+          <Button block kind="primary" label={A.logIn} onPress={() => (config.demo ? demoIn() : setStep('login'))} busy={config.demo && busy} testID="go-login" />
+          <Button block kind="secondary" label={A.createAccount} onPress={() => (config.demo ? demoIn() : setStep('create'))} testID="go-create" />
         </View>
       </SafeAreaView>
     );

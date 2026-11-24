@@ -11,6 +11,7 @@
 (function () {
   const C = window.CONFIG || {}, sb = App.sb, esc = App.esc;
   const PHONE = !!C.LOGIN_PHONE;
+  const DEMO = window.SINA_DEMO || null;   // set only by demo/demo-backend.js
   const LEN = Math.max(4, Math.min(10, +C.LOGIN_CODE_LENGTH || 6));
   const CODE_LIFE = 10 * 60e3;   // codes last 10 minutes (Figma 03c); after that a failed code reads as expired
   const RESEND_AFTER = 60;       // seconds before "Send a new code" (Supabase allows one code a minute)
@@ -145,7 +146,7 @@
       else if (s.step !== 'welcome' && s.opts.audience !== 'guest') go('welcome');
       else location.href = 'index.html';
     };
-    if (s.step === 'welcome') { $('auSign').onclick = () => go('signup'); $('auLog').onclick = () => go('login'); return; }
+    if (s.step === 'welcome') { $('auSign').onclick = () => DEMO ? demoIn() : go('signup'); $('auLog').onclick = () => DEMO ? demoIn() : go('login'); return; }
     if (s.step === 'signup' || s.step === 'login') {
       const keep = () => { if ($('auName')) s.name = $('auName').value; if ($('auPhone')) s.phoneRaw = $('auPhone').value; if ($('auEmail')) s.email = $('auEmail').value.trim().toLowerCase(); };
       s.el.querySelectorAll('input').forEach(i => i.addEventListener('input', () => { keep(); const e = $('auErr'); if (e) e.hidden = true; }));
@@ -181,7 +182,18 @@
   function go(step) { state.step = step; state.err = null; draw(); const h = state.el.querySelector('h1'); if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); } window.scrollTo(0, 0); }
   function formErr(msg, id) { const e = state.el.querySelector('#auErr'); if (e) { e.textContent = msg; e.hidden = false; } const i = id && state.el.querySelector('#' + id); if (i) { i.classList.add('bad'); i.focus(); } App.toast(msg); }
 
+  // the demo (demo/web, see demo/demo-backend.js): its pretend server takes any login, so skip the email and the code
+  async function demoIn() {
+    const s = state; if (!s || s.busy) return;
+    s.busy = true; s.from = 'login';
+    let r; try { r = await sb.auth.verifyOtp({ email: DEMO.email, token: '000000', type: 'email' }); } catch (e) { r = { error: e }; }
+    s.busy = false;
+    if (r.error || !r.data || !r.data.session) { App.toast(t().sendFail); return; }
+    await finish(r.data.session);
+  }
+
   async function send() {
+    if (DEMO) return demoIn();
     const s = state, T0 = t(), up = s.step === 'signup';
     s.from = s.step;
     if (up && !String(s.name || '').trim()) return formErr(T0.needName, 'auName');

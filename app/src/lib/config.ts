@@ -7,6 +7,8 @@ export const config = {
   supportWhatsApp: process.env.EXPO_PUBLIC_SUPPORT_WHATSAPP ?? '',
   /** log in with a phone number and a WhatsApp code (on once the WhatsApp code hook is switched on); else email code */
   loginPhone: process.env.EXPO_PUBLIC_LOGIN_PHONE === 'true',
+  /** the sample-data demo (demo/app): its pretend server takes any login, so Log in goes straight in as the sample host */
+  demo: /^https:\/\/mock\.supabase\.test/.test(process.env.EXPO_PUBLIC_SUPABASE_URL ?? ''),
 };
 
 export const isConfigured = Boolean(config.supabaseUrl && config.supabaseKey);

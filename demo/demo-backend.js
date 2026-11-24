@@ -9,6 +9,7 @@
   var HERE = (document.currentScript && document.currentScript.src) || location.href;
   var BASE = HERE.replace(/[^/]*$/, '');                       // …/RSVP/demo/
   var DEMO_EMAIL = 'host@sina.test';
+  window.SINA_DEMO = { email: DEMO_EMAIL };   // auth.js: Log in goes straight in, no email or code
   PGLITE = BASE + 'pglite/';
 
   // ---------- tokens (same shape the real server gives) ----------

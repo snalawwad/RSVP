@@ -5,7 +5,7 @@
 
 Everything runs in the visitor's own browser: `demo-backend.js` starts a small Postgres (PGlite)
 from `demo-db.tar.gz` (the repo's database files + sample events) and answers the app's server
-calls. Nobody is asked to log in, payments are the test kind, and nothing reaches the real database.
+calls. Nobody is asked to log in (after "Log out", Log in and Create account go straight back in as the sample host, no email or code), payments are the test kind, and nothing reaches the real database.
 Each browser keeps its own copy; "Demo · start over" (or `?reset=1`) puts the sample data back.
 
 Rebuild after changes (from the session test rig):
